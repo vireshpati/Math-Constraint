@@ -1,0 +1,101 @@
+{
+  "problem_name": "graceful_graph_k2_p3__v0_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 1025.2,
+    "search_space": 262144,
+    "num_variables": 13,
+    "num_constraints": 11,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 72.37,
+    "solve_pct_type": 18.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    2,
+    4,
+    7,
+    3,
+    0,
+    6
+  ],
+  "reasoning": "Found by enumerating possible missed labels (two from 0-6 since 7 is used and only 6 vertices), assigning permutations with x[2]=7 fixed, checking the d[6]=3 constraint on |x[3]-x[5]|, and verifying that the 7 edge differences are exactly {1,2,3,4,5,6,7}. This assignment satisfies all conditions.",
+  "raw_response": null,
+  "cot_trace": "The problem is to find a graceful labeling for the graph G_{2,3}. It's 3 disjoint K_2 cliques, so three pairs of vertices, each pair connected by an edge. Then, each pair of consecutive cliques is con...The graph G_{2,3} consists of three disjoint K_2 cliques, numbered 0 to 2, with each pair of consecutive cliques connected by two edges linking corresponding vertices i (for i=0,1). This creates a structure like a ladder with 6 vertices and 7 edges:3 within the cliques and 4 between them (2 per connection). For graceful labeling, we assign distinct labels from 0 to 7 to the 6 vertices, missing one number, such that the absolute differences on each edge are exactly the numbers 1 through 7, each used once.\n\nThe orderingof vertices is likely clique0's vertices 0 and 1, then clique1's 0 and 1, then clique2's Assistant: The partial assignments are x[2]=7 and d[6]=3. I believe x[i] are the vertex labels for vertices ordered as [clique0v0, clique0 v1, clique1 v0, clique1 v1, clique2 v0, clique2 v1], so x[2] is the label for clique1 v0, set to 7.\n---\nThe graph has 6 vertices and 7 edges, so labels from 0 to 7, missing one number, and edge differences must be 1 through 7, all distinct, so the missing label is the one not used for vertices, but all ...\n---\nThe graph has 6 vertices and 7 edges. For graceful labeling, vertex labels are unique from 0 to m=7? No, standard graceful labeling for graph with m edges uses distinct integers from 0 to m for vertic...The graph G_{2,3} consists of 3 disjoint K_2 cliques, numbered 0 to 2, with each pair of consecutive cliques connected by 2 edges linking corresponding vertices.\n---\nThe code found a solution: [2, 4, 7, 3, 0, 6]\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 5093,
+  "completion_tokens": 4716,
+  "reasoning_tokens": 3617,
+  "cached_tokens": 2176,
+  "cost_usd": 0.0345652,
+  "cost_source": "openrouter",
+  "latency_ms": 62286.850929260254,
+  "tool_dispatch_ms_total": 102.16021537780762,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# vertices: 0:c0v0, 1:c0v1, 2:c1v0=7, 3:c1v1, 4:c2v0, 5:c2v1\n# edges: (0,1), (2,3), (4,5), (0,2), (1,3), (2,4), (3,5)\n# so d6 = abs(x[3]-x[5]) =3\n\nfixed = 7\npos_fixed = 2\ndiff_fixed = 3\nedge_for_d6 = (3,5)\n\nnums = list(range(8))\npossible_miss = list(range(7))  # miss from 0-6 since 7 used\n\nsolutions = []\n\nfor miss in possible_miss:\n    remaining = [n for n in range(8) if n != miss and n != fixed]\n    # remaining 6? Wait no: total choose 6 incl 7, so miss one from 0-6, remaining 6 nums? 0-7 minus miss =7 nums but we need only 6 verts! Wait error.\nprint('debug')"
+      },
+      "ok": true,
+      "latency_ms": 34.63
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# vertices x = [x0, x1, x2=7, x3, x4, x5]\n# edges: intra: (0,1), (2,3), (4,5)\n# inter: (0,2), (1,3), (2,4), (3,5)\n# and |x3 - x5| == 3\n\nvertices = list(range(6))\nfixed_val = 7\nfixed_pos = 2\nfixed_diff = 3\ndiff_edge = (3,5)\n\n# all possible labels 0-7, choose 6 including 7, miss one from 0-6\nmiss_options = list(range(7))\nlabels_pool = list(range(8))\n\nsolutions = []\n\nfor miss in miss_options:\n    used_labels = [l for l in labels_pool if l != miss]\n    # used_labels includes 7, has 7 numbers for 6 verts? No! 0-7 is 8 numbers, miss 1 -> 7 labels for 6 verts? Wrong!\n    print('0-7 is', len(labels_pool))\n    break"
+      },
+      "ok": true,
+      "latency_ms": 31.91
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# vertices: x = [x0,x1,x2,x3,x4,x5], x2 fixed to 7\n# edges list: pairs of indices\nedges = [(0,1), (2,3), (4,5), (0,2), (1,3), (2,4), (3,5)]\nfixed_diff_edge_idx = 6  # last one (3,5), |x3-x5|=3\n\n# all possible labels 0-7, select 6 distinct including 7, i.e. choose which 2 to miss from 0-6\nmiss_combos = list(itertools.combinations(range(7), 2))\n\nsolutions = []\nfor miss in miss_combos:\n    available = [i for i in range(7) if i not in miss] + [7]\n    # now permute these 6 labels on the 6 positions, but fix x2=7, so assign 7 to pos 2, permute the other 5 labels on the other 5 positions\n    other_labels = [l for l in available if l != 7]\n    for perm in itertools.permutations(other_labels):\n        x = [0]*6\n        x[2] = 7\n        idx = 0\n        for i in range(6):\n            if i != 2:\n                x[i] = perm[idx]\n                idx += 1\n        # now check fixed diff\n        if abs(x[3] - x[5]) != 3:\n            continue\n        # compute edge labels\n        edge_labels = [abs(x[u] - x[v]) for u,v in edges]\n        # check if they are exactly 1 through 7\n        if sorted(edge_labels) == list(range(1,8)):\n            solutions.append(x)\n            break  # find one is enough?\n    if solutions:\n        break\n\nprint('Found solutions:', len(solutions))\nif solutions:\n    print(solutions[0])\n    # also print the edge labels for it\n    x = solutions[0]\n    edge_labels = [abs(x[u] - x[v]) for u,v in edges]\n    print('Edge labels:', edge_labels)"
+      },
+      "ok": true,
+      "latency_ms": 35.62
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          2,
+          4,
+          7,
+          3,
+          0,
+          6
+        ],
+        "reasoning": "Found by enumerating possible missed labels (two from 0-6 since 7 is used and only 6 vertices), assigning permutations with x[2]=7 fixed, checking the d[6]=3 constraint on |x[3]-x[5]|, and verifying that the 7 edge differences are exactly {1,2,3,4,5,6,7}. This assignment satisfies all conditions."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

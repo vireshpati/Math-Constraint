@@ -1,0 +1,128 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree4_min_degree4_min_girth4_vertices8__v3_h",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 4,
+    "min_degree": 4,
+    "min_girth": 4,
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 9.9,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 16,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 4.32,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      6,
+      7
+    ]
+  ],
+  "reasoning": "Found a 4-regular graph on 8 vertices with girth \u2265 4 (no triangles) containing the required edges (0,4), (0,7), (2,4). Every vertex has exactly degree 4, and no two adjacent vertices share a common neighbor (verified no triangles exist). The graph has 16 edges total as required for a 4-regular graph on 8 vertices.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,1],[0,3],[0,4],[0,7],[1,2],[1,5],[1,6],[2,3],[2,4],[2,7],[3,5],[3,6],[4,5],[4,6],[5,7],[6,7]],\n    \"reasoning\": \"Found a 4-regular graph on 8 vertices with girth \u2265 4 (no triangles) containing the required edges (0,4), (0,7), (2,4). Every vertex has exactly degree 4, and no two adjacent vertices share a common neighbor (verified no triangles exist). The graph has 16 edges total as required for a 4-regular graph on 8 vertices.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 5054,
+  "completion_tokens": 1449,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.036897,
+  "cost_source": "openrouter",
+  "latency_ms": 19939.84818458557,
+  "tool_dispatch_ms_total": 95.75390815734863,
+  "tool_calls_made": 1,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef check_graph(edges, n=8):\n    # Build adjacency\n    adj = [set() for _ in range(n)]\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # Check degree = 4 for all vertices\n    for i in range(n):\n        if len(adj[i]) != 4:\n            return False, f\"Vertex {i} has degree {len(adj[i])}\"\n    \n    # Check girth >= 4 (no triangles)\n    for u in range(n):\n        for v in adj[u]:\n            for w in adj[v]:\n                if w != u and w in adj[u]:\n                    return False, f\"Triangle: {u}-{v}-{w}\"\n    \n    return True, \"OK\"\n\ndef find_graph():\n    n = 8\n    required = [(0,4), (0,7), (2,4)]\n    \n    # All possible edges\n    all_edges = [(u,v) for u,v in combinations(range(n), 2)]\n    \n    # Remove required edges from candidates\n    candidates = [e for e in all_edges if e not in required]\n    \n    # We need 4*8/2 = 16 edges total, 3 are fixed, need 13 more\n    target = 16\n    need = target - len(required)\n    \n    # Use backtracking with constraint propagation\n    def backtrack(idx, current_edges, degrees):\n        if sum(degrees) == 4 * n:\n            # Check all degrees are exactly 4\n            if all(d == 4 for d in degrees):\n                return current_edges\n            return None\n        \n        # Check if any vertex already exceeds degree 4\n        if any(d > 4 for d in degrees):\n            return None\n        \n        # Check if remaining edges can satisfy degree requirements\n        remaining_needed = sum(4 - d for d in degrees) // 2\n        remaining_available = len(candidates) - idx\n        if remaining_available < remaining_needed:\n            return None\n        \n        if idx >= len(candidates):\n            return None\n        \n        u, v = candidates[idx]\n        \n        # Try adding this edge (if it doesn't create triangle and degrees allow)\n        adj = [set() for _ in range(n)]\n        for a, b in current_edges:\n            adj[a].add(b)\n            adj[b].add(a)\n        \n        # Check if adding (u,v) creates a triangle\n        creates_triangle = bool(adj[u] & adj[v])\n        \n        if not creates_triangle and degrees[u] < 4 and degrees[v] < 4:\n            new_degrees = degrees[:]\n            new_degrees[u] += 1\n            new_degrees[v] += 1\n            result = backtrack(idx+1, current_edges + [(u,v)], new_degrees)\n            if result is not None:\n                return result\n        \n        # Try not adding this edge\n        result = backtrack(idx+1, current_edges, degrees)\n        return result\n    \n    # Initialize with required edges\n    degrees = [0] * n\n    for u, v in required:\n        degrees[u] += 1\n        degrees[v] += 1\n    \n    return backtrack(0, required[:], degrees)\n\nresult = find_graph()\nprint(\"Result:\", result)\nif result:\n    valid, msg = check_graph(result)\n    print(\"Valid:\", valid, msg)\n    print(\"Edges:\", sorted(result))\n"
+      },
+      "ok": true,
+      "latency_ms": 95.75
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

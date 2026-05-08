@@ -1,0 +1,108 @@
+{
+  "problem_name": "queens_n14__v7_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 1143.3,
+    "search_space": 11112006825558016,
+    "num_variables": 14,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 78.01,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    2,
+    0,
+    7,
+    10,
+    4,
+    9,
+    1,
+    13,
+    11,
+    6,
+    8,
+    12,
+    5,
+    3
+  ],
+  "reasoning": "Found a valid 14-queens solution using backtracking with the fixed constraints q[4]=4 and q[6]=1. Each queen is placed in a unique row, column, and no two queens share a diagonal. The solution [2, 0, 7, 10, 4, 9, 1, 13, 11, 6, 8, 12, 5, 3] satisfies all constraints.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5281,
+  "completion_tokens": 1073,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.031938,
+  "cost_source": "openrouter",
+  "latency_ms": 14512.348890304565,
+  "tool_dispatch_ms_total": 71.98023796081543,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef solve_nqueens_with_constraints(n, fixed):\n    \"\"\"Solve N-Queens with fixed queen positions using backtracking.\"\"\"\n    solution = [None] * n\n    \n    # Place fixed queens\n    for row, col in fixed.items():\n        solution[row] = col\n    \n    def is_safe(row, col):\n        for r in range(n):\n            if r == row:\n                continue\n            c = solution[r]\n            if c is None:\n                continue\n            # Same column\n            if c == col:\n                return False\n            # Same diagonal\n            if abs(r - row) == abs(c - col):\n                return False\n        return True\n    \n    def backtrack(row):\n        if row == n:\n            return True\n        \n        # Skip fixed rows\n        if solution[row] is not None:\n            # Verify the fixed placement is safe\n            if not is_safe(row, solution[row]):\n                return False\n            return backtrack(row + 1)\n        \n        for col in range(n):\n            if is_safe(row, col):\n                solution[row] = col\n                if backtrack(row + 1):\n                    return True\n                solution[row] = None\n        \n        return False\n    \n    if backtrack(0):\n        return solution\n    return None\n\n# Fixed constraints\nfixed = {4: 4, 6: 1}\nn = 14\n\nresult = solve_nqueens_with_constraints(n, fixed)\n\nif result:\n    print(\"Solution found:\", result)\n    # Verify solution\n    print(\"\\nVerification:\")\n    valid = True\n    for i in range(n):\n        for j in range(i+1, n):\n            if result[i] == result[j]:\n                print(f\"CONFLICT: rows {i} and {j} same column {result[i]}\")\n                valid = False\n            if abs(i-j) == abs(result[i]-result[j]):\n                print(f\"CONFLICT: rows {i} and {j} on same diagonal\")\n                valid = False\n    if valid:\n        print(\"All queens are safe!\")\n    print(f\"\\nFixed constraints check: q[4]={result[4]}, q[6]={result[6]}\")\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": true,
+      "latency_ms": 39.83
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nresult = [2, 0, 7, 10, 4, 9, 1, 13, 11, 6, 8, 12, 5, 3]\n\nprint(\"Board visualization (Q = queen, . = empty):\")\nprint(\"   \" + \" \".join(str(i) for i in range(14)))\nfor row in range(14):\n    line = f\"{row:2} \"\n    for col in range(14):\n        if result[row] == col:\n            line += \"Q \"\n        else:\n            line += \". \"\n    print(line)\n"
+      },
+      "ok": true,
+      "latency_ms": 32.15
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          2,
+          0,
+          7,
+          10,
+          4,
+          9,
+          1,
+          13,
+          11,
+          6,
+          8,
+          12,
+          5,
+          3
+        ],
+        "reasoning": "Found a valid 14-queens solution using backtracking with the fixed constraints q[4]=4 and q[6]=1. Each queen is placed in a unique row, column, and no two queens share a diagonal. The solution [2, 0, 7, 10, 4, 9, 1, 13, 11, 6, 8, 12, 5, 3] satisfies all constraints."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,98 @@
+{
+  "problem_name": "golomb_n9__v2_nh",
+  "problem_type": "golomb",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 4578.6,
+    "search_space": 167619550409708032,
+    "num_variables": 9,
+    "num_constraints": 5,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 97.18,
+    "solve_pct_type": 75.0
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    5,
+    12,
+    25,
+    27,
+    35,
+    41,
+    44
+  ],
+  "reasoning": "A Golomb ruler with 9 marks exists. The solution [0, 1, 5, 12, 25, 27, 35, 41, 44] has all 36 pairwise distances unique, ranging from 1 to 44 with no duplicates.",
+  "raw_response": null,
+  "cot_trace": " We need to find a Golomb ruler with 9 marks. A Golomb ruler is a set of marks at integer positions such that all pairwise distances are distinct. The first mark is at 0. We need to return a list of 9 integers in increasing order.\n\nWe need to determine if such a ruler exists. Golomb rulers are known to exist for any number of marks. The optimal Golomb ruler for 9 marks is known: marks at 0, 1, 4, 10, 12, 17, 23, 25, 30? Wait, need to verify. Actually, the optimal Golomb ruler for 9 marks has length 44? Let's recall known optimal Golomb rulers:\n\nn=1: 0\nn=2: 0,1\nn=3: 0,1,3\nn=4: 0,1,4,6\nn=5: 0,1,4,9,11\nn=6: 0,1,4,10,12,17\nn=7: 0,1,4,10,12,17,23? Wait, optimal for 7 marks is length 25: marks 0,1,4,10,12,17,23? Let's check distances: 1,3,6,2,5,6? Wait, 10-4=6, 23-17=6, duplicate. So that's not correct.\n\nLet's recall known optimal Golomb rulers:\n\nn=1: 0\nn=2: 0,1\nn=3: 0,1,3\nn=4: 0,1,4,6\nn=5: 0,1,4,9,11\nn=6: 0,1,4,10,12,17\nn=7: 0,1,4,10,12,17,23? No, duplicate 6. Actually optimal for 7 marks is length 25: 0,1,4,10,12,17,23? Let's compute distances: 1,3,6,2,5,6,10,9,7,6,13,12,11,6? Many duplicates. So that's wrong.\n\nLet's look up known optimal Golomb rulers. I recall:\n\nn=7: 0, 1, 4, 10, 12, 17, 23 is not correct. Actually, the optimal 7-mark Golomb ruler is 0, 1, 4, 10, 12, 17, 23? Wait, maybe I'm misremembering. Let's compute distances for 0,1,4,10,12,17,23:\n\nPairs:\n1-0=1\n4-0=4\n4-1=3\n10-0=10\n10-1=9\n10-4=6\n12-0=12\n12-1=11\n12-4=8\n12-10=2\n17-0=17\n17-1=16\n17-4=13\n17-10=7\n17-12=5\n23-0=23\n23-1=22\n23-4=19\n23-10=13 -> duplicate with 17-4=13. So not good.\n\nKnown optimal Golomb rulers (from OEIS A003022):\n\nn=1: 0\nn=2: 0,1\nn=3: 0,1,3\nn=4: 0,1,4,6\nn=5: 0,1,4,9,11\nn=6: 0,1,4,10,12,17\nn=7: 0,1,4,10,12,17,23? No. Let's search memory.\n\nActually, I think the optimal 7-mark Golomb ruler is 0, 1, 4, 10, 12, 17, 23? But we saw duplicate 13. So maybe it's 0,1,4,9,15,22,32? No.\n\nLet's recall: The optimal Golomb ruler for 7 marks has length 25. One such ruler is 0, 1, 4, 10, 12, 17, 23? That has length 23, not 25. Wait, length is max mark. So 23 is length 23. But optimal for 7 is 25? Actually, maybe optimal for 7 is 25, meaning there is no ruler of length 24 or less. But 0,1,4,10,12,17,23 has length 23, but we saw it's not valid. So maybe optimal for 7 is 25, and a valid ruler of length 25 is 0,1,4,10,12,17,25? Let's check distances for 0,1,4,10,12,17,25:\n\n1,4,10,12,17,25\n3,9,11,16,24\n6,8,13,21\n2,7,15\n5,13 -> duplicate 13 (17-4=13, 25-12=13). So no.\n\nAnother candidate: 0,1,4,9,15,22,25? Let's check. Distances: 1,4,9,15,22,25; 3,8,14,21,24; 5,11,18,21? Wait, 22-9=13? Let's compute systematically.\n\nBetter to just use Python to search for a Golomb ruler with 9 marks. Since it's known to exist, we can find one. We don't necessarily need the optimal one; any valid ruler will do. So we can use a simple backtracking search with some heuristics.\n\nWe need 9 marks, first at 0. Let's search for a ruler with marks up to some bound. Known optimal length for 9 marks is 44? Actually, I think optimal for 9 marks is 44. Let me recall: n=8 optimal is 34? n=9 optimal is 44? n=10 optimal is 55? n=11 is 72? n=12 is 85? n=13 is 106? Something like that. So there should be a ruler of length 44.\n\nWe can try to find one via backtracking. Let's write a Python script to search for a Golomb ruler with 9 marks, maybe using known optimal length 44 as upper bound, or just search incrementally.\n\nWe can also use a SAT solver (pysat) but backtracking is fine for n=9.\n\nLet's do a simple recursive search: marks[0]=0. For each next mark, choose a position greater than previous mark, such that all differences with previous marks are unique. We can prune using a set of used differences.\n\nWe can also use heuristic: try positions in some order. Since we just need any solution, we can try to find one with a reasonable bound.\n\nLet's code it in Python.\n---\n The backtracking found a Golomb ruler with 9 marks: [0, 1, 5, 12, 25, 27, 35, 41, 44]. Let me verify that all pairwise distances are unique.\n---\n The solution [0, 1, 5, 12, 25, 27, 35, 41, 44] is a valid Golomb ruler with 9 marks. All 36 pairwise distances are unique. The first mark is at position 0 as required. Let me submit this answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2492,
+  "completion_tokens": 2235,
+  "reasoning_tokens": 1108,
+  "cached_tokens": 1616,
+  "cost_usd": 0.0112927906,
+  "cost_source": "openrouter",
+  "latency_ms": 59337.80264854431,
+  "tool_dispatch_ms_total": 8253.04126739502,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def find_golomb_ruler(n, max_length=100):\n    marks = [0]\n    used_diffs = set()\n    \n    def backtrack():\n        if len(marks) == n:\n            return True\n        # Try next mark position\n        start = marks[-1] + 1\n        # We can set an upper bound based on remaining marks\n        # Simple bound: at least start + (n - len(marks)) more positions\n        # But we also have max_length\n        for pos in range(start, max_length + 1):\n            # Check differences with all existing marks\n            diffs = []\n            valid = True\n            for m in marks:\n                d = pos - m\n                if d in used_diffs:\n                    valid = False\n                    break\n                diffs.append(d)\n            if valid:\n                marks.append(pos)\n                used_diffs.update(diffs)\n                if backtrack():\n                    return True\n                marks.pop()\n                for d in diffs:\n                    used_diffs.remove(d)\n        return False\n    \n    if backtrack():\n        return marks\n    else:\n        return None\n\n# Try to find a ruler with 9 marks\nfor max_len in range(20, 100):\n    ruler = find_golomb_ruler(9, max_len)\n    if ruler:\n        print(\"Found ruler with max length\", max_len)\n        print(ruler)\n        break\nelse:\n    print(\"Not found up to 100\")\n"
+      },
+      "ok": true,
+      "latency_ms": 8219.84
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "ruler = [0, 1, 5, 12, 25, 27, 35, 41, 44]\n\ndiffs = []\nfor i in range(len(ruler)):\n    for j in range(i+1, len(ruler)):\n        diffs.append(ruler[j] - ruler[i])\n\nprint(\"Number of pairwise distances:\", len(diffs))\nprint(\"Number of unique distances:\", len(set(diffs)))\nprint(\"All distances:\", sorted(diffs))\nprint(\"Are all unique?\", len(diffs) == len(set(diffs)))\n"
+      },
+      "ok": true,
+      "latency_ms": 33.21
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          5,
+          12,
+          25,
+          27,
+          35,
+          41,
+          44
+        ],
+        "reasoning": "A Golomb ruler with 9 marks exists. The solution [0, 1, 5, 12, 25, 27, 35, 41, 44] has all 36 pairwise distances unique, ranging from 1 to 44 with no duplicates."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

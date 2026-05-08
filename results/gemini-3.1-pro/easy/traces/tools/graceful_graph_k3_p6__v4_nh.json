@@ -1,0 +1,153 @@
+{
+  "problem_name": "graceful_graph_k3_p6__v4_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1860.4,
+    "search_space": 3686553210602841700043063296,
+    "num_variables": 51,
+    "num_constraints": 37,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.41,
+    "solve_pct_type": 93.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-pro-preview-20260219",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    5,
+    10,
+    18,
+    9,
+    11,
+    29,
+    30,
+    20,
+    6,
+    27,
+    1,
+    33,
+    15,
+    31,
+    0,
+    32,
+    3,
+    25
+  ],
+  "reasoning": "The problem asks for a graceful labeling of the graph $G_{3,6}$, which consists of 6 disjoint $K_3$ cliques connected by parallel edges between consecutive cliques. The graph has 18 vertices and 33 edges. A graceful labeling requires assigning unique integers from 0 to 33 to the vertices such that the absolute differences of the labels of adjacent vertices are all distinct and cover the range 1 to 33.\n\nUsing a SAT solver, we can encode the constraints:\n1. Each vertex gets exactly one label from 0 to 33.\n2. All vertex labels are distinct.\n3. Each edge gets exactly one difference from 1 to 33.\n4. All edge differences are distinct.\n5. The difference for an edge $(u, v)$ is $|label(u) - label(v)|$.\n\nSolving this boolean satisfiability problem yields a valid assignment. One such assignment is:\nClique 0: 5, 10, 18\nClique 1: 9, 11, 29\nClique 2: 30, 20, 6\nClique 3: 27, 1, 33\nClique 4: 15, 31, 0\nClique 5: 32, 3, 25\n\nWe can verify that all 18 labels are distinct and in the range [0, 33]. The 33 edge differences are exactly the integers from 1 to 33.",
+  "raw_response": null,
+  "cot_trace": "**Exploring Graph Labeling**\n\nI'm currently focused on understanding the structure of $G_{3,6}$, specifically how its 6 disjoint $K_3$ cliques are interconnected. My attention is on the edges bridging consecutive cliques, which link vertices of one clique to another, and how this connectivity impacts labeling possibilities.\n\n**Developing Constraint Model**\n\nI'm now focusing on translating the graceful labeling problem for $G_{3,6}$ into a constraint model. My current effort involves defining decision variables for vertex labels and implementing constraints to ensure distinctness and the unique edge label property using the OR-Tools CP-SAT solver.\n\n\n---\n**Considering Solver Options**\n\nI'm now thinking about solution strategies. The Z3 solver timed out, so I'm considering alternatives. I might switch to `pysat` or even write my own backtracking solver in Python. I'm also thinking of maybe breaking symmetry in `z3` and using it with a longer timeout, to potentially circumvent the time issue. Currently, I'm focusing on finding a graceful labeling for $G_{3,6}$.\n\n\n**Refining Symmetry Breaking**\n\nI've refined my approach to symmetry breaking. I've realized vertices within a clique aren't fully symmetric due to their inter-clique connections. However, permutations of vertices *within* each clique are symmetric, so I'll constrain the first clique's vertices with `labels[0] < labels[1] < labels[2]`. I'll also enforce `labels[0] < labels[15]` due to clique sequence symmetry. I'll use a `z3` script with these symmetry constraints and a 60-second timeout.\n\n\n\n---\n**Checking Z3 Output**\n\nI'm currently investigating a `None` return from Z3. My next step is to determine if this signifies a timeout or an unsatisfiable result by examining the `s.check()` output.\n\n\n---\n**Investigating Solver Output**\n\nMy focus is on deciphering the `None` output from the Z3 solver's second run. I'm determining whether this `None` signifies a timeout or a proof of UNSAT, as my script interprets both as `None` when `s.check()` returns UNSAT.\n\n**Clarifying Solver Outcomes**\n\nI've confirmed the `None` output was due to timeouts (`unknown` from Z3), not necessarily UNSAT. I'm now exploring custom backtracking or SAT encoding with PySAT as alternatives.\n\n\n---\n**Exploring Graph Labeling**\n\nI'm currently focused on understanding the structure of $G_{3,6}$, which involves six $K_3$ cliques. My recent thoughts have centered on how the edges connecting consecutive cliques, specifically linking vertex $i$ from clique $g$ to vertex $i$ in clique $g+1$, will impact graceful labeling.\n\n**Formulating SAT Encoding**\n\nI'm currently focusing on the precise encoding for the SAT solver. My latest thoughts involve mapping vertex and edge assignments to boolean variables and defining the constraints that enforce unique vertex labels and distinct edge differences. This includes exploring how to express the difference constraint efficiently.\n\n**Refining SAT Clauses**\n\nMy current focus is on precisely translating the graceful labeling conditions into SAT clauses. I'm exploring the most efficient way to represent edge difference constraints, specifically how to link vertex labels to unique edge difference values.\n\n\n---\n**Exploring Graph Labeling**\n\nI'm currently investigating a graceful labeling for the $G_{3, 6}$ graph. My focus is on understanding the constraints imposed by the connections between consecutive $K_3$ cliques, specifically how edges link vertices across these cliques. This involves analyzing how to assign labels without conflicts, given the structured connectivity.\n\n**Finding Graceful Labeling**\n\nI've successfully employed PySAT to discover a graceful labeling for $G_{3, 6}$. The solver returned a specific vertex labeling, which I am now systematically verifying by calculating all edge differences to ensure they form the set {1, 2, ..., 33}.\n\n**Confirming Graceful Labeling**\n\nI've successfully verified the graceful labeling for $G_{3, 6}$ found by PySAT. All 33 edge differences are distinct and range from 1 to 33, confirming the solution is valid.\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 14722,
+  "completion_tokens": 6771,
+  "reasoning_tokens": 2855,
+  "cached_tokens": 0,
+  "cost_usd": 0.11069599999999999,
+  "cost_source": "openrouter",
+  "latency_ms": 184736.93108558655,
+  "tool_dispatch_ms_total": 86387.89081573486,
+  "tool_calls_made": 7,
+  "tool_rounds": 7,
+  "n_execute_python": 6,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\ndef solve_graceful():\n    model = cp_model.CpModel()\n    \n    # 18 vertices, labels 0..33\n    V = 18\n    E = 33\n    \n    labels = [model.NewIntVar(0, E, f'v_{i}') for i in range(V)]\n    \n    model.AddAllDifferent(labels)\n    \n    edges = []\n    # Cliques\n    for g in range(6):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3 + i, g*3 + j))\n                \n    # Connections\n    for g in range(5):\n        for i in range(3):\n            edges.append((g*3 + i, (g+1)*3 + i))\n            \n    edge_diffs = []\n    for idx, (u, v) in enumerate(edges):\n        diff = model.NewIntVar(1, E, f'e_{idx}')\n        model.AddAbsEquality(diff, labels[u] - labels[v])\n        edge_diffs.append(diff)\n        \n    model.AddAllDifferent(edge_diffs)\n    \n    # Symmetry breaking\n    model.Add(labels[0] < labels[-1])\n    \n    solver = cp_model.CpSolver()\n    solver.parameters.max_time_in_seconds = 45.0\n    status = solver.Solve(model)\n    \n    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n        return [solver.Value(l) for l in labels]\n    else:\n        return None\n\nprint(solve_graceful())\n"
+      },
+      "ok": false,
+      "latency_ms": 33.04
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\n\ndef solve_graceful():\n    V = 18\n    E = 33\n    \n    labels = [Int(f'v_{i}') for i in range(V)]\n    \n    s = Solver()\n    \n    for l in labels:\n        s.add(l >= 0, l <= E)\n        \n    s.add(Distinct(labels))\n    \n    edges = []\n    # Cliques\n    for g in range(6):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3 + i, g*3 + j))\n                \n    # Connections\n    for g in range(5):\n        for i in range(3):\n            edges.append((g*3 + i, (g+1)*3 + i))\n            \n    edge_diffs = []\n    for idx, (u, v) in enumerate(edges):\n        diff = Int(f'e_{idx}')\n        s.add(diff == If(labels[u] > labels[v], labels[u] - labels[v], labels[v] - labels[u]))\n        s.add(diff >= 1, diff <= E)\n        edge_diffs.append(diff)\n        \n    s.add(Distinct(edge_diffs))\n    \n    # Symmetry breaking\n    s.add(labels[0] < labels[-1])\n    \n    s.set(\"timeout\", 45000)\n    if s.check() == sat:\n        m = s.model()\n        return [m.evaluate(l).as_long() for l in labels]\n    else:\n        return None\n\nprint(solve_graceful())\n"
+      },
+      "ok": false,
+      "latency_ms": 15021.75
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\n\ndef solve_graceful():\n    V = 18\n    E = 33\n    \n    labels = [Int(f'v_{i}') for i in range(V)]\n    \n    s = Solver()\n    \n    for l in labels:\n        s.add(l >= 0, l <= E)\n        \n    s.add(Distinct(labels))\n    \n    edges = []\n    # Cliques\n    for g in range(6):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3 + i, g*3 + j))\n                \n    # Connections\n    for g in range(5):\n        for i in range(3):\n            edges.append((g*3 + i, (g+1)*3 + i))\n            \n    edge_diffs = []\n    for idx, (u, v) in enumerate(edges):\n        diff = Int(f'e_{idx}')\n        # s.add(diff == If(labels[u] > labels[v], labels[u] - labels[v], labels[v] - labels[u]))\n        # A bit faster:\n        s.add(Or(diff == labels[u] - labels[v], diff == labels[v] - labels[u]))\n        s.add(diff >= 1, diff <= E)\n        edge_diffs.append(diff)\n        \n    s.add(Distinct(edge_diffs))\n    \n    # Symmetry breaking\n    s.add(labels[0] < labels[1])\n    s.add(labels[1] < labels[2])\n    \n    # Reverse symmetry\n    s.add(labels[0] < labels[15])\n    \n    # Bipartite-like or parity constraints?\n    # Graceful labeling parity constraint:\n    # Sum of edge labels = E*(E+1)/2 = 33*34/2 = 561 (odd)\n    # Sum of edge labels is also congruent to sum of degrees * labels mod 2.\n    # Wait, sum of edge labels = sum of |u - v|. This doesn't easily give a parity constraint.\n    \n    s.set(\"timeout\", 55000)\n    if s.check() == sat:\n        m = s.model()\n        return [m.evaluate(l).as_long() for l in labels]\n    else:\n        return None\n\nprint(solve_graceful())\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 55687.28
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "timeout_seconds": 15,
+        "code": "from z3 import *\n\ndef solve_graceful():\n    V = 18\n    E = 33\n    \n    labels = [Int(f'v_{i}') for i in range(V)]\n    \n    s = Solver()\n    \n    for l in labels:\n        s.add(l >= 0, l <= E)\n        \n    s.add(Distinct(labels))\n    \n    edges = []\n    # Cliques\n    for g in range(6):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3 + i, g*3 + j))\n                \n    # Connections\n    for g in range(5):\n        for i in range(3):\n            edges.append((g*3 + i, (g+1)*3 + i))\n            \n    edge_diffs = []\n    for idx, (u, v) in enumerate(edges):\n        diff = Int(f'e_{idx}')\n        s.add(Or(diff == labels[u] - labels[v], diff == labels[v] - labels[u]))\n        s.add(diff >= 1, diff <= E)\n        edge_diffs.append(diff)\n        \n    s.add(Distinct(edge_diffs))\n    \n    # Symmetry breaking\n    s.add(labels[0] < labels[1])\n    s.add(labels[1] < labels[2])\n    \n    s.set(\"timeout\", 10000)\n    res = s.check()\n    print(\"Result:\", res)\n\nsolve_graceful()\n"
+      },
+      "ok": true,
+      "latency_ms": 10382.73
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys\ntry:\n    import pysat\n    print(\"pysat is available\")\nexcept ImportError:\n    print(\"pysat is NOT available\")\n",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 34.85
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose4\nfrom pysat.card import CardEnc, EncType\nimport time\n\ndef solve_graceful():\n    V = 18\n    E = 33\n    \n    edges = []\n    # Cliques\n    for g in range(6):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3 + i, g*3 + j))\n                \n    # Connections\n    for g in range(5):\n        for i in range(3):\n            edges.append((g*3 + i, (g+1)*3 + i))\n            \n    solver = Glucose4()\n    \n    def var_x(v, l):\n        return v * (E + 1) + l + 1\n        \n    def var_y(e, d):\n        return V * (E + 1) + e * E + d\n        \n    # 1. Each vertex has exactly one label\n    for v in range(V):\n        solver.add_clause([var_x(v, l) for l in range(E + 1)])\n        for l1 in range(E + 1):\n            for l2 in range(l1 + 1, E + 1):\n                solver.add_clause([-var_x(v, l1), -var_x(v, l2)])\n                \n    # 2. Each label is assigned to at most one vertex\n    for l in range(E + 1):\n        for v1 in range(V):\n            for v2 in range(v1 + 1, V):\n                solver.add_clause([-var_x(v1, l), -var_x(v2, l)])\n                \n    # 3. Each edge has exactly one difference\n    for e in range(E):\n        solver.add_clause([var_y(e, d) for d in range(1, E + 1)])\n        for d1 in range(1, E + 1):\n            for d2 in range(d1 + 1, E + 1):\n                solver.add_clause([-var_y(e, d1), -var_y(e, d2)])\n                \n    # 4. Each difference is assigned to exactly one edge\n    for d in range(1, E + 1):\n        solver.add_clause([var_y(e, d) for e in range(E)])\n        for e1 in range(E):\n            for e2 in range(e1 + 1, E):\n                solver.add_clause([-var_y(e1, d), -var_y(e2, d)])\n                \n    # 5. Edge difference relation\n    for e_idx, (u, v) in enumerate(edges):\n        for d in range(1, E + 1):\n            # If y_{e, d} is true, then one of the pairs must be true\n            # y_{e, d} => OR_l (x_{u, l} AND x_{v, l+d}) OR (x_{u, l+d} AND x_{v, l})\n            # This is a bit large to encode directly as CNF.\n            # Let's introduce auxiliary variables for the pairs.\n            pass\n            \n    # Actually, we can just say:\n    # x_{u, l1} AND x_{v, l2} => y_{e, |l1 - l2|}\n    for e_idx, (u, v) in enumerate(edges):\n        for l1 in range(E + 1):\n            for l2 in range(E + 1):\n                if l1 != l2:\n                    d = abs(l1 - l2)\n                    solver.add_clause([-var_x(u, l1), -var_x(v, l2), var_y(e_idx, d)])\n                    \n    # Symmetry breaking\n    # The graph has symmetries.\n    # 1. Reversing the cliques: clique 0 <-> clique 5, etc.\n    # 2. Permuting vertices within a clique? No, the connections between cliques are parallel.\n    # Wait, the connections are (g*3+i, (g+1)*3+i). So we can permute the 3 \"tracks\" across all cliques simultaneously!\n    # Track 0: 0, 3, 6, 9, 12, 15\n    # Track 1: 1, 4, 7, 10, 13, 16\n    # Track 2: 2, 5, 8, 11, 14, 17\n    # We can enforce that label(0) < label(1) < label(2).\n    solver.add_clause([-var_x(0, l1) for l1 in range(E+1)] + [var_x(1, l2) for l2 in range(E+1)]) # Not valid CNF\n    \n    # Let's just add simple symmetry breaking:\n    # label(0) < label(1) < label(2)\n    for l1 in range(E + 1):\n        for l2 in range(l1 + 1):\n            solver.add_clause([-var_x(0, l1), -var_x(1, l2)])\n            solver.add_clause([-var_x(1, l1), -var_x(2, l2)])\n            \n    # Reverse symmetry: label(0) < label(15) (Wait, track 0, clique 0 vs track 0, clique 5)\n    # Actually, reversing the cliques means mapping clique g to 5-g.\n    # But does it preserve the graph? Yes, clique g is connected to g+1.\n    # So we can enforce label(0) < label(15) or something.\n    # Let's just enforce label(0) < label(15)\n    for l1 in range(E + 1):\n        for l2 in range(l1 + 1):\n            solver.add_clause([-var_x(0, l1), -var_x(15, l2)])\n            \n    # Also, graceful labeling has a complement symmetry: L -> E - L.\n    # We can enforce that label(0) < E / 2.\n    for l in range(E // 2 + 1, E + 1):\n        solver.add_clause([-var_x(0, l)])\n        \n    print(\"Solving...\")\n    start = time.time()\n    res = solver.solve()\n    print(\"Solved in\", time.time() - start)\n    \n    if res:\n        model = solver.get_model()\n        labels = [-1] * V\n        for v in range(V):\n            for l in range(E + 1):\n                if var_x(v, l) in model:\n                    labels[v] = l\n        return labels\n    else:\n        return None\n\nprint(solve_graceful())\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 5228.23
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          5,
+          10,
+          18,
+          9,
+          11,
+          29,
+          30,
+          20,
+          6,
+          27,
+          1,
+          33,
+          15,
+          31,
+          0,
+          32,
+          3,
+          25
+        ],
+        "reasoning": "The problem asks for a graceful labeling of the graph $G_{3,6}$, which consists of 6 disjoint $K_3$ cliques connected by parallel edges between consecutive cliques. The graph has 18 vertices and 33 edges. A graceful labeling requires assigning unique integers from 0 to 33 to the vertices such that the absolute differences of the labels of adjacent vertices are all distinct and cover the range 1 to 33.\n\nUsing a SAT solver, we can encode the constraints:\n1. Each vertex gets exactly one label from 0 to 33.\n2. All vertex labels are distinct.\n3. Each edge gets exactly one difference from 1 to 33.\n4. All edge differences are distinct.\n5. The difference for an edge $(u, v)$ is $|label(u) - label(v)|$.\n\nSolving this boolean satisfiability problem yields a valid assignment. One such assignment is:\nClique 0: 5, 10, 18\nClique 1: 9, 11, 29\nClique 2: 30, 20, 6\nClique 3: 27, 1, 33\nClique 4: 15, 31, 0\nClique 5: 32, 3, 25\n\nWe can verify that all 18 labels are distinct and in the range [0, 33]. The 33 edge differences are exactly the integers from 1 to 33."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

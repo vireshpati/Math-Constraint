@@ -1,0 +1,129 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree3_min_degree1_vertices12__v10_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 3,
+    "min_degree": 1,
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 22.5,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 18,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 12.97,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-oss-120b:free",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      2,
+      9
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      2,
+      11
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      0,
+      8
+    ]
+  ],
+  "reasoning": "The fixed edges give vertex 2 degree 3 (max) and vertices 9,10,11 degree 1. Adding a simple 8\u2011vertex cycle among {0,1,3,4,5,6,7,8} gives each of those vertices degree 2, while leaving vertices 9,10,11 at degree 1. All vertices now have degree between 1 and 3, satisfying the constraints.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [\n        [2, 9],\n        [2, 10],\n        [2, 11],\n        [0, 1],\n        [1, 3],\n        [3, 4],\n        [4, 5],\n        [5, 6],\n        [6, 7],\n        [7, 8],\n        [0, 8]\n    ],\n    \"reasoning\": \"The fixed edges give vertex 2 degree 3 (max) and vertices 9,10,11 degree 1. Adding a simple 8\u2011vertex cycle among {0,1,3,4,5,6,7,8} gives each of those vertices degree 2, while leaving vertices 9,10,11 at degree 1. All vertices now have degree between 1 and 3, satisfying the constraints.\"\n}",
+  "cot_trace": "We need a graph 12 vertices, each degree 1-3. Already edges from 2 to 9,10,11 give vertex2 degree 3 already max, so cannot add more incident to 2. Need ensure others degrees 1-3. We can construct simple. Let's try to build using python search.\n---\nThe backtrack returned None? No output. Let's print.\n---\nThe backtrack returned None (no print). Need better search including also adding edges to increase degrees up to 3 maybe after all >=1. Let's brute force using SAT? Use python to search all possible edges combos limited. 12 vertices => 66 possible edges. Too many combos. Use ILP? Use python pulp? Simpler: use backtrack adding edges until all degrees >=1 and <=3, also allow adding extra edges even if all >=1 to satisfy max 3? Actually we can stop when all >=1 and <=3, no need to fill to 3.\n\nOur backtrack may get stuck because after fixing some vertices degree 0, we add edges but may create vertex exceed 3 later. Need full search. Use python with recursion trying all possibilities but prune. Might work.\n\n\n---\nWe didn't find quickly maybe need more edges. Let's use SAT solver via python pulp? Use python-igraph? Simpler: we can construct manually. Vertex 2 already degree 3 (connected to 9,10,11) so 2 is done.\n\nWe need each other vertex degree 1-3.\n\nWe have vertices 0,1,3,4,5,6,7,8 also need connections, plus 9,10,11 already have degree1 each (to 2) need at least 1, can add more up to 3.\n\nWe can create a simple cycle among remaining 9 vertices? Let's try: connect 0-1,1-3,3-4,4-5,5-6,6-7,7-8,8-9,9-0 gives each of those degrees 2 except 0,1,3,4,5,6,7,8 have 2, 9 gets 2 (one to 2 plus to 8 and 0 gives degree3). Check degrees: compute.\n---\nWe need a solution. Let's quickly brute force with python using SAT? but time low. I'll just construct manually: need each vertex degree 1-3. Fixed: vertex2 degree currently 3 (connected to 9,10,11) so 2 is done degree3 cannot add more edges incident to 2.\n\nWe need ensure others have at least 1. Let's design a simple cycle of remaining vertices excluding 2 maybe include 2 already done. Use vertices 0-11. We'll add edges to give each degree between1-3.\n\nStart with fixed edges: (2,9),(2,10),(2,11)\n\nCurrent degrees:\n0:0\n1:0\n2:3\n3:0\n4:0\n5:0\n6:0\n7:0\n8:0\n9:1\n10:1\n11:1\n\nWe need give each 0-degree at least 1, and not exceed 3.\n\nWe can create a cycle among 0-1-3-4-5-6-7-8-9-0 gives each those vertices degree2 (except 9 already has 1, will become 2). Check degrees after adding edges list: (0,1),(1,3),(3,4),(4,5),(5,6),(6,7),(7,8),(8,9),(9,0). Add them.\n\nCompute degrees.\n---\nWe need a solution. Let's quickly brute force with python using SAT? but time low. I'll just construct manually: ensure each vertex degree 1-3.\n\nWe have fixed edges: 2 connected to 9,10,11 gives deg(2)=3 already max. So 9,10,11 each have degree at least 1.\n\nWe need give each other vertex degree >=1.\n\nLet's design a simple cycle of remaining vertices avoiding exceeding degrees.\n\nCurrent degrees: deg2=3, deg9=1, deg10=1, deg11=1, others 0.\n\nAdd edges:\n(0,1), (1,2) would increase deg2 to 4 not allowed. So avoid connecting to 2.\n\nCreate cycle among 0-1-3-4-5-6-7-8-0 (9 vertices? actually 0,1,3,4,5,6,7,8 =8). Add edges: (0,1),(1,3),(3,4),(4,5),(5,6),(6,7),(7,8),(8,0). Degrees: 0:2,1:2,3:2,4:2,5:2,6:2,7:2,8:2. Good.\n\nNow need handle vertices 9,10,11 have degree1 each, need at least 1 more maybe but can stay 1 (allowed). Vertex 2 already 3 done.\n\nAll vertices now have degree >=1 and <=3. Check 9 currently degree from fixed edge (2,9) =1. Could also have extra edges but not needed. 10 degree1, 11 degree1.\n\nAll degrees within limits. No duplicate edges. Ensure edges not conflict with existing ones (none involve those vertices). So final edge list = fixed three plus eight cycle edges = 11 edges.\n\nReturn list.\n\n",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 7718,
+  "completion_tokens": 2488,
+  "reasoning_tokens": 977,
+  "cached_tokens": 6288,
+  "cost_usd": 0.0,
+  "cost_source": "openrouter",
+  "latency_ms": 98453.82738113403,
+  "tool_dispatch_ms_total": 2516.111135482788,
+  "tool_calls_made": 5,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 174.43
+    },
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 1055.15
+    },
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 502.53
+    },
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 425.0
+    },
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 359.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,106 @@
+{
+  "problem_name": "queens_n13__v1_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 1180.4,
+    "search_space": 302875106592253,
+    "num_variables": 13,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 78.38,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    12,
+    3,
+    7,
+    10,
+    4,
+    2,
+    9,
+    11,
+    6,
+    8,
+    1,
+    5
+  ],
+  "reasoning": "Found a valid 13-queens placement using backtracking with the fixed assignments q[1]=12 and q[11]=1. Verified no two queens share a row, column, or diagonal.",
+  "raw_response": null,
+  "cot_trace": "We need to solve the N-Queens problem for N=13 with two fixed positions:\n- Row 1 (0-indexed? The problem says q[1]=12, q[11]=1. Usually i-th integer where i is row index. They say \"i-th integer is the column position (0 to 12) of the queen in row i\". So rows are 0..12. q[1]=12 means row 1 column 12. q[11]=1 means row 11 column 1.\n\nWe need to find a solution (SAT) or prove UNSAT. N=13 is known to have solutions; the N-Queens problem has solutions for all N >= 4. So it should be satisfiable. But we have two fixed positions; we need to check if there exists a solution with those constraints.\n\nLet's solve using Python with backtracking or SAT solver.\n\nWe'll use python-constraint or just backtracking with pruning. N=13 is small enough for backtracking.\n\nLet's write a script.\n---\nThe solution found is: [0, 12, 3, 7, 10, 4, 2, 9, 11, 6, 8, 1, 5]\n\nLet me verify the fixed assignments:\n- q[1] = 12 (row 1, column 12) \u2713\n- q[11] = 1 (row 11, column 1) \u2713\n\nLet me double-check the solution with a quick verification.\n---\nThe solution is valid. Let me submit.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4536,
+  "completion_tokens": 1431,
+  "reasoning_tokens": 276,
+  "cached_tokens": 512,
+  "cost_usd": 0.0148492,
+  "cost_source": "openrouter",
+  "latency_ms": 78900.33411979675,
+  "tool_dispatch_ms_total": 71.51412963867188,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import time\n\nN = 13\nfixed = {1: 12, 11: 1}  # row: col\n\n# We'll use backtracking with forward checking / minimum remaining values heuristic\n\ndef solve_n_queens(n, fixed):\n    # columns: 0..n-1\n    # rows: 0..n-1\n    # We'll place queens row by row.\n    # Use sets for columns and diagonals\n    cols_used = [False] * n\n    diag1_used = [False] * (2*n - 1)  # r + c\n    diag2_used = [False] * (2*n - 1)  # r - c + (n-1)\n    \n    solution = [None] * n\n    \n    # Place fixed queens first\n    for r, c in fixed.items():\n        if cols_used[c]:\n            return None\n        d1 = r + c\n        d2 = r - c + (n - 1)\n        if diag1_used[d1] or diag2_used[d2]:\n            return None\n        cols_used[c] = True\n        diag1_used[d1] = True\n        diag2_used[d2] = True\n        solution[r] = c\n    \n    # Now backtrack on remaining rows\n    # Order rows: maybe by most constrained? Let's just go in order.\n    rows_left = [r for r in range(n) if solution[r] is None]\n    \n    def backtrack(idx):\n        if idx == len(rows_left):\n            return True\n        r = rows_left[idx]\n        # Try columns in some order; maybe least constraining? Just 0..n-1\n        for c in range(n):\n            if cols_used[c]:\n                continue\n            d1 = r + c\n            d2 = r - c + (n - 1)\n            if diag1_used[d1] or diag2_used[d2]:\n                continue\n            # Place\n            solution[r] = c\n            cols_used[c] = True\n            diag1_used[d1] = True\n            diag2_used[d2] = True\n            \n            if backtrack(idx + 1):\n                return True\n            \n            # Remove\n            solution[r] = None\n            cols_used[c] = False\n            diag1_used[d1] = False\n            diag2_used[d2] = False\n        return False\n    \n    if backtrack(0):\n        return solution\n    return None\n\nsol = solve_n_queens(N, fixed)\nif sol:\n    print(\"Solution found:\")\n    print(sol)\n    # Verify\n    def verify(sol):\n        n = len(sol)\n        for i in range(n):\n            for j in range(i+1, n):\n                if sol[i] == sol[j] or abs(sol[i] - sol[j]) == abs(i - j):\n                    return False\n        return True\n    print(\"Valid:\", verify(sol))\nelse:\n    print(\"No solution\")"
+      },
+      "ok": true,
+      "latency_ms": 35.3
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "sol = [0, 12, 3, 7, 10, 4, 2, 9, 11, 6, 8, 1, 5]\nn = 13\n# Check fixed\nassert sol[1] == 12\nassert sol[11] == 1\n# Check no attacks\nfor i in range(n):\n    for j in range(i+1, n):\n        if sol[i] == sol[j] or abs(sol[i] - sol[j]) == abs(i - j):\n            print(f\"Conflict: ({i},{sol[i]}) and ({j},{sol[j]})\")\n            raise SystemExit(1)\nprint(\"All good!\")\n# Print board\nfor r in range(n):\n    line = \"\"\n    for c in range(n):\n        if sol[r] == c:\n            line += \"Q \"\n        else:\n            line += \". \"\n    print(line)"
+      },
+      "ok": true,
+      "latency_ms": 36.22
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          12,
+          3,
+          7,
+          10,
+          4,
+          2,
+          9,
+          11,
+          6,
+          8,
+          1,
+          5
+        ],
+        "reasoning": "Found a valid 13-queens placement using backtracking with the fixed assignments q[1]=12 and q[11]=1. Verified no two queens share a row, column, or diagonal."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,77 @@
+{
+  "problem_name": "graceful_graph_k3_p6__v4_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1860.4,
+    "search_space": 3686553210602841700043063296,
+    "num_variables": 51,
+    "num_constraints": 37,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.41,
+    "solve_pct_type": 93.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 5720,
+  "completion_tokens": 4528,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.0025024,
+  "cost_source": "openrouter",
+  "latency_ms": 461380.34081459045,
+  "tool_dispatch_ms_total": 1417.0842170715332,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 32.96
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\n\n# Build edge list\nedges = []\n# Within cliques\nfor g in range(6):\n    for i in range(3):\n        for j in range(i+1, 3):\n            edges.append((g*3+i, g*3+j))\n# Between consecutive cliques\nfor g in range(5):\n    for i in range(3):\n        edges.append((g*3+i, (g+1)*3+i))\n\nprint(f\"Number of edges: {len(edges)}\")\n\ndef check_solution(labels):\n    # labels is list of 18 ints\n    if len(set(labels)) != 18:\n        return False\n    if any(l < 0 or l > 33 for l in labels):\n        return False\n    diffs = set()\n    for u, v in edges:\n        d = abs(labels[u] - labels[v])\n        if d < 1 or d > 33:\n            return False\n        if d in diffs:\n            return False\n        diffs.add(d)\n    return len(diffs) == 33\n\ndef random_search(iterations):\n    for _ in range(iterations):\n        labels = random.sample(range(34), 18)\n        if check_solution(labels):\n            return labels\n    return None\n\n# Try random search\nfor trial in range(5):\n    result = random_search(20000)\n    if result:\n        print(f\"Found: {result}\")\n        break\nelse:\n    print(\"No random solution found in 5 trials of 20000 each\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 1344.84
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat import CNF\nfrom pysat.solvers import Glucose3\n\n# Build edge list\nedges = []\n# Within cliques\nfor g in range(6):\n    for i in range(3):\n        for j in range(i+1, 3):\n            edges.append((g*3+i, g*3+j))\n# Between consecutive cliques\nfor g in range(5):\n    for i in range(3):\n        edges.append((g*3+i, (g+1)*3+i))\n\nprint(f\"Number of edges: {len(edges)}\")\n\n# Let's try a more compact encoding.\n# Variables: x[v][l] = vertex v gets label l\n# That's 18*34 = 612 variables.\n\nvar = {}\nidx = 1\nfor v in range(18):\n    for l in range(34):\n        var[(v, l)] = idx\n        idx += 1\n\nn_vars = idx - 1\nprint(f\"Number of variables: {n_vars}\")\n\ncnf = CNF()\n\n# Each vertex gets exactly one label\nfor v in range(18):\n    cnf.append([var[(v, l)] for l in range(34)])  # at least one\n    for l1 in range(34):\n        for l2 in range(l1+1, 34):\n            cnf.append([-var[(v, l1)], -var[(v, l2)]])  # at most one\n\n# Each label used at most once\nfor l in range(34):\n    for v1 in range(18):\n        for v2 in range(v1+1, 18):\n            cnf.append([-var[(v1, l)], -var[(v2, l)]])\n\nprint(f\"Base clauses: {len(cnf.clauses)}\")\n\n# Now for edge differences.\n# For each edge e = (u,v), we need to ensure the difference d = |label(u)-label(v)| is unique.\n# Let's create auxiliary variables: edge_diff[e][d] means edge e has difference d.\n# edge_diff[e][d] is true iff |label(u)-label(v)| = d.\n\n# Number of edges = 33, differences 1..33\n# edge_diff variables: 33*33 = 1089 variables\n\nedge_diff_var = {}\nfor e_idx, (u, v) in enumerate(edges):\n    for d in range(1, 34):\n        edge_diff_var[(e_idx, d)] = idx\n        idx += 1\n\nprint(f\"Total variables with edge_diff: {idx-1}\")\n\n# For each edge e and each difference d:\n# edge_diff[e][d] -> (exists labels lu, lv such that |lu-lv| = d and vertex u gets lu, vertex v gets lv)\n# Actually we need: edge_diff[e][d] <-> OR over (lu,lv) with |lu-lv|=d of (x[u][lu] AND x[v][lv])\n\n# This is complex. Let me try a different encoding.\n# Instead of edge_diff variables, let's encode directly:\n# For each pair of edges (e1, e2), they cannot have the same difference.\n# For each difference d, at most one edge can have that difference.\n\n# For each edge e = (u,v) and each difference d:\n# If |label(u)-label(v)| = d, then for any other edge e' = (u',v'), we cannot have |label(u')-label(v')| = d.\n# This is: for each pair of edges (e,e') and each d:\n# NOT (|lu-lv|=d AND |lu'-lv'|=d)\n\n# Let's encode: for each pair of edges (e,e') and each d:\n# For all combinations of labels (lu,lv,lu',lv') such that |lu-lv|=d and |lu'-lv'|=d:\n# NOT (x[u][lu] AND x[v][lv] AND x[u'][lu'] AND x[v'][lv'])\n\n# That's a lot of clauses. Let me think of a better approach.\n\n# Alternative: use the edge_diff variables but encode implications properly.\n# edge_diff[e][d] -> (OR over lu,lv with |lu-lv|=d of x[u][lu] AND x[v][lv])\n# This is: edge_diff[e][d] -> (OR over lu,lv with |lu-lv|=d of (x[u][lu] AND x[v][lv]))\n# Which is: for each lu,lv with |lu-lv| != d: edge_diff[e][d] -> NOT(x[u][lu] AND x[v][lv])\n# Hmm, that's not right either.\n\n# Let me try a different approach: use the fact that we need all differences 1..33 exactly once.\n# So the set of edge differences is exactly {1,2,...,33}.\n# Each difference d is used by exactly one edge.\n\n# For each edge e and each difference d, let's have variable y[e][d] meaning edge e has difference d.\n# Then: for each edge e, exactly one d (since edge must have some difference)\n# For each d, exactly one edge e has that difference.\n# And: y[e][d] -> |label(u)-label(v)| = d.\n\n# The implication y[e][d] -> |label(u)-label(v)| = d can be encoded as:\n# For each pair (lu,lv) with |lu-lv| != d: NOT (x[u][lu] AND x[v][lv] AND y[e][d])\n# i.e., (-x[u][lu] OR -x[v][lv] OR -y[e][d])\n\n# Let's count: for each edge e (33), for each d (33), for each pair (lu,lv) with |lu-lv| != d:\n# That's 33*33*(34*34 - 33*2) = ... very large.\n\n# Let me try a smarter encoding or use a different tool.\n\nprint(\"Encoding too large for naive approach. Let me try a different method.\")\n\n# Let me try using Python's constraint satisfaction with backtracking and pruning.\n# Or let me try to use the SAT solver with a more compact encoding.\n\n# Actually, let me try a different approach: encode using only the vertex label variables,\n# and add constraints that edge differences are all distinct.\n# For each pair of edges (e1, e2) and each difference d:\n# NOT (|lu1-lv1|=d AND |lu2-lv2|=d)\n# This is: for all lu1,lv1,lu2,lv2 such that |lu1-lv1|=d and |lu2-lv2|=d:\n# NOT (x[u1][lu1] AND x[v1][lv1] AND x[u2][lu2] AND x[v2][lv2])\n# i.e., (-x[u1][lu1] OR -x[v1][lv1] OR -x[u2][lu2] OR -x[v2][lv2])\n\n# Number of such clauses: for each pair of edges (33 choose 2 = 528), for each d (33),\n# for each combination of labels (lu1,lv1,lu2,lv2) with |lu1-lv1|=d and |lu2-lv2|=d.\n# That's a lot but maybe manageable?\n\n# Let me count: for a given d, how many pairs (lu,lv) have |lu-lv|=d?\n# If d=0: 34 pairs (but d>=1 so ignore)\n# If d>=1: for each lu from 0 to 33-d, lv=lu+d gives 34-d pairs.\n# Also for each lv from 0 to 33-d, lu=lv+d gives another 34-d pairs.\n# But |lu-lv|=d means either lu-lv=d or lv-lu=d.\n# So total pairs = 2*(34-d) for d=1..33.\n# Wait: for d=1, pairs are (0,1),(1,0),(1,2),(2,1),...,(32,33),(33,32) = 2*33 = 66 pairs.\n# For d=33: pairs are (0,33),(33,0) = 2 pairs.\n\n# So for each edge pair (e1,e2) and each d, we have (2*(34-d))^2 clauses of length 4.\n# Total: sum_{d=1}^{33} 528 * (2*(34-d))^2 = 528 * sum_{d=1}^{33} 4*(34-d)^2\n# = 2112 * sum_{k=1}^{33} k^2 = 2112 * (33*34*67/6) = 2112 * 12529 = ... about 26 million.\n# That's too many.\n\n# Let me think of a better encoding.\n\nprint(\"Let me try a different approach...\")",
+        "timeout_seconds": 10
+      },
+      "ok": false,
+      "latency_ms": 39.28
+    }
+  ],
+  "error": "RateLimitError: Error code: 429 - {'error': {'message': 'Provider returned error', 'code': 429, 'metadata': {'raw': 'deepseek/deepseek-v4-flash is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations', 'provider_name': 'DeepInfra', 'is_byok': False}}, 'user_id': 'user_3AQ84y2N5jUxGrtSOWjt20HvObN'}",
+  "failure_bucket": "api_error",
+  "forced_submit": false
+}

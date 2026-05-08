@@ -1,0 +1,110 @@
+{
+  "problem_name": "magic_sequence_n14__v4_h",
+  "problem_type": "magic_sequence",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 978.1,
+    "search_space": 11112006825558016,
+    "num_variables": 14,
+    "num_constraints": 26,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 67.11,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    10,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "reasoning": "Found a magic sequence of length 14 satisfying all constraints. The sequence [10,2,1,0,0,0,0,0,0,0,1,0,0,0] satisfies: x[0]=10 (0 appears 10 times), x[1]=2 (1 appears 2 times), x[2]=1 (2 appears 1 time), x[10]=1 (10 appears 1 time), and all other values are 0 (appearing 0 times). The fixed assignments x[11]=0 and x[12]=0 are respected. Sum of all elements is 14, matching the sequence length.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5729,
+  "completion_tokens": 2045,
+  "reasoning_tokens": 0,
+  "cached_tokens": 3328,
+  "cost_usd": 0.001001924,
+  "cost_source": "openrouter",
+  "latency_ms": 119805.1586151123,
+  "tool_dispatch_ms_total": 1198.4686851501465,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nfrom pysat.card import CardEnc\n\nn = 14\n\n# We'll use integer variables. Let's use a SAT approach.\n# For each position i (0..13), the value x[i] can be 0..13.\n# But we know x[11]=0, x[12]=0.\n\n# Let's use a CSP approach with brute force search or use pysat with encoding.\n\n# Actually, let's think about this logically first.\n# Sum of all x[i] = n (since each position contributes 1 to the count of some number)\n# Also, sum of i * x[i] = n (since each occurrence of value i contributes i to the sum of values)\n\n# Let's try to solve with Python search.\n\nfrom itertools import product\n\n# We know x[11]=0, x[12]=0\n# Also, x[0] + x[1] + ... + x[13] = 14\n# And 0*x[0] + 1*x[1] + ... + 13*x[13] = 14\n\n# Let's try to find solutions using constraint propagation.\n\ndef check(seq):\n    for i in range(n):\n        if seq.count(i) != seq[i]:\n            return False\n    return True\n\n# Let's use a smarter approach with backtracking\nfixed = {11: 0, 12: 0}\n\n# We know x[0] can't be 0 because if x[0]=0, then 0 appears 0 times, but then x[0]=0 means 0 appears 0 times... actually that's fine.\n# But sum of x[i] = 14, so the sum of counts = 14.\n\n# Let's try to solve with constraint programming using python-constraint or just backtracking.\n\n# First, let's think about constraints:\n# 1. sum(x) = 14\n# 2. sum(i * x[i]) = 14\n# 3. For each i, x[i] >= 0 and x[i] <= 14\n# 4. x[11]=0, x[12]=0\n# 5. The count condition\n\n# Let's do a backtracking search.\n\ndef solve_magic(n, fixed):\n    # fixed is dict of index->value\n    seq = [None] * n\n    for idx, val in fixed.items():\n        seq[idx] = val\n    \n    # Pre-compute possible values for each position\n    # x[i] can be 0..n, but also must satisfy sum constraints\n    \n    def backtrack(pos, seq):\n        if pos == n:\n            if check(seq):\n                return seq[:]\n            return None\n        \n        if seq[pos] is not None:\n            return backtrack(pos + 1, seq)\n        \n        # Determine possible values for x[pos]\n        # x[pos] is the count of pos in the sequence\n        # The maximum possible count of pos is n\n        # But we can prune\n        \n        for val in range(n + 1):\n            seq[pos] = val\n            # Quick partial check: sum so far shouldn't exceed n\n            # Also, we can check if the counts so far are consistent\n            result = backtrack(pos + 1, seq)\n            if result is not None:\n                return result\n            seq[pos] = None\n        \n        return None\n    \n    return backtrack(0, seq)\n\n# Let's try a more efficient approach using the known properties\n# For magic sequences, there are known solutions.\n\n# Let me just brute force with some pruning.\n\ndef solve_magic_optimized(n, fixed):\n    seq = [None] * n\n    for idx, val in fixed.items():\n        seq[idx] = val\n    \n    # We'll use recursion with pruning\n    \n    def is_partial_valid(seq):\n        # Check if current partial assignment can still work\n        # For each i that's assigned, check if the count of i in the current partial\n        # doesn't exceed the assigned value\n        for i in range(n):\n            if seq[i] is not None:\n                cnt = sum(1 for j in range(n) if seq[j] is not None and seq[j] == i)\n                if cnt > seq[i]:\n                    return False\n        # Also, the sum of assigned values can't exceed n\n        assigned_sum = sum(v for v in seq if v is not None)\n        if assigned_sum > n:\n            return False\n        return True\n    \n    def backtrack(pos, seq):\n        if pos == n:\n            if check(seq):\n                return seq[:]\n            return None\n        \n        if seq[pos] is not None:\n            return backtrack(pos + 1, seq)\n        \n        # Try values from 0 to n\n        for val in range(n + 1):\n            seq[pos] = val\n            if is_partial_valid(seq):\n                result = backtrack(pos + 1, seq)\n                if result is not None:\n                    return result\n            seq[pos] = None\n        \n        return None\n    \n    return backtrack(0, seq)\n\nresult = solve_magic_optimized(14, {11: 0, 12: 0})\nprint(\"Result:\", result)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 1152.61
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = [10, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]\nn = 14\nfor i in range(n):\n    cnt = seq.count(i)\n    print(f\"x[{i}] = {seq[i]}, count of {i} = {cnt}, match: {seq[i] == cnt}\")\nprint(\"Sum:\", sum(seq))\nprint(\"Fixed x[11]=0:\", seq[11]==0)\nprint(\"Fixed x[12]=0:\", seq[12]==0)",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 45.86
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          10,
+          2,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "reasoning": "Found a magic sequence of length 14 satisfying all constraints. The sequence [10,2,1,0,0,0,0,0,0,0,1,0,0,0] satisfies: x[0]=10 (0 appears 10 times), x[1]=2 (1 appears 2 times), x[2]=1 (2 appears 1 time), x[10]=1 (10 appears 1 time), and all other values are 0 (appearing 0 times). The fixed assignments x[11]=0 and x[12]=0 are respected. Sum of all elements is 14, matching the sequence length."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

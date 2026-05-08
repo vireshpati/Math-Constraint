@@ -1,0 +1,151 @@
+{
+  "problem_name": "queens_n27__v9_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 27
+  },
+  "difficulty": {
+    "solve_time_ms": 1461.1,
+    "search_space": 443426488243037769948249630619149892803,
+    "num_variables": 27,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 86.65,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    6,
+    12,
+    24,
+    18,
+    25,
+    2,
+    10,
+    17,
+    0,
+    23,
+    5,
+    19,
+    13,
+    15,
+    4,
+    20,
+    7,
+    3,
+    1,
+    26,
+    16,
+    21,
+    11,
+    8,
+    22,
+    9,
+    14
+  ],
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": " We need to solve N-Queens for N=27 with some fixed positions. We need to place 27 queens on a 27x27 board such that no two attack each other. The solution is a permutation of [0..26] (one per row and column). Also need to satisfy diagonal constraints. Fixed assignments: q[9]=23, q[12]=13, q[18]=1, q[21]=21, q[26]=14. Need to find a complete solution consistent.\n\nWe can use Python with a SAT solver or backtracking. Since N=27 is moderate, we can try using python's `python-constraint` or `pysat` or simple backtracking with constraint propagation. Let's try using `python-constraint`? Not sure if installed. We can also use OR-Tools CP-SAT if available. But maybe easiest is to use `pysat` or just write a simple backtracking with pruning using sets for columns and diagonals. N=27 with 5 fixed positions. The search space is large but with good pruning and maybe using heuristic ordering, it should be fine. Alternatively, we can use `z3` if installed. Let's check.\n\nWe can also use `ortools.sat.python.cp_model` which is often available. Let's try.\n---\n We need to place 27 queens on a 27x27 board with some fixed positions. This is the N-Queens problem with N=27, which is known to have solutions. We have fixed assignments:\n- q[9] = 23\n- q[12] = 13\n- q[18] = 1\n- q[21] = 21\n- q[26] = 14\n\nWe need to find a valid solution. Let's use OR-Tools CP-SAT or Z3 to solve this. Since N=27 is relatively small, either should work fine.\n\nLet me use OR-Tools CP-SAT solver.\n---\nThe CP-SAT solver timed out. Let me try a different approach. Since this is the N-Queens problem with some fixed assignments, I can try using a backtracking algorithm with heuristics, or try a SAT solver. Let me try using Python's backtracking with constraint propagation, or use pysat.\n\nActually, for N=27, backtracking should be feasible, especially with the fixed assignments reducing the search space. Let me implement a backtracking solver with forward checking.\n\nOr I could try using the CP-SAT solver with a longer timeout, or use a different approach.\n\nLet me try a simple backtracking approach with constraint propagation.\n---\n Let me fix the import issue.\n---\n The solution was found very quickly. Let me verify it once more and then submit.\n\nSolution: [6, 12, 24, 18, 25, 2, 10, 17, 0, 23, 5, 19, 13, 15, 4, 20, 7, 3, 1, 26, 16, 21, 11, 8, 22, 9, 14]\n\nFixed assignments:\n- q[9] = 23 \u2713\n- q[12] = 13 \u2713\n- q[18] = 1 \u2713\n- q[21] = 21 \u2713\n- q[26] = 14 \u2713\n\nThe verification passed, so this is a valid solution.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 8779,
+  "completion_tokens": 3555,
+  "reasoning_tokens": 645,
+  "cached_tokens": 336,
+  "cost_usd": 0.021381211400000003,
+  "cost_source": "openrouter",
+  "latency_ms": 283289.12138938904,
+  "tool_dispatch_ms_total": 16108.050346374512,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys, subprocess, json, math, random, time\n\n# Let's check what packages are available\ntry:\n    import ortools\n    print(\"ortools available\")\nexcept Exception as e:\n    print(\"ortools not available:\", e)\n\ntry:\n    import z3\n    print(\"z3 available\")\nexcept Exception as e:\n    print(\"z3 not available:\", e)\n\ntry:\n    import pysat\n    print(\"pysat available\")\nexcept Exception as e:\n    print(\"pysat not available:\", e)\n"
+      },
+      "ok": true,
+      "latency_ms": 999.55
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\nn = 27\nfixed = {\n    9: 23,\n    12: 13,\n    18: 1,\n    21: 21,\n    26: 14,\n}\n\nmodel = cp_model.CpModel()\n\n# q[i] is the column of the queen in row i\nq = [model.NewIntVar(0, n-1, f'q{i}') for i in range(n)]\n\n# Apply fixed assignments\nfor row, col in fixed.items():\n    model.Add(q[row] == col)\n\n# All different columns\nmodel.AddAllDifferent(q)\n\n# Diagonal constraints: q[i] - q[j] != i - j and q[i] - q[j] != j - i\n# This means q[i] + i != q[j] + j and q[i] - i != q[j] - j\n# We can use all-different on q[i] + i and q[i] - i\n\n# Create auxiliary variables for diagonals\ndiag1 = [model.NewIntVar(-n+1, 2*n-2, f'd1_{i}') for i in range(n)]  # q[i] - i\ndiag2 = [model.NewIntVar(0, 2*n-2, f'd2_{i}') for i in range(n)]     # q[i] + i\n\nfor i in range(n):\n    model.Add(diag1[i] == q[i] - i)\n    model.Add(diag2[i] == q[i] + i)\n\nmodel.AddAllDifferent(diag1)\nmodel.AddAllDifferent(diag2)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30.0\nsolver.parameters.num_search_workers = 8\n\nresult = solver.Solve(model)\nprint(f\"Result: {result}\")\nprint(f\"Status: {solver.StatusName(result)}\")\n\nif result == cp_model.OPTIMAL or result == cp_model.FEASIBLE:\n    solution = [solver.Value(q[i]) for i in range(n)]\n    print(f\"Solution: {solution}\")\n    \n    # Verify\n    cols = set()\n    d1s = set()\n    d2s = set()\n    valid = True\n    for i in range(n):\n        col = solution[i]\n        d1 = col - i\n        d2 = col + i\n        if col in cols or d1 in d1s or d2 in d2s:\n            valid = False\n            print(f\"Conflict at row {i}, col {col}\")\n            break\n        cols.add(col)\n        d1s.add(d1)\n        d2s.add(d2)\n    \n    # Check fixed assignments\n    for row, col in fixed.items():\n        if solution[row] != col:\n            print(f\"Fixed assignment violated: q[{row}] = {solution[row]}, expected {col}\")\n            valid = False\n    \n    print(f\"Valid: {valid}\")\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": false,
+      "latency_ms": 15027.83
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's try a backtracking approach with constraint propagation\n# N-Queens with fixed assignments\n\nn = 27\nfixed = {\n    9: 23,\n    12: 13,\n    18: 1,\n    21: 21,\n    26: 14,\n}\n\ndef solve_n_queens(n, fixed):\n    # available_cols[i] = set of available columns for row i\n    # But actually, each column can only be used once\n    # So we track: used columns, used diag1 (col - row), used diag2 (col + row)\n    \n    solution = [None] * n\n    used_cols = set()\n    used_diag1 = set()  # col - row\n    used_diag2 = set()  # col + row\n    \n    # Apply fixed assignments first\n    for row, col in fixed.items():\n        d1 = col - row\n        d2 = col + row\n        if col in used_cols or d1 in used_diag1 or d2 in used_diag2:\n            return None  # Fixed assignments conflict\n        solution[row] = col\n        used_cols.add(col)\n        used_diag1.add(d1)\n        used_diag2.add(d2)\n    \n    # Order rows by fewest available options (MRV heuristic)\n    def get_available(row):\n        avail = []\n        for col in range(n):\n            if col in used_cols:\n                continue\n            d1 = col - row\n            d2 = col + row\n            if d1 in used_diag1 or d2 in used_diag2:\n                continue\n            avail.append(col)\n        return avail\n    \n    # Precompute which rows are fixed\n    fixed_rows = set(fixed.keys())\n    \n    def backtrack(remaining_rows):\n        if not remaining_rows:\n            return True\n        \n        # Find row with minimum remaining values\n        best_row = None\n        best_avail = None\n        best_count = n + 1\n        \n        for row in remaining_rows:\n            avail = get_available(row)\n            count = len(avail)\n            if count == 0:\n                return False\n            if count < best_count:\n                best_count = count\n                best_row = row\n                best_avail = avail\n                if count == 1:\n                    break\n        \n        if best_row is None:\n            return True\n        \n        remaining = remaining_rows - {best_row}\n        \n        for col in best_avail:\n            d1 = col - best_row\n            d2 = col + best_row\n            \n            solution[best_row] = col\n            used_cols.add(col)\n            used_diag1.add(d1)\n            used_diag2.add(d2)\n            \n            if backtrack(remaining):\n                return True\n            \n            solution[best_row] = None\n            used_cols.remove(col)\n            used_diag1.remove(d1)\n            used_diag2.remove(d2)\n        \n        return False\n    \n    remaining = set(range(n)) - fixed_rows\n    if backtrack(remaining):\n        return solution\n    return None\n\nstart = time.time()\nsolution = solve_n_queens(n, fixed)\nelapsed = time.time() - start\n\nif solution:\n    print(f\"Found solution in {elapsed:.2f}s\")\n    print(solution)\n    \n    # Verify\n    cols = set()\n    d1s = set()\n    d2s = set()\n    valid = True\n    for i in range(n):\n        col = solution[i]\n        d1 = col - i\n        d2 = col + i\n        if col in cols or d1 in d1s or d2 in d2s:\n            valid = False\n            print(f\"Conflict at row {i}, col {col}\")\n            break\n        cols.add(col)\n        d1s.add(d1)\n        d2s.add(d2)\n    \n    for row, col in fixed.items():\n        if solution[row] != col:\n            print(f\"Fixed assignment violated: q[{row}] = {solution[row]}, expected {col}\")\n            valid = False\n    \n    print(f\"Valid: {valid}\")\nelse:\n    print(\"No solution found\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 33.34
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import time\n\nn = 27\nfixed = {\n    9: 23,\n    12: 13,\n    18: 1,\n    21: 21,\n    26: 14,\n}\n\ndef solve_n_queens(n, fixed):\n    solution = [None] * n\n    used_cols = set()\n    used_diag1 = set()  # col - row\n    used_diag2 = set()  # col + row\n    \n    # Apply fixed assignments first\n    for row, col in fixed.items():\n        d1 = col - row\n        d2 = col + row\n        if col in used_cols or d1 in used_diag1 or d2 in used_diag2:\n            return None  # Fixed assignments conflict\n        solution[row] = col\n        used_cols.add(col)\n        used_diag1.add(d1)\n        used_diag2.add(d2)\n    \n    def get_available(row):\n        avail = []\n        for col in range(n):\n            if col in used_cols:\n                continue\n            d1 = col - row\n            d2 = col + row\n            if d1 in used_diag1 or d2 in used_diag2:\n                continue\n            avail.append(col)\n        return avail\n    \n    fixed_rows = set(fixed.keys())\n    \n    def backtrack(remaining_rows):\n        if not remaining_rows:\n            return True\n        \n        best_row = None\n        best_avail = None\n        best_count = n + 1\n        \n        for row in remaining_rows:\n            avail = get_available(row)\n            count = len(avail)\n            if count == 0:\n                return False\n            if count < best_count:\n                best_count = count\n                best_row = row\n                best_avail = avail\n                if count == 1:\n                    break\n        \n        if best_row is None:\n            return True\n        \n        remaining = remaining_rows - {best_row}\n        \n        for col in best_avail:\n            d1 = col - best_row\n            d2 = col + best_row\n            \n            solution[best_row] = col\n            used_cols.add(col)\n            used_diag1.add(d1)\n            used_diag2.add(d2)\n            \n            if backtrack(remaining):\n                return True\n            \n            solution[best_row] = None\n            used_cols.remove(col)\n            used_diag1.remove(d1)\n            used_diag2.remove(d2)\n        \n        return False\n    \n    remaining = set(range(n)) - fixed_rows\n    if backtrack(remaining):\n        return solution\n    return None\n\nstart = time.time()\nsolution = solve_n_queens(n, fixed)\nelapsed = time.time() - start\n\nif solution:\n    print(f\"Found solution in {elapsed:.2f}s\")\n    print(solution)\n    \n    # Verify\n    cols = set()\n    d1s = set()\n    d2s = set()\n    valid = True\n    for i in range(n):\n        col = solution[i]\n        d1 = col - i\n        d2 = col + i\n        if col in cols or d1 in d1s or d2 in d2s:\n            valid = False\n            print(f\"Conflict at row {i}, col {col}\")\n            break\n        cols.add(col)\n        d1s.add(d1)\n        d2s.add(d2)\n    \n    for row, col in fixed.items():\n        if solution[row] != col:\n            print(f\"Fixed assignment violated: q[{row}] = {solution[row]}, expected {col}\")\n            valid = False\n    \n    print(f\"Valid: {valid}\")\nelse:\n    print(\"No solution found\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 47.33
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          6,
+          12,
+          24,
+          18,
+          25,
+          2,
+          10,
+          17,
+          0,
+          23,
+          5,
+          19,
+          13,
+          15,
+          4,
+          20,
+          7,
+          3,
+          1,
+          26,
+          16,
+          21,
+          11,
+          8,
+          22,
+          9,
+          14
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

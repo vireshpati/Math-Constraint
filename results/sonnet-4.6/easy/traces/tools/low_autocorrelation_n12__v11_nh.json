@@ -1,0 +1,112 @@
+{
+  "problem_name": "low_autocorrelation_n12__v11_nh",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1544.4,
+    "search_space": 4096,
+    "num_variables": 23,
+    "num_constraints": 18,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 87.41,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    1,
+    1
+  ],
+  "reasoning": "Found via random search. The sequence [-1,-1,-1,-1,1,-1,1,1,-1,-1,1,1] of length 12 has aperiodic autocorrelation values C_1=1, C_2=-2, C_3=1, C_4=0, C_5=-1, C_6=0, C_7=1, C_8=0, C_9=-1, C_10=-2, C_11=-1, giving sum of squares = 1+4+1+0+1+0+1+0+1+4+1 = 14, which is well below the threshold of 25.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6929,
+  "completion_tokens": 1129,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.037722000000000006,
+  "cost_source": "openrouter",
+  "latency_ms": 16980.52215576172,
+  "tool_dispatch_ms_total": 115.40770530700684,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\nimport numpy as np\n\ndef compute_merit(seq):\n    n = len(seq)\n    total = 0\n    for k in range(1, n):\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        total += ck * ck\n    return total\n\n# Try random search first, then exhaustive if needed\nimport random\n\nn = 12\nbest = None\nbest_val = float('inf')\n\n# Random search\nrandom.seed(42)\nfor _ in range(100000):\n    seq = [random.choice([-1, 1]) for _ in range(n)]\n    val = compute_merit(seq)\n    if val < best_val:\n        best_val = val\n        best = seq[:]\n        if val <= 25:\n            print(f\"Found! val={val}, seq={seq}\")\n            break\n\nprint(f\"Best so far: {best_val}, seq={best}\")\n"
+      },
+      "ok": false,
+      "latency_ms": 32.76
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport random\n\ndef compute_merit(seq):\n    n = len(seq)\n    total = 0\n    for k in range(1, n):\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        total += ck * ck\n    return total\n\nn = 12\nbest = None\nbest_val = float('inf')\n\n# Random search\nrandom.seed(42)\nfor _ in range(200000):\n    seq = [random.choice([-1, 1]) for _ in range(n)]\n    val = compute_merit(seq)\n    if val < best_val:\n        best_val = val\n        best = seq[:]\n        if val <= 25:\n            print(f\"Found! val={val}, seq={seq}\")\n            break\n\nprint(f\"Best so far: {best_val}, seq={best}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 50.67
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution\nseq = [-1, -1, -1, -1, 1, -1, 1, 1, -1, -1, 1, 1]\nn = len(seq)\n\nprint(f\"Sequence: {seq}\")\nprint(f\"Length: {n}\")\nprint()\n\ntotal = 0\nfor k in range(1, n):\n    ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n    print(f\"C_{k} = {ck}, C_{k}^2 = {ck*ck}\")\n    total += ck * ck\n\nprint(f\"\\nSum of C_k^2 for k=1..11: {total}\")\nprint(f\"Constraint satisfied (<=25): {total <= 25}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 31.97
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          1,
+          1,
+          -1,
+          -1,
+          1,
+          1
+        ],
+        "reasoning": "Found via random search. The sequence [-1,-1,-1,-1,1,-1,1,1,-1,-1,1,1] of length 12 has aperiodic autocorrelation values C_1=1, C_2=-2, C_3=1, C_4=0, C_5=-1, C_6=0, C_7=1, C_8=0, C_9=-1, C_10=-2, C_11=-1, giving sum of squares = 1+4+1+0+1+0+1+0+1+4+1 = 14, which is well below the threshold of 25."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

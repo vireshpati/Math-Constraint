@@ -1,0 +1,149 @@
+{
+  "problem_name": "graceful_graph_k4_p3__v8_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 4,
+    "p": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 4245.0,
+    "search_space": 150094635296999121,
+    "num_variables": 38,
+    "num_constraints": 30,
+    "num_edges": -1,
+    "backend": "pycsp"
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    11,
+    22,
+    7,
+    13,
+    25,
+    0,
+    26,
+    8,
+    1,
+    21,
+    14,
+    24
+  ],
+  "reasoning": "This labeling uses distinct vertex labels in 0..26. Computing the 26 edge differences gives exactly the set {1,2,...,26}, so all edge labels are distinct.",
+  "raw_response": null,
+  "cot_trace": "**Exploring optimization strategies**\n\nI\u2019m looking into writing an efficient constraint programming or backtracking approach by assigning labels. I might consider using constraints and possibly z3 for stronger symmetries and encoding. There are various automorphisms I could explore, like permuting vertex indices. To avoid symmetry issues, breaking automorphisms is essential. I should also think about adding constraints for endpoints to manage maximum differences effectively. Maybe I\u2019ll try testing ortools for this process!\n---\n**Calculating distinct subsets**\n\nI\u2019m figuring out the number of 4-subsets from a set of 27 elements using the formula C(27,4), which gives me 17,550. Distinct differences in a 4-set come from a Golomb ruler concept, and there are many possibilities here. Now, I need to ensure that the internal difference sets are disjoint, totaling 18, so I can match the remaining 8. It's a lot to keep track of!\n---\n**Optimizing Golomb sets**\n\nI'm thinking about Golomb sets and considering custom backtracking using bit masks. I could formulate an exact cover or try constraint programming. My goal is to develop a search approach: for each clique set combination, I'll focus on the diff masks and select disjoint label masks. The permutations matter since the order of cliques is crucial. I\u2019ll have to ensure that the differences between sets A, B, and C are distinct, and I\u2019m exploring permutations carefully.**Analyzing permutations in matching**\n\nI'm considering fixing the order of set B as either sorted or a permutation, since the relative matches between pairs A and B and B and C depend on permutations. The edge differences within K4 are independent of order, which is interesting. For the given label sets A and B, I need to create matching diff masks through a bijection. There are 24 possible masks, and I must ensure I have 4 distinct ones without duplicates. I'll store these for ordered pairs and consider permutations as needed.\n---\n**Finalizing solution submission**\n\nI know I have a solution ready, but I need to make sure I\u2019m calling the `submit_answer` function as the developer recommends. I should finish by submitting a commentary with a satisfying solution. The final answer needs to be in JSON format, ensuring the cliques and vertices are ordered properly, like clique0, clique1, and clique2 with unique labels from 0 to 26. I\u2019ll double-check everything before calling `submit_answer` with my reasoning.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 15097,
+  "completion_tokens": 5300,
+  "reasoning_tokens": 2629,
+  "cached_tokens": 5120,
+  "cost_usd": 0.211445,
+  "cost_source": "openrouter",
+  "latency_ms": 169321.5570449829,
+  "tool_dispatch_ms_total": 62159.35444831848,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "try:\n import z3\n print('z3 available')\nexcept Exception as e: print('no z3',e)\ntry:\n import pysat\n print('pysat available')\nexcept Exception as e: print('no pysat',e)\ntry:\n import pycosat\n print('pycosat available')\nexcept Exception as e: print('no pycosat',e)\n",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 347.56
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\n# build graph\nn_cliques=3;k=4\nn=n_cliques*k\nm=26\nedges=[]\n# clique edges\nfor g in range(n_cliques):\n for i in range(k):\n  for j in range(i+1,k):\n   edges.append((g*k+i,g*k+j))\n# matching consecutive\nfor g in range(n_cliques-1):\n for i in range(k):\n  edges.append((g*k+i,(g+1)*k+i))\nprint(len(edges), edges)\nL=[Int(f'L{i}') for i in range(n)]\nD=[Int(f'De}') for e in range(len(edges))]\ns=Solver()\ns.set('timeout',55000)\nfor x in L: s.add(And(x>=0,x<=m))\ns.add(Distinct(L))\nfor idx,(u,v) in enumerate(edges):\n s.add(D[idx]==If(L[u]>=L[v],L[u]-L[v],L[v]-L[u]))\n s.add(And(D[idx]>=1,D[idx]<=m))\ns.add(Distinct(D))\n# Add all diffs are 1..26; Distinct with range suffice.\n# edge 26 endpoints labels 0 and 26; maybe automatically. add Or for all edges.\ns.add(Or([And(Or(And(L[u]==0,L[v]==m),And(L[u]==m,L[v]==0)),D[i]==m) for i,(u,v) in enumerate(edges)]))\n# not needed; malformed Or includes D but okay if both. Actually D==m redundant.\n# symmetry complement: label0 < 13 maybe? vertex automorphisms? set L0 < L? no.\ns.add(L[0] < m-L[0]) # break complement: L0 < 13\nprint(s.check())\nif s.check()==sat:\n model=s.model()\n sol=[model.eval(x).as_long() for x in L]\n print(sol)\n diffs=[abs(sol[u]-sol[v]) for u,v in edges]\n print(sorted(diffs), len(set(diffs)))\n print(list(zip(edges,diffs)))\nelse:\n print(s.reason_unknown())\n",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 0.67
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\nn_cliques=3;k=4\nn=n_cliques*k\nm=26\nedges=[]\nfor g in range(n_cliques):\n for i in range(k):\n  for j in range(i+1,k):\n   edges.append((g*k+i,g*k+j))\nfor g in range(n_cliques-1):\n for i in range(k):\n  edges.append((g*k+i,(g+1)*k+i))\nprint(len(edges))\nL=[Int(f'L{i}') for i in range(n)]\nD=[Int(f'D{e}') for e in range(len(edges))]\ns=Solver(); s.set('timeout',55000)\nfor x in L: s.add(And(x>=0,x<=m))\ns.add(Distinct(L))\nfor idx,(u,v) in enumerate(edges):\n s.add(D[idx]==If(L[u]>=L[v],L[u]-L[v],L[v]-L[u]))\n s.add(And(D[idx]>=1,D[idx]<=m))\ns.add(Distinct(D))\n# edge 26 endpoints 0 and26 not needed\ns.add(L[0] <= 13) # complement break weak\nres=s.check()\nprint(res)\nif res==sat:\n model=s.model()\n sol=[model.eval(x).as_long() for x in L]\n print(sol)\n diffs=[abs(sol[u]-sol[v]) for u,v in edges]\n print(sorted(diffs), len(set(diffs)))\n print(list(zip(edges,diffs)))\nelse:\n print(s.reason_unknown())\n",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 1.61
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\nn_cliques=3;k=4\nn=n_cliques*k\nM=26\nedges=[]\nfor g in range(n_cliques):\n for i in range(k):\n  for j in range(i+1,k):\n   edges.append((g*k+i,g*k+j))\nfor g in range(n_cliques-1):\n for i in range(k):\n  edges.append((g*k+i,(g+1)*k+i))\nprint('edges',len(edges))\nL=[Int('L%d'%i) for i in range(n)]\nD=[Int('D%d'%e) for e in range(len(edges))]\ns=Solver(); s.set('timeout',55000)\nfor x in L: s.add(And(x>=0,x<=M))\ns.add(Distinct(L))\nfor idx,(u,v) in enumerate(edges):\n s.add(D[idx]==If(L[u]>=L[v],L[u]-L[v],L[v]-L[u]))\n s.add(And(D[idx]>=1,D[idx]<=M))\ns.add(Distinct(D))\ns.add(L[0] <= 13)\nres=s.check()\nprint(res)\nif res==sat:\n mdl=s.model()\n sol=[mdl[x].as_long() for x in L]\n print(sol)\n diffs=[abs(sol[u]-sol[v]) for u,v in edges]\n print(sorted(diffs), len(set(diffs)))\n print(list(zip(edges,diffs)))\nelse:\n print(s.reason_unknown())\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 55358.67
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "try:\n import ortools\n print('ortools')\nexcept Exception as e: print('no',e)\n",
+        "timeout_seconds": 5
+      },
+      "ok": false,
+      "latency_ms": 0.15
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import combinations, permutations\nM=26\nsets=[]\nfor comb in combinations(range(M+1),4):\n diffs=[]\n ok=True\n for i in range(4):\n  for j in range(i+1,4):\n   d=comb[j]-comb[i]\n   if d in diffs:\n    ok=False; break\n   diffs.append(d)\n  if not ok: break\n if ok:\n  sets.append((comb, frozenset(diffs), sum(1<<x for x in comb), sum(1<<d for d in diffs)))\nprint('golomb sets',len(sets))\n# distribution include 0/26, diff26\nprint('with diff26',sum(1 for c,ds,lm,dm in sets if 26 in ds))\n# Backtrack clique sets disjoint labels and diffsets. Try all triples, then perms.\n# Filter using complement perhaps: require first clique contains 0? no maybe edge 26 matching if 0/26 adjacent across cliques.\nallmask=(1<<27)-1\n# index by disjoint diff/label? brute maybe large.\ncount_pairs=0\nfor a in range(len(sets)):\n c1,ds1,lm1,dm1=sets[a]\n # maybe progress\n pass\n",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 154.4
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3, Cadical153, Minisat22\nfrom pysat.card import CardEnc, EncType\nfrom pysat.formula import IDPool\nn_cliques=3;k=4;n=12;M=26\nedges=[]\nfor g in range(n_cliques):\n for i in range(k):\n  for j in range(i+1,k): edges.append((g*k+i,g*k+j))\nfor g in range(n_cliques-1):\n for i in range(k): edges.append((g*k+i,(g+1)*k+i))\nprint(len(edges))\nvpool=IDPool()\ndef X(v,l): return vpool.id(('x',v,l))\ndef Y(e,d): return vpool.id(('y',e,d))\nclauses=[]\n# vertex exactly one label\nfor v in range(n):\n lits=[X(v,l) for l in range(M+1)]\n clauses.append(lits)\n clauses += CardEnc.atmost(lits, bound=1, vpool=vpool, encoding=EncType.seqcounter).clauses\n# label at most one vertex\nfor l in range(M+1):\n lits=[X(v,l) for v in range(n)]\n clauses += CardEnc.atmost(lits, bound=1, vpool=vpool, encoding=EncType.seqcounter).clauses\n# edge exactly one diff\nfor e,(u,v) in enumerate(edges):\n lits=[Y(e,d) for d in range(1,M+1)]\n clauses.append(lits)\n clauses += CardEnc.atmost(lits, bound=1, vpool=vpool, encoding=EncType.seqcounter).clauses\n # if labels assigned imply diff\n for a in range(M+1):\n  for b in range(M+1):\n   if a==b: continue # uniqueness global disallows same but endpoints labels distinct\n   d=abs(a-b)\n   clauses.append([-X(u,a), -X(v,b), Y(e,d)])\n # if y_e_d then forbid incompatible pairs. Instead because exactly one y and label->y suffices? Yes if labels imply Y(d), exactly one y, so chosen y must actual. no need reverse.\n# diff at most one edge\nfor d in range(1,M+1):\n lits=[Y(e,d) for e in range(len(edges))]\n clauses += CardEnc.atmost(lits, bound=1, vpool=vpool, encoding=EncType.seqcounter).clauses\n# symmetry complement L0 <= 13 (optional) labels 14..26 false for vertex0\nfor l in range(14,M+1): clauses.append([-X(0,l)])\nprint('vars',vpool.top,'clauses',len(clauses))\nfor Solver in [Cadical153, Glucose3, Minisat22]:\n try:\n  print('solver',Solver)\n  with Solver(bootstrap_with=clauses) as s:\n   sat=s.solve()\n   print('sat',sat)\n   if sat:\n    model=set(s.get_model())\n    sol=[]\n    for v in range(n):\n     lab=[l for l in range(M+1) if X(v,l) in model]\n     sol.append(lab[0])\n    print(sol)\n    diffs=[abs(sol[u]-sol[v]) for u,v in edges]\n    print(sorted(diffs),len(set(diffs)))\n    print(list(zip(range(len(edges)),edges,diffs)))\n    break\n except Exception as e:\n  print('err',e)\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 6296.3
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          11,
+          22,
+          7,
+          13,
+          25,
+          0,
+          26,
+          8,
+          1,
+          21,
+          14,
+          24
+        ],
+        "reasoning": "This labeling uses distinct vertex labels in 0..26. Computing the 26 edge differences gives exactly the set {1,2,...,26}, so all edge labels are distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

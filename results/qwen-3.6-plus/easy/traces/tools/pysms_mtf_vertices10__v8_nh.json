@@ -1,0 +1,70 @@
+{
+  "problem_name": "pysms_mtf_vertices10__v8_nh",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 90.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 16,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 31.95,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[[0, 5], [0, 6], [0, 7], [0, 8], [0, 9], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9]]",
+  "reasoning": "The complete bipartite graph K_{5,5} with vertex partitions {0,1,2,3,4} and {5,6,7,8,9} is a maximal triangle-free graph on 10 vertices. By Tur\u00e1n's theorem, this achieves the maximum number of edges (25) for a triangle-free graph on 10 vertices. It is triangle-free because bipartite graphs have no odd cycles, and it is maximal because adding any edge within a partition would create triangles with all vertices in the other partition.",
+  "raw_response": null,
+  "cot_trace": "The problem asks for a maximal triangle-free graph with 10 vertices. Let me understand what this means:\n\n1. Triangle-free: The graph contains no triangles (no 3 vertices that are all connected to each other).\n2. Maximal: We cannot add any edge to the graph without creating a triangle.\n\nA maximal triangle-free graph is one where:\n- There are no triangles\n- Adding any non-edge would create a triangle\n\nBy Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on n vertices is achieved by the complete bipartite graph K_{\u230an/2\u230b, \u2308n/2\u2309}.\n\nFor n=10, this would be K_{5,5}, which has 5*5 = 25 edges.\n\nK_{5,5} is triangle-free (bipartite graphs have no odd cycles, hence no triangles).\nK_{5,5} is maximal triangle-free because adding any edge within one of the two parts would create a triangle (since every vertex in one part is connected to every vertex in the other part).\n\nSo K_{5,5} is a maximal triangle-free graph with 10 vertices.\n\nLet me construct K_{5,5}:\n- Part A: vertices 0, 1, 2, 3, 4\n- Part B: vertices 5, 6, 7, 8, 9\n- Edges: all edges between A and B\n\nThe edges would be:\n(0,5), (0,6), (0,7), (0,8), (0,9)\n(1,5), (1,6), (1,7), (1,8), (1,9)\n(2,5), (2,6), (2,7), (2,8), (2,9)\n(3,5), (3,6), (3,7), (3,8), (3,9)\n(4,5), (4,6), (4,7), (4,8), (4,9)\n\nThat's 25 edges total.\n\nLet me verify this is correct by writing a quick Python script.\n---\nThe complete bipartite graph K_{5,5} is a maximal triangle-free graph with 10 vertices and 25 edges. This is indeed the maximum possible number of edges for a triangle-free graph on 10 vertices (by Tur\u00e1n's theorem, the maximum is achieved by the complete bipartite graph with parts as equal as possible).\n\nLet me submit this answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 2055,
+  "completion_tokens": 1326,
+  "reasoning_tokens": 557,
+  "cached_tokens": 0,
+  "cost_usd": 0.003253575,
+  "cost_source": "openrouter",
+  "latency_ms": 27679.162740707397,
+  "tool_dispatch_ms_total": 200.15501976013184,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Generate K_{5,5} and verify it's maximal triangle-free\nedges = []\nfor u in range(5):\n    for v in range(5, 10):\n        edges.append((u, v))\n\nprint(f\"Number of edges: {len(edges)}\")\nprint(\"Edges:\", edges)\n\n# Check triangle-free\ndef has_triangle(edges, n):\n    adj = {i: set() for i in range(n)}\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    for i in range(n):\n        for j in adj[i]:\n            if j > i:\n                for k in adj[j]:\n                    if k > j and k in adj[i]:\n                        return True\n    return False\n\nprint(\"Has triangle:\", has_triangle(edges, 10))\n\n# Check maximal: adding any non-edge creates a triangle\ndef is_maximal_triangle_free(edges, n):\n    # First check triangle-free\n    if has_triangle(edges, n):\n        return False\n    \n    # Build adjacency\n    adj = {i: set() for i in range(n)}\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # Check all non-edges\n    for u in range(n):\n        for v in range(u+1, n):\n            if v not in adj[u]:\n                # Try adding edge (u, v)\n                # Check if this creates a triangle\n                creates_triangle = False\n                for w in range(n):\n                    if w != u and w != v:\n                        if w in adj[u] and w in adj[v]:\n                            creates_triangle = True\n                            break\n                if not creates_triangle:\n                    return False  # Not maximal\n    return True\n\nprint(\"Is maximal triangle-free:\", is_maximal_triangle_free(edges, 10))\n"
+      },
+      "ok": true,
+      "latency_ms": 200.16
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[[0, 5], [0, 6], [0, 7], [0, 8], [0, 9], [1, 5], [1, 6], [1, 7], [1, 8], [1, 9], [2, 5], [2, 6], [2, 7], [2, 8], [2, 9], [3, 5], [3, 6], [3, 7], [3, 8], [3, 9], [4, 5], [4, 6], [4, 7], [4, 8], [4, 9]]",
+        "reasoning": "The complete bipartite graph K_{5,5} with vertex partitions {0,1,2,3,4} and {5,6,7,8,9} is a maximal triangle-free graph on 10 vertices. By Tur\u00e1n's theorem, this achieves the maximum number of edges (25) for a triangle-free graph on 10 vertices. It is triangle-free because bipartite graphs have no odd cycles, and it is maximal because adding any edge within a partition would create triangles with all vertices in the other partition."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

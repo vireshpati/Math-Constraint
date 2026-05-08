@@ -1,0 +1,91 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree6_min_degree3_min_girth7_vertices9__v5",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 6,
+    "min_degree": 3,
+    "min_girth": 7,
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 21.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": -1,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 11.47,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 8146,
+  "completion_tokens": 2517,
+  "reasoning_tokens": 0,
+  "cached_tokens": 5376,
+  "cost_usd": 0.001243088,
+  "cost_source": "openrouter",
+  "latency_ms": 166882.51042366028,
+  "tool_dispatch_ms_total": 623.4557628631592,
+  "tool_calls_made": 4,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport math\n\n# Let's try to find such a graph using brute force or SAT\n# First, let's think about the constraints\n\n# With 9 vertices, max edges = 36\n# Min degree 3 means at least 14 edges (since 9*3/2 = 13.5)\n\n# Let's try to use a SAT solver approach\n# We'll encode the problem\n\nfrom pysat import CNF\nfrom pysat.solvers import Glucose3\n\n# Variables: for each pair (i,j) with i<j, variable x_{i,j} means edge exists\n# That's 36 variables\n\nn = 9\nvar = {}\nfor i in range(n):\n    for j in range(i+1, n):\n        var[(i,j)] = len(var) + 1\n\nprint(f\"Number of variables: {len(var)}\")\n\n# Create CNF\ncnf = CNF()\n\n# Degree constraints: each vertex degree between 3 and 6\nfor v in range(n):\n    neighbors = [(v, u) if v < u else (u, v) for u in range(n) if u != v]\n    vars_list = [var[pair] for pair in neighbors]\n    \n    # At least 3 edges: add clauses for at most 2 false (i.e., at least 3 true)\n    # For at least k true among m vars, we need to forbid any set of (m-k+1) false vars\n    # So for at least 3 true among 8 vars, forbid any 6 false vars\n    # i.e., at least one true in any set of 6 vars... wait\n    # Actually: at least 3 true means we cannot have 6 false. So any combination of 6 vars cannot all be false.\n    # That means for any 6 vars, at least one must be true.\n    # So we add clauses: (v1 or v2 or ... or v6) for each combination of 6 vars from the 8.\n    \n    # At least 3: for any 6 of the 8 neighbors, at least one must be true\n    for combo in itertools.combinations(vars_list, 6):\n        cnf.append(list(combo))\n    \n    # At most 6: for any 7 of the 8 neighbors, at least one must be false\n    for combo in itertools.combinations(vars_list, 7):\n        cnf.append([-v for v in combo])\n\nprint(f\"After degree constraints: {len(cnf.clauses)} clauses\")\n\n# Girth constraints: no cycles of length 3, 4, 5, or 6\n# For each possible cycle of length k (3 <= k <= 6), forbid all edges being present\n\ndef check_cycle(cycle):\n    \"\"\"cycle is a list of vertices in order, return list of edge variables\"\"\"\n    edges = []\n    for idx in range(len(cycle)):\n        u = cycle[idx]\n        v = cycle[(idx+1) % len(cycle)]\n        if u < v:\n            edges.append(var[(u,v)])\n        else:\n            edges.append(var[(v,u)])\n    return edges\n\n# Generate all cycles of length 3, 4, 5, 6\n# For each cycle, add clause: not all edges present\n# i.e., at least one edge missing: [-e1, -e2, ..., -ek]\n\ncycle_count = 0\nfor k in range(3, 7):\n    for perm in itertools.permutations(range(n), k):\n        # Only consider cycles where the first vertex is the smallest to avoid duplicates\n        # and the second vertex is smaller than the last (to avoid reverse)\n        if perm[0] == min(perm) and perm[1] < perm[-1]:\n            cycle = list(perm)\n            edges = check_cycle(cycle)\n            cnf.append([-e for e in edges])\n            cycle_count += 1\n\nprint(f\"After girth constraints: {len(cnf.clauses)} clauses, {cycle_count} cycles\")\n\n# Solve\nsolver = Glucose3(cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    # Extract edges\n    edges = []\n    for (i,j), v in var.items():\n        if model[v-1] > 0:\n            edges.append((i,j))\n    print(f\"Edges: {edges}\")\n    print(f\"Number of edges: {len(edges)}\")\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(f\"Degrees: {deg}\")\n    \n    # Verify girth\n    # Build adjacency\n    adj = {i: set() for i in range(n)}\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # BFS to find shortest cycle\n    min_cycle = n+1\n    for s in range(n):\n        dist = {s: 0}\n        parent = {s: -1}\n        queue = [s]\n        for u in queue:\n            for w in adj[u]:\n                if w not in dist:\n                    dist[w] = dist[u] + 1\n                    parent[w] = u\n                    queue.append(w)\n                elif w != parent[u]:\n                    # Found a cycle\n                    cycle_len = dist[u] + dist[w] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    print(f\"Girth: {min_cycle}\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 35.88
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Check pysat API\nimport pysat\nprint(dir(pysat))\nprint(pysat.__version__ if hasattr(pysat, '__version__') else 'no version')",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 33.98
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Try different import\nfrom pysat.formula import CNF\nfrom pysat.solvers import Glucose3\nprint(\"OK\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 220.94
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat.formula import CNF\nfrom pysat.solvers import Glucose3\n\nn = 9\n\n# Variables: for each pair (i,j) with i<j\nvar = {}\nfor i in range(n):\n    for j in range(i+1, n):\n        var[(i,j)] = len(var) + 1\n\nprint(f\"Number of variables: {len(var)}\")\n\ncnf = CNF()\n\n# Degree constraints: each vertex degree between 3 and 6\nfor v in range(n):\n    neighbors = [(v, u) if v < u else (u, v) for u in range(n) if u != v]\n    vars_list = [var[pair] for pair in neighbors]\n    \n    # At least 3: for any 6 of the 8 neighbors, at least one must be true\n    for combo in itertools.combinations(vars_list, 6):\n        cnf.append(list(combo))\n    \n    # At most 6: for any 7 of the 8 neighbors, at least one must be false\n    for combo in itertools.combinations(vars_list, 7):\n        cnf.append([-v for v in combo])\n\nprint(f\"After degree constraints: {len(cnf.clauses)} clauses\")\n\n# Girth constraints: no cycles of length 3, 4, 5, or 6\ndef get_edges(cycle):\n    edges = []\n    for idx in range(len(cycle)):\n        u = cycle[idx]\n        v = cycle[(idx+1) % len(cycle)]\n        if u < v:\n            edges.append(var[(u,v)])\n        else:\n            edges.append(var[(v,u)])\n    return edges\n\ncycle_count = 0\nfor k in range(3, 7):\n    for perm in itertools.permutations(range(n), k):\n        if perm[0] == min(perm) and perm[1] < perm[-1]:\n            cycle = list(perm)\n            edges = get_edges(cycle)\n            cnf.append([-e for e in edges])\n            cycle_count += 1\n\nprint(f\"After girth constraints: {len(cnf.clauses)} clauses, {cycle_count} cycles\")\n\nsolver = Glucose3(cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    edges = []\n    for (i,j), v in var.items():\n        if model[v-1] > 0:\n            edges.append((i,j))\n    print(f\"Edges: {edges}\")\n    print(f\"Number of edges: {len(edges)}\")\n    \n    deg = [0]*n\n    for u,v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(f\"Degrees: {deg}\")\n    \n    # Verify girth\n    adj = {i: set() for i in range(n)}\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    min_cycle = n+1\n    for s in range(n):\n        dist = {s: 0}\n        parent = {s: -1}\n        queue = [s]\n        for u in queue:\n            for w in adj[u]:\n                if w not in dist:\n                    dist[w] = dist[u] + 1\n                    parent[w] = u\n                    queue.append(w)\n                elif w != parent[u]:\n                    cycle_len = dist[u] + dist[w] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    print(f\"Girth: {min_cycle}\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 332.66
+    }
+  ],
+  "error": "JSONDecodeError: Expecting value: line 201 column 1 (char 1100)",
+  "failure_bucket": "api_error",
+  "forced_submit": false
+}

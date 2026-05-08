@@ -1,0 +1,91 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree5_min_degree2_min_girth8_vertices9__v11_h",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 2,
+    "min_girth": 8,
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 32.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 9,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 16.35,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      7,
+      8
+    ]
+  ],
+  "reasoning": "A 9-cycle on all vertices includes edge (2,5), gives girth 9 (>=8), and all degrees equal 2 (within 2..5). For example, cycle 2-5-0-1-3-4-6-7-8-2.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,1], [0,5], [1,3], [2,5], [2,8], [3,4], [4,6], [6,7], [7,8]],\n    \"reasoning\": \"A 9-cycle on all vertices includes edge (2,5), gives girth 9 (>=8), and all degrees equal 2 (within 2..5). For example, cycle 2-5-0-1-3-4-6-7-8-2.\"\n}",
+  "cot_trace": "We need to generate a graph with 9 vertices (0 to 8). Girth at least 8 means the shortest cycle length is >= 8. That means no cycles of length 3,4,5,6,7. Every vertex has degree between 2 and 5 inclusive. Also known present edge: (2,5).\n\nWe need to find such a graph if exists, or say UNSAT. We need to output edges as list of (u,v) with u<v.\n\nLet's think: A graph with girth >= 8 on 9 vertices. The girth is the length of the shortest cycle. If no cycle exists (a forest), girth is infinite, so >=8. But every vertex degree between 2 and 5. A tree has minimum degree 1 for leaves. But degree at least 2 means no leaves. Therefore the graph cannot be a tree; it must have cycles. In fact, a graph with minimum degree 2 must contain cycles. So girth is finite, at least 8.\n\nCan we have a graph on 9 vertices with girth 8 and min degree 2? To have a cycle of length 8, we need at least 8 vertices. With 9 vertices, we can have an 8-cycle plus one extra vertex attached with degree 2. But careful: degrees between 2 and 5. So we can add chords? But adding any chord to an 8-cycle would create shorter cycles. For girth >=8, there cannot be any cycles of length <8. So the graph must have exactly one cycle of length 8 or possibly 9? 9-cycle would also be girth 9 >=8. Or multiple cycles but only if they are length >=8, but with 9 vertices, two cycles of length 8 would share many vertices and create shorter cycles. So the largest cycle-free structure is a tree, but trees have leaves. Since min degree 2, we must have cycles. The only way to avoid cycles <8 is to have a single cycle of length at least 8, and the remaining vertices form trees attached to the cycle, but these trees must have leaves unless they are just paths that start and end at the cycle? Wait, if you attach a tree to a cycle, the leaves of the tree would have degree 1 (unless they are attached to the cycle, but then they are not leaves in the full graph? Actually, a vertex in the tree with degree 1 in the whole graph is a leaf. To avoid degree 1, every vertex must have degree at least 2. So any attached structure must itself be a cycle, but that would create another cycle, leading to shorter cycles likely. Or it could be a path that connects two vertices of the cycle? That would create additional cycles, possibly short. Let's consider.\n\nIf we have a cycle of length 8, we have 8 vertices each degree at least 2. If we set degree exactly 2 for all 8, that's the 8-cycle. Then the 9th vertex must have degree between 2 and 5, but it can only connect to existing vertices. If it connects to two vertices on the cycle, that creates two new cycles: the path through the new vertex and the two arcs of the cycle. The lengths of these cycles: if the two connection points are distance d along the cycle, the cycles will have lengths d+1 and (8-d)+1 = 9-d. For d=1, that gives cycles of length 2? Wait, connecting adjacent vertices: cycle length 2 (v0-v1-new?-v0) is 3? Actually, if new vertex connects to u and v, and u and v are adjacent on the cycle, then the cycle formed is u - new - v - u is of length 3 (u-new, new-v, v-u (edge on cycle)). That's a 3-cycle, violating girth >=8. So d cannot be 1. d=2: cycles of length 3 and 7. Length 3 violates. d=3: cycles 4 and 6. d=4: cycles 5 and 5. So all d <=4 give cycles <=5. d=5: cycles 6 and 5? 8-5=3, so cycles lengths 6 and 4? Wait: 8-cycle vertices 0..7. Connect new vertex 8 to 0 and 5. The distance along cycle from 0 to 5 is 5 (0-1-2-3-4-5) or 3 (0-7-6-5). So cycles: 8-0-1-2-3-4-5-8 (length 7) and 8-0-7-6-5-8 (length 5). Both <8. d=6: same as d=2. d=7: same as d=1. So attaching a single vertex of degree 2 to an 8-cycle always creates a cycle of length at most 7 (since maximum of min(d,8-d)+1). For 8, min(d,8-d) is at most 4, so cycle length at most 5. Actually, for 8-cycle, max min distance is 4, so max cycle length is 4+1=5. So no.\n\nWhat about a 9-cycle? That's a cycle of length 9 using all vertices. Each vertex degree 2 exactly. That satisfies girth 9 >=8, min degree 2, max degree 2 (within 2-5). Does it have edge (2,5)? In a 9-cycle, vertices are in a circle, edges are (i, i+1 mod 9). (2,5) is not an edge unless 5 = 3. 2 and 5 are distance 3 apart along cycle if consecutive numbers are adjacent? In a 9-cycle, (2,5) would be an edge only if 5 is adjacent to 2, i.e., 5=3 or 5=1. So no, a 9-cycle does not contain (2,5). But we can reorder the vertices? The vertices are labeled 0..8. The edge (2,5) must be present. So we need a graph which includes edge (2,5). If we try a 9-cycle, we could have the cycle include (2,5) if we arrange the cycle order. For instance, a cycle 2-5-... but then 2 and 5 would be adjacent in the cycle. Then the cycle length is 9, but now edges are not just (i,i+1) of the labels, but any permutation. So a 9-cycle can contain any specified edge. So we could have a 9-cycle that includes (2,5) and other edges. That would be degree 2 for all vertices. That satisfies girth 9, degrees 2. Let's check: A 9-cycle has girth 9, which is >=8. Yes. So one solution is a 9-cycle containing edge (2,5). For example, order: 2,5,0,1,3,4,6,7,8 and back to 2. That gives edges: (2,5), (5,0), (0,1), (1,3), (3,4), (4,6), (6,7), (7,8), (8,2). All degrees are 2. No cycles shorter than 9. So this satisfies all conditions. Is there any constraint that we must use exactly the fixed edge (2,5) and no other constraints? The problem says \"Partial assignment (fixed values that must be respected): - Known present edges: (2,5)\". That's it. So we can have a 9-cycle.\n\nBut wait, the problem says \"Generate a graph with 9 vertices where the girth (shortest cycle) is at least 8 and every vertex has degree between 2 and 5.\" The 9-cycle works.\n\nIs there any reason a 9-cycle is not allowed? No. Let's verify girth: shortest cycle length is 9. So >=8. Degrees: all 2, which is between 2 and 5. Edge (2,5) included. So it's satisfiable.\n\nWe could also have degree >2 for some vertices if we add chords that don't create short cycles. But 9-cycle is simplest.\n\nThus, solution: a 9-cycle containing edge (2,5). I'll output one such set of edges.\n\nLet's construct a specific 9-cycle with vertices 0..8 including (2,5). Sequence: 2-5-0-1-3-4-6-7-8-2. Check degrees: 2: connected to 5 and 8. 5: connected to 2 and 0. 0: 5 and 1. 1: 0 and 3. 3: 1 and 4. 4: 3 and 6. 6: 4 and 7. 7: 6 and 8. 8: 7 and 2. All degree 2. Cycle length: 2-5-0-1-3-4-6-7-8-2 is 9 edges. No other cycles. So girth 9.\n\nList edges: (0,1), (0,5), (1,3), (2,5), (2,8), (3,4), (4,6), (6,7), (7,8). Sorted by u: (0,1), (0,5), (1,3), (2,5), (2,8), (3,4), (4,6), (6,7), (7,8). That's 9 edges for 9 vertices, a cycle.\n\nBut wait, is (2,8) the edge from 2 to 8? Yes, (2,8) with 2<8. So the list: (0,1), (0,5), (1,3), (2,5), (2,8), (3,4), (4,6), (6,7), (7,8). All good.\n\nThus satisfiable: true, solution: list of edges. But the output format says: \"solution\": [list of values] or null. The problem says \"Return the graph as a list of edges (u, v) with 0 <= u < v < 9\". So solution should be a list of pairs, but JSON array of arrays? The template says: \"solution\": [list of values] or null. They might expect a list of integer pairs, like [[0,1],[0,5],...]. I'll output as a list of lists.\n\nReasoning: \"A 9-cycle with edge (2,5) satisfies girth 9 >= 8 and all degrees 2, within [2,5].\"\n\nSo I'll respond with that.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 240,
+  "completion_tokens": 2472,
+  "reasoning_tokens": 2345,
+  "cached_tokens": 128,
+  "cost_usd": 0.008816,
+  "cost_source": "openrouter",
+  "latency_ms": 75911.2823009491,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

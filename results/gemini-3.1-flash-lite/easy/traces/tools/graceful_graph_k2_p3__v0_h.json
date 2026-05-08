@@ -1,0 +1,93 @@
+{
+  "problem_name": "graceful_graph_k2_p3__v0_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 1025.2,
+    "search_space": 262144,
+    "num_variables": 13,
+    "num_constraints": 11,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 72.37,
+    "solve_pct_type": 18.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    7,
+    3,
+    1,
+    6
+  ],
+  "reasoning": "The solution [0, 2, 7, 3, 1, 6] satisfies all conditions:\n- Vertex labels are distinct and within the range 0-7.\n- Edge labels are |0-2|=2, |7-3|=4, |1-6|=5, |0-7|=7, |2-3|=1, |7-1|=6, |3-6|=3.\n- All edge labels {1, 2, 3, 4, 5, 6, 7} are distinct.\n- x[2] = 7 is satisfied.\n- e6 = 3 is satisfied.",
+  "raw_response": null,
+  "cot_trace": "**Defining the Graph Structure**\n\nI'm currently formalizing the structure of the graph $G_{2,3}$. It is comprised of three disjoint cliques, which I'm labeling $C_0$, $C_1$, and $C_2$. Each clique $C_j$ contains two vertices, $v_{j,0}$ and $v_{j,1}$, and the only edge within each $C_j$ connects these two vertices. This results in a total of three edges, one within each clique.\n\n\n**Calculating Edge Quantities**\n\nI've determined that the graph contains a total of 7 edges: 3 within the cliques and 4 between them. There are 6 vertices in total, and I'm revisiting the graceful labeling requirements to clarify the label range based on the number of vertices and edges. The initial confusion stems from a possible inconsistency in the problem statement.\n\n\n**Clarifying Label Requirements**\n\nI'm now focusing on the vertex and edge labeling. My understanding of the graceful labeling definition needed refinement. The graph has six vertices and seven edges, which means I need to pick six distinct labels from the set {0, 1, 2, 3, 4, 5, 6, 7}. The goal is to ensure all seven edge labels, the absolute differences between connected vertex labels, are distinct. This confirms I have to select a unique subset of six labels from that range.\n\n\n**Indexing the Edges**\n\nI'm now focusing on how the edges are indexed and labeled. I've re-indexed the vertices to align with the problem's ordering convention, and I've started assigning indices to each edge, from 0 to 6. I've been given some fixed values, such as $x[2] = 7$ (where $x$ represents vertex labels), and am trying to understand their implications in the context of graceful labeling. The provided information may define edge labels. I am trying to use this information to create edge label assignments.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 3483,
+  "completion_tokens": 2365,
+  "reasoning_tokens": 1308,
+  "cached_tokens": 0,
+  "cost_usd": 0.00441825,
+  "cost_source": "openrouter",
+  "latency_ms": 13029.6311378479,
+  "tool_dispatch_ms_total": 69.97871398925781,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Vertices: v00, v01, v10, v11, v20, v21\n# Indices: 0, 1, 2, 3, 4, 5\n# Edges:\n# 0: (v00, v01)\n# 1: (v10, v11)\n# 2: (v20, v21)\n# 3: (v00, v10)\n# 4: (v01, v11)\n# 5: (v10, v20)\n# 6: (v11, v21)\n\n# Fixed:\n# x[2] = 7 (v10 = 7)\n# d[6] = 3 (edge 6 = |v11 - v21| = 3)\n\ndef solve():\n    # Labels are from 0 to 7. We need 6 distinct labels.\n    # x[2] = 7 is fixed.\n    # So we need to pick 5 more labels from {0, 1, 2, 3, 4, 5, 6}.\n    \n    for labels in itertools.permutations(range(8), 6):\n        if labels[2] != 7:\n            continue\n        \n        # Edge labels\n        e0 = abs(labels[0] - labels[1])\n        e1 = abs(labels[2] - labels[3])\n        e2 = abs(labels[4] - labels[5])\n        e3 = abs(labels[0] - labels[2])\n        e4 = abs(labels[1] - labels[3])\n        e5 = abs(labels[2] - labels[4])\n        e6 = abs(labels[3] - labels[5])\n        \n        edges = [e0, e1, e2, e3, e4, e5, e6]\n        \n        if e6 != 3:\n            continue\n            \n        if len(set(edges)) == 7:\n            return list(labels)\n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 36.62
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify the solution [0, 2, 7, 3, 1, 6]\nlabels = [0, 2, 7, 3, 1, 6]\n# Vertices: v00=0, v01=2, v10=7, v11=3, v20=1, v21=6\n# Edges:\n# 0: (v00, v01) = |0 - 2| = 2\n# 1: (v10, v11) = |7 - 3| = 4\n# 2: (v20, v21) = |1 - 6| = 5\n# 3: (v00, v10) = |0 - 7| = 7\n# 4: (v01, v11) = |2 - 3| = 1\n# 5: (v10, v20) = |7 - 1| = 6\n# 6: (v11, v21) = |3 - 6| = 3\n\nedges = [2, 4, 5, 7, 1, 6, 3]\nprint(f\"Edges: {edges}\")\nprint(f\"Distinct edges: {len(set(edges)) == 7}\")\nprint(f\"Labels: {labels}\")\nprint(f\"x[2] = {labels[2]}\")\nprint(f\"e6 = {edges[6]}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.36
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "The solution [0, 2, 7, 3, 1, 6] satisfies all conditions:\n- Vertex labels are distinct and within the range 0-7.\n- Edge labels are |0-2|=2, |7-3|=4, |1-6|=5, |0-7|=7, |2-3|=1, |7-1|=6, |3-6|=3.\n- All edge labels {1, 2, 3, 4, 5, 6, 7} are distinct.\n- x[2] = 7 is satisfied.\n- e6 = 3 is satisfied.",
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          7,
+          3,
+          1,
+          6
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.01
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

@@ -1,0 +1,393 @@
+{
+  "problem_name": "pysms_min_degree_min_degree5_vertices13__v0_nh",
+  "problem_type": "pysms_min_degree",
+  "params": {
+    "min_degree": 5,
+    "vertices": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 89.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 78,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 31.39,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      0,
+      11
+    ],
+    [
+      0,
+      12
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      11
+    ],
+    [
+      1,
+      12
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      12
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      6,
+      9
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      7,
+      10
+    ],
+    [
+      8,
+      9
+    ],
+    [
+      8,
+      10
+    ],
+    [
+      8,
+      11
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      9,
+      11
+    ],
+    [
+      9,
+      12
+    ],
+    [
+      10,
+      11
+    ],
+    [
+      10,
+      12
+    ],
+    [
+      11,
+      12
+    ]
+  ],
+  "reasoning": "A 13-vertex circulant graph with jumps 1,2,3 gives every vertex degree 6, so minimum degree is at least 5. The edge list consists of all pairs (i, (i+j) mod 13) for i in 0..12 and j in {1,2,3}, with u<v.",
+  "raw_response": null,
+  "cot_trace": " We need to generate a graph with 13 vertices where the minimum degree is at least 5. Return the graph as a list of edges (u, v) with 0 <= u < v < 13, or state \"UNSATISFIABLE\" if no graph exists.\n\nWe need to determine if there exists a simple graph (presumably undirected, no loops, no multiple edges) on 13 vertices with minimum degree at least 5. If yes, provide a list of edges.\n\nThis is a classic existence question. By Dirac's theorem, a graph on n vertices with minimum degree at least n/2 is Hamiltonian, but we just need existence.\n\nThe sum of degrees must be at least 13*5 = 65. Since sum of degrees = 2|E|, we need 2|E| >= 65, so |E| >= 32.5, i.e., |E| >= 33. The maximum number of edges in a simple graph on 13 vertices is C(13,2) = 78. So 33 <= 78, so it's possible.\n\nBut we need to ensure that there exists a graph where every vertex has degree at least 5. For example, a 5-regular graph on 13 vertices would have sum of degrees = 13*5 = 65, which is odd, so impossible. So we can't have a 5-regular graph. But we can have some vertices of degree 5 and some of degree 6 or more.\n\nA simple construction: take a cycle of length 13 (each vertex degree 2). Then add edges to increase degrees. Or take the complement of a graph with max degree <= 7. But easier: we can try to construct explicitly.\n\nOne approach: start with a complete graph on 13 vertices and remove a matching or something. But we need min degree >=5. The complete graph has degree 12 for each vertex. If we remove a perfect matching (but 13 is odd, so no perfect matching). We can remove a near-perfect matching covering 12 vertices, leaving one vertex untouched. Removing a matching of size 6 (12 vertices) reduces degree of those 12 vertices by 1, so they have degree 11, and the untouched vertex has degree 12. That's way above 5.\n\nBut we want a sparse graph maybe. Let's try to construct a graph with 33 edges and min degree 5.\n\nWe can try to use Python to construct such a graph. For instance, we can try to find a graph with 13 vertices, 33 edges, min degree >=5.\n\nAlternatively, we can use a known construction: the circulant graph. For n=13, consider the graph where each vertex i is connected to i\u00b11, i\u00b12, i\u00b13 mod 13. That would be 6-regular (since 13 is odd, the circulant with jumps 1,2,3 gives degree 6). Actually, for each vertex, neighbors are i+1, i-1, i+2, i-2, i+3, i-3. That's 6 neighbors. Since 13 is prime, these are all distinct. So we get a 6-regular graph on 13 vertices. That certainly has min degree 6 >=5.\n\nLet's verify: vertices 0..12. Edges: for each i, edges (i, (i+j) mod 13) for j in {1,2,3}. Since we require u<v, we can list each edge once.\n\nLet's compute the edges.\n\nFor j=1: edges (0,1), (1,2), ..., (11,12). That's 13 edges? Wait, for a cycle, there are 13 edges in a 13-cycle. But in an undirected graph, each edge appears twice if we do for all i. So we need to list unique edges.\n\nBetter: for each i from 0 to 12, for each j in {1,2,3}, let v = (i+j) mod 13. If i < v, add edge (i,v). Since j <=3 and n=13, i < v unless i+j >=13. So for i from 0 to 12, v = i+j if i+j <13, else v = i+j-13. In the latter case, v < i, so we skip because we only add when i < v. But we can just generate all pairs (i, (i+j)%13) and keep those with i < v.\n\nLet's do that in Python to get the list.\n---\n The output seems empty? Wait, the code returned len(edges), edges[:10] but maybe the output is not shown because of some issue? Actually the tool returns JSON with result. It says stdout empty. Maybe the code didn't print? In Python, just having expressions at the end doesn't print. I need to use print. Let me rerun with print.\n---\n The graph with edges from a 13-cycle with chords of lengths 1,2,3 (i.e., each vertex connected to the 3 nearest neighbors on each side) gives degree 6 for all vertices, which satisfies min degree >=5. So SAT. Need to return the edge list. Let's verify edges count: 13*6/2 = 39 edges, yes.\n\nThe edges are:\n[(0, 1), (0, 2), (0, 3), (0, 10), (0, 11), (0, 12), (1, 2), (1, 3), (1, 4), (1, 11), (1, 12), (2, 3), (2, 4), (2, 5), (2, 12), (3, 4), (3, 5), (3, 6), (4, 5), (4, 6), (4, 7), (5, 6), (5, 7), (5, 8), (6, 7), (6, 8), (6, 9), (7, 8), (7, 9), (7, 10), (8, 9), (8, 10), (8, 11), (9, 10), (9, 11), (9, 12), (10, 11), (10, 12), (11, 12)]\n\nCheck 0 < u < v < 13: yes.\n\nThus answer is SAT with that list.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 2109,
+  "completion_tokens": 1929,
+  "reasoning_tokens": 1111,
+  "cached_tokens": 704,
+  "cost_usd": 0.0098979456,
+  "cost_source": "openrouter",
+  "latency_ms": 164825.0823020935,
+  "tool_dispatch_ms_total": 71.26569747924805,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "n=13\njumps=[1,2,3]\nedges=set()\nfor i in range(n):\n    for j in jumps:\n        v=(i+j)%n\n        if i<v:\n            edges.add((i,v))\n        else:\n            edges.add((v,i))\n# But since we add both (i,v) and (v,i) as same edge via min/max, let's just use tuple sorted.\nedges=[tuple(sorted((i,(i+j)%n))) for i in range(n) for j in jumps]\nedges=list(set(edges))\nedges.sort()\nlen(edges), edges[:10]"
+      },
+      "ok": true,
+      "latency_ms": 39.22
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "n=13\njumps=[1,2,3]\nedges=set()\nfor i in range(n):\n    for j in jumps:\n        a=i\n        b=(i+j)%n\n        if a<b:\n            edges.add((a,b))\n        else:\n            edges.add((b,a))\nedges=sorted(edges)\nprint(len(edges))\nprint(edges)\n# compute degrees\ndeg=[0]*n\nfor u,v in edges:\n    deg[u]+=1\n    deg[v]+=1\nprint(\"degrees:\",deg)\nprint(\"min degree:\",min(deg))"
+      },
+      "ok": true,
+      "latency_ms": 32.04
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            0,
+            12
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            6,
+            8
+          ],
+          [
+            6,
+            9
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            7,
+            10
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            8,
+            10
+          ],
+          [
+            8,
+            11
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            9,
+            11
+          ],
+          [
+            9,
+            12
+          ],
+          [
+            10,
+            11
+          ],
+          [
+            10,
+            12
+          ],
+          [
+            11,
+            12
+          ]
+        ],
+        "reasoning": "A 13-vertex circulant graph with jumps 1,2,3 gives every vertex degree 6, so minimum degree is at least 5. The edge list consists of all pairs (i, (i+j) mod 13) for i in 0..12 and j in {1,2,3}, with u<v."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

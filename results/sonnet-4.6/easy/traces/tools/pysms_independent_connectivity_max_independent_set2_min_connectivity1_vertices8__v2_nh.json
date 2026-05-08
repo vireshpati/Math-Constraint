@@ -1,0 +1,139 @@
+{
+  "problem_name": "pysms_independent_connectivity_max_independent_set2_min_connectivity1_vertices8__v2_nh",
+  "problem_type": "pysms_independent_connectivity",
+  "params": {
+    "max_independent_set": 2,
+    "min_connectivity": 1,
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 46.4,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 28,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 21.8,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      5,
+      6
+    ]
+  ],
+  "reasoning": "I constructed a graph on 8 vertices satisfying both constraints. The graph was found via SAT solving with two sets of constraints: (1) For every triple of vertices (i,j,k), at least one edge among them must exist (ensuring no independent set of size 3 or more), and (2) for every non-empty proper subset S of vertices, at least one edge crosses the cut (ensuring connectivity). The solution was verified: the graph is connected with vertex-connectivity 1, and the maximum independent set size is exactly 2 (e.g., {0,2} is independent, but no 3 mutually non-adjacent vertices exist).",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,1],[0,7],[1,2],[1,3],[1,4],[1,5],[1,6],[2,3],[2,4],[2,5],[2,6],[3,4],[3,5],[3,6],[4,5],[4,6],[5,6]],\n    \"reasoning\": \"I constructed a graph on 8 vertices satisfying both constraints. The graph was found via SAT solving with two sets of constraints: (1) For every triple of vertices (i,j,k), at least one edge among them must exist (ensuring no independent set of size 3 or more), and (2) for every non-empty proper subset S of vertices, at least one edge crosses the cut (ensuring connectivity). The solution was verified: the graph is connected with vertex-connectivity 1, and the maximum independent set size is exactly 2 (e.g., {0,2} is independent, but no 3 mutually non-adjacent vertices exist).\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 9294,
+  "completion_tokens": 2533,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.065877,
+  "cost_source": "openrouter",
+  "latency_ms": 41011.93070411682,
+  "tool_dispatch_ms_total": 1213.1199836730957,
+  "tool_calls_made": 2,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\nfrom pysat.solvers import Glucose3\nfrom pysat.formula import CNF\n\n# Let's think about this problem:\n# - 8 vertices (0-7)\n# - Maximum independent set size <= 2 (no 3 vertices are mutually non-adjacent)\n# - Vertex connectivity >= 1 (graph is connected)\n\n# Maximum independent set size <= 2 means:\n# For every triple of vertices (i, j, k), at least one edge exists among them\n# i.e., the complement graph has no triangle (clique of size 3)\n# Wait, let me re-think:\n# Independent set: set of vertices with NO edges between them\n# Max independent set <= 2 means: for every 3 vertices, at least one pair is connected\n\n# This means the complement graph has clique number <= 2, \n# i.e., the complement graph is triangle-free... \n# Wait no: independent set in G = clique in complement(G)\n# So max independent set in G <= 2 means max clique in complement(G) <= 2\n# i.e., complement(G) is triangle-free\n\n# For 8 vertices, by Tur\u00e1n's theorem, a triangle-free graph on 8 vertices \n# has at most 16 edges (complete bipartite K_{4,4}).\n# The complement of K_{4,4} is two disjoint K_4's, which has 12 edges.\n# So G must have at least C(8,2) - 16 = 28 - 16 = 12 edges.\n\n# Let's verify: if G = complement of a triangle-free graph, then G has max independent set <= 2\n# and G needs to be connected.\n\n# Strategy: \n# - The complement graph H must be triangle-free\n# - G = complement(H) must be connected\n# - We want to find such H\n\n# A triangle-free graph on 8 vertices: let's try complete bipartite graphs\n# K_{4,4} is triangle-free with 16 edges\n# complement of K_{4,4}: vertices split into {0,1,2,3} and {4,5,6,7}\n# edges in complement: all edges within {0,1,2,3} and within {4,5,6,7}\n# = K_4 union K_4 (two disjoint cliques)\n# This complement graph is DISCONNECTED (two components)\n\n# So we need H (triangle-free) such that complement(H) is connected\n# Let's try other triangle-free graphs\n\n# Let's use a SAT solver to find this\n# Variables: e_{i,j} = 1 if edge (i,j) in G, for 0<=i<j<8\n\nn = 8\nedges = [(i,j) for i in range(n) for j in range(i+1, n)]\nedge_idx = {e: idx+1 for idx, e in enumerate(edges)}  # 1-indexed for SAT\n\ndef get_var(i, j):\n    if i > j:\n        i, j = j, i\n    return edge_idx[(i,j)]\n\ncnf = CNF()\n\n# Constraint 1: Max independent set <= 2\n# For every triple (i,j,k), at least one of the three edges must exist\nfor i, j, k in itertools.combinations(range(n), 3):\n    # At least one of e(i,j), e(i,k), e(j,k) must be True\n    cnf.append([get_var(i,j), get_var(i,k), get_var(j,k)])\n\n# Constraint 2: Graph is connected (vertex connectivity >= 1)\n# Connectivity >= 1 just means connected\n# We encode connectivity using the condition that no proper subset S of vertices\n# has all edges between S and V\\S absent.\n# For each non-empty proper subset S, at least one edge between S and V\\S must exist.\n# This is 2^8 - 2 = 254 subsets, but we only need non-trivial ones.\n\n# Actually, let's encode it differently:\n# For each non-empty proper subset S (|S| from 1 to 7), \n# at least one edge crosses the cut.\n\nfor size in range(1, n):\n    for S in itertools.combinations(range(n), size):\n        S_set = set(S)\n        complement_S = [v for v in range(n) if v not in S_set]\n        # At least one edge between S and complement_S\n        cut_edges = []\n        for u in S:\n            for v in complement_S:\n                cut_edges.append(get_var(u, v))\n        cnf.append(cut_edges)\n\nsolver = Glucose3()\nsolver.append_formula(cnf.clauses)\nresult = solver.solve()\nprint(\"SAT:\", result)\n\nif result:\n    model = solver.get_model()\n    solution_edges = []\n    for e, idx in edge_idx.items():\n        if model[idx-1] > 0:\n            solution_edges.append(e)\n    print(\"Edges:\", solution_edges)\n    print(\"Number of edges:\", len(solution_edges))\n"
+      },
+      "ok": true,
+      "latency_ms": 405.41
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\nimport networkx as nx\n\n# Verify the solution\nsolution_edges = [(0, 1), (0, 7), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (2, 3), (2, 4), (2, 5), (2, 6), (3, 4), (3, 5), (3, 6), (4, 5), (4, 6), (5, 6)]\n\nG = nx.Graph()\nG.add_nodes_from(range(8))\nG.add_edges_from(solution_edges)\n\n# Check connectivity\nprint(\"Connected:\", nx.is_connected(G))\nprint(\"Vertex connectivity:\", nx.node_connectivity(G))\n\n# Check maximum independent set size\n# Brute force for 8 vertices\nmax_ind_set = 0\nmax_ind_set_example = []\nfor size in range(8, 0, -1):\n    found = False\n    for S in itertools.combinations(range(8), size):\n        S_set = set(S)\n        is_independent = True\n        for u, v in itertools.combinations(S, 2):\n            if G.has_edge(u, v):\n                is_independent = False\n                break\n        if is_independent:\n            max_ind_set = size\n            max_ind_set_example = S\n            found = True\n            break\n    if found:\n        break\n\nprint(\"Maximum independent set size:\", max_ind_set)\nprint(\"Example:\", max_ind_set_example)\nprint(\"\\nEdge list:\")\nfor e in sorted(solution_edges):\n    print(e)\n"
+      },
+      "ok": true,
+      "latency_ms": 807.71
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

@@ -1,0 +1,174 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree5_min_degree2_min_girth6_vertices11__v0_nh",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 2,
+    "min_girth": 6,
+    "vertices": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 19.7,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 13,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 10.34,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    4,
+    4,
+    5,
+    5,
+    6,
+    6,
+    7,
+    7,
+    8,
+    8,
+    9,
+    9,
+    10,
+    0,
+    10
+  ],
+  "reasoning": "The 11-cycle (C11) has 11 vertices, each of degree 2 (which is between 2 and 5), and its girth is 11 (the length of the only cycle), which is at least 6. This satisfies all constraints.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Invalid edge format: 0",
+  "prompt_tokens": 34975,
+  "completion_tokens": 8001,
+  "reasoning_tokens": 0,
+  "cached_tokens": 24832,
+  "cost_usd": 0.004355596,
+  "cost_source": "openrouter",
+  "latency_ms": 461221.4820384979,
+  "tool_dispatch_ms_total": 17201.54094696045,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport random\nfrom pysat import CNF, Solver\nfrom pysat.card import CardEnc\n\n# Let's try to formulate as SAT\n# Variables: for each possible edge (i,j) with i<j, variable index = i*11 + j + 1 (1-indexed for pysat)\nn = 11\nvar = {}\nfor i in range(n):\n    for j in range(i+1, n):\n        var[(i,j)] = i*n + j + 1\n\n# We'll try to find a graph with girth >= 6 and degrees between 2 and 5\n\n# Let's try a different approach - use a simple backtracking search\n# Since the graph is small, we can try to construct it manually or via search\n\n# Let me first think about the constraints more carefully.\n\n# With girth >= 6, the graph is locally tree-like up to distance 2.\n# For a vertex v, its neighbors must not be adjacent to each other (no triangle).\n# Also, neighbors of v cannot share a common neighbor other than v (no 4-cycle).\n# Also, distance-2 neighbors of v cannot be adjacent to each other (no 5-cycle).\n\n# Let's try to use networkx to search\nimport networkx as nx\n\ndef check_girth(G, min_girth=6):\n    \"\"\"Check if girth is at least min_girth\"\"\"\n    try:\n        g = nx.girth(G)\n        return g >= min_girth\n    except nx.NetworkXNoCycle:\n        return True  # No cycles means girth is infinite\n\ndef check_degrees(G, min_deg=2, max_deg=5):\n    \"\"\"Check if all degrees are in range\"\"\"\n    for v in G.nodes():\n        d = G.degree(v)\n        if d < min_deg or d > max_deg:\n            return False\n    return True\n\n# Let's try a constructive approach\n# Start with a cycle of length 11 (girth = 11, degrees = 2)\n# Then add edges carefully to increase degrees while maintaining girth >= 6\n\nG = nx.cycle_graph(11)\nprint(f\"Initial: degrees={dict(G.degree())}, girth={nx.girth(G) if nx.cycle_basis(G) else 'infinite'}\")\n\n# We need to add edges to increase degrees of some vertices to at least 2 (already done) \n# and at most 5. Currently all degrees are 2.\n# We can add edges as long as they don't create cycles of length < 6.\n\n# Let's try a systematic search",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 57.39
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport random\nimport networkx as nx\n\nn = 11\n\ndef check_girth(G, min_girth=6):\n    \"\"\"Check if girth is at least min_girth\"\"\"\n    try:\n        g = nx.girth(G)\n        return g >= min_girth\n    except nx.NetworkXNoCycle:\n        return True  # No cycles means girth is infinite\n\ndef check_degrees(G, min_deg=2, max_deg=5):\n    \"\"\"Check if all degrees are in range\"\"\"\n    for v in G.nodes():\n        d = G.degree(v)\n        if d < min_deg or d > max_deg:\n            return False\n    return True\n\n# Let's try a constructive approach\n# Start with a cycle of length 11 (girth = 11, degrees = 2)\n# Then add edges carefully to increase degrees while maintaining girth >= 6\n\nG = nx.cycle_graph(11)\nprint(f\"Initial: degrees={dict(G.degree())}, girth={nx.girth(G)}\")\n\n# We need to add edges to increase degrees. Currently all degrees are 2.\n# We can add edges as long as they don't create cycles of length < 6.\n\n# Let's try a greedy approach: try adding edges between vertices that are far apart\n# In a cycle of 11, the distance between vertices i and j is min(|i-j|, 11-|i-j|)\n# To avoid short cycles, we should connect vertices at distance >= 3 (since connecting\n# at distance 2 creates a 3-cycle? No, distance 2 in a cycle means they share a neighbor,\n# so connecting them creates a triangle - cycle of length 3).\n# Distance 3: connecting creates a cycle of length 4 (i, i+1, i+2, j) - too short.\n# Distance 4: connecting creates a cycle of length 5 (i, i+1, i+2, i+3, j) - too short.\n# Distance 5: connecting creates a cycle of length 6 - this is okay!\n\n# So we can only add edges between vertices at distance >= 5 in the cycle.\n# In an 11-cycle, distance 5 means the two vertices are opposite (5 apart in one direction, 6 in the other).\n\n# Let's try adding edges between vertices at distance 5.\n\ndef distance_in_cycle(i, j, n=11):\n    return min(abs(i-j), n - abs(i-j))\n\n# Find all pairs at distance >= 5\ncandidates = []\nfor i in range(n):\n    for j in range(i+1, n):\n        if distance_in_cycle(i, j) >= 5:\n            candidates.append((i,j))\n\nprint(f\"Candidate edges (distance >= 5): {candidates}\")\n\n# Let's try adding some of these edges\nG = nx.cycle_graph(11)\nedges_to_add = [(0,5), (1,6), (2,7), (3,8), (4,9)]\nfor e in edges_to_add:\n    G.add_edge(*e)\n\nprint(f\"After adding edges: degrees={dict(G.degree())}\")\nprint(f\"Girth: {nx.girth(G)}\")\nprint(f\"All degrees in [2,5]? {check_degrees(G)}\")\n\n# Let's check if there are any cycles of length < 6\nfor cycle in nx.simple_cycles(G, length_bound=5):\n    print(f\"Short cycle found: {cycle}\")\n\n# Let's try more systematically",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 777.16
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's try using python-sat properly\nfrom pysat import SATSolver\nfrom pysat.card import CardEnc\n\nn = 11\n\n# Variable mapping: for each possible edge (i,j) with i<j\nvar = {}\nidx = 1\nfor i in range(n):\n    for j in range(i+1, n):\n        var[(i,j)] = idx\n        idx += 1\n\nnum_vars = idx - 1\nprint(f\"Number of variables: {num_vars}\")\n\n# We'll create a CNF formula\n# Constraint 1: degree of each vertex between 2 and 5\n# Constraint 2: no cycles of length 3, 4, or 5\n\n# Let's use a different approach - brute force search with pruning\n# Since the graph is small, we can try to enumerate possibilities\n\n# Actually, let me think about this more theoretically.\n\n# A graph with girth >= 6 on 11 vertices with degrees 2-5.\n# This is like a (2,5)-cage problem but with 11 vertices.\n\n# Known fact: The smallest cubic graph (degree 3) with girth 6 is the \n# Petersen graph (10 vertices, girth 5). Wait, Petersen has girth 5.\n# The Heawood graph is a (3,6)-cage with 14 vertices.\n# So a 3-regular graph with girth 6 needs at least 14 vertices.\n\n# But we allow degrees 2-5, not necessarily regular.\n# And we have 11 vertices.\n\n# Let's try a constructive search.\n\nimport itertools\nimport networkx as nx\n\ndef has_short_cycle(G, max_len=5):\n    \"\"\"Check if G has any cycle of length <= max_len\"\"\"\n    try:\n        g = nx.girth(G)\n        return g <= max_len\n    except:\n        return False\n\n# Let's try to build a graph incrementally\n# Start with no edges, add edges one by one, backtracking when constraints violated\n\nbest = None\n\ndef backtrack(edges_so_far, candidates, degrees):\n    global best\n    if best is not None:\n        return\n    \n    # Check if we have a valid graph\n    G = nx.Graph()\n    G.add_nodes_from(range(n))\n    G.add_edges_from(edges_so_far)\n    \n    # Check degrees\n    ok = True\n    for v in range(n):\n        d = G.degree(v)\n        if d > 5:\n            ok = False\n            break\n    if not ok:\n        return\n    \n    # Check if all vertices have degree >= 2 and no short cycles\n    all_deg_ok = all(G.degree(v) >= 2 for v in range(n))\n    \n    if all_deg_ok:\n        if not has_short_cycle(G, 5):\n            best = list(edges_so_far)\n            print(f\"Found solution: {best}\")\n            print(f\"Degrees: {dict(G.degree())}\")\n            return\n    \n    # If we've added too many edges, stop\n    if len(edges_so_far) > 20:  # max edges with degree <= 5 is 11*5/2 = 27.5, so 27\n        return\n    \n    # Try adding more edges\n    for idx, (i,j) in enumerate(candidates):\n        if idx < len(candidates) - 1:\n            remaining = candidates[idx+1:]\n        else:\n            remaining = []\n        \n        # Check if adding this edge would create a short cycle\n        G2 = G.copy()\n        G2.add_edge(i, j)\n        if has_short_cycle(G2, 5):\n            continue\n        \n        # Check degree constraints\n        if G2.degree(i) > 5 or G2.degree(j) > 5:\n            continue\n        \n        new_degrees = degrees.copy()\n        new_degrees[i] += 1\n        new_degrees[j] += 1\n        \n        backtrack(edges_so_far + [(i,j)], remaining, new_degrees)\n        if best is not None:\n            return\n\n# Generate all possible edges\nall_edges = [(i,j) for i in range(n) for j in range(i+1, n)]\nprint(f\"Total possible edges: {len(all_edges)}\")\n\n# This might be too slow. Let's try a smarter approach.\n\n# Actually, let me think about the structure.\n# With girth >= 6, the graph is triangle-free and has no 4-cycles or 5-cycles.\n# This is a very sparse graph.\n\n# Let me try to use a known construction or search more efficiently.\n\n# Let's try using a SAT solver with python-sat\nfrom pysat import SATSolver\n\n# Actually let me check what's available\nimport pysat\nprint(dir(pysat))",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 45.73
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's check what's available in pysat\nimport pysat\nprint(dir(pysat))\n\n# Try importing submodules\ntry:\n    from pysat import formula\n    print(\"formula available\")\nexcept:\n    print(\"no formula\")\n\ntry:\n    from pysat import solvers\n    print(\"solvers available\")\nexcept:\n    print(\"no solvers\")\n\ntry:\n    from pysat.solvers import Glucose3\n    print(\"Glucose3 available\")\nexcept:\n    print(\"no Glucose3\")\n\n# Let's just check what packages are installed\nimport subprocess\nresult = subprocess.run([\"pip\", \"list\", \"--format=columns\"], capture_output=True, text=True)\nprint(result.stdout)",
+        "timeout_seconds": 15
+      },
+      "ok": false,
+      "latency_ms": 15018.38
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's check what's available in pysat\nimport pysat\nprint(dir(pysat))\n\n# Try importing submodules\ntry:\n    from pysat import formula\n    print(\"formula available\")\nexcept Exception as e:\n    print(f\"no formula: {e}\")\n\ntry:\n    from pysat import solvers\n    print(\"solvers available\")\nexcept Exception as e:\n    print(f\"no solvers: {e}\")\n\ntry:\n    from pysat.solvers import Glucose3\n    print(\"Glucose3 available\")\nexcept Exception as e:\n    print(f\"no Glucose3: {e}\")\n\n# Check what's in pysat\nimport inspect\nfor name in dir(pysat):\n    print(f\"  {name}: {type(getattr(pysat, name))}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 289.22
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Great, let's use pysat properly\nfrom pysat.formula import CNF\nfrom pysat.solvers import Glucose3\n\nn = 11\n\n# Variable mapping: for each possible edge (i,j) with i<j\nvar = {}\nidx = 1\nfor i in range(n):\n    for j in range(i+1, n):\n        var[(i,j)] = idx\n        idx += 1\n\nnum_vars = idx - 1\nprint(f\"Number of variables: {num_vars}\")\n\n# Create CNF formula\nformula = CNF()\n\n# Constraint 1: degree of each vertex between 2 and 5\n# For each vertex v, the edges incident to v are: (v, w) for w != v\n# We need at least 2 and at most 5 of these to be true.\n\nfrom pysat.card import CardEnc\n\nfor v in range(n):\n    incident_vars = []\n    for w in range(n):\n        if w < v:\n            incident_vars.append(var[(w, v)])\n        elif w > v:\n            incident_vars.append(var[(v, w)])\n    \n    # At most 5\n    formula.extend(CardEnc.atmost(lits=incident_vars, bound=5, top_id=num_vars))\n    # At least 2\n    formula.extend(CardEnc.atleast(lits=incident_vars, bound=2, top_id=num_vars))\n\n# Constraint 2: no cycles of length 3, 4, or 5\n# For each potential cycle of length k (3,4,5), at least one edge must be missing\n\n# Generate all cycles of length 3, 4, 5\n# We can enumerate all subsets of vertices of size 3, 4, 5 and check if they form a cycle\n\n# For triangles (3-cycles): any 3 vertices with all 3 edges present\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(j+1, n):\n            # The triangle i-j-k would require edges (i,j), (i,k), (j,k)\n            # At least one must be false\n            formula.append([-var[(i,j)], -var[(i,k)], -var[(j,k)]])\n\nprint(f\"After triangle constraints: {len(formula.clauses)} clauses\")\n\n# For 4-cycles: we need to enumerate all possible 4-cycles\n# A 4-cycle on vertices a,b,c,d has edges (a,b), (b,c), (c,d), (d,a)\n# We need to consider all orderings\nfor a in range(n):\n    for b in range(n):\n        if b == a: continue\n        for c in range(n):\n            if c == a or c == b: continue\n            for d in range(n):\n                if d == a or d == b or d == c: continue\n                # Check if edges exist in our variable set\n                # We need (a,b), (b,c), (c,d), (d,a) - all with a<b, etc.\n                edges = []\n                for (u,v) in [(a,b), (b,c), (c,d), (d,a)]:\n                    if u < v:\n                        edges.append(var[(u,v)])\n                    else:\n                        edges.append(var[(v,u)])\n                formula.append([-e for e in edges])\n\nprint(f\"After 4-cycle constraints: {len(formula.clauses)} clauses\")\n\n# For 5-cycles: similar but with 5 edges\nfor a in range(n):\n    for b in range(n):\n        if b == a: continue\n        for c in range(n):\n            if c == a or c == b: continue\n            for d in range(n):\n                if d == a or d == b or d == c: continue\n                for e in range(n):\n                    if e == a or e == b or e == c or e == d: continue\n                    edges = []\n                    for (u,v) in [(a,b), (b,c), (c,d), (d,e), (e,a)]:\n                        if u < v:\n                            edges.append(var[(u,v)])\n                        else:\n                            edges.append(var[(v,u)])\n                    formula.append([-e for e in edges])\n\nprint(f\"After 5-cycle constraints: {len(formula.clauses)} clauses\")\n\n# Solve\nsolver = Glucose3()\nsolver.append_formula(formula)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    # Convert model to edges\n    edges = []\n    for (i,j), vidx in var.items():\n        if model[vidx-1] > 0:  # pysat uses 1-indexed, model is 0-indexed\n            edges.append((i,j))\n    print(f\"Edges: {edges}\")\n    print(f\"Number of edges: {len(edges)}\")\n    \n    # Verify\n    import networkx as nx\n    G = nx.Graph()\n    G.add_nodes_from(range(n))\n    G.add_edges_from(edges)\n    print(f\"Degrees: {dict(G.degree())}\")\n    print(f\"Girth: {nx.girth(G)}\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 564.02
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc\n\nn = 11\n\n# Variable mapping\nvar = {}\nidx = 1\nfor i in range(n):\n    for j in range(i+1, n):\n        var[(i,j)] = idx\n        idx += 1\n\nnum_vars = idx - 1\n\n# Let's test with just the 11-cycle\n# Edges of the 11-cycle: (0,1), (1,2), ..., (9,10), (10,0)\ncycle_edges = [(i, (i+1)%n) for i in range(n)]\n# Normalize to have u < v\ncycle_edges_normalized = []\nfor u,v in cycle_edges:\n    if u < v:\n        cycle_edges_normalized.append((u,v))\n    else:\n        cycle_edges_normalized.append((v,u))\n\nprint(f\"Cycle edges: {cycle_edges_normalized}\")\n\n# Create a model for the 11-cycle\nmodel = [0] * num_vars\nfor (i,j) in cycle_edges_normalized:\n    model[var[(i,j)] - 1] = 1\n\nprint(f\"Model has {sum(1 for m in model if m > 0)} positive literals\")\n\n# Now check if this model satisfies the constraints\nformula = CNF()\n\n# Degree constraints\nfor v in range(n):\n    incident_vars = []\n    for w in range(n):\n        if w < v:\n            incident_vars.append(var[(w, v)])\n        elif w > v:\n            incident_vars.append(var[(v, w)])\n    \n    formula.extend(CardEnc.atmost(lits=incident_vars, bound=5, top_id=num_vars))\n    formula.extend(CardEnc.atleast(lits=incident_vars, bound=2, top_id=num_vars))\n\n# Check degree constraints manually\nprint(\"\\nChecking degree constraints:\")\nfor v in range(n):\n    incident_vars = []\n    for w in range(n):\n        if w < v:\n            incident_vars.append(var[(w, v)])\n        elif w > v:\n            incident_vars.append(var[(v, w)])\n    \n    deg = sum(1 for vidx in incident_vars if model[vidx-1] > 0)\n    print(f\"  Vertex {v}: degree = {deg}\")\n    if deg < 2 or deg > 5:\n        print(f\"    FAILS!\")\n\n# Check cycle constraints\nprint(\"\\nChecking cycle constraints:\")\n# Triangles\ntriangle_ok = True\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(j+1, n):\n            e1 = model[var[(i,j)]-1] > 0\n            e2 = model[var[(i,k)]-1] > 0\n            e3 = model[var[(j,k)]-1] > 0\n            if e1 and e2 and e3:\n                print(f\"  Triangle found: {i},{j},{k}\")\n                triangle_ok = False\nif triangle_ok:\n    print(\"  No triangles - OK\")\n\n# 4-cycles\nfour_cycle_ok = True\nfor a in range(n):\n    for b in range(n):\n        if b == a: continue\n        for c in range(n):\n            if c == a or c == b: continue\n            for d in range(n):\n                if d == a or d == b or d == c: continue\n                edges = []\n                for (u,v) in [(a,b), (b,c), (c,d), (d,a)]:\n                    if u < v:\n                        edges.append(var[(u,v)])\n                    else:\n                        edges.append(var[(v,u)])\n                if all(model[e-1] > 0 for e in edges):\n                    print(f\"  4-cycle found: {a},{b},{c},{d}\")\n                    four_cycle_ok = False\nif four_cycle_ok:\n    print(\"  No 4-cycles - OK\")\n\n# 5-cycles\nfive_cycle_ok = True\nfor a in range(n):\n    for b in range(n):\n        if b == a: continue\n        for c in range(n):\n            if c == a or c == b: continue\n            for d in range(n):\n                if d == a or d == b or d == c: continue\n                for e in range(n):\n                    if e == a or e == b or e == c or e == d: continue\n                    edges = []\n                    for (u,v) in [(a,b), (b,c), (c,d), (d,e), (e,a)]:\n                        if u < v:\n                            edges.append(var[(u,v)])\n                        else:\n                            edges.append(var[(v,u)])\n                    if all(model[ei-1] > 0 for ei in edges):\n                        print(f\"  5-cycle found: {a},{b},{c},{d},{e}\")\n                        five_cycle_ok = False\nif five_cycle_ok:\n    print(\"  No 5-cycles - OK\")\n\n# Now let's check if the SAT solver actually says UNSAT for this formula\n# Maybe the issue is with CardEnc\nprint(\"\\n\\nLet's test with a simpler encoding...\")\n\n# Let's manually add the 11-cycle as assumptions and see if it's satisfiable\nformula2 = CNF()\n\n# Add unit clauses for the cycle edges\nfor (i,j) in cycle_edges_normalized:\n    formula2.append([var[(i,j)]])\n\n# Add degree constraints using simple clauses\n# At most 5: for each vertex, any 6 edges incident to it can't all be true\nfor v in range(n):\n    incident_vars = []\n    for w in range(n):\n        if w < v:\n            incident_vars.append(var[(w, v)])\n        elif w > v:\n            incident_vars.append(var[(v, w)])\n    \n    # At most 5: for any 6-subset, at least one is false\n    from itertools import combinations\n    for combo in combinations(incident_vars, 6):\n        formula2.append([-c for c in combo])\n    \n    # At least 2: for each vertex, at least 2 incident edges\n    # This is harder to encode simply... let's use CardEnc just for atleast\n    # Actually, let's just check if the 11-cycle satisfies atleast 2\n\nprint(f\"Formula2 has {len(formula2.clauses)} clauses\")\n\nsolver2 = Glucose3()\nsolver2.append_formula(formula2)\nresult2 = solver2.solve()\nprint(f\"With just cycle edges + atmost constraints: {result2}\")\n\nif result2:\n    model2 = solver2.get_model()\n    edges2 = []\n    for (i,j), vidx in var.items():\n        if model2[vidx-1] > 0:\n            edges2.append((i,j))\n    print(f\"Edges: {edges2}\")\nelse:\n    print(\"UNSAT - but this might be because we forced the cycle edges and atmost constraints\")\n    print(\"Let's check if the cycle itself violates atmost...\")\n    for v in range(n):\n        deg = sum(1 for (i,j) in cycle_edges_normalized if i==v or j==v)\n        print(f\"  Vertex {v}: degree = {deg}\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 449.64
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          1,
+          2,
+          2,
+          3,
+          3,
+          4,
+          4,
+          5,
+          5,
+          6,
+          6,
+          7,
+          7,
+          8,
+          8,
+          9,
+          9,
+          10,
+          0,
+          10
+        ],
+        "reasoning": "The 11-cycle (C11) has 11 vertices, each of degree 2 (which is between 2 and 5), and its girth is 11 (the length of the only cycle), which is at least 6. This satisfies all constraints."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

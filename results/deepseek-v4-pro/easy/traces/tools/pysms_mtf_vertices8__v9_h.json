@@ -1,0 +1,200 @@
+{
+  "problem_name": "pysms_mtf_vertices8__v9_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 9.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 12,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 3.76,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      4
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      3,
+      7
+    ]
+  ],
+  "reasoning": "The complete bipartite graph K_{4,4} with parts {0,1,2,3} and {4,5,6,7} is triangle-free (bipartite graphs contain no odd cycles) and maximal (adding any edge within a part creates a triangle because any two vertices in the same part share all four vertices in the opposite part as common neighbors). It has 16 edges, which is the maximum possible for a triangle-free graph on 8 vertices (Mantel's theorem / Tur\u00e1n's theorem). The fixed edges (0,6) and (2,6) are present in this construction.",
+  "raw_response": null,
+  "cot_trace": "We need to generate a maximal triangle-free graph with 8 vertices. A triangle-free graph is one with no 3-cycle (no K3). Maximal means that adding any missing edge would create a triangle. So it's a maximal triangle-free graph (also known as a maximal triangle-free graph, or a triangle-free graph that is edge-maximal). We need to find such a graph on 8 vertices, with given edges (0,6) and (2,6) present.\n\nWe need to output a list of edges (u,v) with 0<=u<v<8. The graph must be triangle-free, and maximal (i.e., adding any non-edge creates a triangle). Also must include the fixed edges.\n\nLet's think about triangle-free graphs. The classic extremal result: Mantel's theorem says maximum number of edges in a triangle-free graph on n vertices is floor(n^2/4). For n=8, max edges = 16. But maximal triangle-free graphs can have fewer edges; they just can't have any edge added without creating a triangle.\n\nA complete bipartite graph K_{a,b} is triangle-free. For n=8, the balanced complete bipartite graph K_{4,4} has 16 edges and is triangle-free. But is it maximal? In a complete bipartite graph, any missing edge is within the same part. Adding an edge within a part would create a triangle? Let's check: In K_{4,4}, parts A and B. If we add an edge between two vertices in A, then those two vertices plus any vertex in B would form a triangle? Actually, if we add edge (a1,a2) where both in A, then for any b in B, we have edges (a1,b) and (a2,b) already present, so adding (a1,a2) creates triangle a1-a2-b. So indeed K_{4,4} is maximal triangle-free. So one solution is K_{4,4}.\n\nBut we have fixed edges: (0,6) and (2,6). In K_{4,4}, vertices are partitioned into two sets of 4. Edges only between sets. So 0 and 6 must be in different parts; 2 and 6 must be in different parts. So 6 is in one part, 0 and 2 in the other. That's fine.\n\nBut we need to output a specific graph. Let's just construct a K_{4,4} with parts: {0,1,2,3} and {4,5,6,7}. Then edges are all pairs (i,j) with i in first set, j in second. That includes (0,6) and (2,6). Check: 0 in first, 6 in second => edge. 2 in first, 6 in second => edge. So that works.\n\nBut is K_{4,4} the only maximal triangle-free graph? There are others, like the friendship graph? But we just need one.\n\nLet's verify that K_{4,4} is indeed maximal triangle-free. Yes, as argued.\n\nThus solution: edges = [(0,4),(0,5),(0,6),(0,7),(1,4),(1,5),(1,6),(1,7),(2,4),(2,5),(2,6),(2,7),(3,4),(3,5),(3,6),(3,7)].\n\nBut wait: The problem says \"maximal triangle-free graph\". Does it require that the graph is maximal (i.e., no edge can be added without creating a triangle) but not necessarily maximum? K_{4,4} is both maximum and maximal. That's fine.\n\nBut let's double-check: In K_{4,4}, if we add any edge within a part, say (0,1), then triangle (0,1,4) exists because (0,4) and (1,4) are edges. So indeed maximal.\n\nThus answer is satisfiable.\n\nBut maybe there is a nuance: \"maximal triangle-free graph\" might mean a graph that is triangle-free and has the maximum number of edges? Actually \"maximal\" usually means edge-maximal (cannot add edges), while \"maximum\" means maximum size. But sometimes people confuse. However, the problem says \"maximal triangle-free graph\", which typically means edge-maximal. And they gave partial assignment, so they want any maximal triangle-free graph consistent with those edges.\n\nLet's confirm with Python using pysat or just reasoning.\n\nI'll write a quick script to verify that K_{4,4} is triangle-free and maximal.\n\nBut also, we need to ensure that the graph we output is indeed maximal: for every non-edge, adding it creates a triangle. Let's verify with Python.\n---\nK_{4,4} is triangle-free and maximal. It has 16 edges. The fixed edges (0,6) and (2,6) are present in this graph (since 0 in partA, 6 in partB; 2 in partA, 6 in partB). So this works.\n\nBut wait: is K_{4,4} the unique maximal triangle-free graph on 8 vertices? Actually, by Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on n vertices is floor(n^2/4) = 16, achieved by complete bipartite graph with parts as equal as possible. So K_{4,4} is the unique extremal graph (up to isomorphism). And it's maximal (adding any edge within a part creates a triangle because any two vertices in the same part share all vertices in the other part as common neighbors).\n\nThus the solution is K_{4,4} with parts {0,1,2,3} and {4,5,6,7}. The fixed edges (0,6) and (2,6) are consistent.\n\nLet me double-check: The problem says \"maximal triangle-free graph\" meaning you cannot add any edge without creating a triangle. K_{4,4} satisfies this.\n\nLet me output the edges.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 2227,
+  "completion_tokens": 2055,
+  "reasoning_tokens": 1184,
+  "cached_tokens": 0,
+  "cost_usd": 0.0137187,
+  "cost_source": "openrouter",
+  "latency_ms": 198570.65677642822,
+  "tool_dispatch_ms_total": 34.444332122802734,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify K_{4,4} is triangle-free and maximal\nn = 8\npartA = {0,1,2,3}\npartB = {4,5,6,7}\nedges = [(i,j) for i in partA for j in partB]\n\n# Check triangle-free\nadj = {i:set() for i in range(n)}\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\ndef has_triangle():\n    for i in range(n):\n        for j in adj[i]:\n            if j>i:\n                for k in adj[i] & adj[j]:\n                    if k>j:\n                        return True\n    return False\n\nprint(\"Triangle-free:\", not has_triangle())\n\n# Check maximal: for every non-edge, adding it creates a triangle\nnon_edges = [(i,j) for i in range(n) for j in range(i+1,n) if j not in adj[i]]\nmaximal = True\nfor u,v in non_edges:\n    # add edge temporarily\n    adj[u].add(v)\n    adj[v].add(u)\n    # check if triangle exists now\n    found = False\n    for w in adj[u] & adj[v]:\n        found = True\n        break\n    if not found:\n        # also check if any triangle formed with other vertices?\n        # Actually triangle would be u,v,w where w is common neighbor\n        pass\n    # Actually condition: adding edge (u,v) creates a triangle if there exists w such that (u,w) and (v,w) are edges.\n    # So we just need common neighbor.\n    common = adj[u] & adj[v]\n    # remove edge\n    adj[u].remove(v)\n    adj[v].remove(u)\n    if not common:\n        print(f\"Adding edge ({u},{v}) does NOT create triangle\")\n        maximal = False\n        break\nprint(\"Maximal:\", maximal)\nprint(\"Edges:\", edges)\nprint(\"Number of edges:\", len(edges))"
+      },
+      "ok": true,
+      "latency_ms": 34.44
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            3,
+            7
+          ]
+        ],
+        "reasoning": "The complete bipartite graph K_{4,4} with parts {0,1,2,3} and {4,5,6,7} is triangle-free (bipartite graphs contain no odd cycles) and maximal (adding any edge within a part creates a triangle because any two vertices in the same part share all four vertices in the opposite part as common neighbors). It has 16 edges, which is the maximum possible for a triangle-free graph on 8 vertices (Mantel's theorem / Tur\u00e1n's theorem). The fixed edges (0,6) and (2,6) are present in this construction."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

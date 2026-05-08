@@ -1,0 +1,107 @@
+{
+  "problem_name": "all_interval_n13__v6_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 969.3,
+    "search_space": 6227020800,
+    "num_variables": 25,
+    "num_constraints": 16,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 66.35,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    12,
+    1,
+    11,
+    2,
+    10,
+    3,
+    9,
+    4,
+    8,
+    5,
+    7,
+    6
+  ],
+  "reasoning": "\nThe all-interval series of size 13 exists and is SATISFIABLE. The solution is the classic zigzag permutation:\n\n  [0, 12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6]\n\nVerification:\n- Values: {0,1,2,...,12} \u2713 \u2014 a permutation of 0 to 12\n- Consecutive absolute differences: 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 \u2713 \u2014 a permutation of 1 to 12\n\nThe pattern alternates between the low end and high end of the remaining values, producing differences that decrease from 12 down to 1.\n",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5705,
+  "completion_tokens": 1308,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.036735000000000004,
+  "cost_source": "openrouter",
+  "latency_ms": 47718.613147735596,
+  "tool_dispatch_ms_total": 1473.4537601470947,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\n# Use constraint programming with backtracking\n# p is a permutation of 0..12\n# |p[i+1] - p[i]| must be a permutation of 1..12\n\ndef solve_all_interval():\n    n = 13\n    p = [None] * n\n    used_vals = [False] * n\n    used_diffs = [False] * n  # index 1..12\n    \n    def backtrack(pos):\n        if pos == n:\n            return True\n        \n        for v in range(n):\n            if used_vals[v]:\n                continue\n            \n            if pos == 0:\n                # Try placing v at position 0\n                p[0] = v\n                used_vals[v] = True\n                if backtrack(1):\n                    return True\n                used_vals[v] = False\n                p[0] = None\n            else:\n                # Check difference with previous\n                diff = abs(v - p[pos-1])\n                if diff == 0 or diff > 12:\n                    continue\n                if used_diffs[diff]:\n                    continue\n                \n                p[pos] = v\n                used_vals[v] = True\n                used_diffs[diff] = True\n                \n                if backtrack(pos + 1):\n                    return True\n                \n                p[pos] = None\n                used_vals[v] = False\n                used_diffs[diff] = False\n        \n        return False\n    \n    if backtrack(0):\n        return p\n    return None\n\nresult = solve_all_interval()\nprint(\"Solution:\", result)\nif result:\n    diffs = [abs(result[i+1] - result[i]) for i in range(12)]\n    print(\"Differences:\", diffs)\n    print(\"Values set:\", sorted(result))\n    print(\"Diffs set:\", sorted(diffs))\n    print(\"Valid permutation of 0-12:\", sorted(result) == list(range(13)))\n    print(\"Valid diffs 1-12:\", sorted(diffs) == list(range(1, 13)))\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 1438.09
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nresult = [0, 12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6]\nprint(\"All-interval series of size 13:\")\nprint(result)\nprint()\nprint(\"Step-by-step verification:\")\nfor i in range(12):\n    d = abs(result[i+1] - result[i])\n    print(f\"  |p[{i+1}] - p[{i}]| = |{result[i+1]} - {result[i]}| = {d}\")\nprint()\ndiffs = [abs(result[i+1] - result[i]) for i in range(12)]\nprint(f\"Values:      {sorted(result)} \u2713 (permutation of 0\u201312)\")\nprint(f\"Differences: {sorted(diffs)} \u2713 (permutation of 1\u201312)\")\n"
+      },
+      "ok": true,
+      "latency_ms": 35.36
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          12,
+          1,
+          11,
+          2,
+          10,
+          3,
+          9,
+          4,
+          8,
+          5,
+          7,
+          6
+        ],
+        "reasoning": "\nThe all-interval series of size 13 exists and is SATISFIABLE. The solution is the classic zigzag permutation:\n\n  [0, 12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6]\n\nVerification:\n- Values: {0,1,2,...,12} \u2713 \u2014 a permutation of 0 to 12\n- Consecutive absolute differences: 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 \u2713 \u2014 a permutation of 1 to 12\n\nThe pattern alternates between the low end and high end of the remaining values, producing differences that decrease from 12 down to 1.\n"
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

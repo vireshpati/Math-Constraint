@@ -1,0 +1,149 @@
+{
+  "problem_name": "low_autocorrelation_n21__v1_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 21
+  },
+  "difficulty": {
+    "solve_time_ms": 1603.4,
+    "search_space": 2097152,
+    "num_variables": 41,
+    "num_constraints": 27,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.53,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    -1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1,
+    1
+  ],
+  "reasoning": "Found by exhaustive search over the 2^17 = 131072 combinations of free positions. The sequence satisfies:\n- Fixed values: seq[5]=-1, seq[12]=-1, seq[17]=1, seq[20]=1\n- c constraints (interpreting c[k] = C_{k+1}): C[1]=2, C[2]=-1, C[9]=2, C[20]=-1\n- Merit = sum_{k=1}^{20} C_k^2 = 50 \u2264 52\nAutocorrelations C[1..20] = [2, -1, 0, 1, 0, -1, 0, -3, 2, 1, 0, -1, 0, 1, 2, 1, -4, 1, 2, -1]",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 20604,
+  "completion_tokens": 4118,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.123582,
+  "cost_source": "openrouter",
+  "latency_ms": 56927.37364768982,
+  "tool_dispatch_ms_total": 6415.638208389282,
+  "tool_calls_made": 6,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\nimport numpy as np\n\ndef compute_autocorr(seq):\n    n = len(seq)\n    C = []\n    for k in range(n):\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        C.append(ck)\n    return C\n\ndef compute_merit(seq):\n    C = compute_autocorr(seq)\n    return sum(c**2 for c in C[1:])\n\nn = 21\n# Fixed values\nfixed = {5: -1, 12: -1, 17: 1, 20: 1}\n\n# Additional constraints from c values:\n# c[0] = sum of all seq[i]^2 = n = 21, but they say c[0]=2? \n# Wait, c[0] = sum_{i=0}^{n-1} seq[i]*seq[i+0] = sum seq[i]^2 = 21 for binary \u00b11\n# But they say c[0]=2... Let me re-read.\n# Actually maybe c[k] refers to something else, or maybe it's a different indexing\n# Let me check: c[1] = sum_{i=0}^{19} seq[i]*seq[i+1] = -1\n# c[8] = sum_{i=0}^{12} seq[i]*seq[i+8] = 2\n# c[19] = sum_{i=0}^{1} seq[i]*seq[i+19] = seq[0]*seq[19] + seq[1]*seq[20] = -1\n# c[0] = 2 is strange since it should be 21... maybe c[0] is not C_0 but something else\n# Perhaps c[k] for k>=1 are the autocorrelation values C_k, and c[0] might be a typo or different\n\n# Let me just use the constraints I can interpret:\n# C[1] = -1, C[8] = 2, C[19] = -1\n# seq[5]=-1, seq[12]=-1, seq[17]=1, seq[20]=1\n\n# C[19] = seq[0]*seq[19] + seq[1]*seq[20] = seq[0]*seq[19] + seq[1]*1 = -1\n# So seq[0]*seq[19] + seq[1] = -1\n\n# Let me try a brute force / smart search\n# Free positions: 0,1,2,3,4,6,7,8,9,10,11,13,14,15,16,18,19 (17 positions)\n# That's 2^17 = 131072 combinations - feasible!\n\nfree_positions = [i for i in range(n) if i not in fixed]\nprint(f\"Free positions: {free_positions}\")\nprint(f\"Number of free positions: {len(free_positions)}\")\nprint(f\"Search space: {2**len(free_positions)}\")\n"
+      },
+      "ok": false,
+      "latency_ms": 33.06
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef compute_autocorr(seq):\n    n = len(seq)\n    C = []\n    for k in range(n):\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        C.append(ck)\n    return C\n\ndef compute_merit(seq):\n    C = compute_autocorr(seq)\n    return sum(c**2 for c in C[1:])\n\nn = 21\nfixed = {5: -1, 12: -1, 17: 1, 20: 1}\n\nfree_positions = [i for i in range(n) if i not in fixed]\nprint(f\"Free positions: {free_positions}\")\nprint(f\"Number of free positions: {len(free_positions)}\")\nprint(f\"Search space: {2**len(free_positions)}\")\n\nbest_merit = float('inf')\nbest_seq = None\ntarget = 52\n\n# Enumerate all combinations\ncount = 0\nfor bits in range(2**len(free_positions)):\n    seq = [0] * n\n    for k, pos in enumerate(fixed.items()):\n        seq[pos[0]] = pos[1]\n    \n    for j, fp in enumerate(free_positions):\n        seq[fp] = 1 if (bits >> j) & 1 else -1\n    \n    # Check C[1] = -1\n    C1 = sum(seq[i]*seq[i+1] for i in range(n-1))\n    if C1 != -1:\n        continue\n    \n    # Check C[8] = 2\n    C8 = sum(seq[i]*seq[i+8] for i in range(n-8))\n    if C8 != 2:\n        continue\n    \n    # Check C[19] = -1\n    C19 = seq[0]*seq[19] + seq[1]*seq[20]\n    if C19 != -1:\n        continue\n    \n    merit = compute_merit(seq)\n    count += 1\n    \n    if merit < best_merit:\n        best_merit = merit\n        best_seq = seq[:]\n        print(f\"New best: merit={merit}, seq={seq}\")\n        if merit <= target:\n            print(f\"Found solution with merit <= {target}!\")\n            break\n\nprint(f\"\\nChecked {count} sequences satisfying C constraints\")\nprint(f\"Best merit: {best_merit}\")\nif best_seq:\n    print(f\"Best seq: {best_seq}\")\n    C = compute_autocorr(best_seq)\n    print(f\"Autocorrelations: {C}\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 1088.93
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let me check what c[0]=2 means - maybe it's a different definition\n# Perhaps c[k] = C_{k+1}? Or maybe c[0] is not C_0\n# Let me try: maybe c[k] = C_k but with a different formula\n# Or maybe the constraints c[0]=2, c[1]=-1 etc. refer to something else entirely\n\n# Let me relax and just search without the c constraints, only using fixed seq values\n# and the merit constraint\n\ndef compute_autocorr(seq):\n    n = len(seq)\n    C = []\n    for k in range(n):\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        C.append(ck)\n    return C\n\ndef compute_merit(seq):\n    C = compute_autocorr(seq)\n    return sum(c**2 for c in C[1:])\n\nn = 21\nfixed = {5: -1, 12: -1, 17: 1, 20: 1}\nfree_positions = [i for i in range(n) if i not in fixed]\n\nbest_merit = float('inf')\nbest_seq = None\ntarget = 52\n\nfor bits in range(2**len(free_positions)):\n    seq = [0] * n\n    for pos, val in fixed.items():\n        seq[pos] = val\n    \n    for j, fp in enumerate(free_positions):\n        seq[fp] = 1 if (bits >> j) & 1 else -1\n    \n    merit = compute_merit(seq)\n    \n    if merit < best_merit:\n        best_merit = merit\n        best_seq = seq[:]\n        if merit <= target:\n            break\n\nprint(f\"Best merit (no c constraints): {best_merit}\")\nif best_seq:\n    print(f\"Best seq: {best_seq}\")\n    C = compute_autocorr(best_seq)\n    print(f\"C[0]={C[0]}, C[1]={C[1]}, C[8]={C[8]}, C[19]={C[19]}\")\n    print(f\"All C: {C}\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 62.07
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# The best without c constraints gives merit=50 <= 52, but doesn't satisfy c constraints\n# Let me re-interpret: maybe c[k] are indexed differently\n# c[0]=2 could mean C[1]=2 (0-indexed from k=1)\n# c[1]=-1 could mean C[2]=-1\n# c[8]=2 could mean C[9]=2  \n# c[19]=-1 could mean C[20]=-1\n\n# Let me check: C[20] = seq[0]*seq[20] = seq[0]*1 = seq[0]\n# So c[19]=-1 => C[20]=-1 => seq[0]=-1\n\n# And c[0]=2 => C[1]=2\n# c[1]=-1 => C[2]=-1\n# c[8]=2 => C[9]=2\n\n# Let me search with these constraints\ndef compute_autocorr(seq):\n    n = len(seq)\n    C = []\n    for k in range(n):\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        C.append(ck)\n    return C\n\ndef compute_merit(seq):\n    C = compute_autocorr(seq)\n    return sum(c**2 for c in C[1:])\n\nn = 21\nfixed = {5: -1, 12: -1, 17: 1, 20: 1}\nfree_positions = [i for i in range(n) if i not in fixed]\n\nbest_merit = float('inf')\nbest_seq = None\ntarget = 52\nfound = []\n\nfor bits in range(2**len(free_positions)):\n    seq = [0] * n\n    for pos, val in fixed.items():\n        seq[pos] = val\n    \n    for j, fp in enumerate(free_positions):\n        seq[fp] = 1 if (bits >> j) & 1 else -1\n    \n    C = compute_autocorr(seq)\n    \n    # c[0]=2 => C[1]=2\n    if C[1] != 2:\n        continue\n    # c[1]=-1 => C[2]=-1\n    if C[2] != -1:\n        continue\n    # c[8]=2 => C[9]=2\n    if C[9] != 2:\n        continue\n    # c[19]=-1 => C[20]=-1\n    if C[20] != -1:\n        continue\n    \n    merit = sum(c**2 for c in C[1:])\n    \n    if merit < best_merit:\n        best_merit = merit\n        best_seq = seq[:]\n        print(f\"New best: merit={merit}\")\n        if merit <= target:\n            found.append((merit, seq[:]))\n\nprint(f\"\\nBest merit with c constraints (interpretation 2): {best_merit}\")\nif best_seq:\n    print(f\"Best seq: {best_seq}\")\n    C = compute_autocorr(best_seq)\n    print(f\"C[1]={C[1]}, C[2]={C[2]}, C[9]={C[9]}, C[20]={C[20]}\")\n    print(f\"Merit <= 52: {best_merit <= 52}\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 5198.36
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Great! Found a solution with merit=50 <= 52 that satisfies all constraints\n# Let me verify completely\n\nseq = [-1, 1, 1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 1, -1, -1, 1]\n\ndef compute_autocorr(seq):\n    n = len(seq)\n    C = []\n    for k in range(n):\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        C.append(ck)\n    return C\n\nC = compute_autocorr(seq)\nmerit = sum(c**2 for c in C[1:])\n\nprint(\"Verification:\")\nprint(f\"seq = {seq}\")\nprint(f\"Length: {len(seq)}\")\nprint(f\"All values in {{-1,+1}}: {all(x in [-1,1] for x in seq)}\")\nprint()\nprint(\"Fixed values:\")\nprint(f\"seq[5]={seq[5]} (expected -1): {'OK' if seq[5]==-1 else 'FAIL'}\")\nprint(f\"seq[12]={seq[12]} (expected -1): {'OK' if seq[12]==-1 else 'FAIL'}\")\nprint(f\"seq[17]={seq[17]} (expected 1): {'OK' if seq[17]==1 else 'FAIL'}\")\nprint(f\"seq[20]={seq[20]} (expected 1): {'OK' if seq[20]==1 else 'FAIL'}\")\nprint()\nprint(\"c constraints (c[k] = C[k+1]):\")\nprint(f\"c[0]=C[1]={C[1]} (expected 2): {'OK' if C[1]==2 else 'FAIL'}\")\nprint(f\"c[1]=C[2]={C[2]} (expected -1): {'OK' if C[2]==-1 else 'FAIL'}\")\nprint(f\"c[8]=C[9]={C[9]} (expected 2): {'OK' if C[9]==2 else 'FAIL'}\")\nprint(f\"c[19]=C[20]={C[20]} (expected -1): {'OK' if C[20]==-1 else 'FAIL'}\")\nprint()\nprint(f\"Merit (sum C_k^2 for k=1..20) = {merit}\")\nprint(f\"Merit <= 52: {'OK' if merit <= 52 else 'FAIL'}\")\nprint()\nprint(f\"All autocorrelations C[1..20]: {C[1:]}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.21
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          -1,
+          1,
+          1,
+          -1,
+          -1,
+          -1,
+          1,
+          1,
+          1,
+          -1,
+          1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          -1,
+          1
+        ],
+        "reasoning": "Found by exhaustive search over the 2^17 = 131072 combinations of free positions. The sequence satisfies:\n- Fixed values: seq[5]=-1, seq[12]=-1, seq[17]=1, seq[20]=1\n- c constraints (interpreting c[k] = C_{k+1}): C[1]=2, C[2]=-1, C[9]=2, C[20]=-1\n- Merit = sum_{k=1}^{20} C_k^2 = 50 \u2264 52\nAutocorrelations C[1..20] = [2, -1, 0, 1, 0, -1, 0, -3, 2, 1, 0, -1, 0, 1, 2, 1, -4, 1, 2, -1]"
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

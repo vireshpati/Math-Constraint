@@ -1,0 +1,101 @@
+{
+  "problem_name": "pysms_min_degree_min_degree3_vertices8__v11_h",
+  "problem_type": "pysms_min_degree",
+  "params": {
+    "min_degree": 3,
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 46.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 28,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 21.24,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      6
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      3,
+      4
+    ]
+  ],
+  "reasoning": "The fixed edges give initial degrees: 0:1, 1:0, 2:1, 3:1, 4:1, 5:0, 6:3, 7:3. To achieve minimum degree 3, we need to add edges for vertices 0,1,2,3,4,5. Adding the edges (0,1), (1,2), (1,5), (3,5), (4,5), (0,2), (3,4) brings all vertices to degree exactly 3, satisfying the constraint.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [\n        [0, 6], [2, 6], [4, 7], [6, 7], [3, 7],\n        [0, 1], [1, 2], [1, 5], [3, 5], [4, 5],\n        [0, 2], [3, 4]\n    ],\n    \"reasoning\": \"The fixed edges give initial degrees: 0:1, 1:0, 2:1, 3:1, 4:1, 5:0, 6:3, 7:3. To achieve minimum degree 3, we need to add edges for vertices 0,1,2,3,4,5. Adding the edges (0,1), (1,2), (1,5), (3,5), (4,5), (0,2), (3,4) brings all vertices to degree exactly 3, satisfying the constraint.\"\n}",
+  "cot_trace": "We are given a problem: \"Generate a graph with 8 vertices where the minimum degree is at least 3.\" We have fixed edges: (2,6), (0,6), (4,7), (6,7), (3,7). We need to return a list of edges (u,v) with 0<=u<v<8, or UNSATISFIABLE. The graph must have minimum degree >=3. Partial assignment: known present edges. We need to find a complete graph consistent with these edges (i.e., include them, and possibly add more edges) such that every vertex has degree at least 3. Since it's a constraint satisfaction problem, we need to determine if SAT. It likely is satisfiable. We need to provide a solution: list of edges.\n\nWe have 8 vertices: 0,1,2,3,4,5,6,7. Current fixed edges:\n(0,6)\n(2,6)\n(4,7)\n(6,7)\n(3,7)\n\nLet's compute current degrees:\n0: connected to 6 \u2192 degree 1\n1: no edges yet \u2192 0\n2: connected to 6 \u2192 1\n3: connected to 7 \u2192 1\n4: connected to 7 \u2192 1\n5: 0\n6: connected to 0,2,7 \u2192 degree 3 (already at least 3)\n7: connected to 4,6,3 \u2192 degree 3 (already at least 3)\n\nWe need to add edges to make all vertices have degree >=3. Vertex 6 and 7 already satisfy. The others need additional edges. Vertex 1 has degree 0, needs at least 3 edges. Vertex 5 has degree 0, needs at least 3. Vertex 0,2,3,4 each have degree 1, need at least 2 more edges each.\n\nWe can add edges between any vertices, but must avoid duplicate edges and loops. The graph doesn't have to be simple? It says \"list of edges (u, v) with 0 <= u < v < 8\", implying simple undirected graph with no self-loops. So we can add any edges not already present.\n\nWe need to satisfy minimum degree 3. Let's try to find a solution. Since we have freedom, we can just add edges until all degrees >=3. But we must output the full list of edges. We can add edges like (0,1), (0,2), (0,3), etc., but careful not to exceed total edges? No limit.\n\nWe need to ensure the final graph has minimum degree at least 3.\n\nLet's list the needed additional degrees (minimum number of new edges for each vertex to reach degree 3):\n0: needs 2 more\n1: needs 3 more\n2: needs 2 more\n3: needs 2 more\n4: needs 2 more\n5: needs 3 more\nAlready good: 6 (3), 7 (3)\n\nTotal minimum new edge endpoints needed: 2+3+2+2+2+3 = 14. Since each new edge contributes 2 to the sum of degrees, we need at least 7 new edges (14/2). That's feasible.\n\nWe can add edges arbitrarily, but must avoid creating multiple edges. Let's try to construct a valid set.\n\nWe could connect vertex 1 to three vertices: e.g., (1,0), (1,2), (1,3). Then 1 gets degree 3. For 5, connect to (5,4), (5,6? no, 6 already has degree 3 but can we add more? Yes, degree can be higher than 3, minimum is at least 3, so adding edges to 6 is fine. But careful: 6 already has edges to 0,2,7; it can have more. Similarly 7 has edges to 4,6,3; can have more. So we can use 6 and 7 to help satisfy others.\n\nLet's make a plan:\nWe need to give 0,2,3,4 two more edges each; 1 and 5 three edges each.\n\nOne simple approach: Add edges to form a complete bipartite or something. But we can just add edges systematically.\n\nCheck existing edges: (0,6), (2,6), (4,7), (6,7), (3,7). Note that (0,2) not present, (0,4) not present, etc.\n\nLet's try to add edges: \nFor vertex 1: connect to 0,2,5 (so edges (0,1), (1,2), (1,5)). Then 1 gets 3 edges.\nNow degrees: 0: now has 0-6 and 0-1, so degree 2, needs 1 more. 2: has 2-6, 1-2, so degree 2, needs 1 more. 5: has 1-5, degree 1, needs 2 more.\n\nFor vertex 5: still needs 2 more. Could connect 5 to 3 and 4? (3,5), (4,5). Then 5 gets total edges: 1-5, 3-5, 4-5 = 3, good. \nNow degrees: 3: had (3,7), now (3,5) => degree 2, needs 1 more. 4: had (4,7), now (4,5) => degree 2, needs 1 more.\n\nNow we need to give one more edge to 0,2,3,4 each. That's four vertices needing one more edge. We can pair them up: e.g., (0,2), (0,3), (0,4) would give 0 extra edges but 0 only needs 1, so that would give 0 degree 3 (0-6,0-1,0-2) if we add (0,2). But careful: if we add (0,2), then 0 gets degree 3, 2 gets degree 3 (2-6,2-1,2-0). Then we still need to give 3 and 4 one each. We could add (3,4). Then 3: 3-7,3-5,3-4 = 3; 4: 4-7,4-5,4-3 = 3.\n\nSo edges to add: (0,1), (1,2), (1,5), (3,5), (4,5), (0,2), (3,4). That's 7 new edges. Let's verify all degrees:\n\nList all edges:\nFixed: (0,6), (2,6), (4,7), (6,7), (3,7)\nAdded: (0,1), (1,2), (1,5), (3,5), (4,5), (0,2), (3,4)\n\nDegree counts:\n0: edges to 6,1,2 -> degree 3\n1: edges to 0,2,5 -> degree 3\n2: edges to 6,1,0 -> degree 3\n3: edges to 7,5,4 -> degree 3\n4: edges to 7,5,3 -> degree 3\n5: edges to 1,3,4 -> degree 3\n6: edges to 0,2,7 -> degree 3\n7: edges to 4,6,3 -> degree 3\n\nAll have degree exactly 3! So minimum degree 3 is satisfied.\n\nWe must ensure no duplicate edges. Check: (0,1) not in fixed; (1,2) not in fixed; (1,5) not; (3,5) not; (4,5) not; (0,2) not; (3,4) not. Also (0,6) already. No conflicts.\n\nSo this is a valid solution.\n\nList all edges sorted? The problem statement: \"Return the graph as a list of edges (u, v) with 0 <= u < v < 8\". So we need to output the complete list of edges. Should we list them in any order? Probably just a list of pairs.\n\nThus, solution: edges: (0,6), (2,6), (4,7), (6,7), (3,7), (0,1), (1,2), (1,5), (3,5), (4,5), (0,2), (3,4). But order them appropriately? We can provide as an array of arrays.\n\nI'll present the solution as a list of edges. satisfiable: true.\n\nNow, provide reasoning: \"The fixed edges give degrees: 0:1, 1:0, 2:1, 3:1, 4:1, 5:0, 6:3, 7:3. To satisfy minimum degree 3, we added edges (0,1), (1,2), (1,5), (3,5), (4,5), (0,2), (3,4), resulting in all vertices having degree exactly 3.\"\n\nI will output JSON as specified.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 244,
+  "completion_tokens": 2222,
+  "reasoning_tokens": 1998,
+  "cached_tokens": 128,
+  "cost_usd": 0.00795296,
+  "cost_source": "openrouter",
+  "latency_ms": 62765.6786441803,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

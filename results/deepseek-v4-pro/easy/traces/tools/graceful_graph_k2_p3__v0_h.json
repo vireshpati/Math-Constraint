@@ -1,0 +1,93 @@
+{
+  "problem_name": "graceful_graph_k2_p3__v0_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 1025.2,
+    "search_space": 262144,
+    "num_variables": 13,
+    "num_constraints": 11,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 72.37,
+    "solve_pct_type": 18.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    7,
+    3,
+    1,
+    6
+  ],
+  "reasoning": "The graph has 6 vertices and 7 edges. A graceful labeling assigns distinct labels from 0..7 to vertices such that edge differences are all distinct and cover 1..7. With fixed x[2]=7 and d[6]=|x[3]-x[5]|=3, the assignment [0,2,7,3,1,6] satisfies all constraints: edge differences are {2,4,5,7,1,6,3} = {1,2,3,4,5,6,7} all distinct.",
+  "raw_response": null,
+  "cot_trace": "We need to find a graceful labeling of a graph G_{2,3}. Let's understand the graph.\n\nWe have 3 disjoint K_2 cliques (edges). Each K_2 is a pair of vertices connected by an edge. So we have cliques numbered 0, 1, 2. Each clique has two vertices: vertex 0 and vertex 1.\n\nEdges:\n- Within each clique: edge between its two vertices (3 edges total).\n- Between consecutive cliques (g, g+1): for g=0,1, we connect vertex i of clique g to vertex i of clique g+1 for i=0,1. So two edges between clique 0 and clique 1: (0,0)-(1,0) and (0,1)-(1,1). Similarly between clique 1 and clique 2: (1,0)-(2,0) and (1,1)-(2,1).\n\nTotal vertices: 6. Total edges: 3 (within cliques) + 2 + 2 = 7.\n\nGraceful labeling: assign each vertex a unique label from 0 to 7? Wait, graceful labeling typically uses labels from 0 to m (number of edges) = 7, so labels are 0..7 inclusive (8 labels) but we have only 6 vertices. So we need to choose 6 distinct labels from {0,1,...,7} such that the edge labels (absolute differences) are all distinct and cover 1..7? Actually graceful labeling definition: A graph with m edges is graceful if its vertices can be labeled with distinct integers from {0,1,...,m} such that the edge labels (absolute differences) are all distinct and range from 1 to m. Since m=7, we need vertex labels from 0..7 (8 numbers) but only 6 vertices, so two numbers from 0..7 are unused. Edge labels must be exactly the set {1,2,...,7} (all distinct and cover 1..7). So we need to assign 6 distinct numbers from 0..7 to vertices, and the 7 edge differences must be exactly 1..7.\n\nWe have fixed assignments:\n- x[2] = 7 (vertex index 2? Let's parse: \"x[2]=7\". The vertices are ordered by clique then vertex within clique. So indices: \n  Clique 0: vertex 0 (index 0), vertex 1 (index 1)\n  Clique 1: vertex 0 (index 2), vertex 1 (index 3)\n  Clique 2: vertex 0 (index 4), vertex 1 (index 5)\nSo x[2] is the label for vertex 0 of clique 1. That is fixed to 7.\n- d[6]=3: This likely means the edge label for edge index 6 is 3. Need to know edge ordering. Probably edges are ordered in some way. Let's deduce: there are 7 edges. Maybe they are listed as: three internal edges (clique 0, clique 1, clique 2), then four inter-clique edges? Or maybe d[6] refers to the edge difference for the 6th edge (0-indexed). We need to know the edge indexing to interpret d[6]=3.\n\nBut perhaps we can just solve the problem without relying on edge indexing; we just need to find a graceful labeling consistent with x[2]=7 and some edge label = 3. However, the problem says \"Partial assignment (fixed values that must be respected): - x[2]=7 - d[6]=3\". So we must ensure that the edge with index 6 has label 3.\n\nLet's figure out the edge ordering. Typically in such problems, edges might be ordered as:\n- Edge 0: within clique 0 (vertices 0,1)\n- Edge 1: within clique 1 (vertices 2,3)\n- Edge 2: within clique 2 (vertices 4,5)\n- Edge 3: between clique 0 and 1, connecting vertex 0 of each (vertices 0,2)\n- Edge 4: between clique 0 and 1, connecting vertex 1 of each (vertices 1,3)\n- Edge 5: between clique 1 and 2, connecting vertex 0 of each (vertices 2,4)\n- Edge 6: between clique 1 and 2, connecting vertex 1 of each (vertices 3,5)\n\nThus d[6] = |x[3] - x[5]| = 3.\n\nSo we have x[2] = 7, and |x[3] - x[5]| = 3.\n\nWe need to assign labels from 0..7 to x[0..5] distinct, with x[2]=7, and edge differences all distinct 1..7.\n\nLet's solve using Python with SAT or constraint programming.\n\nWe'll use python-constraint or just brute force search? 8 labels, 6 vertices, 7 edges. We can brute force.\n\nLet's write code.\n---\nThe code didn't output anything. Let me check: maybe the output was empty? Let me run again with print.\n---\nWe have 6 solutions. Let's verify them. The problem says \"Return a list of 6 integers giving the vertex labels, ordered by clique then vertex within clique (so the i-th block of 2 consecutive entries gives the labels for clique i)\". So we need to output one solution.\n\nLet's check each solution to ensure they satisfy all constraints.\n\nEdges:\n- Within clique 0: (0,1)\n- Within clique 1: (2,3)\n- Within clique 2: (4,5)\n- Between 0-1: (0,2), (1,3)\n- Between 1-2: (2,4), (3,5)\n\nFixed: x[2]=7, d[6]=|x[3]-x[5]|=3.\n\nLet's verify the first solution: [0,2,7,3,1,6]\n- x[2]=7 ok\n- |x[3]-x[5]| = |3-6| = 3 ok\n- Edge differences:\n  (0,1): |0-2|=2\n  (2,3): |7-3|=4\n  (4,5): |1-6|=5\n  (0,2): |0-7|=7\n  (1,3): |2-3|=1\n  (2,4): |7-1|=6\n  (3,5): |3-6|=3\n  All distinct: {1,2,3,4,5,6,7} - yes, all 1..7 distinct.\n\nSo [0,2,7,3,1,6] is a valid graceful labeling.\n\nBut wait: the problem says \"labels from 0 to 7\" and we have 6 vertices, so we use 6 distinct labels from 0..7. The unused labels would be 4 and 5? Actually 0,1,2,3,6,7 are used; 4 and 5 are unused. That's fine.\n\nLet's double-check the graph description: \"3 disjoint K_2 cliques (numbered 0 through 2), where each pair of consecutive cliques (g, g+1) is connected by 2 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..1.\"\n\nSo vertices: clique 0 has vertices (0,0) and (0,1); clique 1 has (1,0) and (1,1); clique 2 has (2,0) and (2,1). Edges: within each clique: (g,0)-(g,1). Between consecutive cliques: (g,0)-(g+1,0) and (g,1)-(g+1,1).\n\nOur indexing: x[0], x[1] for clique 0; x[2], x[3] for clique 1; x[4], x[5] for clique 2. That matches.\n\nSo solution [0,2,7,3,1,6] works.\n\nBut let's also check if there are any other constraints I missed. The problem says \"Partial assignment (fixed values that must be respected): - x[2]=7 - d[6]=3\". d[6] is the edge label for edge index 6? Let's map edges:\n\nEdge indices:\n0: (0,1) within clique 0\n1: (2,3) within clique 1\n2: (4,5) within clique 2\n3: (0,2) between 0-1 vertex 0\n4: (1,3) between 0-1 vertex 1\n5: (2,4) between 1-2 vertex 0\n6: (3,5) between 1-2 vertex 1\n\nSo d[6] = |x[3] - x[5]| = 3. That matches.\n\nThus the solution is valid.\n\nI'll submit the first solution.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 4004,
+  "completion_tokens": 2826,
+  "reasoning_tokens": 1537,
+  "cached_tokens": 1536,
+  "cost_usd": 0.0179244,
+  "cost_source": "openrouter",
+  "latency_ms": 230441.18094444275,
+  "tool_dispatch_ms_total": 297.9083061218262,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# vertices: indices 0..5\n# edges:\nedges = [\n    (0,1),  # within clique 0\n    (2,3),  # within clique 1\n    (4,5),  # within clique 2\n    (0,2),  # between clique 0 and 1, vertex 0\n    (1,3),  # between clique 0 and 1, vertex 1\n    (2,4),  # between clique 1 and 2, vertex 0\n    (3,5),  # between clique 1 and 2, vertex 1\n]\n\n# fixed: x[2] = 7\n# d[6] = |x[3] - x[5]| = 3\n\nlabels_pool = list(range(8))  # 0..7\n\nsolutions = []\nfor combo in itertools.permutations(labels_pool, 6):\n    x = list(combo)\n    if x[2] != 7:\n        continue\n    # compute edge differences\n    diffs = set()\n    ok = True\n    for (u,v) in edges:\n        d = abs(x[u] - x[v])\n        if d in diffs or d < 1 or d > 7:\n            ok = False\n            break\n        diffs.add(d)\n    if not ok:\n        continue\n    # check d[6] specifically\n    if abs(x[3] - x[5]) != 3:\n        continue\n    # all good\n    solutions.append(x)\n\nlen(solutions), solutions[:10]"
+      },
+      "ok": true,
+      "latency_ms": 50.85
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nedges = [\n    (0,1),\n    (2,3),\n    (4,5),\n    (0,2),\n    (1,3),\n    (2,4),\n    (3,5),\n]\n\nlabels_pool = list(range(8))\n\nsolutions = []\nfor combo in itertools.permutations(labels_pool, 6):\n    x = list(combo)\n    if x[2] != 7:\n        continue\n    diffs = set()\n    ok = True\n    for (u,v) in edges:\n        d = abs(x[u] - x[v])\n        if d in diffs or d < 1 or d > 7:\n            ok = False\n            break\n        diffs.add(d)\n    if not ok:\n        continue\n    if abs(x[3] - x[5]) != 3:\n        continue\n    solutions.append(x)\n\nprint(len(solutions))\nif solutions:\n    print(solutions[:5])"
+      },
+      "ok": true,
+      "latency_ms": 247.06
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          7,
+          3,
+          1,
+          6
+        ],
+        "reasoning": "The graph has 6 vertices and 7 edges. A graceful labeling assigns distinct labels from 0..7 to vertices such that edge differences are all distinct and cover 1..7. With fixed x[2]=7 and d[6]=|x[3]-x[5]|=3, the assignment [0,2,7,3,1,6] satisfies all constraints: edge differences are {2,4,5,7,1,6,3} = {1,2,3,4,5,6,7} all distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

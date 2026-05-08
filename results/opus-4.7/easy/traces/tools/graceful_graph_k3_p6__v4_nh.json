@@ -1,0 +1,134 @@
+{
+  "problem_name": "graceful_graph_k3_p6__v4_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1860.4,
+    "search_space": 3686553210602841700043063296,
+    "num_variables": 51,
+    "num_constraints": 37,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.41,
+    "solve_pct_type": 93.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    33,
+    2,
+    32,
+    5,
+    25,
+    3,
+    29,
+    4,
+    18,
+    13,
+    14,
+    6,
+    31,
+    7,
+    26,
+    20
+  ],
+  "reasoning": "Found graceful labeling using OR-tools CP-SAT. Verified: 18 distinct vertex labels in [0,33], 33 distinct edge-differences covering {1..33}.",
+  "raw_response": null,
+  "cot_trace": " I'm working on finding a graceful labeling for a graph with 18 vertices and 33 edges, where I need to assign labels 0 through 33 such that the edge differences form exactly the set {1, 2, ..., 33}. I'll need to set up a constraint satisfaction problem and solve it using a SAT or constraint programming solver with backtracking.\n\nNow I'm examining the structure of the graph itself\u2014it consists of 6 cliques, each with 3 vertices, plus edges connecting consecutive cliques. That gives me 18 edges within the cliques and 15 edges between them, totaling 33 edges as required. I'll use Z3 or CP-SAT to find a valid vertex labeling.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 14733,
+  "completion_tokens": 2718,
+  "reasoning_tokens": 160,
+  "cached_tokens": 0,
+  "cost_usd": 0.14161500000000002,
+  "cost_source": "openrouter",
+  "latency_ms": 90066.29419326782,
+  "tool_dispatch_ms_total": 32952.80957221985,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom ortools.sat.python import cp_model\n\nmodel = cp_model.CpModel()\nN = 18\nE = 33\nlabels = [model.NewIntVar(0, E, f\"l{i}\") for i in range(N)]\nmodel.AddAllDifferent(labels)\n\ndef v(g, i):\n    return g*3 + i\n\nedges = []\nfor g in range(6):\n    for i in range(3):\n        for j in range(i+1, 3):\n            edges.append((v(g,i), v(g,j)))\nfor g in range(5):\n    for i in range(3):\n        edges.append((v(g,i), v(g+1,i)))\n\nprint(len(edges))\n\ndiffs = []\nfor (a,b) in edges:\n    d = model.NewIntVar(1, E, f\"d_{a}_{b}\")\n    ax = model.NewIntVar(-E, E, f\"ax_{a}_{b}\")\n    model.Add(ax == labels[a] - labels[b])\n    model.AddAbsEquality(d, ax)\n    diffs.append(d)\nmodel.AddAllDifferent(diffs)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30\nstatus = solver.Solve(model)\nprint(status, cp_model.OPTIMAL, cp_model.FEASIBLE)\nif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):\n    sol = [solver.Value(l) for l in labels]\n    print(sol)\n    ds = sorted(abs(sol[a]-sol[b]) for a,b in edges)\n    print(ds)\n"
+      },
+      "ok": false,
+      "latency_ms": 15018.88
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom ortools.sat.python import cp_model\n\nmodel = cp_model.CpModel()\nN = 18\nE = 33\nlabels = [model.NewIntVar(0, E, f\"l{i}\") for i in range(N)]\nmodel.AddAllDifferent(labels)\n\ndef v(g, i):\n    return g*3 + i\n\nedges = []\nfor g in range(6):\n    for i in range(3):\n        for j in range(i+1, 3):\n            edges.append((v(g,i), v(g,j)))\nfor g in range(5):\n    for i in range(3):\n        edges.append((v(g,i), v(g+1,i)))\n\ndiffs = []\nfor (a,b) in edges:\n    d = model.NewIntVar(1, E, f\"d_{a}_{b}\")\n    ax = model.NewIntVar(-E, E, f\"ax_{a}_{b}\")\n    model.Add(ax == labels[a] - labels[b])\n    model.AddAbsEquality(d, ax)\n    diffs.append(d)\nmodel.AddAllDifferent(diffs)\n\n# break symmetry: one vertex = 0, another = 33\nmodel.Add(labels[0] == 0)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 55\nsolver.parameters.num_search_workers = 8\nstatus = solver.Solve(model)\nprint(status, cp_model.OPTIMAL, cp_model.FEASIBLE)\nif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):\n    sol = [solver.Value(l) for l in labels]\n    print(sol)\n    ds = sorted(abs(sol[a]-sol[b]) for a,b in edges)\n    print(ds)\n    print(len(set(ds)))\n"
+      },
+      "ok": false,
+      "latency_ms": 15044.17
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom ortools.sat.python import cp_model\n\nmodel = cp_model.CpModel()\nN = 18\nE = 33\nlabels = [model.NewIntVar(0, E, f\"l{i}\") for i in range(N)]\nmodel.AddAllDifferent(labels)\n\ndef v(g, i):\n    return g*3 + i\n\nedges = []\nfor g in range(6):\n    for i in range(3):\n        for j in range(i+1, 3):\n            edges.append((v(g,i), v(g,j)))\nfor g in range(5):\n    for i in range(3):\n        edges.append((v(g,i), v(g+1,i)))\n\ndiffs = []\nfor (a,b) in edges:\n    d = model.NewIntVar(1, E, f\"d_{a}_{b}\")\n    ax = model.NewIntVar(-E, E, f\"ax_{a}_{b}\")\n    model.Add(ax == labels[a] - labels[b])\n    model.AddAbsEquality(d, ax)\n    diffs.append(d)\nmodel.AddAllDifferent(diffs)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 55\nsolver.parameters.num_search_workers = 8\nstatus = solver.Solve(model)\nprint(status)\nif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):\n    sol = [solver.Value(l) for l in labels]\n    print(sol)\n    ds = sorted(abs(sol[a]-sol[b]) for a,b in edges)\n    print(ds)\n    print(len(set(ds)))\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 2852.69
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nsol = [0, 1, 33, 2, 32, 5, 25, 3, 29, 4, 18, 13, 14, 6, 31, 7, 26, 20]\n# Cliques: (0,1,2), (3,4,5), ..., (15,16,17)\ndef v(g,i): return g*3+i\nedges = []\nfor g in range(6):\n    for i in range(3):\n        for j in range(i+1,3):\n            edges.append((v(g,i),v(g,j)))\nfor g in range(5):\n    for i in range(3):\n        edges.append((v(g,i),v(g+1,i)))\nds = [abs(sol[a]-sol[b]) for a,b in edges]\nprint(len(ds), len(set(ds)), min(ds), max(ds))\nprint(len(set(sol)), min(sol), max(sol))\n"
+      },
+      "ok": true,
+      "latency_ms": 37.06
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Found graceful labeling using OR-tools CP-SAT. Verified: 18 distinct vertex labels in [0,33], 33 distinct edge-differences covering {1..33}.",
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          33,
+          2,
+          32,
+          5,
+          25,
+          3,
+          29,
+          4,
+          18,
+          13,
+          14,
+          6,
+          31,
+          7,
+          26,
+          20
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

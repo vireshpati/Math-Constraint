@@ -1,0 +1,128 @@
+{
+  "problem_name": "pysms_mtf_vertices7__v10_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 7
+  },
+  "difficulty": {
+    "solve_time_ms": 9.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 10,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 2.82,
+    "solve_pct_type": 12.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    0,
+    4,
+    0,
+    5,
+    0,
+    6,
+    1,
+    2,
+    1,
+    4,
+    1,
+    5,
+    1,
+    6,
+    2,
+    3,
+    3,
+    4,
+    3,
+    5,
+    3,
+    6
+  ],
+  "reasoning": "Greedy random addition of non-triangle-forming edges from fixed ones yields this 12-edge graph on 7 verts; verified triangle-free and maximal (no edge can be added without triangle). Matches Mantel bound.",
+  "raw_response": null,
+  "cot_trace": "The problem is: Generate a maximal triangle-free graph with 7 vertices.\nI need to create a maximal triangle-free graph with 7 vertices, including the edges (0,6) and (1,5). A maximal triangle-free graph is one where no more edges can be added without creating a triangle, and it has no triangles itself.\n\nThe Tur\u00e1n graph T(7,2)is the complete bipartite graph K_{3,4}, which is triangle-free and has the maximum number of edges (12). Since we're aiming for maximal, not necessarily maximum, but K_{3,4} is maximal because adding any edge within a part would create triangles if there are paths, but in complete bipartite, Since we're aiming for maximal, not necessarily maximum, but K_{3,4} is maximal because adding any edge within a part would create triangles if there are paths, but in complete bipartite,adding within part doesn't create triangle immediately if no other edges, but actually in bipartite, adding within part doesn't create triangle because no odd cycles, but wait, triangle is odd cycle, but adding an edge within part in complete bipartite: suppose two vertices in A connected, but they have common neighbors in B, so if |B|>=2, then the two in A and one in B form a triangle.\n\nYes, so K_{3,4} is maximal triangle-free.\n\nTo satisfy the fixed edges, I partition the vertices into two sets, say A with 3 vertices, B with 4, and put edges only between them.\n\nThe fixed edges are (0,6) and (1,5).\n\nI need to assign 0,1,2 to A, 3,4,5,6 to B or something, but let's see if I can fit the edges between parts.\n\nSuppose I put 0 in A, 6in B, so (0,6) is between.\n\n1 in A, 5 in B, (1,5) between.\n---\nNetworkx is not installed by default. The description says standard library plus packages on sys.path, but probably not networkx. I need to do it without external libraries or check what is available....I need to generate a maximal triangle-free graph with 7 vertices, including the fixed edges (0,6) and (1,5).\n---\nThe code found a graph with 12 edges that is triangle-free and maximal.\nI found a maximal triangle-free graph with 7 vertices that respects the fixed edges (0,6) and (1,5). The edges are: (0,2), (0,4), (0,5), (0,6), (1,2), (1,4), (1,5), (1,6), (2,3), (3,4), (3,5), (3,6).",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 2585,
+  "completion_tokens": 4086,
+  "reasoning_tokens": 3565,
+  "cached_tokens": 1280,
+  "cost_usd": 0.027381999999999997,
+  "cost_source": "openrouter",
+  "latency_ms": 53750.99158287048,
+  "tool_dispatch_ms_total": 1007.274866104126,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport networkx as nx  # is networkx available? let's see"
+      },
+      "ok": true,
+      "latency_ms": 827.87
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport random\n\n# Function to check if a graph has a triangle\ndef has_triangle(edges):\n    adj = [set() for _ in range(7)]\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    for u, v in edges:\n        common = adj[u] & adj[v]\n        if common:\n            return True\n    return False\n\n# To check maximality: for every non-edge, must have a common neighbor\ndef is_maximal(edges):\n    adj = [set() for _ in range(7)]\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    all_pairs = list(itertools.combinations(range(7), 2))\n    for u, v in all_pairs:\n        if (u, v) not in edges and (v, u) not in edges:  # non-edge\n            if not (adj[u] & adj[v]):\n                return False\n    return True\n\n# Greedy: start with fixed, randomly add possible edges that don't create triangle, until stuck\nfixed = [(0,6), (1,5)]\npossible = [(u,v) for u,v in itertools.combinations(range(7),2) if (u,v) not in fixed and (v,u) not in fixed]\n\nrandom.seed(42)  # for reproducibility\nrandom.shuffle(possible)\n\ncurrent = set(fixed)\nfor e in possible:\n    new_edges = current | {e}\n    if not has_triangle(new_edges):\n        current = new_edges\n\ncurrent_list = sorted([tuple(sorted(e)) for e in current])\nprint(current_list)\nprint('Has triangle:', has_triangle(current))\nprint('Is maximal:', is_maximal(current))\nprint('Num edges:', len(current))"
+      },
+      "ok": true,
+      "latency_ms": 179.4
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          0,
+          4,
+          0,
+          5,
+          0,
+          6,
+          1,
+          2,
+          1,
+          4,
+          1,
+          5,
+          1,
+          6,
+          2,
+          3,
+          3,
+          4,
+          3,
+          5,
+          3,
+          6
+        ],
+        "reasoning": "Greedy random addition of non-triangle-forming edges from fixed ones yields this 12-edge graph on 7 verts; verified triangle-free and maximal (no edge can be added without triangle). Matches Mantel bound."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

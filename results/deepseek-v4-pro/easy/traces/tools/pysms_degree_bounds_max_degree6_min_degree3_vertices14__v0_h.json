@@ -1,0 +1,125 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree6_min_degree3_vertices14__v0_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 6,
+    "min_degree": 3,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 56.8,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 42,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 23.87,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": "We need to generate a graph with 14 vertices (0..13). Each vertex must have degree between 3 and 6 inclusive. We have some fixed edges that must be present. We need to find a set of edges (undirected, simple graph, no loops) that satisfies degree constraints and includes the given edges.\n\nLet's list the fixed edges:\n(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)\n\nWe need to add more edges to satisfy degree constraints. The graph can have any edges as long as degrees are between 3 and 6.\n\nWe can treat this as a constraint satisfaction problem. Let's first compute current degrees from fixed edges.\n\nVertices: 0..13.\n\nFixed edges:\n0: (0,10), (0,9) -> degree 2\n1: (1,6) -> degree 1\n2: (2,7), (2,8) -> degree 2\n3: none -> degree 0\n4: (4,5) -> degree 1\n5: (4,5), (5,8) -> degree 2\n6: (1,6), (6,8) -> degree 2\n7: (2,7) -> degree 1\n8: (6,8), (2,8), (5,8) -> degree 3\n9: (0,9) -> degree 1\n10: (0,10) -> degree 1\n11: none -> degree 0\n12: none -> degree 0\n13: none -> degree 0\n\nSo current degrees:\n0:2, 1:1, 2:2, 3:0, 4:1, 5:2, 6:2, 7:1, 8:3, 9:1, 10:1, 11:0, 12:0, 13:0.\n\nWe need each degree between 3 and 6. So we need to add edges to increase degrees.\n\nLet's think about feasibility. The sum of degrees must be even (handshaking lemma). Target sum of degrees: each between 3 and 6, so total sum between 14*3=42 and 14*6=84. Current sum of degrees = 2+1+2+0+1+2+2+1+3+1+1+0+0+0 = let's compute: 2+1=3, +2=5, +0=5, +1=6, +2=8, +2=10, +1=11, +3=14, +1=15, +1=16, +0=16, +0=16, +0=16. So current sum = 16. We need to add edges; each edge adds 2 to total sum. So we need to add enough edges to reach at least 42, so need at least (42-16)/2 = 13 edges. And at most (84-16)/2 = 34 edges.\n\nBut we also have upper bound per vertex: max degree 6. So each vertex can accept at most (6 - current_degree) additional edges.\n\nLet's compute remaining capacity (max additional edges per vertex):\n0: 6-2=4\n1: 6-1=5\n2: 6-2=4\n3: 6-0=6\n4: 6-1=5\n5: 6-2=4\n6: 6-2=4\n7: 6-1=5\n8: 6-3=3\n9: 6-1=5\n10: 6-1=5\n11: 6-0=6\n12: 6-0=6\n13: 6-0=6\n\nAlso each vertex needs at least (3 - current_degree) additional edges (if current < 3). So minimum additional edges needed per vertex:\n0: 3-2=1\n1: 3-1=2\n2: 3-2=1\n3: 3-0=3\n4: 3-1=2\n5: 3-2=1\n6: 3-2=1\n7: 3-1=2\n8: 3-3=0 (already at 3)\n9: 3-1=2\n10: 3-1=2\n11: 3-0=3\n12: 3-0=3\n13: 3-0=3\n\nSo we need to add edges such that each vertex's additional degree is between its min and max.\n\nThis is a classic graph realization problem with given degree bounds and some forced edges. We can try to construct a solution manually or use a SAT solver.\n\nLet's try to use Python with networkx or just brute force search? Since 14 vertices, we could try to use a simple algorithm: start with fixed edges, then add edges greedily to satisfy lower bounds, then maybe add more to satisfy upper bounds? Actually we just need any graph satisfying constraints.\n\nWe can use a SAT solver (pysat) or integer programming. Let's try to use Python with some heuristic.\n\nFirst, let's see if we can manually construct. We need to add edges to bring up low-degree vertices: 3,11,12,13 need 3 each; 1,4,7,9,10 need 2 each; 0,2,5,6 need 1 each; 8 needs 0 but can take up to 3 more.\n\nTotal minimum additional edges needed: sum of mins = 1+2+1+3+2+1+1+2+0+2+2+3+3+3 = let's compute: 1+2=3, +1=4, +3=7, +2=9, +1=10, +1=11, +2=13, +0=13, +2=15, +2=17, +3=20, +3=23, +3=26. So we need at least 26 additional \"half-edges\" i.e., 13 edges. That matches earlier.\n\nWe need to pair up these required stubs. This is like a graph realization problem: we have vertices with required additional degrees (min), and we can add extra edges up to max. We need to find a simple graph (no multiple edges, no loops) that satisfies.\n\nWe can try to use a standard algorithm: Havel-Hakimi for exact degrees, but here we have ranges. Could use networkx's random graph generators? But we need to ensure fixed edges.\n\nLet's write a Python script to search for a solution using a SAT solver or using a simple heuristic: we can try to add edges randomly until constraints met, but might get stuck.\n\nBetter: use integer linear programming or SAT. Let's use pysat if available.\n\nLet's first check if pysat is available.\n---\nThe Python environment seems to have timed out. Let me try a simpler approach.\n\nWe need to generate a graph with 14 vertices (0..13) where every vertex has degree between 3 and 6 inclusive. We have fixed edges:\n(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)\n\nWe need to find a complete set of edges satisfying degree constraints.\n\nLet me think about this manually first.\n\nWe have 14 vertices, each degree between 3 and 6. The sum of degrees must be even (handshaking lemma). The total number of edges = sum(degrees)/2.\n\nLet me try to use Python again with a shorter timeout or simpler code.\n---\nGreat, both pysat and networkx are available. Let me formulate this as a SAT problem.\n\nWe have 14 vertices (0..13). Each vertex must have degree between 3 and 6 inclusive. We have some fixed edges.\n\nWe need to decide for each possible pair (u,v) with u<v whether it's an edge or not. That's 14*13/2 = 91 possible edges.\n\nWe have 8 fixed edges. So we need to assign the remaining 83 variables.\n\nConstraints:\n- For each vertex v, sum of incident edges (including fixed ones) must be between 3 and 6.\n\nThis is a cardinality constraint problem. We can use a SAT solver with cardinality constraints.\n\nLet me use pysat with cardinality encodings.\n\nActually, let me think about this more carefully. We need to find any graph satisfying degree constraints. This is a classic problem of realizing a degree sequence, but here we have degree bounds (3 to 6) rather than exact degrees.\n\nWe can use a SAT solver. Let me encode each potential edge as a boolean variable.\n\nLet me write the code.\n---\nLet me fix the API usage.\n---\nLet me check the pysat API for CardEnc.\n---\nThe encoding parameter should be an integer, not a string. Let me use the default or specify an integer.\n---\nThe SAT solver says UNSAT. But let me double-check: maybe the encoding is wrong because I'm using the same top_id for all constraints, which might cause variable collisions. Let me fix that by using a proper variable pool.\n\nActually, the issue might be that the problem is truly unsatisfiable. Let me verify by trying a different approach or checking if there's a simple reason.\n\nLet me first check the fixed edges and see if they already violate degree constraints.\n---\nThe fixed edges seem fine. Let me check if the problem might be UNSAT due to some other constraints. Let me try a different encoding or solver.\n---\nThe SAT solver returned UNSAT for all solvers. Let me double-check this manually. The fixed edges are:\n(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)\n\nLet me verify the degrees from fixed edges:\n- Vertex 0: edges (0,10), (0,9) \u2192 degree 2\n- Vertex 1: edge (1,6) \u2192 degree 1\n- Vertex 2: edges (2,7), (2,8) \u2192 degree 2\n- Vertex 3: no edges \u2192 degree 0\n- Vertex 4: edge (4,5) \u2192 degree 1\n- Vertex 5: edges (4,5), (5,8) \u2192 degree 2\n- Vertex 6: edges (6,8), (1,6) \u2192 degree 2\n- Vertex 7: edge (2,7) \u2192 degree 1\n- Vertex 8: edges (6,8), (2,8), (5,8) \u2192 degree 3\n- Vertex 9: edge (0,9) \u2192 degree 1\n- Vertex 10: edge (0,10) \u2192 degree 1\n- Vertex 11: no edges \u2192 degree 0\n- Vertex 12: no edges \u2192 degree 0\n- Vertex 13: no edges \u2192 degree 0\n\nNow, each vertex needs degree between 3 and 6. So we need to add edges to bring all degrees up to at least 3, without exceeding 6.\n\nVertex 8 already has degree 3, so it needs at most 3 more edges.\nVertices 3, 11, 12, 13 have degree 0, so they need at least 3 edges each.\n\nLet me think about whether this is possible. The total number of edges needed: sum of degrees / 2. Minimum total degree = 14 * 3 = 42, so minimum edges = 21. Maximum total degree = 14 * 6 = 84, so maximum edges = 42.\n\nCurrently we have 8 edges, total degree sum = 16. We need to add at least 13 more edges (to reach 21 total) and at most 34 more edges.\n\nBut wait, maybe there's a parity issue or some structural constraint that makes it impossible. Let me think more carefully.\n\nActually, let me check if the SAT encoding might have a bug. The issue could be with the `top_id` parameter - if we're reusing the same `top_id` for multiple cardinality constraints, the auxiliary variables might clash. Let me try with a proper variable pool.\n\nActually, looking at the code, I used `top_id=var_idx-1` which is 91, but then each call to CardEnc might introduce new auxiliary variables. If we don't update `top_id` between calls, the auxiliary variables from different constraints might overlap. That could cause the UNSAT result.\n\nLet me try again with a proper IDPool.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 25305,
+  "completion_tokens": 6387,
+  "reasoning_tokens": 2378,
+  "cached_tokens": 6144,
+  "cost_usd": 0.06670186,
+  "cost_source": "openrouter",
+  "latency_ms": 471574.3453502655,
+  "tool_dispatch_ms_total": 19223.194360733032,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys\ntry:\n    import pysat\n    print(\"pysat available\")\nexcept:\n    print(\"pysat not available\")\ntry:\n    import networkx as nx\n    print(\"networkx available\")\nexcept:\n    print(\"networkx not available\")"
+      },
+      "ok": false,
+      "latency_ms": 15097.04
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's try to solve this using a simple approach\n# We'll use a SAT solver if available, or brute force with constraints\n\n# First, let's just check if pysat is importable\nimport importlib\ntry:\n    importlib.import_module('pysat')\n    print(\"pysat available\")\nexcept:\n    print(\"pysat not available\")\n\ntry:\n    import networkx as nx\n    print(\"networkx available\")\nexcept:\n    print(\"networkx not available\")",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 2405.05
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom pysat.card import CardEnc\nimport itertools\n\nn = 14\n# Map each pair (u,v) with u<v to a variable index\nvar_map = {}\nvar_idx = 1\nfor u in range(n):\n    for v in range(u+1, n):\n        var_map[(u,v)] = var_idx\n        var_idx += 1\n\nprint(f\"Total variables: {var_idx-1}\")\n\n# Fixed edges\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# Create solver\nsolver = Solver(name='glucose4')\n\n# Add unit clauses for fixed edges\nfor (u,v) in fixed_edges:\n    solver.add_clause([var_map[(u,v)]])\n\n# For each vertex, degree between 3 and 6\nfor v in range(n):\n    incident_vars = []\n    for u in range(n):\n        if u < v:\n            incident_vars.append(var_map[(u,v)])\n        elif u > v:\n            incident_vars.append(var_map[(v,u)])\n    # At least 3\n    c = CardEnc.atleast(lits=incident_vars, bound=3, topk=var_idx-1, encoding='totalizer')\n    for clause in c.clauses:\n        solver.add_clause(clause)\n    # At most 6\n    c = CardEnc.atmost(lits=incident_vars, bound=6, topk=var_idx-1, encoding='totalizer')\n    for clause in c.clauses:\n        solver.add_clause(clause)\n\nprint(\"Solving...\")\nstatus = solver.solve()\nprint(f\"Status: {status}\")\n\nif status:\n    model = solver.get_model()\n    # model is list of literals; positive means true, negative means false\n    edges = []\n    for (u,v), idx in var_map.items():\n        if model[idx-1] > 0:  # true\n            edges.append((u,v))\n    print(f\"Number of edges: {len(edges)}\")\n    # Check degrees\n    deg = [0]*n\n    for u,v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"Min degree:\", min(deg), \"Max degree:\", max(deg))\n    # Verify fixed edges present\n    for e in fixed_edges:\n        assert e in edges, f\"Missing fixed edge {e}\"\n    print(\"All fixed edges present.\")\n    print(\"Edges:\", sorted(edges))\nelse:\n    print(\"UNSAT\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 226.89
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom pysat.card import CardEnc\nimport itertools\n\nn = 14\n# Map each pair (u,v) with u<v to a variable index\nvar_map = {}\nvar_idx = 1\nfor u in range(n):\n    for v in range(u+1, n):\n        var_map[(u,v)] = var_idx\n        var_idx += 1\n\nprint(f\"Total variables: {var_idx-1}\")\n\n# Fixed edges\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# Create solver\nsolver = Solver(name='glucose4')\n\n# Add unit clauses for fixed edges\nfor (u,v) in fixed_edges:\n    solver.add_clause([var_map[(u,v)]])\n\n# For each vertex, degree between 3 and 6\nfor v in range(n):\n    incident_vars = []\n    for u in range(n):\n        if u < v:\n            incident_vars.append(var_map[(u,v)])\n        elif u > v:\n            incident_vars.append(var_map[(v,u)])\n    # At least 3\n    c = CardEnc.atleast(lits=incident_vars, bound=3, encoding='totalizer')\n    for clause in c.clauses:\n        solver.add_clause(clause)\n    # At most 6\n    c = CardEnc.atmost(lits=incident_vars, bound=6, encoding='totalizer')\n    for clause in c.clauses:\n        solver.add_clause(clause)\n\nprint(\"Solving...\")\nstatus = solver.solve()\nprint(f\"Status: {status}\")\n\nif status:\n    model = solver.get_model()\n    # model is list of literals; positive means true, negative means false\n    edges = []\n    for (u,v), idx in var_map.items():\n        if model[idx-1] > 0:  # true\n            edges.append((u,v))\n    print(f\"Number of edges: {len(edges)}\")\n    # Check degrees\n    deg = [0]*n\n    for u,v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"Min degree:\", min(deg), \"Max degree:\", max(deg))\n    # Verify fixed edges present\n    for e in fixed_edges:\n        assert e in edges, f\"Missing fixed edge {e}\"\n    print(\"All fixed edges present.\")\n    print(\"Edges:\", sorted(edges))\nelse:\n    print(\"UNSAT\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 232.75
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.card import CardEnc\nhelp(CardEnc.atleast)",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 360.93
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom pysat.card import CardEnc\nimport itertools\n\nn = 14\n# Map each pair (u,v) with u<v to a variable index\nvar_map = {}\nvar_idx = 1\nfor u in range(n):\n    for v in range(u+1, n):\n        var_map[(u,v)] = var_idx\n        var_idx += 1\n\nprint(f\"Total variables: {var_idx-1}\")\n\n# Fixed edges\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# Create solver\nsolver = Solver(name='glucose4')\n\n# Add unit clauses for fixed edges\nfor (u,v) in fixed_edges:\n    solver.add_clause([var_map[(u,v)]])\n\n# For each vertex, degree between 3 and 6\nfor v in range(n):\n    incident_vars = []\n    for u in range(n):\n        if u < v:\n            incident_vars.append(var_map[(u,v)])\n        elif u > v:\n            incident_vars.append(var_map[(v,u)])\n    # At least 3\n    c = CardEnc.atleast(lits=incident_vars, bound=3, top_id=var_idx-1, encoding=1)\n    for clause in c.clauses:\n        solver.add_clause(clause)\n    # At most 6\n    c = CardEnc.atmost(lits=incident_vars, bound=6, top_id=var_idx-1, encoding=1)\n    for clause in c.clauses:\n        solver.add_clause(clause)\n\nprint(\"Solving...\")\nstatus = solver.solve()\nprint(f\"Status: {status}\")\n\nif status:\n    model = solver.get_model()\n    edges = []\n    for (u,v), idx in var_map.items():\n        if model[idx-1] > 0:\n            edges.append((u,v))\n    print(f\"Number of edges: {len(edges)}\")\n    deg = [0]*n\n    for u,v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"Min degree:\", min(deg), \"Max degree:\", max(deg))\n    for e in fixed_edges:\n        assert e in edges, f\"Missing fixed edge {e}\"\n    print(\"All fixed edges present.\")\n    print(\"Edges:\", sorted(edges))\nelse:\n    print(\"UNSAT\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 236.68
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's check the fixed edges first\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\nn = 14\ndeg = [0]*n\nfor u,v in fixed_edges:\n    deg[u] += 1\n    deg[v] += 1\nprint(\"Degrees from fixed edges:\", deg)\nprint(\"Max degree:\", max(deg))\nprint(\"Min degree:\", min(deg))\n\n# Check if any vertex already exceeds 6\nfor v in range(n):\n    if deg[v] > 6:\n        print(f\"Vertex {v} already has degree {deg[v]} > 6\")\n    # Also check: each vertex needs at least 3, so if a vertex has degree 0, it needs at least 3 more edges\n    # But that's fine as long as there are enough possible neighbors\n\n# Let's also check if there are any duplicate edges\nprint(\"Fixed edges:\", sorted(fixed_edges))\nprint(\"Number of fixed edges:\", len(fixed_edges))",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 34.78
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom pysat.card import CardEnc\nimport itertools\n\nn = 14\nvar_map = {}\nvar_idx = 1\nfor u in range(n):\n    for v in range(u+1, n):\n        var_map[(u,v)] = var_idx\n        var_idx += 1\n\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# Let's try with different solver\nfor solver_name in ['glucose4', 'glucose3', 'minisat22', 'cadical153']:\n    try:\n        solver = Solver(name=solver_name)\n        for (u,v) in fixed_edges:\n            solver.add_clause([var_map[(u,v)]])\n        \n        for v in range(n):\n            incident_vars = []\n            for u in range(n):\n                if u < v:\n                    incident_vars.append(var_map[(u,v)])\n                elif u > v:\n                    incident_vars.append(var_map[(v,u)])\n            c = CardEnc.atleast(lits=incident_vars, bound=3, top_id=var_idx-1, encoding=1)\n            for clause in c.clauses:\n                solver.add_clause(clause)\n            c = CardEnc.atmost(lits=incident_vars, bound=6, top_id=var_idx-1, encoding=1)\n            for clause in c.clauses:\n                solver.add_clause(clause)\n        \n        status = solver.solve()\n        print(f\"{solver_name}: {status}\")\n        if status:\n            model = solver.get_model()\n            edges = []\n            for (u,v), idx in var_map.items():\n                if model[idx-1] > 0:\n                    edges.append((u,v))\n            print(f\"Edges: {len(edges)}\")\n            deg = [0]*n\n            for u,v in edges:\n                deg[u] += 1\n                deg[v] += 1\n            print(\"Degrees:\", deg)\n            break\n    except Exception as e:\n        print(f\"{solver_name}: error {e}\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 629.07
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "max_rounds",
+  "forced_submit": false
+}

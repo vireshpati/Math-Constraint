@@ -1,0 +1,95 @@
+{
+  "problem_name": "costas_array_n11__v1_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 1035.3,
+    "search_space": 39916800,
+    "num_variables": 11,
+    "num_constraints": 12,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 73.12,
+    "solve_pct_type": 61.11
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    4,
+    8,
+    3,
+    10,
+    9,
+    6,
+    2,
+    7,
+    5
+  ],
+  "reasoning": "Verified this is a permutation of rows 0..10, and checking all pairs of columns gives 55 displacement vectors (x[c2]-x[c1], c2-c1) with no duplicates.",
+  "raw_response": null,
+  "cot_trace": "**Generating Costas arrays**\n\nI need to find the Costas array for order 11. This involves generating a permutation of length 11 that meets the Costas condition. I could use brute force or backtracking in Python to find this. It seems I have to make sure to call submit_answer afterward and include the final output in JSON format. Costas arrays for order 11 exist; I just need to generate one permutation to meet the defined criteria, possibly considering known constructions like Welch or Golomb's. Let's dive in!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1350,
+  "completion_tokens": 725,
+  "reasoning_tokens": 255,
+  "cached_tokens": 0,
+  "cost_usd": 0.028499999999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 13783.830165863037,
+  "tool_dispatch_ms_total": 39.97015953063965,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def is_costas(x):\n    n=len(x)\n    if sorted(x)!=list(range(n)): return False\n    seen=set()\n    for c1 in range(n):\n        for c2 in range(c1+1,n):\n            v=(x[c2]-x[c1], c2-c1)\n            if v in seen: return False\n            seen.add(v)\n    return True\n\n# backtracking simple with pruning by difference uniqueness for each delta\nn=11\nused=[False]*n\nx=[]\n# seen vector set\nseen=set()\n\ndef search(c=0):\n    if c==n:\n        return x.copy()\n    # try rows perhaps symmetry break x[0]=0? maybe not all have x0=0 under row shift not preserve permutation? Row complement okay not shift. Don't force.\n    for r in range(n):\n        if used[r]: continue\n        ok=True; new=[]\n        for c1 in range(c):\n            v=(r-x[c1], c-c1)\n            if v in seen:\n                ok=False; break\n            new.append(v)\n        if not ok: continue\n        # also no equal difference for same delta captured by seen full pair; good\n        used[r]=True; x.append(r); seen.update(new)\n        res=search(c+1)\n        if res: return res\n        for v in new: seen.remove(v)\n        x.pop(); used[r]=False\n    return None\nres=search()\nprint(res)\nprint(is_costas(res) if res else None)\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 39.97
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          4,
+          8,
+          3,
+          10,
+          9,
+          6,
+          2,
+          7,
+          5
+        ],
+        "reasoning": "Verified this is a permutation of rows 0..10, and checking all pairs of columns gives 55 displacement vectors (x[c2]-x[c1], c2-c1) with no duplicates."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,106 @@
+{
+  "problem_name": "costas_array_n13__v2_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 1330.0,
+    "search_space": 6227020800,
+    "num_variables": 13,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 82.52,
+    "solve_pct_type": 94.44
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    11,
+    6,
+    3,
+    8,
+    9,
+    7,
+    10,
+    1,
+    5,
+    4,
+    12
+  ],
+  "reasoning": "Found a valid Costas array of order 13 with x[4]=3 and x[9]=1 via backtracking with displacement-vector uniqueness check.",
+  "raw_response": null,
+  "cot_trace": " I need to find a Costas array of order 13 where the 4th element equals 3 and the 9th element equals 1. Let me work through this systematically by checking which permutations of 1 through 13 satisfy both the Costas property and these constraints.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6335,
+  "completion_tokens": 1111,
+  "reasoning_tokens": 62,
+  "cached_tokens": 0,
+  "cost_usd": 0.05945,
+  "cost_source": "openrouter",
+  "latency_ms": 29856.208086013794,
+  "tool_dispatch_ms_total": 179.0919303894043,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\nn = 13\nfixed = {4: 3, 9: 1}\n\ndef is_costas(p):\n    seen = set()\n    for d in range(1, len(p)):\n        for i in range(len(p)-d):\n            v = (d, p[i+d]-p[i])\n            if v in seen:\n                return False\n            seen.add(v)\n    return True\n\n# Backtracking\nused_rows = set(fixed.values())\nx = [-1]*n\nfor c,r in fixed.items(): x[c]=r\n\ndef backtrack(col_order_idx, cols):\n    if col_order_idx == len(cols):\n        return is_costas(x)\n    c = cols[col_order_idx]\n    for r in range(n):\n        if r in used_rows: continue\n        x[c]=r\n        used_rows.add(r)\n        # Quick partial check: check displacements so far\n        ok=True\n        # check all pairs involving column c with already-assigned columns\n        seen=set()\n        assigned=[(cc,x[cc]) for cc in range(n) if x[cc]!=-1]\n        for i in range(len(assigned)):\n            for j in range(i+1,len(assigned)):\n                c1,r1=assigned[i]; c2,r2=assigned[j]\n                dc=c2-c1; dr=r2-r1\n                if dc<0: dc,dr=-dc,-dr\n                v=(dc,dr)\n                if v in seen: ok=False; break\n                seen.add(v)\n            if not ok: break\n        if ok and backtrack(col_order_idx+1, cols):\n            return True\n        x[c]=-1\n        used_rows.remove(r)\n    return False\n\ncols = [c for c in range(n) if c not in fixed]\nif backtrack(0, cols):\n    print(x)\nelse:\n    print(\"UNSAT\")\n"
+      },
+      "ok": true,
+      "latency_ms": 133.82
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nx=[0, 2, 11, 6, 3, 8, 9, 7, 10, 1, 5, 4, 12]\nassert x[4]==3 and x[9]==1\nassert sorted(x)==list(range(13))\nseen=set()\nfor i in range(13):\n    for j in range(i+1,13):\n        v=(j-i,x[j]-x[i])\n        assert v not in seen\n        seen.add(v)\nprint(\"valid\")\n"
+      },
+      "ok": true,
+      "latency_ms": 45.28
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Found a valid Costas array of order 13 with x[4]=3 and x[9]=1 via backtracking with displacement-vector uniqueness check.",
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          11,
+          6,
+          3,
+          8,
+          9,
+          7,
+          10,
+          1,
+          5,
+          4,
+          12
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

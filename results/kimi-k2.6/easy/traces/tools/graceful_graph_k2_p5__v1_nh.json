@@ -1,0 +1,125 @@
+{
+  "problem_name": "graceful_graph_k2_p5__v1_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1003.9,
+    "search_space": 289254654976,
+    "num_variables": 23,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 70.49,
+    "solve_pct_type": 6.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    12,
+    9,
+    0,
+    1,
+    13,
+    3,
+    2,
+    8,
+    11,
+    4
+  ],
+  "reasoning": "Found a valid graceful labeling through backtracking search. The 10 vertices are assigned distinct labels from 0-13, and all 13 edges have distinct difference labels from 1-13. The solution is ordered by clique then vertex: Clique 0 gets [12,9], Clique 1 gets [0,1], Clique 2 gets [13,3], Clique 3 gets [2,8], Clique 4 gets [11,4]. Edge labels are {1,2,3,4,5,6,7,8,9,10,11,12,13}.",
+  "raw_response": null,
+  "cot_trace": " We need to find a graceful labeling for a specific graph G_{2,5}. Let's parse the graph structure carefully.\n\nWe have 5 disjoint K_2 cliques numbered 0 through 4. Each K_2 has 2 vertices. So total vertices = 5 * 2 = 10.\n\nEach pair of consecutive cliques (g, g+1) is connected by 2 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..1.\n\nSo for each g in 0..3, there are edges:\n- between vertex 0 of clique g and vertex 0 of clique g+1\n- between vertex 1 of clique g and vertex 1 of clique g+1\n\nAdditionally, each clique itself is a K_2, meaning there is an edge between vertex 0 and vertex 1 within each clique.\n\nSo edges:\n- Within clique g: edge (g,0)-(g,1) for g=0..4. That's 5 edges.\n- Between clique g and g+1: edges (g,0)-(g+1,0) and (g,1)-(g+1,1) for g=0..3. That's 4*2 = 8 edges.\nTotal edges = 5 + 8 = 13. Good.\n\nWe need to assign labels 0..13 (unique) to the 10 vertices such that the 13 edge labels (absolute differences) are all distinct. Since there are 13 edges and possible differences are 1..13 (0 is impossible since labels are distinct), we need the edge labels to be exactly {1,2,...,13}.\n\nThe vertex ordering for the solution: list of 10 integers, ordered by clique then vertex within clique. So indices:\n0: clique 0, vertex 0\n1: clique 0, vertex 1\n2: clique 1, vertex 0\n3: clique 1, vertex 1\n4: clique 2, vertex 0\n5: clique 2, vertex 1\n6: clique 3, vertex 0\n7: clique 3, vertex 1\n8: clique 4, vertex 0\n9: clique 4, vertex 1\n\nWe need to find a graceful labeling. This is a specific instance. We can try to solve it using Python, maybe with OR-Tools, pysat, or brute force/backtracking. Since there are 10 vertices and labels 0..13, we need to choose 10 distinct labels from 0..13 and assign them. That's P(14,10) = 14! / 4! \u2248 14*13*...*5 = about 14!/4! = 87,178,291,200 / 24? Wait 14! = 87,178,291,200. Divide by 4! = 24 gives ~3.6 billion. That's too many for brute force without pruning.\n\nBut we can use a SAT solver or constraint programming. Python has `python-sat` (pysat) available. We can encode as a SAT problem. Or we can use backtracking with pruning (edge differences must be distinct). Since the graph is small (10 vertices, 13 edges), we can do a backtracking search with constraint propagation. Let's try using Python with `itertools` or recursive backtracking. Or use `pysat` with cardinality constraints. But maybe simpler: use `python-constraint`? Not sure if installed. We can write a custom DFS with pruning.\n\nLet's think about the structure. It's basically a ladder graph with 5 rungs (the K_2's are the rungs) and 4 steps (the vertical edges connecting corresponding vertices). Actually, it's a path of 5 K_2's where corresponding vertices are connected. This is exactly the Cartesian product P_5 \u25a1 K_2, i.e., a 2x5 grid graph (a ladder with 5 rungs). Wait, a 2x5 grid has vertices (i,j) with i=0..1, j=0..4. Edges: horizontal edges between (i,j) and (i,j+1) for i=0,1 and j=0..3. That's 2*4=8 edges. Vertical edges between (0,j) and (1,j) for j=0..4. That's 5 edges. Total 13 edges. Yes, it's exactly a 2x5 grid graph (ladder graph with 5 rungs).\n\nSo we need a graceful labeling of the 2x5 grid graph. This is a known problem. Grid graphs are conjectured to be graceful, and small ones are known. Let's see if we can find one by search.\n\nWe can use Python to do a backtracking search. Since the graph is small, we can also use `pysat` but encoding might be heavy. Let's try a simple backtracking with pruning and maybe some symmetry breaking.\n\nSymmetries: We can fix the label of one vertex to reduce search space. In graceful labeling, we can often fix the highest label or lowest label on a specific vertex, but we need to be careful because the problem asks for a specific ordering. However, we can search for any labeling and then output it.\n\nSince the graph is bipartite (grid graph), the vertices can be colored black/white. In a graceful labeling, the parity of labels might alternate? Not necessarily.\n\nLet's just code a DFS. We have 10 vertices. We'll assign labels one by one. At each step, we check that no two assigned vertices have the same label, and that the absolute differences on edges between assigned vertices are distinct. Also, we can compute the set of used differences and ensure no conflict.\n\nTo speed up, we can order vertices by degree or by constraint tightness. The middle vertices have higher degree. Let's list vertices and degrees:\n- (0,0): degree 2 (rung 0, edge to (0,1) and edge to (1,0)? Wait, edges: vertical (rung) within clique: between vertex 0 and 1. Horizontal: vertex 0 of clique g to vertex 0 of clique g+1. So vertex (0,0) is connected to (1,0) [rung] and (0,1) [horizontal]. Degree 2.\nActually, let's use coordinates (row, col) where row i in {0,1}, col j in {0..4}. Then edges:\n- Horizontal: (i,j) - (i,j+1) for j=0..3.\n- Vertical: (0,j) - (1,j) for j=0..4.\nDegrees:\n- Corners: (0,0), (1,0), (0,4), (1,4): degree 2 (one horizontal, one vertical).\n- Edge non-corners: (0,1),(1,1),(0,2),(1,2),(0,3),(1,3): degree 3 (two horizontal, one vertical).\n- Wait, (0,2) has horizontal to (0,1) and (0,3), vertical to (1,2). Degree 3.\n- Actually all non-corner vertices have degree 3. Corners have degree 2.\n\nSo the graph is a ladder.\n\nWe can try to assign labels to vertices in some order. Maybe start with a corner and fix its label to 0 or 13 to break symmetry? But we can't necessarily fix a corner to 0 because the graph might not have a graceful labeling with 0 at a corner. However, we can fix a specific vertex to a specific label and search; if unsatisfiable, try another. But to reduce search, we can use the fact that if we have a graceful labeling, we can complement it: replace each label x with 13-x. This preserves edge differences. Also we can swap the two rows? Swapping rows corresponds to swapping vertex 0 and 1 within each clique. That might not preserve the graph structure? Actually, swapping rows is an automorphism of the graph (reflect across the horizontal midline). Also reversing columns (mirror left-right) is an automorphism. So we have symmetries.\n\nBut for search, we can just do a smart backtracking. Let's try with Python.\n\nWe need to assign labels from 0 to 13. Let's use recursion with ordering by most constrained vertex (MRV). At each step, pick an unassigned vertex with the smallest number of possible labels.\n\nPossible labels for a vertex: any unused label from 0..13 such that edges to already assigned vertices produce differences not already used.\n\nLet's code this. We'll also add some heuristics.\n\nAlternatively, we can use `pysat` with a direct encoding. But backtracking might be faster for this size.\n\nLet's write a Python script to do DFS with pruning. We'll represent vertices as 0..9. The mapping:\nv0 = (0,0) -> index 0\nv1 = (1,0) -> index 1\nv2 = (0,1) -> index 2\nv3 = (1,1) -> index 3\nv4 = (0,2) -> index 4\nv5 = (1,2) -> index 5\nv6 = (0,3) -> index 6\nv7 = (1,3) -> index 7\nv8 = (0,4) -> index 8\nv9 = (1,4) -> index 9\n\nEdges:\nRung j: (0,j)-(1,j) -> indices 2j and 2j+1. Differences: |L[2j] - L[2j+1]| must be distinct.\nHorizontal i,j: (i,j)-(i,j+1) -> indices 2j+i and 2(j+1)+i. For i=0,1 and j=0..3.\n\nLet's code.\n---\n The graph is a ladder graph with 5 rungs. Vertices are arranged as:\n- Clique 0: vertices 0, 1\n- Clique 1: vertices 2, 3\n- Clique 2: vertices 4, 5\n- Clique 3: vertices 6, 7\n- Clique 4: vertices 8, 9\n\nEdges:\n- Rung 0: (0,1)\n- Rung 1: (2,3)\n- Rung 2: (4,5)\n- Rung 3: (6,7)\n- Rung 4: (8,9)\n- Horizontal: (0,2), (1,3), (2,4), (3,5), (4,6), (5,7), (6,8), (7,9)\n\nThis is a 2\u00d75 grid graph (a ladder with 5 rungs). It has 10 vertices and 13 edges.\n\nFor a graceful labeling, we need to assign labels 0..13 to the 10 vertices such that all 13 edge labels |label(u)-label(v)| are distinct (so they must be 1..13 in some order).\n\nThis is a known problem. Let me try to solve it using a SAT solver or backtracking.\n\nI'll use Python to search for a solution. Since there are C(14,10) ways to choose labels and then 10! ways to assign them, that's too many. But we can use backtracking with pruning.\n\nActually, let me use OR-Tools or just write a backtracker. Or I can use python's itertools with some pruning.\n\nLet me write a backtracking solver. The edge labels must all be distinct and cover 1..13.\n\nKey insight: the sum of all edge labels is 1+2+...+13 = 91.\n\nAlso, if we think of the graph as a grid, there might be known results. But let me just search.\n\nI'll use a simple backtracking approach with constraint propagation.\n---\n There's a bug in my backtracking - the `new_edge_labels` list might have duplicates if two neighbors have the same difference, but I already check for that. Wait, the issue is that `edge_labels.remove(d)` will fail if `d` was already in `edge_labels` before this assignment. Let me fix this by tracking which ones we actually added.\n\nActually, the issue is simpler: I need to track which edge labels were newly added vs already present. Let me fix this.\n---\n The issue is that the same edge label might be added twice in the same step (if two neighbors have the same difference). Let me fix this by checking for duplicates within the newly added labels too.\n---\n We found a solution: [12, 9, 0, 1, 13, 3, 2, 8, 11, 4]\n\nLet me verify this solution:\n- Clique 0: vertices 0,1 with labels 12, 9\n- Clique 1: vertices 2,3 with labels 0, 1\n- Clique 2: vertices 4,5 with labels 13, 3\n- Clique 3: vertices 6,7 with labels 2, 8\n- Clique 4: vertices 8,9 with labels 11, 4\n\nEdges and their labels:\n- (0,1): |12-9| = 3\n- (2,3): |0-1| = 1\n- (4,5): |13-3| = 10\n- (6,7): |2-8| = 6\n- (8,9): |11-4| = 7\n- (0,2): |12-0| = 12\n- (1,3): |9-1| = 8\n- (2,4): |0-13| = 13\n- (3,5): |1-3| = 2\n- (4,6): |13-2| = 11\n- (5,7): |3-8| = 5\n- (6,8): |2-11| = 9\n- (7,9): |8-4| = 4\n\nAll edge labels: {3, 1, 10, 6, 7, 12, 8, 13, 2, 11, 5, 9, 4} = {1,2,3,4,5,6,7,8,9,10,11,12,13}\n\nAll distinct! And all vertex labels are distinct: {12, 9, 0, 1, 13, 3, 2, 8, 11, 4} - 10 distinct values from 0 to 13.\n\nThis is a valid graceful labeling!\n---\n The solution is verified:\n- 10 distinct vertex labels from 0 to 13: [12, 9, 0, 1, 13, 3, 2, 8, 11, 4]\n- 13 distinct edge labels from 1 to 13: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13]\n\nThe solution is ordered by clique then vertex within clique:\n- Clique 0: vertices 0,1 \u2192 labels 12, 9\n- Clique 1: vertices 2,3 \u2192 labels 0, 1\n- Clique 2: vertices 4,5 \u2192 labels 13, 3\n- Clique 3: vertices 6,7 \u2192 labels 2, 8\n- Clique 4: vertices 8,9 \u2192 labels 11, 4\n\nThis is a valid graceful labeling.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 13311,
+  "completion_tokens": 5779,
+  "reasoning_tokens": 2741,
+  "cached_tokens": 4144,
+  "cost_usd": 0.0323930702,
+  "cost_source": "openrouter",
+  "latency_ms": 379397.3708152771,
+  "tool_dispatch_ms_total": 246.27089500427246,
+  "tool_calls_made": 6,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Define the graph: 10 vertices, edges as pairs of vertex indices\nedges = []\n# Rungs (vertical edges within clique)\nfor j in range(5):\n    edges.append((2*j, 2*j+1))\n# Horizontal edges between cliques\nfor j in range(4):\n    for i in range(2):\n        edges.append((2*j+i, 2*(j+1)+i))\n\nprint(\"Edges:\", edges)\nprint(\"Number of edges:\", len(edges))\n\n# Let's verify degrees\ndegrees = [0]*10\nfor u,v in edges:\n    degrees[u] += 1\n    degrees[v] += 1\nprint(\"Degrees:\", degrees)\n"
+      },
+      "ok": true,
+      "latency_ms": 33.29
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import permutations\n\n# Let's try a smarter search\n# We need to assign 10 distinct labels from 0..13 to 10 vertices\n# such that all 13 edge differences are distinct\n\nedges = [(0, 1), (2, 3), (4, 5), (6, 7), (8, 9), \n         (0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 8), (7, 9)]\n\n# Backtracking with pruning\nfrom functools import lru_cache\n\ndef solve():\n    # Try all combinations of 10 labels from 0..13, then permute\n    # But that's C(14,10)*10! = 1001 * 3628800 = way too many\n    \n    # Let's use backtracking with constraint checking\n    # Order vertices by degree (highest first) for better pruning\n    # Actually degrees: [2,2,3,3,3,3,3,3,2,2]\n    # Vertices 2,3,4,5,6,7 have degree 3, others degree 2\n    \n    # Let's order: 2,3,4,5,6,7,0,1,8,9\n    order = [2,3,4,5,6,7,0,1,8,9]\n    \n    # Map from vertex to its neighbors\n    neighbors = [[] for _ in range(10)]\n    for u,v in edges:\n        neighbors[u].append(v)\n        neighbors[v].append(u)\n    \n    used_labels = set()\n    edge_labels = set()\n    assignment = [None]*10\n    \n    def backtrack(idx):\n        if idx == 10:\n            # Check all edges\n            diffs = set()\n            for u,v in edges:\n                d = abs(assignment[u] - assignment[v])\n                if d in diffs:\n                    return False\n                diffs.add(d)\n            return len(diffs) == 13\n        \n        v = order[idx]\n        for label in range(14):\n            if label in used_labels:\n                continue\n            \n            # Check constraints with already assigned neighbors\n            valid = True\n            new_edge_labels = []\n            for nb in neighbors[v]:\n                if assignment[nb] is not None:\n                    d = abs(label - assignment[nb])\n                    if d == 0 or d in edge_labels:\n                        valid = False\n                        break\n                    new_edge_labels.append(d)\n            \n            if not valid:\n                continue\n            \n            # Assign\n            assignment[v] = label\n            used_labels.add(label)\n            for d in new_edge_labels:\n                edge_labels.add(d)\n            \n            if backtrack(idx+1):\n                return True\n            \n            # Backtrack\n            assignment[v] = None\n            used_labels.remove(label)\n            for d in new_edge_labels:\n                edge_labels.remove(d)\n        \n        return False\n    \n    if backtrack(0):\n        return assignment\n    return None\n\n# This might take a while, let's try with some heuristics\n# Actually let's add more pruning: check that we can still get all remaining edge labels\n\nprint(\"Starting search...\")\nresult = solve()\nprint(\"Result:\", result)\n"
+      },
+      "ok": false,
+      "latency_ms": 72.38
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import permutations\n\nedges = [(0, 1), (2, 3), (4, 5), (6, 7), (8, 9), \n         (0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 8), (7, 9)]\n\ndef solve():\n    order = [2,3,4,5,6,7,0,1,8,9]\n    \n    neighbors = [[] for _ in range(10)]\n    for u,v in edges:\n        neighbors[u].append(v)\n        neighbors[v].append(u)\n    \n    used_labels = set()\n    edge_labels = set()\n    assignment = [None]*10\n    \n    def backtrack(idx):\n        if idx == 10:\n            return True\n        \n        v = order[idx]\n        for label in range(14):\n            if label in used_labels:\n                continue\n            \n            valid = True\n            newly_added = []\n            for nb in neighbors[v]:\n                if assignment[nb] is not None:\n                    d = abs(label - assignment[nb])\n                    if d == 0 or d in edge_labels:\n                        valid = False\n                        break\n                    newly_added.append(d)\n            \n            if not valid:\n                continue\n            \n            assignment[v] = label\n            used_labels.add(label)\n            for d in newly_added:\n                edge_labels.add(d)\n            \n            if backtrack(idx+1):\n                return True\n            \n            assignment[v] = None\n            used_labels.remove(label)\n            for d in newly_added:\n                edge_labels.remove(d)\n        \n        return False\n    \n    if backtrack(0):\n        return assignment\n    return None\n\nprint(\"Starting search...\")\nresult = solve()\nprint(\"Result:\", result)\n"
+      },
+      "ok": false,
+      "latency_ms": 34.59
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0, 1), (2, 3), (4, 5), (6, 7), (8, 9), \n         (0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 8), (7, 9)]\n\ndef solve():\n    order = [2,3,4,5,6,7,0,1,8,9]\n    \n    neighbors = [[] for _ in range(10)]\n    for u,v in edges:\n        neighbors[u].append(v)\n        neighbors[v].append(u)\n    \n    used_labels = set()\n    edge_labels = set()\n    assignment = [None]*10\n    \n    def backtrack(idx):\n        if idx == 10:\n            return True\n        \n        v = order[idx]\n        for label in range(14):\n            if label in used_labels:\n                continue\n            \n            valid = True\n            newly_added = []\n            for nb in neighbors[v]:\n                if assignment[nb] is not None:\n                    d = abs(label - assignment[nb])\n                    if d == 0 or d in edge_labels or d in newly_added:\n                        valid = False\n                        break\n                    newly_added.append(d)\n            \n            if not valid:\n                continue\n            \n            assignment[v] = label\n            used_labels.add(label)\n            for d in newly_added:\n                edge_labels.add(d)\n            \n            if backtrack(idx+1):\n                return True\n            \n            assignment[v] = None\n            used_labels.remove(label)\n            for d in newly_added:\n                edge_labels.remove(d)\n        \n        return False\n    \n    if backtrack(0):\n        return assignment\n    return None\n\nprint(\"Starting search...\")\nresult = solve()\nprint(\"Result:\", result)\n"
+      },
+      "ok": true,
+      "latency_ms": 69.78
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify the solution\nsolution = [12, 9, 0, 1, 13, 3, 2, 8, 11, 4]\nedges = [(0, 1), (2, 3), (4, 5), (6, 7), (8, 9), \n         (0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7), (6, 8), (7, 9)]\n\nprint(\"Vertex labels:\", solution)\nprint(\"Distinct labels:\", len(set(solution)) == 10)\nprint(\"All in range 0-13:\", all(0 <= x <= 13 for x in solution))\n\nedge_labels = []\nfor u,v in edges:\n    d = abs(solution[u] - solution[v])\n    edge_labels.append(d)\n    print(f\"Edge ({u},{v}): |{solution[u]} - {solution[v]}| = {d}\")\n\nprint(\"\\nEdge labels:\", sorted(edge_labels))\nprint(\"All distinct:\", len(set(edge_labels)) == 13)\nprint(\"All in range 1-13:\", all(1 <= x <= 13 for x in edge_labels))\n"
+      },
+      "ok": true,
+      "latency_ms": 36.24
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          12,
+          9,
+          0,
+          1,
+          13,
+          3,
+          2,
+          8,
+          11,
+          4
+        ],
+        "reasoning": "Found a valid graceful labeling through backtracking search. The 10 vertices are assigned distinct labels from 0-13, and all 13 edges have distinct difference labels from 1-13. The solution is ordered by clique then vertex: Clique 0 gets [12,9], Clique 1 gets [0,1], Clique 2 gets [13,3], Clique 3 gets [2,8], Clique 4 gets [11,4]. Edge labels are {1,2,3,4,5,6,7,8,9,10,11,12,13}."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

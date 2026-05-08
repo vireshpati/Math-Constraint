@@ -1,0 +1,104 @@
+{
+  "problem_name": "all_interval_n12__v9_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 997.3,
+    "search_space": 479001600,
+    "num_variables": 23,
+    "num_constraints": 15,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 70.11,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    11,
+    1,
+    10,
+    2,
+    9,
+    3,
+    8,
+    4,
+    7,
+    5,
+    6
+  ],
+  "reasoning": "\nAn all-interval series of size 12 exists. The solution [0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6] is a permutation of 0\u201311, and its consecutive absolute differences are [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1\u201311. The pattern alternates between the low end and high end of the range, producing a \"zigzag\" that naturally generates all distinct differences.\n",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5015,
+  "completion_tokens": 1086,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.031335,
+  "cost_source": "openrouter",
+  "latency_ms": 44769.80113983154,
+  "tool_dispatch_ms_total": 404.066801071167,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\n# Use constraint programming with python-constraint or just backtracking\n# An all-interval series: permutation p of 0..11 such that\n# |p[i+1] - p[i]| for i=0..10 gives a permutation of 1..11\n\ndef solve_all_interval():\n    # Backtracking search\n    n = 12\n    used_vals = [False] * n\n    used_diffs = [False] * (n)  # diffs 1..11\n    \n    path = []\n    \n    def backtrack(pos):\n        if pos == n:\n            return True\n        \n        for v in range(n):\n            if used_vals[v]:\n                continue\n            if pos == 0:\n                path.append(v)\n                used_vals[v] = True\n                if backtrack(1):\n                    return True\n                path.pop()\n                used_vals[v] = False\n            else:\n                diff = abs(v - path[-1])\n                if diff == 0 or used_diffs[diff]:\n                    continue\n                path.append(v)\n                used_vals[v] = True\n                used_diffs[diff] = True\n                if backtrack(pos + 1):\n                    return True\n                path.pop()\n                used_vals[v] = False\n                used_diffs[diff] = False\n        \n        return False\n    \n    backtrack(0)\n    return path\n\nsolution = solve_all_interval()\nprint(\"Solution:\", solution)\n\n# Verify\ndiffs = [abs(solution[i+1] - solution[i]) for i in range(11)]\nprint(\"Differences:\", diffs)\nprint(\"Values are permutation of 0-11:\", sorted(solution) == list(range(12)))\nprint(\"Diffs are permutation of 1-11:\", sorted(diffs) == list(range(1, 12)))\n"
+      },
+      "ok": true,
+      "latency_ms": 298.97
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nsolution = [0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6]\nprint(\"All-Interval Series:\")\nprint(\"Series:     \", solution)\nprint()\nprint(\"Step-by-step verification:\")\nfor i in range(11):\n    d = abs(solution[i+1] - solution[i])\n    print(f\"  |{solution[i+1]:2d} - {solution[i]:2d}| = {d}\")\n\ndiffs = [abs(solution[i+1] - solution[i]) for i in range(11)]\nprint()\nprint(f\"Values cover 0\u201311:  {sorted(solution) == list(range(12))} \u2713\")\nprint(f\"Diffs cover 1\u201311:   {sorted(diffs) == list(range(1,12))} \u2713\")\n"
+      },
+      "ok": true,
+      "latency_ms": 105.1
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          11,
+          1,
+          10,
+          2,
+          9,
+          3,
+          8,
+          4,
+          7,
+          5,
+          6
+        ],
+        "reasoning": "\nAn all-interval series of size 12 exists. The solution [0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6] is a permutation of 0\u201311, and its consecutive absolute differences are [11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1\u201311. The pattern alternates between the low end and high end of the range, producing a \"zigzag\" that naturally generates all distinct differences.\n"
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

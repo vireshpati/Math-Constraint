@@ -1,0 +1,136 @@
+{
+  "problem_name": "langford_n12__v6_nh",
+  "problem_type": "langford",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1602.0,
+    "search_space": 620448401733239439360000,
+    "num_variables": 24,
+    "num_constraints": 305,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.16,
+    "solve_pct_type": 43.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    4,
+    1,
+    3,
+    1,
+    12,
+    4,
+    3,
+    7,
+    5,
+    8,
+    10,
+    11,
+    9,
+    6,
+    5,
+    7,
+    2,
+    12,
+    8,
+    2,
+    6,
+    10,
+    9,
+    11
+  ],
+  "reasoning": "Found a valid Langford sequence L(2,12) using constraint programming. The sequence places each value v at two positions exactly v+1 apart. Verified that each value 1..12 appears exactly twice with correct spacing.",
+  "raw_response": null,
+  "cot_trace": " We need to construct a Langford sequence L(2,12). This is a classic combinatorial problem. Langford pairing problem: L(2,n) exists iff n \u2261 0 or 3 (mod 4). Let's check: 12 mod 4 = 0, so it exists. We need to produce a sequence of length 24.\n\nWe can try to find one via backtracking or using a SAT solver. Let's use Python to search. Since n=12, length 24. Could use OR-Tools CP-SAT or simple backtracking. Let's try using python's itertools or recursive backtracking. Might be a bit large but manageable with pruning. Or use OR-Tools CP-SAT (if available). Let's check. The environment may have pysat, ortools, etc. Let's try using OR-Tools CP-SAT. If not available, we can implement a simple backtracking with constraint propagation.\n\nLet's write a Python script.\n---\n Good, OR-Tools is available. Let me formulate the Langford L(2,12) problem as a CP-SAT problem.\n\nFor each value v from 1 to 12, I need to place two copies in positions p and p+v+1 (0-indexed), where p ranges from 0 to 24-(v+1)-1 = 22-v.\n\nActually, let me think about this more carefully. If positions are 0-indexed from 0 to 23:\n- For value v, if one copy is at position i, the other is at position i+v+1\n- So i+v+1 \u2264 23, meaning i \u2264 22-v\n\nFor each value v, I need to choose a starting position p_v from 0 to 22-v.\n\nThe constraint is that all positions must be distinct (each position has exactly one value).\n\nLet me use a different formulation: for each position i from 0 to 23, let x[i] be the value at that position (0 if empty, but all positions must be filled).\n\nActually, a cleaner formulation: for each value v in 1..12, create a variable p_v representing the first position of v. Then the two positions are p_v and p_v + v + 1.\n\nConstraints:\n- For all v: 0 \u2264 p_v \u2264 22 - v\n- For all v1 < v2: {p_v1, p_v1+v1+1} \u2229 {p_v2, p_v2+v2+1} = \u2205\n\nThis is an all-different constraint on 24 positions.\n\nLet me code this up.\n---\nWe found a solution! Let me verify it's correct before submitting.\n---\nWe found a valid Langford sequence L(2,12). Let me submit the answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3847,
+  "completion_tokens": 1481,
+  "reasoning_tokens": 531,
+  "cached_tokens": 1600,
+  "cost_usd": 0.00767925,
+  "cost_source": "openrouter",
+  "latency_ms": 75779.4349193573,
+  "tool_dispatch_ms_total": 2338.3142948150635,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's try to solve Langford L(2,12) using OR-Tools CP-SAT if available\ntry:\n    from ortools.sat.python import cp_model\n    print(\"OR-Tools available\")\nexcept Exception as e:\n    print(\"OR-Tools not available:\", e)\n"
+      },
+      "ok": true,
+      "latency_ms": 1152.65
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom ortools.sat.python import cp_model\n\ndef solve_langford(n):\n    model = cp_model.CpModel()\n    \n    # For each value v (1-indexed), p[v] is the first position (0-indexed)\n    # The two occurrences are at p[v] and p[v] + v + 1\n    p = {}\n    for v in range(1, n+1):\n        # p[v] can be from 0 to 23 - (v+1) = 22 - v\n        p[v] = model.NewIntVar(0, 22 - v, f'p_{v}')\n    \n    # All 24 positions must be distinct\n    # We have 24 positions total: p[v] and p[v]+v+1 for v=1..12\n    positions = []\n    for v in range(1, n+1):\n        pos1 = p[v]\n        pos2 = model.NewIntVar(0, 23, f'pos2_{v}')\n        model.Add(pos2 == p[v] + v + 1)\n        positions.extend([pos1, pos2])\n    \n    model.AddAllDifferent(positions)\n    \n    solver = cp_model.CpSolver()\n    solver.parameters.max_time_in_seconds = 30.0\n    solver.parameters.num_search_workers = 8\n    \n    status = solver.Solve(model)\n    \n    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n        seq = [0] * 24\n        for v in range(1, n+1):\n            pos1 = solver.Value(p[v])\n            pos2 = pos1 + v + 1\n            seq[pos1] = v\n            seq[pos2] = v\n        return seq\n    else:\n        return None\n\nseq = solve_langford(12)\nprint(seq)\n"
+      },
+      "ok": true,
+      "latency_ms": 1151.89
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nseq = [4, 1, 3, 1, 12, 4, 3, 7, 5, 8, 10, 11, 9, 6, 5, 7, 2, 12, 8, 2, 6, 10, 9, 11]\n\n# Verify\ndef verify_langford(seq, n):\n    if len(seq) != 2*n:\n        return False\n    for v in range(1, n+1):\n        positions = [i for i, x in enumerate(seq) if x == v]\n        if len(positions) != 2:\n            print(f\"Value {v} appears {len(positions)} times\")\n            return False\n        if positions[1] - positions[0] != v + 1:\n            print(f\"Value {v} has positions {positions}, distance = {positions[1] - positions[0]}, expected = {v+1}\")\n            return False\n    print(\"Verification passed!\")\n    return True\n\nverify_langford(seq, 12)\n"
+      },
+      "ok": true,
+      "latency_ms": 33.77
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          4,
+          1,
+          3,
+          1,
+          12,
+          4,
+          3,
+          7,
+          5,
+          8,
+          10,
+          11,
+          9,
+          6,
+          5,
+          7,
+          2,
+          12,
+          8,
+          2,
+          6,
+          10,
+          9,
+          11
+        ],
+        "reasoning": "Found a valid Langford sequence L(2,12) using constraint programming. The sequence places each value v at two positions exactly v+1 apart. Verified that each value 1..12 appears exactly twice with correct spacing."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

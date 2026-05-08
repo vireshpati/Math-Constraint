@@ -1,0 +1,106 @@
+{
+  "problem_name": "costas_array_n13__v2_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 1330.0,
+    "search_space": 6227020800,
+    "num_variables": 13,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 82.52,
+    "solve_pct_type": 94.44
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    11,
+    6,
+    3,
+    8,
+    9,
+    7,
+    10,
+    1,
+    5,
+    4,
+    12
+  ],
+  "reasoning": "The solution [0, 2, 11, 6, 3, 8, 9, 7, 10, 1, 5, 4, 12] was found using a backtracking algorithm. It satisfies the Costas array property (all displacement vectors are distinct) and respects the fixed assignments x[4]=3 and x[9]=1.",
+  "raw_response": null,
+  "cot_trace": "**Analyzing the Constraint**\n\nI've been focusing on the grid's constraints. The arrangement's key characteristic is having exactly one mark per row and per column, creating a permutation. I've also identified that all 78 displacement vectors must be unique. The fixed values x[4] = 3 and x[9] = 1 are also crucial. I believe these conditions pose a significant challenge.\n\n\n**Refining the Approach**\n\nI'm now focusing on efficiently searching for the permutation. Backtracking or a SAT solver are potential strategies, but the search space remains vast. I'm focusing on the constraints. A Costas array of order 13 exists. I need one that satisfies the condition x[4] = 3 and x[9] = 1, and the constraints are now understood as unique differences along each displacement vector. The displacement vector `(x[j] - x[i], j - i)` where `k = j - i`, the set of differences `{x[i+k] - x[i] | 0 <= i < 13-k}` must contain no duplicates.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3588,
+  "completion_tokens": 1805,
+  "reasoning_tokens": 731,
+  "cached_tokens": 0,
+  "cost_usd": 0.0036045,
+  "cost_source": "openrouter",
+  "latency_ms": 17602.582454681396,
+  "tool_dispatch_ms_total": 89.63680267333984,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def solve():\n    n = 13\n    x = [None] * n\n    x[4] = 3\n    x[9] = 1\n    used = [False] * n\n    used[3] = True\n    used[1] = True\n\n    def is_valid(col, row, current_x):\n        # Check displacement vectors for the new mark at (col, row)\n        # with all previous marks at (i, current_x[i])\n        for i in range(col):\n            if current_x[i] is not None:\n                dr = row - current_x[i]\n                dc = col - i\n                # Check if this (dr, dc) has been used\n                # Actually, we need to check all pairs.\n                # Let's maintain a set of used (dr, dc)\n                pass\n        return True\n\n    # Let's use a more efficient approach:\n    # Maintain a set of used (dr, dc)\n    used_diffs = set()\n\n    def backtrack(col, current_x, used_rows, used_diffs):\n        if col == n:\n            return current_x\n\n        if current_x[col] is not None:\n            # Already set, check validity\n            row = current_x[col]\n            new_diffs = []\n            for i in range(col):\n                dr = row - current_x[i]\n                dc = col - i\n                if (dr, dc) in used_diffs:\n                    return None\n                new_diffs.append((dr, dc))\n            \n            for d in new_diffs:\n                used_diffs.add(d)\n            \n            res = backtrack(col + 1, current_x, used_rows, used_diffs)\n            if res: return res\n            \n            for d in new_diffs:\n                used_diffs.remove(d)\n            return None\n\n        for row in range(n):\n            if not used_rows[row]:\n                # Check if this row is valid\n                possible = True\n                new_diffs = []\n                for i in range(col):\n                    if current_x[i] is not None:\n                        dr = row - current_x[i]\n                        dc = col - i\n                        if (dr, dc) in used_diffs:\n                            possible = False\n                            break\n                        new_diffs.append((dr, dc))\n                \n                if possible:\n                    current_x[col] = row\n                    used_rows[row] = True\n                    for d in new_diffs:\n                        used_diffs.add(d)\n                    \n                    res = backtrack(col + 1, current_x, used_rows, used_diffs)\n                    if res: return res\n                    \n                    for d in new_diffs:\n                        used_diffs.remove(d)\n                    used_rows[row] = False\n                    current_x[col] = None\n        return None\n\n    return backtrack(0, x, used, set())\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 53.5
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def is_costas(x):\n    n = len(x)\n    diffs = set()\n    for i in range(n):\n        for j in range(i + 1, n):\n            dr = x[j] - x[i]\n            dc = j - i\n            if (dr, dc) in diffs:\n                return False\n            diffs.add((dr, dc))\n    return True\n\nx = [0, 2, 11, 6, 3, 8, 9, 7, 10, 1, 5, 4, 12]\nprint(f\"Is Costas: {is_costas(x)}\")\nprint(f\"x[4] = {x[4]}, x[9] = {x[9]}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 36.13
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "solution": [
+          0,
+          2,
+          11,
+          6,
+          3,
+          8,
+          9,
+          7,
+          10,
+          1,
+          5,
+          4,
+          12
+        ],
+        "satisfiable": true,
+        "reasoning": "The solution [0, 2, 11, 6, 3, 8, 9, 7, 10, 1, 5, 4, 12] was found using a backtracking algorithm. It satisfies the Costas array property (all displacement vectors are distinct) and respects the fixed assignments x[4]=3 and x[9]=1."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

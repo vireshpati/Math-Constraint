@@ -1,0 +1,98 @@
+{
+  "problem_name": "costas_array_n9__v7_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 932.4,
+    "search_space": 362880,
+    "num_variables": 9,
+    "num_constraints": 10,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 60.71,
+    "solve_pct_type": 50.0
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    5,
+    3,
+    8,
+    7,
+    4,
+    6,
+    2
+  ],
+  "reasoning": "Found a valid Costas array of order 9 using backtracking search. The permutation [0, 1, 5, 3, 8, 7, 4, 6, 2] places one mark per row and column, and all 9*8/2 = 36 displacement vectors between pairs of marks are pairwise distinct. Verified computationally.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5938,
+  "completion_tokens": 1564,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.041274,
+  "cost_source": "openrouter",
+  "latency_ms": 20906.43310546875,
+  "tool_dispatch_ms_total": 68.50934028625488,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dc = j - i\n            dr = perm[j] - perm[i]\n            v = (dr, dc)\n            if v in vectors:\n                return False\n            vectors.add(v)\n    return True\n\n# Try known Costas arrays of order 9\n# Use backtracking search\ndef find_costas(n):\n    perm = []\n    used = set()\n    \n    def backtrack():\n        col = len(perm)\n        if col == n:\n            return True\n        \n        for row in range(n):\n            if row in used:\n                continue\n            # Check if adding (col, row) creates duplicate displacement vector\n            valid = True\n            for prev_col in range(col):\n                dc = col - prev_col\n                dr = row - perm[prev_col]\n                # Check against all previous pairs with same dc\n                for prev_col2 in range(prev_col):\n                    dc2 = col - prev_col2  # Wait, need same dc\n                    pass\n                # Actually check all vectors formed with new mark\n                pass\n            \n            # Simpler check: collect all new vectors and check against existing\n            new_vectors = []\n            valid = True\n            existing_vectors = set()\n            for i in range(col):\n                for j in range(i+1, col):\n                    dc = j - i\n                    dr = perm[j] - perm[i]\n                    existing_vectors.add((dr, dc))\n            \n            for prev_col in range(col):\n                dc = col - prev_col\n                dr = row - perm[prev_col]\n                v = (dr, dc)\n                if v in existing_vectors or v in new_vectors:\n                    valid = False\n                    break\n                new_vectors.append(v)\n            \n            if valid:\n                perm.append(row)\n                used.add(row)\n                if backtrack():\n                    return True\n                perm.pop()\n                used.remove(row)\n        \n        return False\n    \n    backtrack()\n    return perm\n\n# More efficient version with incremental vector tracking\ndef find_costas_fast(n):\n    perm = [None] * n\n    used_rows = [False] * n\n    vectors = set()\n    \n    def backtrack(col):\n        if col == n:\n            return True\n        \n        for row in range(n):\n            if used_rows[row]:\n                continue\n            \n            # Compute new vectors with all previous marks\n            new_vecs = []\n            valid = True\n            for prev_col in range(col):\n                dc = col - prev_col\n                dr = row - perm[prev_col]\n                v = (dr, dc)\n                if v in vectors:\n                    valid = False\n                    break\n                new_vecs.append(v)\n            \n            if valid:\n                perm[col] = row\n                used_rows[row] = True\n                for v in new_vecs:\n                    vectors.add(v)\n                \n                if backtrack(col + 1):\n                    return True\n                \n                # Undo\n                for v in new_vecs:\n                    vectors.remove(v)\n                perm[col] = None\n                used_rows[row] = False\n        \n        return False\n    \n    if backtrack(0):\n        return perm\n    return None\n\nresult = find_costas_fast(9)\nprint(\"Found Costas array:\", result)\nprint(\"Verification:\", is_costas(result))\n"
+      },
+      "ok": true,
+      "latency_ms": 35.15
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nperm = [0, 1, 5, 3, 8, 7, 4, 6, 2]\nn = len(perm)\n\n# Full verification\nvectors = []\nfor i in range(n):\n    for j in range(i+1, n):\n        dc = j - i\n        dr = perm[j] - perm[i]\n        vectors.append((dr, dc))\n\nprint(f\"Total displacement vectors: {len(vectors)}\")\nprint(f\"Expected: {n*(n-1)//2}\")\nprint(f\"All unique: {len(vectors) == len(set(vectors))}\")\nprint(f\"\\nPermutation (x[c] = row in column c): {perm}\")\nprint(f\"One per row: {sorted(perm) == list(range(n))}\")\nprint(f\"One per column: True (by construction)\")\n\n# Visualize the grid\nprint(\"\\nGrid (row 0 at top):\")\ngrid = [['.' for _ in range(n)] for _ in range(n)]\nfor col, row in enumerate(perm):\n    grid[row][col] = 'X'\nfor row in grid:\n    print(' '.join(row))\n"
+      },
+      "ok": true,
+      "latency_ms": 33.36
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          5,
+          3,
+          8,
+          7,
+          4,
+          6,
+          2
+        ],
+        "reasoning": "Found a valid Costas array of order 9 using backtracking search. The permutation [0, 1, 5, 3, 8, 7, 4, 6, 2] places one mark per row and column, and all 9*8/2 = 36 displacement vectors between pairs of marks are pairwise distinct. Verified computationally."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

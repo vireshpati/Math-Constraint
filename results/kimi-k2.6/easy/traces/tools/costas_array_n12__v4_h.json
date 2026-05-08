@@ -1,0 +1,104 @@
+{
+  "problem_name": "costas_array_n12__v4_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1129.3,
+    "search_space": 479001600,
+    "num_variables": 12,
+    "num_constraints": 13,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 77.63,
+    "solve_pct_type": 83.33
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    6,
+    10,
+    8,
+    9,
+    4,
+    1,
+    11,
+    2,
+    5,
+    7,
+    3
+  ],
+  "reasoning": "Found a valid Costas array of order 12 via backtracking search with constraint propagation. The permutation [0,6,10,8,9,4,1,11,2,5,7,3] satisfies the fixed assignments x[3]=8 and x[8]=2, and all 66 displacement vectors (dr, dc) with dc>0 are pairwise distinct.",
+  "raw_response": null,
+  "cot_trace": " We need to find a Costas array of order 12 with fixed values x[3]=8, x[8]=2. A Costas array is a permutation of {0,...,11} such that the vectors (dr, dc) between any two marks with dc>0 are all distinct. Equivalently, for any two pairs of columns (c1,c2) and (c3,c4) with c2>c1 and c4>c3, if c2-c1 = c4-c3 then we must have x[c2]-x[c1] != x[c4]-x[c3]. Actually the condition is that all displacement vectors (dr, dc) are distinct. Since dc>0, each pair of marks gives a unique (dr, dc). That means for any two distinct pairs of columns (c1,c2) and (c3,c4) with c1<c2 and c3<c4, we cannot have both c2-c1 = c4-c3 and x[c2]-x[c1] = x[c4]-x[c3]. This is the \"no repeated vector\" condition.\n\nWe need to find a permutation of length 12 satisfying this and x[3]=8, x[8]=2.\n\nWe can try to solve this using Python, perhaps using a SAT solver or backtracking. Since order 12 is relatively small, we can try brute force with pruning or use OR-Tools or python-constraint. But we have pysat available. However, encoding all constraints might be large but manageable: there are C(12,2)=66 pairs, each gives a vector (dr, dc). We need all 66 vectors distinct. Since dc ranges from 1 to 11, and dr ranges from -11 to 11 (excluding 0? dr can be 0? Yes, dr can be 0 if rows are same, but since one per row, dr cannot be 0 because rows are distinct. Actually x is a permutation, so x[c2] != x[c1], so dr != 0. So dr in [-11,-1] U [1,11]. So possible vectors: for each dc in 1..11, dr in [-11,-1] U [1,11] excluding 0, but also dr cannot be such that row index out of bounds? Actually dr is difference of row indices, both in 0..11, so dr in [-11,11] \\ {0}. So total possible vectors = 11*22 = 242. We have 66 vectors, so plenty of room.\n\nWe can formulate as a CSP or use backtracking. Let's try a simple backtracking search with constraint propagation. Since n=12, we can try recursive assignment with forward checking. But we need to be careful about performance. 12! is huge, but with constraints and fixed values, maybe backtracking is okay. Alternatively, we can use python's `itertools.permutations` with pruning? That might be too slow.\n\nBetter: use a SAT solver via pysat. But encoding 66 distinct vectors might be a bit involved. Another approach: use OR-Tools CP-SAT if available? Not sure if installed. We can check.\n\nAlternatively, we can use a simple backtracking with constraint checking incremental. Since n=12, and Costas arrays are known to exist for n=12. In fact, there are many Costas arrays. The fixed values might narrow it down but likely still many solutions.\n\nWe can also look up known Costas arrays of order 12. For example, the Welch construction for prime p=13 gives a Costas array of order 12: x[c] = (alpha^c mod 13) - 1? Actually Welch construction: for prime p, primitive root g, define permutation of {1,...,p-1} as pi(i) = g^i mod p. Then subtract 1 to get 0..p-2. For p=13, primitive root 2. Let's compute: 2^1=2, 2^2=4, 2^3=8, 2^4=3, 2^5=6, 2^6=12, 2^7=11, 2^8=9, 2^9=5, 2^10=10, 2^11=7, 2^12=1. So sequence (mod 13) for i=1..12: [2,4,8,3,6,12,11,9,5,10,7,1]. Subtract 1: [1,3,7,2,5,11,10,8,4,9,6,0]. Let's check if this is a Costas array. It should be. Let's verify with Python.\n\nBut we need x[3]=8 and x[8]=2. In this sequence, x[3]=2 (0-indexed column 3 is value 2). Not matching. We can try other primitive roots or other constructions (Lempel-Golomb). Or we can just search.\n\nLet's write a Python script to search for a Costas array of order 12 with x[3]=8, x[8]=2. Use backtracking with constraint propagation. Since n=12, we can assign columns one by one. We have fixed columns 3 and 8. We can assign in order 0..11. At each step, we check constraints involving already assigned columns.\n\nThe constraint: for any two pairs (c1,c2) and (c3,c4) where all four columns are assigned (or at least the differences are known), if c2-c1 = c4-c3, then x[c2]-x[c1] != x[c4]-x[c3]. But we can check incrementally: when we assign a new column c, for every already assigned column a < c, we compute dc = c-a, dr = x[c]-x[a]. Then for any other already assigned pair (b,d) with b<d and d-b = dc, we must have x[d]-x[b] != dr. Also for any already assigned column e < c, we might form pairs (e,c) and (a,b) where b-a = c-e? Actually we need to check all pairs of pairs that share the same dc. When we assign c, we create new pairs (a,c) for all a<c assigned. For each such pair, we need to ensure that no other already assigned pair (b,d) with d-b = c-a has the same dr. Since (b,d) are both assigned already, we can check that.\n\nAlso, we need to check pairs where the new column is the left element? But we only consider dc>0, so pairs are always left to right. When we assign c, it can only be the right endpoint of new pairs (a,c). It cannot be the left endpoint of a pair with a future column. So checking new pairs (a,c) against all existing pairs (b,d) with d-b = c-a is sufficient.\n\nThus backtracking is straightforward.\n\nWe also need to consider that the fixed values might conflict with each other? x[3]=8, x[8]=2. The pair (3,8) has dc=5, dr=-6. That's fine.\n\nLet's implement a recursive search with heuristics: assign columns in a static order, maybe most constrained first? But with only 12 variables, simple order might work. However, we have fixed columns 3 and 8. Let's assign columns in order 0,1,2,3,4,5,6,7,8,9,10,11. At each step, we know the domain is remaining rows. We can try each possible row value. To prune, we check constraints as above.\n\nBut 12! is huge. However, Costas constraints are strong. For n=12, the number of Costas arrays is known: there are 128 Costas arrays of order 12? Actually the number of Costas arrays for n=12 is 128 (up to symmetry) or total? Let me recall: n=1:1, 2:2, 3:4, 4:12, 5:40, 6:116, 7:200, 8:444, 9:760, 10:2160, 11:4368, 12:7852? I'm not sure. But there are many. So search should find one quickly if we use good heuristics.\n\nWe can also use a SAT solver. But backtracking might be enough. Let's try with Python. We can also use `python` to write a DFS with pruning and maybe randomization or value ordering.\n\nLet's code it.\n---\n The solver returned a solution: [0, 6, 10, 8, 9, 4, 1, 11, 2, 5, 7, 3].\n\nLet me verify:\n- x[3] = 8? Wait, the solution says x[3] = 8? Let's check: index 3 is 8. Yes.\n- x[8] = 2? Index 8 is 2. Yes.\n- It's a permutation of 0..11? Let's check: [0, 6, 10, 8, 9, 4, 1, 11, 2, 5, 7, 3]. Values: 0,1,2,3,4,5,6,7,8,9,10,11. Yes, all present.\n\nNow I need to verify the Costas property: all displacement vectors (dr, dc) with dc > 0 between pairs of marks must be distinct.\n\nLet's verify with Python.\n---\n The solution is valid. Let me submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4113,
+  "completion_tokens": 3500,
+  "reasoning_tokens": 1689,
+  "cached_tokens": 1168,
+  "cost_usd": 0.0186568144,
+  "cost_source": "openrouter",
+  "latency_ms": 60664.252281188965,
+  "tool_dispatch_ms_total": 166.9442653656006,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef find_costas(n=12, fixed={3:8, 8:2}):\n    # columns to assign in order\n    cols = list(range(n))\n    # we can order columns by most constrained? Let's just do natural order but maybe put fixed early.\n    # Actually fixed are at 3 and 8, they will be assigned when we reach them.\n    assigned = {}  # col -> row\n    used_rows = set()\n    \n    # Precompute all pairs of columns that will have same dc? Not needed.\n    \n    # For pruning: store for each dc, the set of drs seen from fully assigned pairs.\n    # When we add a new pair (a,c), we compute dc=c-a, dr=x[c]-x[a], and check if dr already present for that dc.\n    vectors = {}  # dc -> set of dr\n    \n    # Let's assign recursively\n    def backtrack(idx):\n        if idx == n:\n            # all columns assigned\n            return [assigned[c] for c in range(n)]\n        c = cols[idx]\n        if c in fixed:\n            # must assign fixed value\n            r = fixed[c]\n            if r in used_rows:\n                return None\n            # check constraints with all previously assigned columns a < c\n            for a, ra in assigned.items():\n                dc = c - a\n                dr = r - ra\n                if dc > 0:\n                    if dc in vectors and dr in vectors[dc]:\n                        return None\n                else:\n                    # a > c? But we assign in order of cols list, not necessarily column index.\n                    # Actually assigned may contain columns > c if we assigned them earlier.\n                    # We need to consider the pair with positive dc.\n                    dc2 = a - c\n                    dr2 = ra - r\n                    if dc2 in vectors and dr2 in vectors[dc2]:\n                        return None\n            # commit\n            assigned[c] = r\n            used_rows.add(r)\n            # add vectors\n            added = []\n            for a, ra in assigned.items():\n                if a == c:\n                    continue\n                if c > a:\n                    dc = c - a\n                    dr = r - ra\n                else:\n                    dc = a - c\n                    dr = ra - r\n                # dr cannot be 0 because permutation\n                if dc in vectors:\n                    if dr in vectors[dc]:\n                        # should not happen because checked above\n                        pass\n                    else:\n                        vectors[dc].add(dr)\n                        added.append((dc, dr))\n                else:\n                    vectors[dc] = {dr}\n                    added.append((dc, dr))\n            res = backtrack(idx+1)\n            # revert\n            for dc, dr in added:\n                vectors[dc].remove(dr)\n                if not vectors[dc]:\n                    del vectors[dc]\n            used_rows.remove(r)\n            del assigned[c]\n            return res\n        else:\n            # try possible rows\n            # maybe order rows by some heuristic? Let's just try all unused rows.\n            # But we can prune heavily.\n            for r in range(n):\n                if r in used_rows:\n                    continue\n                # quick check: for each assigned a, compute vector for pair (min(a,c), max(a,c))\n                ok = True\n                for a, ra in assigned.items():\n                    if c > a:\n                        dc = c - a\n                        dr = r - ra\n                    else:\n                        dc = a - c\n                        dr = ra - r\n                    if dc in vectors and dr in vectors[dc]:\n                        ok = False\n                        break\n                if not ok:\n                    continue\n                # commit\n                assigned[c] = r\n                used_rows.add(r)\n                added = []\n                for a, ra in assigned.items():\n                    if a == c:\n                        continue\n                    if c > a:\n                        dc = c - a\n                        dr = r - ra\n                    else:\n                        dc = a - c\n                        dr = ra - r\n                    if dc in vectors:\n                        vectors[dc].add(dr)\n                    else:\n                        vectors[dc] = {dr}\n                    added.append((dc, dr))\n                res = backtrack(idx+1)\n                if res is not None:\n                    return res\n                # revert\n                for dc, dr in added:\n                    vectors[dc].remove(dr)\n                    if not vectors[dc]:\n                        del vectors[dc]\n                used_rows.remove(r)\n                del assigned[c]\n            return None\n    \n    return backtrack(0)\n\nsol = find_costas()\nprint(sol)\n"
+      },
+      "ok": true,
+      "latency_ms": 133.91
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "sol = [0, 6, 10, 8, 9, 4, 1, 11, 2, 5, 7, 3]\n\n# verify permutation\nassert sorted(sol) == list(range(12)), \"not a permutation\"\nassert sol[3] == 8 and sol[8] == 2, \"fixed values violated\"\n\nvectors = {}\nn = 12\nfor i in range(n):\n    for j in range(i+1, n):\n        dc = j - i\n        dr = sol[j] - sol[i]\n        if dc in vectors:\n            if dr in vectors[dc]:\n                print(f\"Duplicate vector: ({dr}, {dc}) from columns ({i},{j})\")\n                raise SystemExit\n            vectors[dc].add(dr)\n        else:\n            vectors[dc] = {dr}\n\nprint(\"Valid Costas array!\")\nprint(sol)\n"
+      },
+      "ok": true,
+      "latency_ms": 33.03
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          6,
+          10,
+          8,
+          9,
+          4,
+          1,
+          11,
+          2,
+          5,
+          7,
+          3
+        ],
+        "reasoning": "Found a valid Costas array of order 12 via backtracking search with constraint propagation. The permutation [0,6,10,8,9,4,1,11,2,5,7,3] satisfies the fixed assignments x[3]=8 and x[8]=2, and all 66 displacement vectors (dr, dc) with dc>0 are pairwise distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

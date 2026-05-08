@@ -1,0 +1,124 @@
+{
+  "problem_name": "costas_array_n12__v4_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1129.3,
+    "search_space": 479001600,
+    "num_variables": 12,
+    "num_constraints": 13,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 77.63,
+    "solve_pct_type": 83.33
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    6,
+    10,
+    8,
+    9,
+    4,
+    1,
+    11,
+    2,
+    5,
+    7,
+    3
+  ],
+  "reasoning": "Found a Costas array of order 12 satisfying the fixed assignments x[3]=8 and x[8]=2. The solution [0,6,10,8,9,4,1,11,2,5,7,3] is a permutation of 0..11 where all 66 displacement vectors between pairs of marks are pairwise distinct. Verified by exhaustive check of all vector differences.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 14249,
+  "completion_tokens": 3085,
+  "reasoning_tokens": 0,
+  "cached_tokens": 1536,
+  "cost_usd": 0.003106208,
+  "cost_source": "openrouter",
+  "latency_ms": 283394.6108818054,
+  "tool_dispatch_ms_total": 187.16788291931152,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport sys\n\ndef is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            if (dr, dc) in vectors:\n                return False\n            vectors.add((dr, dc))\n    return True\n\n# Let's try to find a Costas array of order 12 with x[3]=8, x[8]=2\n# We'll use constraint programming / backtracking\n\nn = 12\nfixed = {3: 8, 8: 2}\n\n# We'll use a backtracking search with pruning\ndef solve(n, fixed):\n    # rows used\n    used_rows = set(fixed.values())\n    # columns used\n    used_cols = set(fixed.keys())\n    \n    # Precompute all displacement vectors from fixed pairs\n    fixed_vectors = set()\n    fixed_items = sorted(fixed.items())\n    for i, (c1, r1) in enumerate(fixed_items):\n        for c2, r2 in fixed_items[i+1:]:\n            dr = r2 - r1\n            dc = c2 - c1\n            fixed_vectors.add((dr, dc))\n    \n    # Order of columns to fill: try to fill columns that are most constrained\n    cols_to_fill = [c for c in range(n) if c not in fixed]\n    \n    # Sort by some heuristic - columns adjacent to fixed ones first\n    def constraint_degree(c):\n        deg = 0\n        for fc in fixed:\n            deg += 1  # each fixed column gives constraints\n        return deg\n    \n    cols_to_fill.sort(key=constraint_degree, reverse=True)\n    \n    solution = [None] * n\n    for c, r in fixed.items():\n        solution[c] = r\n    \n    # For quick lookup of vectors\n    vectors_set = set(fixed_vectors)\n    \n    def backtrack(idx):\n        if idx == len(cols_to_fill):\n            return solution[:]\n        \n        c = cols_to_fill[idx]\n        available_rows = [r for r in range(n) if r not in used_rows]\n        \n        for r in available_rows:\n            # Check all constraints with already placed marks\n            ok = True\n            for c2, r2 in enumerate(solution):\n                if r2 is not None and c2 != c:\n                    dr = r - r2\n                    dc = c - c2\n                    if dc > 0:\n                        if (dr, dc) in vectors_set:\n                            ok = False\n                            break\n                    else:  # dc < 0\n                        if (-dr, -dc) in vectors_set:\n                            ok = False\n                            break\n            \n            if not ok:\n                continue\n            \n            # Add new vectors\n            new_vectors = []\n            for c2, r2 in enumerate(solution):\n                if r2 is not None and c2 != c:\n                    dr = r - r2\n                    dc = c - c2\n                    if dc > 0:\n                        new_vectors.append((dr, dc))\n                        vectors_set.add((dr, dc))\n                    else:\n                        new_vectors.append((-dr, -dc))\n                        vectors_set.add((-dr, -dc))\n            \n            used_rows.add(r)\n            solution[c] = r\n            \n            result = backtrack(idx + 1)\n            if result:\n                return result\n            \n            # Backtrack\n            solution[c] = None\n            used_rows.remove(r)\n            for v in new_vectors:\n                vectors_set.remove(v)\n        \n        return None\n    \n    return backtrack(0)\n\nresult = solve(n, fixed)\nprint(\"Result:\", result)\nif result:\n    print(\"Is Costas:\", is_costas(result))",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 36.72
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            if (dr, dc) in vectors:\n                return False\n            vectors.add((dr, dc))\n    return True\n\nn = 12\nfixed = {3: 8, 8: 2}\n\n# Let's use a cleaner approach with proper backtracking\ndef solve_costas(n, fixed):\n    used_rows = set(fixed.values())\n    solution = [None] * n\n    for c, r in fixed.items():\n        solution[c] = r\n    \n    # Store vectors as frozenset of (dr, dc) where dc > 0\n    vectors = set()\n    fixed_items = sorted(fixed.items())\n    for i, (c1, r1) in enumerate(fixed_items):\n        for c2, r2 in fixed_items[i+1:]:\n            dr = r2 - r1\n            dc = c2 - c1\n            vectors.add((dr, dc))\n    \n    cols_to_fill = [c for c in range(n) if c not in fixed]\n    \n    def backtrack(idx):\n        if idx == len(cols_to_fill):\n            return solution[:]\n        \n        c = cols_to_fill[idx]\n        available = [r for r in range(n) if r not in used_rows]\n        \n        for r in available:\n            # Check conflicts with all placed marks\n            conflict = False\n            new_vecs = []\n            for c2 in range(n):\n                r2 = solution[c2]\n                if r2 is not None and c2 != c:\n                    dr = r - r2\n                    dc = c - c2\n                    if dc > 0:\n                        vec = (dr, dc)\n                    else:\n                        vec = (-dr, -dc)\n                    if vec in vectors:\n                        conflict = True\n                        break\n                    new_vecs.append(vec)\n            \n            if conflict:\n                continue\n            \n            # Place the mark\n            for v in new_vecs:\n                vectors.add(v)\n            used_rows.add(r)\n            solution[c] = r\n            \n            result = backtrack(idx + 1)\n            if result:\n                return result\n            \n            # Undo\n            solution[c] = None\n            used_rows.remove(r)\n            for v in new_vecs:\n                vectors.remove(v)\n        \n        return None\n    \n    return backtrack(0)\n\nresult = solve_costas(n, fixed)\nprint(\"Result:\", result)\nif result:\n    print(\"Is Costas:\", is_costas(result))\n    # Verify fixed constraints\n    print(\"x[3] =\", result[3], \"(expected 8)\")\n    print(\"x[8] =\", result[8], \"(expected 2)\")",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 34.53
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            if (dr, dc) in vectors:\n                return False\n            vectors.add((dr, dc))\n    return True\n\nn = 12\nfixed = {3: 8, 8: 2}\n\n# Let's use a different approach - use a list to track vectors and count references\ndef solve_costas(n, fixed):\n    used_rows = set(fixed.values())\n    solution = [None] * n\n    for c, r in fixed.items():\n        solution[c] = r\n    \n    # vector -> count of how many pairs produce it\n    vec_count = {}\n    fixed_items = sorted(fixed.items())\n    for i, (c1, r1) in enumerate(fixed_items):\n        for c2, r2 in fixed_items[i+1:]:\n            dr = r2 - r1\n            dc = c2 - c1\n            vec_count[(dr, dc)] = vec_count.get((dr, dc), 0) + 1\n    \n    cols_to_fill = [c for c in range(n) if c not in fixed]\n    \n    def backtrack(idx):\n        if idx == len(cols_to_fill):\n            return solution[:]\n        \n        c = cols_to_fill[idx]\n        available = [r for r in range(n) if r not in used_rows]\n        \n        for r in available:\n            # Check conflicts with all placed marks\n            conflict = False\n            new_vecs = []  # vectors that would be newly created\n            for c2 in range(n):\n                r2 = solution[c2]\n                if r2 is not None and c2 != c:\n                    dr = r - r2\n                    dc = c - c2\n                    if dc > 0:\n                        vec = (dr, dc)\n                    else:\n                        vec = (-dr, -dc)\n                    if vec in vec_count and vec_count[vec] > 0:\n                        conflict = True\n                        break\n                    new_vecs.append(vec)\n            \n            if conflict:\n                continue\n            \n            # Place the mark\n            for v in new_vecs:\n                vec_count[v] = vec_count.get(v, 0) + 1\n            used_rows.add(r)\n            solution[c] = r\n            \n            result = backtrack(idx + 1)\n            if result:\n                return result\n            \n            # Undo\n            solution[c] = None\n            used_rows.remove(r)\n            for v in new_vecs:\n                vec_count[v] -= 1\n                if vec_count[v] == 0:\n                    del vec_count[v]\n        \n        return None\n    \n    return backtrack(0)\n\nresult = solve_costas(n, fixed)\nprint(\"Result:\", result)\nif result:\n    print(\"Is Costas:\", is_costas(result))\n    print(\"x[3] =\", result[3], \"(expected 8)\")\n    print(\"x[8] =\", result[8], \"(expected 2)\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 81.59
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def verify_costas(perm):\n    n = len(perm)\n    print(f\"Permutation: {perm}\")\n    print(f\"Length: {n}\")\n    \n    # Check it's a permutation\n    assert sorted(perm) == list(range(n)), \"Not a permutation!\"\n    print(\"\u2713 Is a permutation of 0..11\")\n    \n    # Check fixed values\n    assert perm[3] == 8, f\"x[3] should be 8, got {perm[3]}\"\n    assert perm[8] == 2, f\"x[8] should be 2, got {perm[8]}\"\n    print(\"\u2713 Fixed values respected\")\n    \n    # Check all displacement vectors are distinct\n    vectors = {}\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            if (dr, dc) in vectors:\n                print(f\"\u2717 Duplicate vector ({dr},{dc}) from pairs ({i},{perm[i]})-({j},{perm[j]}) and {vectors[(dr,dc)]}\")\n                return False\n            vectors[(dr, dc)] = (i, j)\n    \n    print(f\"\u2713 All {len(vectors)} displacement vectors are distinct\")\n    print(f\"  Expected: {n*(n-1)//2} = {n*(n-1)//2}\")\n    print(f\"  Got: {len(vectors)}\")\n    \n    # Print the grid\n    print(\"\\nGrid visualization (0=empty, X=mark):\")\n    for r in range(n-1, -1, -1):\n        row = \"\"\n        for c in range(n):\n            if perm[c] == r:\n                row += \"X \"\n            else:\n                row += \". \"\n        print(f\"{r:2d} {row}\")\n    print(\"   \", end=\"\")\n    for c in range(n):\n        print(f\"{c} \", end=\"\")\n    print()\n    \n    return True\n\nperm = [0, 6, 10, 8, 9, 4, 1, 11, 2, 5, 7, 3]\nverify_costas(perm)",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 34.33
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          6,
+          10,
+          8,
+          9,
+          4,
+          1,
+          11,
+          2,
+          5,
+          7,
+          3
+        ],
+        "reasoning": "Found a Costas array of order 12 satisfying the fixed assignments x[3]=8 and x[8]=2. The solution [0,6,10,8,9,4,1,11,2,5,7,3] is a permutation of 0..11 where all 66 displacement vectors between pairs of marks are pairwise distinct. Verified by exhaustive check of all vector differences."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

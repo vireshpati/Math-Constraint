@@ -1,0 +1,95 @@
+{
+  "problem_name": "low_autocorrelation_n11__v3_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 974.3,
+    "search_space": 2048,
+    "num_variables": 21,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 66.73,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    -1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    -1
+  ],
+  "reasoning": "Using c as the zero-based list of off-peak autocorrelations, this sequence has C_1..C_10 = [2, 1, -2, -1, -2, 1, 0, 1, -2, 1], so c[6]=C_7=0 and c[9]=C_10=1. The energy is 4+1+4+1+4+1+0+1+4+1 = 21 <= 23, and seq[1]=1, seq[8]=1.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 1838,
+  "completion_tokens": 2772,
+  "reasoning_tokens": 1999,
+  "cached_tokens": 0,
+  "cost_usd": 0.09235,
+  "cost_source": "openrouter",
+  "latency_ms": 47893.521785736084,
+  "tool_dispatch_ms_total": 53.89714241027832,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nn=11\nsolutions=[]\nfor bits in itertools.product([-1,1], repeat=n):\n    if bits[1]!=1 or bits[8]!=1: continue\n    C={k:sum(bits[i]*bits[i+k] for i in range(n-k)) for k in range(1,n)}\n    E=sum(v*v for v in C.values())\n    if E<=23 and C[6]==0 and C[9]==1:\n        solutions.append((bits,E,C))\n        break\nprint('C6 interp solutions', len(solutions), solutions[:1])\nsolutions2=[]\n# c[6]=C7 c[9]=C10 (zero-based lag array c[0]=C1)\nfor bits in itertools.product([-1,1], repeat=n):\n    if bits[1]!=1 or bits[8]!=1: continue\n    C=[sum(bits[i]*bits[i+k] for i in range(n-k)) for k in range(1,n)]\n    E=sum(v*v for v in C)\n    if E<=23 and C[6]==0 and C[9]==1:\n        solutions2.append((bits,E,C))\n        break\nprint('C array zero c6=C7 c9=C10', len(solutions2), solutions2[:1])\n# no c constraints min E and counts\nbest=999; bestb=None; bestC=None\nfor bits in itertools.product([-1,1], repeat=n):\n    if bits[1]!=1 or bits[8]!=1: continue\n    C={k:sum(bits[i]*bits[i+k] for i in range(n-k)) for k in range(1,n)}\n    E=sum(v*v for v in C.values())\n    if E<best:\n        best=E; bestb=bits; bestC=C\nprint('best fixed seq only', best, bestb, bestC)\n# c6 possible values with seq fixed and E<=23\nvals=set(); vals9=set(); count=0\nfor bits in itertools.product([-1,1], repeat=n):\n    if bits[1]!=1 or bits[8]!=1: continue\n    C={k:sum(bits[i]*bits[i+k] for i in range(n-k)) for k in range(1,n)}\n    E=sum(v*v for v in C.values())\n    if E<=23:\n        count+=1; vals.add(C[6]); vals9.add(C[9])\nprint('count E<=23', count, 'C6 vals', vals, 'C9', vals9)\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 53.9
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          -1,
+          1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          1,
+          1,
+          -1
+        ],
+        "reasoning": "Using c as the zero-based list of off-peak autocorrelations, this sequence has C_1..C_10 = [2, 1, -2, -1, -2, 1, 0, 1, -2, 1], so c[6]=C_7=0 and c[9]=C_10=1. The energy is 4+1+4+1+4+1+0+1+4+1 = 21 <= 23, and seq[1]=1, seq[8]=1."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

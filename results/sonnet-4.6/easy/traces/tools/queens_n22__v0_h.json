@@ -1,0 +1,124 @@
+{
+  "problem_name": "queens_n22__v0_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 22
+  },
+  "difficulty": {
+    "solve_time_ms": 1416.6,
+    "search_space": 341427877364219557396646723584,
+    "num_variables": 22,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 84.77,
+    "solve_pct_type": 70.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    4,
+    6,
+    3,
+    19,
+    12,
+    20,
+    15,
+    17,
+    1,
+    8,
+    21,
+    7,
+    18,
+    10,
+    14,
+    5,
+    11,
+    9,
+    16,
+    13
+  ],
+  "reasoning": "Solved 22-Queens with backtracking respecting fixed constraints: q[11]=8, q[16]=14, q[18]=11, q[21]=13. The solution places one queen per row, with all columns distinct and no two queens sharing a diagonal. Verified all 231 pairs of queens for conflicts \u2014 none found.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5937,
+  "completion_tokens": 1435,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.039335999999999996,
+  "cost_source": "openrouter",
+  "latency_ms": 22389.90020751953,
+  "tool_dispatch_ms_total": 720.6814289093018,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef solve_nqueens_with_constraints(n, fixed):\n    \"\"\"Solve N-Queens with fixed queen positions using backtracking.\"\"\"\n    \n    # Initialize solution array\n    queens = [-1] * n\n    \n    # Place fixed queens\n    for row, col in fixed.items():\n        queens[row] = col\n    \n    # Check if fixed queens are consistent with each other\n    fixed_rows = list(fixed.keys())\n    for i in range(len(fixed_rows)):\n        for j in range(i+1, len(fixed_rows)):\n            r1, c1 = fixed_rows[i], fixed[fixed_rows[i]]\n            r2, c2 = fixed_rows[j], fixed[fixed_rows[j]]\n            if c1 == c2:\n                print(f\"Conflict: rows {r1} and {r2} both in column {c1}\")\n                return None\n            if abs(r1-r2) == abs(c1-c2):\n                print(f\"Diagonal conflict: rows {r1},{r2} cols {c1},{c2}\")\n                return None\n    \n    def is_safe(row, col):\n        for r in range(n):\n            if queens[r] == -1:\n                continue\n            if r == row:\n                continue\n            c = queens[r]\n            if c == col:\n                return False\n            if abs(r - row) == abs(c - col):\n                return False\n        return True\n    \n    def backtrack(row):\n        if row == n:\n            return True\n        \n        # Skip fixed rows\n        if queens[row] != -1:\n            if is_safe(row, queens[row]):\n                return backtrack(row + 1)\n            else:\n                return False\n        \n        for col in range(n):\n            if is_safe(row, col):\n                queens[row] = col\n                if backtrack(row + 1):\n                    return True\n                queens[row] = -1\n        \n        return False\n    \n    if backtrack(0):\n        return queens\n    return None\n\n# Fixed constraints\nn = 22\nfixed = {11: 8, 16: 14, 18: 11, 21: 13}\n\nsolution = solve_nqueens_with_constraints(n, fixed)\nif solution:\n    print(\"Solution found:\", solution)\n    # Verify\n    for i in range(n):\n        for j in range(i+1, n):\n            assert solution[i] != solution[j], f\"Column conflict at rows {i},{j}\"\n            assert abs(solution[i]-solution[j]) != abs(i-j), f\"Diagonal conflict at rows {i},{j}\"\n    print(\"Verification passed!\")\n    # Check fixed constraints\n    for row, col in fixed.items():\n        assert solution[row] == col, f\"Fixed constraint violated at row {row}\"\n    print(\"Fixed constraints satisfied!\")\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": true,
+      "latency_ms": 686.23
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nsolution = [0, 2, 4, 6, 3, 19, 12, 20, 15, 17, 1, 8, 21, 7, 18, 10, 14, 5, 11, 9, 16, 13]\nn = 22\nfixed = {11: 8, 16: 14, 18: 11, 21: 13}\n\nprint(\"Solution:\", solution)\nprint(f\"Length: {len(solution)}\")\nprint(\"\\nFixed constraints check:\")\nfor row, col in fixed.items():\n    print(f\"  q[{row}]={solution[row]} (expected {col}) {'\u2713' if solution[row]==col else '\u2717'}\")\n\nprint(\"\\nAll queens placement:\")\nfor i, col in enumerate(solution):\n    print(f\"  Row {i:2d}: Col {col:2d}\")\n\n# Full verification\nok = True\nfor i in range(n):\n    for j in range(i+1, n):\n        if solution[i] == solution[j]:\n            print(f\"CONFLICT: same column at rows {i},{j}\")\n            ok = False\n        if abs(solution[i]-solution[j]) == abs(i-j):\n            print(f\"CONFLICT: diagonal at rows {i},{j}\")\n            ok = False\nif ok:\n    print(\"\\n\u2713 All constraints satisfied - valid N-Queens solution!\")\n"
+      },
+      "ok": true,
+      "latency_ms": 34.46
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          4,
+          6,
+          3,
+          19,
+          12,
+          20,
+          15,
+          17,
+          1,
+          8,
+          21,
+          7,
+          18,
+          10,
+          14,
+          5,
+          11,
+          9,
+          16,
+          13
+        ],
+        "reasoning": "Solved 22-Queens with backtracking respecting fixed constraints: q[11]=8, q[16]=14, q[18]=11, q[21]=13. The solution places one queen per row, with all columns distinct and no two queens sharing a diagonal. Verified all 231 pairs of queens for conflicts \u2014 none found."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

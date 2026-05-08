@@ -1,0 +1,143 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree3_min_degree3_vertices12__v3_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 3,
+    "min_degree": 3,
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 41.7,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 18,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 19.74,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      2,
+      9
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      7,
+      11
+    ],
+    [
+      8,
+      10
+    ],
+    [
+      8,
+      11
+    ],
+    [
+      10,
+      11
+    ]
+  ],
+  "reasoning": "A 3-regular graph on 12 vertices exists with the required fixed edges (0,9), (1,10), (2,9). The solution was found by backtracking: starting with the fixed edges and completing the graph so every vertex has exactly degree 3. The result consists of three K4-like components plus connections through vertices 9, 10, 11 to satisfy all degree constraints.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,1],[0,2],[0,9],[1,2],[1,10],[2,9],[3,4],[3,5],[3,6],[4,5],[4,6],[5,6],[7,8],[7,9],[7,11],[8,10],[8,11],[10,11]],\n    \"reasoning\": \"A 3-regular graph on 12 vertices exists with the required fixed edges (0,9), (1,10), (2,9). The solution was found by backtracking: starting with the fixed edges and completing the graph so every vertex has exactly degree 3. The result consists of three K4-like components plus connections through vertices 9, 10, 11 to satisfy all degree constraints.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 7276,
+  "completion_tokens": 1941,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.050943,
+  "cost_source": "openrouter",
+  "latency_ms": 28232.003450393677,
+  "tool_dispatch_ms_total": 1229.2304039001465,
+  "tool_calls_made": 2,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport networkx as nx\nfrom itertools import combinations\n\n# We need a 3-regular graph on 12 vertices (0-11)\n# Fixed edges: (0,9), (1,10), (2,9)\n# Every vertex must have exactly degree 3\n\n# Let's track current degrees\n# Start with fixed edges\nfixed_edges = [(0,9), (1,10), (2,9)]\n\ndegree = {i: 0 for i in range(12)}\nfor u, v in fixed_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(\"Initial degrees:\", degree)\n# Vertex 9 already has degree 2 (from edges with 0 and 2)\n# Vertex 0 has degree 1, vertex 1 has degree 1, vertex 2 has degree 1\n# Vertex 10 has degree 1\n# All others have degree 0\n"
+      },
+      "ok": true,
+      "latency_ms": 973.41
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Use a SAT/constraint approach or just construct manually\n# Remaining degree needed:\n# 0: needs 2 more\n# 1: needs 2 more\n# 2: needs 2 more\n# 3: needs 3 more\n# 4: needs 3 more\n# 5: needs 3 more\n# 6: needs 3 more\n# 7: needs 3 more\n# 8: needs 3 more\n# 9: needs 1 more\n# 10: needs 2 more\n# 11: needs 3 more\n\n# Let me try to construct this manually\n# 9 needs 1 more edge -> connect 9 to someone with remaining degree\n# Let's connect 9 to 11: degree[9]=3, degree[11]=2 remaining\n\n# Group vertices by remaining needs and try to form a valid completion\n# Let me use a backtracking approach\n\ndef solve():\n    fixed = [(0,9), (1,10), (2,9)]\n    degree = {i: 0 for i in range(12)}\n    edges = set()\n    for u,v in fixed:\n        edges.add((min(u,v), max(u,v)))\n        degree[u] += 1\n        degree[v] += 1\n    \n    # Need to add edges until all degrees = 3\n    # Use backtracking\n    all_possible = [(u,v) for u in range(12) for v in range(u+1,12) if (u,v) not in edges]\n    \n    def backtrack(deg, edge_set, candidates):\n        # Check if done\n        if all(d == 3 for d in deg.values()):\n            return edge_set.copy()\n        # Check if any vertex exceeds 3\n        if any(d > 3 for d in deg.values()):\n            return None\n        # Check if any vertex needs more edges but no candidates available\n        # Find vertex with most need\n        remaining_need = {v: 3 - deg[v] for v in range(12)}\n        if any(remaining_need[v] < 0 for v in range(12)):\n            return None\n        \n        # Pick the vertex with highest remaining need (most constrained)\n        # Actually pick smallest index with remaining need > 0\n        v = min((v for v in range(12) if remaining_need[v] > 0), default=None)\n        if v is None:\n            return None\n        \n        # Try adding edges involving v\n        v_candidates = [(a,b) for (a,b) in candidates if a==v or b==v]\n        \n        for edge in v_candidates:\n            a, b = edge\n            new_candidates = [e for e in candidates if e != edge]\n            deg[a] += 1\n            deg[b] += 1\n            edge_set.add(edge)\n            result = backtrack(deg, edge_set, new_candidates)\n            if result is not None:\n                return result\n            deg[a] -= 1\n            deg[b] -= 1\n            edge_set.remove(edge)\n        \n        return None\n    \n    result = backtrack(degree, edges, all_possible)\n    return result\n\nresult = solve()\nif result:\n    print(\"Found solution!\")\n    sorted_edges = sorted(result)\n    for e in sorted_edges:\n        print(e)\n    # Verify\n    deg = {i:0 for i in range(12)}\n    for u,v in result:\n        deg[u]+=1\n        deg[v]+=1\n    print(\"Degrees:\", deg)\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": true,
+      "latency_ms": 255.82
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

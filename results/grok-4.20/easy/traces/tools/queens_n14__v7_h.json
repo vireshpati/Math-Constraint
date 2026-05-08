@@ -1,0 +1,108 @@
+{
+  "problem_name": "queens_n14__v7_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 1143.3,
+    "search_space": 11112006825558016,
+    "num_variables": 14,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 78.01,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    9,
+    3,
+    10,
+    7,
+    4,
+    12,
+    1,
+    13,
+    11,
+    6,
+    8,
+    5,
+    2,
+    0
+  ],
+  "reasoning": "Used PySAT to encode the N-Queens problem with the given fixed positions as hard constraints (exactly one per row/col, no diagonal attacks, plus unit clauses for fixed q[4]=4 and q[6]=1). The solver found a satisfying assignment, which was decoded to the column positions. Verified no shared columns or diagonals.",
+  "raw_response": null,
+  "cot_trace": "The problem is to place 14 queens on a 14x14 chessboard so no two attack each other. It's the N-Queens problem for N=14 with some fixed positions: q[4]=4 and q[6]=1. I need to return a list of 14 inte...\n---\nThe solution from the code is [0, 2, 4, 1, 4, 8, 1, 11, 13, 6, 9, 3, 5, 7]\nThe internal reasoning shows a proposed solution [0, 2, rest], but it has duplicate columns like column 4 used twice\u2014at row 2 and row 4. That's invalid because queens can't share columns.\n---\nThe solution from the SAT solver is [9, 3, 10, 7, 4, 12, 1, 13, 11, 6, 8, 5, 2, 0]. It respects q[4]=4 and q[6]=1.\nI found a solution for placing 14 queens on a 14x14 chessboard where no two attack each other, respecting the fixed positions q[4]=4 and q[6]=1.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3323,
+  "completion_tokens": 2589,
+  "reasoning_tokens": 1694,
+  "cached_tokens": 1280,
+  "cost_usd": 0.019875999999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 30206.454038619995,
+  "tool_dispatch_ms_total": 347.4698066711426,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def is_safe(board, row, col, n):\n    for i in range(row):\n        if board[i] == col or board[i] - i == col - row or board[i] + i == col + row:\n            return False\n    return True\n\ndef solve_nqueens(n, fixed):\n    board = [-1] * n\n    for row, col in fixed.items():\n        board[row] = col\n        # Check if fixed positions conflict with each other\n        for prev_row in range(row):\n            if board[prev_row] != -1:\n                prev_col = board[prev_row]\n                if prev_col == col or prev_col - prev_row == col - row or prev_col + prev_row == col + row:\n                    return None  # Conflict in fixed\n    \n    def backtrack(row):\n        if row == n:\n            return True\n        if board[row] != -1:\n            return backtrack(row + 1)\n        for col in range(n):\n            if is_safe(board, row, col, n):\n                board[row] = col\n                if backtrack(row + 1):\n                    return True\n                board[row] = -1\n        return False\n    \n    if backtrack(0):\n        return board\n    return None\n\nfixed = {4: 4, 6: 1}\nsolution = solve_nqueens(14, fixed)\nprint(solution)"
+      },
+      "ok": true,
+      "latency_ms": 122.28
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nimport sys\n\ndef nqueens_sat(n, fixed):\n    # Variables: q_r_c means queen in row r col c, var = r*n + c +1\n    def var(r, c):\n        return r * n + c + 1\n    \n    solver = Glucose3()\n    \n    # Exactly one queen per row\n    for r in range(n):\n        solver.add_clause([var(r, c) for c in range(n)])\n        for c1 in range(n):\n            for c2 in range(c1+1, n):\n                solver.add_clause([-var(r, c1), -var(r, c2)])\n    \n    # Exactly one queen per column\n    for c in range(n):\n        solver.add_clause([var(r, c) for r in range(n)])\n        for r1 in range(n):\n            for r2 in range(r1+1, n):\n                solver.add_clause([-var(r1, c), -var(r2, c)])\n    \n    # No two on same diagonal\n    for r1 in range(n):\n        for c1 in range(n):\n            for r2 in range(r1+1, n):\n                c2 = c1 + (r2 - r1)\n                if c2 < n:\n                    solver.add_clause([-var(r1, c1), -var(r2, c2)])\n                c2 = c1 - (r2 - r1)\n                if c2 >= 0:\n                    solver.add_clause([-var(r1, c1), -var(r2, c2)])\n    \n    # Fixed positions\n    for r, c in fixed.items():\n        solver.add_clause([var(r, c)])\n    \n    if solver.solve():\n        model = solver.get_model()\n        solution = [-1] * n\n        for r in range(n):\n            for c in range(n):\n                if model[var(r, c)-1] > 0:\n                    solution[r] = c\n                    break\n        return solution\n    else:\n        return None\n\nfixed = {4:4, 6:1}\nsol = nqueens_sat(14, fixed)\nprint(sol)"
+      },
+      "ok": true,
+      "latency_ms": 225.19
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          9,
+          3,
+          10,
+          7,
+          4,
+          12,
+          1,
+          13,
+          11,
+          6,
+          8,
+          5,
+          2,
+          0
+        ],
+        "reasoning": "Used PySAT to encode the N-Queens problem with the given fixed positions as hard constraints (exactly one per row/col, no diagonal attacks, plus unit clauses for fixed q[4]=4 and q[6]=1). The solver found a satisfying assignment, which was decoded to the column positions. Verified no shared columns or diagonals."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,128 @@
+{
+  "problem_name": "pysms_mtf_vertices7__v10_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 7
+  },
+  "difficulty": {
+    "solve_time_ms": 9.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 10,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 2.82,
+    "solve_pct_type": 12.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    0,
+    2,
+    0,
+    3,
+    0,
+    4,
+    0,
+    6,
+    1,
+    5,
+    2,
+    5,
+    3,
+    5,
+    4,
+    5,
+    5,
+    6
+  ],
+  "reasoning": "A maximal triangle-free graph on 7 vertices containing the required edges (0,6) and (1,5). The graph is essentially a complete bipartite graph K_{5,2} with parts {0,2,3,4,6} and {1,5} \u2014 wait, more precisely it's structured around vertices 0 and 5 as hubs. Vertex 0 connects to {1,2,3,4,6} and vertex 5 connects to {1,2,3,4,6}, forming a bipartite-like structure. All 11 non-edges would create a triangle if added, confirming maximality.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial mismatch: expected edges to contain [0, 6]",
+  "prompt_tokens": 9429,
+  "completion_tokens": 2196,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.061227,
+  "cost_source": "openrouter",
+  "latency_ms": 27963.72151374817,
+  "tool_dispatch_ms_total": 100.12221336364746,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef has_triangle(edges_set, n):\n    \"\"\"Check if graph has a triangle.\"\"\"\n    adj = [[False]*n for _ in range(n)]\n    for u, v in edges_set:\n        adj[u][v] = True\n        adj[v][u] = True\n    for u, v, w in combinations(range(n), 3):\n        if adj[u][v] and adj[v][w] and adj[u][w]:\n            return True, (u, v, w)\n    return False, None\n\ndef is_triangle_free(edges_set, n):\n    result, _ = has_triangle(edges_set, n)\n    return not result\n\ndef adding_edge_creates_triangle(edges_set, u, v, n):\n    \"\"\"Check if adding edge (u,v) creates a triangle.\"\"\"\n    adj = [[False]*n for _ in range(n)]\n    for a, b in edges_set:\n        adj[a][b] = True\n        adj[b][a] = True\n    # Adding (u,v): triangle if there's w such that adj[u][w] and adj[v][w]\n    for w in range(n):\n        if w != u and w != v:\n            if adj[u][w] and adj[v][w]:\n                return True\n    return False\n\ndef is_maximal_triangle_free(edges_set, n):\n    \"\"\"Check if graph is maximal triangle-free.\"\"\"\n    if not is_triangle_free(edges_set, n):\n        return False\n    all_possible = [(u,v) for u,v in combinations(range(n), 2) if (u,v) not in edges_set]\n    for u, v in all_possible:\n        if not adding_edge_creates_triangle(edges_set, u, v, n):\n            return False  # Can add this edge without triangle => not maximal\n    return True\n\n# Use backtracking search\nn = 7\nall_edges = [(u,v) for u,v in combinations(range(n), 2)]\nfixed_present = {(0,6), (1,5)}\n\ndef solve():\n    # Start with fixed edges\n    current_edges = set(fixed_present)\n    \n    # Check fixed edges don't form triangle\n    if not is_triangle_free(current_edges, n):\n        return None\n    \n    # Try to build maximal triangle-free graph using backtracking\n    remaining = [e for e in all_edges if e not in fixed_present]\n    \n    def backtrack(idx, edges):\n        if idx == len(remaining):\n            if is_maximal_triangle_free(edges, n):\n                return set(edges)\n            return None\n        \n        e = remaining[idx]\n        u, v = e\n        \n        # Try adding edge e\n        new_edges = edges | {e}\n        if is_triangle_free(new_edges, n):\n            result = backtrack(idx+1, new_edges)\n            if result is not None:\n                return result\n        \n        # Try not adding edge e\n        result = backtrack(idx+1, edges)\n        if result is not None:\n            return result\n        \n        return None\n    \n    return backtrack(0, current_edges)\n\nsolution = solve()\nif solution:\n    print(\"Found solution:\", sorted(solution))\n    print(\"Is maximal triangle-free:\", is_maximal_triangle_free(solution, n))\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.12
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution thoroughly\nsolution = [(0,1),(0,2),(0,3),(0,4),(0,6),(1,5),(2,5),(3,5),(4,5),(5,6)]\nn = 7\nedges_set = set(solution)\n\nprint(\"Edges:\", sorted(edges_set))\nprint(\"Number of edges:\", len(edges_set))\nprint(\"Triangle-free:\", is_triangle_free(edges_set, n))\n\n# Check maximality: every non-edge should create a triangle when added\nall_possible = [(u,v) for u,v in combinations(range(n), 2)]\nnon_edges = [e for e in all_possible if e not in edges_set]\nprint(\"\\nNon-edges and whether adding them creates a triangle:\")\nall_blocked = True\nfor e in non_edges:\n    creates = adding_edge_creates_triangle(edges_set, e[0], e[1], n)\n    print(f\"  {e}: creates triangle = {creates}\")\n    if not creates:\n        all_blocked = False\n\nprint(\"\\nAll non-edges blocked:\", all_blocked)\nprint(\"Fixed edges present:\", (0,6) in edges_set and (1,5) in edges_set)\n"
+      },
+      "ok": false,
+      "latency_ms": 33.08
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef is_triangle_free(edges_set, n):\n    adj = [[False]*n for _ in range(n)]\n    for u, v in edges_set:\n        adj[u][v] = True\n        adj[v][u] = True\n    for u, v, w in combinations(range(n), 3):\n        if adj[u][v] and adj[v][w] and adj[u][w]:\n            return False\n    return True\n\ndef adding_edge_creates_triangle(edges_set, u, v, n):\n    adj = [[False]*n for _ in range(n)]\n    for a, b in edges_set:\n        adj[a][b] = True\n        adj[b][a] = True\n    for w in range(n):\n        if w != u and w != v:\n            if adj[u][w] and adj[v][w]:\n                return True\n    return False\n\nsolution = [(0,1),(0,2),(0,3),(0,4),(0,6),(1,5),(2,5),(3,5),(4,5),(5,6)]\nn = 7\nedges_set = set(solution)\n\nprint(\"Edges:\", sorted(edges_set))\nprint(\"Number of edges:\", len(edges_set))\nprint(\"Triangle-free:\", is_triangle_free(edges_set, n))\n\nall_possible = [(u,v) for u,v in combinations(range(n), 2)]\nnon_edges = [e for e in all_possible if e not in edges_set]\nprint(\"\\nNon-edges and whether adding them creates a triangle:\")\nall_blocked = True\nfor e in non_edges:\n    creates = adding_edge_creates_triangle(edges_set, e[0], e[1], n)\n    print(f\"  {e}: creates triangle = {creates}\")\n    if not creates:\n        all_blocked = False\n\nprint(\"\\nAll non-edges blocked (maximal):\", all_blocked)\nprint(\"Fixed edge (0,6) present:\", (0,6) in edges_set)\nprint(\"Fixed edge (1,5) present:\", (1,5) in edges_set)\n"
+      },
+      "ok": true,
+      "latency_ms": 33.92
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          0,
+          2,
+          0,
+          3,
+          0,
+          4,
+          0,
+          6,
+          1,
+          5,
+          2,
+          5,
+          3,
+          5,
+          4,
+          5,
+          5,
+          6
+        ],
+        "reasoning": "A maximal triangle-free graph on 7 vertices containing the required edges (0,6) and (1,5). The graph is essentially a complete bipartite graph K_{5,2} with parts {0,2,3,4,6} and {1,5} \u2014 wait, more precisely it's structured around vertices 0 and 5 as hubs. Vertex 0 connects to {1,2,3,4,6} and vertex 5 connects to {1,2,3,4,6}, forming a bipartite-like structure. All 11 non-edges would create a triangle if added, confirming maximality."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

@@ -1,0 +1,159 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree5_min_degree2_min_girth8_vertices9__v11_h",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 2,
+    "min_girth": 8,
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 32.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 9,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 16.35,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    0,
+    2,
+    1,
+    4,
+    2,
+    5,
+    3,
+    7,
+    3,
+    8,
+    4,
+    8,
+    5,
+    6,
+    6,
+    7
+  ],
+  "reasoning": "The graph is a 9-cycle (C9): 0-1-4-8-3-7-6-5-2-0. This satisfies all constraints:\n1. Girth = 9 \u2265 8 (the shortest cycle has length 9, since it IS a single 9-cycle)\n2. Every vertex has degree exactly 2 (between 2 and 5) \u2713\n3. The required edge (2,5) is present \u2713 (it's the edge between vertices 2 and 5 in the cycle)\nEdges: (0,1), (0,2), (1,4), (2,5), (3,7), (3,8), (4,8), (5,6), (6,7)",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial mismatch: expected edges to contain [2, 5]",
+  "prompt_tokens": 28535,
+  "completion_tokens": 4267,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.14961,
+  "cost_source": "openrouter",
+  "latency_ms": 61524.46007728577,
+  "tool_dispatch_ms_total": 3345.9837436676025,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\nimport pysat\nfrom pysat.solvers import Solver\nfrom pysat.formula import CNF\n\n# Variables: for each pair (u,v) with u < v, we have a boolean variable\n# indicating whether edge (u,v) is present.\n\nn = 9\nvertices = list(range(n))\nedges_all = [(u, v) for u in range(n) for v in range(u+1, n)]\n\n# Map edge to variable index (1-based)\nedge_to_var = {e: i+1 for i, e in enumerate(edges_all)}\nvar_to_edge = {i+1: e for i, e in enumerate(edges_all)}\n\nprint(f\"Number of possible edges: {len(edges_all)}\")\nprint(f\"Edge variables: {edge_to_var}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 277.02
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom pysat.card import CardEnc, EncType\nfrom pysat.solvers import Solver\n\nn = 9\nvertices = list(range(n))\nedges_all = [(u, v) for u in range(n) for v in range(u+1, n)]\nedge_to_var = {e: i+1 for i, e in enumerate(edges_all)}\n\nclauses = []\ntop_var = len(edges_all) + 1\n\ndef new_var():\n    global top_var\n    v = top_var\n    top_var += 1\n    return v\n\n# Fixed edges\nfixed_present = [(2, 5)]\nfor e in fixed_present:\n    clauses.append([edge_to_var[e]])\n\n# Degree constraints: each vertex has degree between 2 and 5\nfor v in vertices:\n    # edges incident to v\n    incident = [edge_to_var[(min(v,u), max(v,u))] for u in vertices if u != v]\n    \n    # At least 2\n    enc_min = CardEnc.atleast(lits=incident, bound=2, top_id=top_var, encoding=EncType.seqcounter)\n    clauses.extend(enc_min.clauses)\n    top_var = enc_min.nv + 1\n    \n    # At most 5\n    enc_max = CardEnc.atmost(lits=incident, bound=5, top_id=top_var, encoding=EncType.seqcounter)\n    clauses.extend(enc_max.clauses)\n    top_var = enc_max.nv + 1\n\nprint(f\"After degree constraints: {len(clauses)} clauses, top_var={top_var}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 303.51
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Girth >= 8 means no cycles of length 3, 4, 5, 6, or 7\n# We need to forbid all cycles of length 3, 4, 5, 6, 7\n\n# For each set of k vertices forming a path/cycle, if all edges present => cycle exists\n# We forbid all cycles of length 3 to 7\n\nfrom itertools import permutations\n\ndef get_edge_var(u, v):\n    e = (min(u,v), max(u,v))\n    return edge_to_var[e]\n\n# Forbid cycles of length k: for every ordered cycle (v0,v1,...,v_{k-1},v0)\n# we need: NOT (edge(v0,v1) AND edge(v1,v2) AND ... AND edge(v_{k-1},v0))\n# i.e., at least one edge must be absent\n\ncycle_clauses = []\n\ndef forbid_cycles_of_length(k):\n    count = 0\n    # Enumerate all simple cycles of length k\n    # A cycle is a set of k distinct vertices with k edges forming a cycle\n    # To avoid duplicates, fix the smallest vertex as v[0] and v[1] < v[k-1]\n    for combo in combinations(vertices, k):\n        # Try all cyclic orderings with combo[0] fixed as first\n        rest = list(combo[1:])\n        for perm in permutations(rest):\n            cycle = [combo[0]] + list(perm)\n            # Canonical: first element is smallest, second < last\n            if cycle[1] < cycle[-1]:\n                # This is a unique cycle\n                edge_vars = []\n                valid = True\n                for i in range(k):\n                    u = cycle[i]\n                    v = cycle[(i+1) % k]\n                    edge_vars.append(get_edge_var(u, v))\n                # Forbid: not all edges present\n                # At least one must be 0: clause is [-e1, -e2, ..., -ek]\n                cycle_clauses.append([-ev for ev in edge_vars])\n                count += 1\n    print(f\"Cycles of length {k}: {count} forbidden\")\n\nfor k in range(3, 8):\n    forbid_cycles_of_length(k)\n\nprint(f\"Total cycle-forbidding clauses: {len(cycle_clauses)}\")\nclauses.extend(cycle_clauses)\nprint(f\"Total clauses: {len(clauses)}\")\n"
+      },
+      "ok": false,
+      "latency_ms": 69.81
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations, permutations\nfrom pysat.card import CardEnc, EncType\nfrom pysat.solvers import Solver\n\nn = 9\nvertices = list(range(n))\nedges_all = [(u, v) for u in range(n) for v in range(u+1, n)]\nedge_to_var = {e: i+1 for i, e in enumerate(edges_all)}\n\nclauses = []\ntop_var = len(edges_all) + 1\n\ndef new_var():\n    global top_var\n    v = top_var\n    top_var += 1\n    return v\n\ndef get_edge_var(u, v):\n    e = (min(u,v), max(u,v))\n    return edge_to_var[e]\n\n# Fixed edges\nfixed_present = [(2, 5)]\nfor e in fixed_present:\n    clauses.append([edge_to_var[e]])\n\n# Degree constraints: each vertex has degree between 2 and 5\nfor v in vertices:\n    incident = [edge_to_var[(min(v,u), max(v,u))] for u in vertices if u != v]\n    enc_min = CardEnc.atleast(lits=incident, bound=2, top_id=top_var, encoding=EncType.seqcounter)\n    clauses.extend(enc_min.clauses)\n    top_var = enc_min.nv + 1\n    enc_max = CardEnc.atmost(lits=incident, bound=5, top_id=top_var, encoding=EncType.seqcounter)\n    clauses.extend(enc_max.clauses)\n    top_var = enc_max.nv + 1\n\n# Forbid cycles of length 3 to 7\ndef forbid_cycles_of_length(k):\n    count = 0\n    for combo in combinations(vertices, k):\n        rest = list(combo[1:])\n        for perm in permutations(rest):\n            cycle = [combo[0]] + list(perm)\n            if cycle[1] < cycle[-1]:\n                edge_vars = [get_edge_var(cycle[i], cycle[(i+1) % k]) for i in range(k)]\n                clauses.append([-ev for ev in edge_vars])\n                count += 1\n    print(f\"Cycles of length {k}: {count} forbidden\")\n\nfor k in range(3, 8):\n    forbid_cycles_of_length(k)\n\nprint(f\"Total clauses: {len(clauses)}, top_var={top_var}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 415.72
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Solve with SAT solver\nsolver = Solver(name='g4', bootstrap_with=clauses)\nresult = solver.solve()\nprint(f\"SAT result: {result}\")\n\nif result:\n    model = solver.get_model()\n    # Extract edges\n    solution_edges = []\n    for e, var in edge_to_var.items():\n        if model[var-1] > 0:\n            solution_edges.append(e)\n    \n    print(f\"Edges: {solution_edges}\")\n    print(f\"Number of edges: {len(solution_edges)}\")\n    \n    # Verify degrees\n    degrees = {v: 0 for v in vertices}\n    for u, v in solution_edges:\n        degrees[u] += 1\n        degrees[v] += 1\n    print(f\"Degrees: {degrees}\")\n    \n    # Verify girth using BFS\n    import networkx as nx\n    G = nx.Graph()\n    G.add_nodes_from(vertices)\n    G.add_edges_from(solution_edges)\n    \n    # Check girth\n    try:\n        girth = nx.girth(G)\n        print(f\"Girth: {girth}\")\n    except:\n        print(\"No cycles found (girth = infinity)\")\n    \n    # Check fixed edges\n    print(f\"Edge (2,5) present: {(2,5) in solution_edges}\")\n"
+      },
+      "ok": false,
+      "latency_ms": 524.49
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations, permutations\nfrom pysat.card import CardEnc, EncType\nfrom pysat.solvers import Solver\nimport networkx as nx\n\nn = 9\nvertices = list(range(n))\nedges_all = [(u, v) for u in range(n) for v in range(u+1, n)]\nedge_to_var = {e: i+1 for i, e in enumerate(edges_all)}\n\nclauses = []\ntop_var = len(edges_all) + 1\n\ndef get_edge_var(u, v):\n    e = (min(u,v), max(u,v))\n    return edge_to_var[e]\n\n# Fixed edges\nclauses.append([edge_to_var[(2,5)]])\n\n# Degree constraints\nfor v in vertices:\n    incident = [edge_to_var[(min(v,u), max(v,u))] for u in vertices if u != v]\n    enc_min = CardEnc.atleast(lits=incident, bound=2, top_id=top_var, encoding=EncType.seqcounter)\n    clauses.extend(enc_min.clauses)\n    top_var = enc_min.nv + 1\n    enc_max = CardEnc.atmost(lits=incident, bound=5, top_id=top_var, encoding=EncType.seqcounter)\n    clauses.extend(enc_max.clauses)\n    top_var = enc_max.nv + 1\n\n# Forbid cycles of length 3 to 7\nfor k in range(3, 8):\n    for combo in combinations(vertices, k):\n        rest = list(combo[1:])\n        for perm in permutations(rest):\n            cycle = [combo[0]] + list(perm)\n            if cycle[1] < cycle[-1]:\n                edge_vars = [get_edge_var(cycle[i], cycle[(i+1) % k]) for i in range(k)]\n                clauses.append([-ev for ev in edge_vars])\n\nprint(f\"Total clauses: {len(clauses)}, top_var={top_var}\")\n\n# Solve\nsolver = Solver(name='g4', bootstrap_with=clauses)\nresult = solver.solve()\nprint(f\"SAT result: {result}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = [e for e, var in edge_to_var.items() if model[var-1] > 0]\n    print(f\"Edges: {sorted(solution_edges)}\")\n    \n    degrees = {v: 0 for v in vertices}\n    for u, v in solution_edges:\n        degrees[u] += 1\n        degrees[v] += 1\n    print(f\"Degrees: {degrees}\")\n    \n    G = nx.Graph()\n    G.add_nodes_from(vertices)\n    G.add_edges_from(solution_edges)\n    \n    try:\n        girth = nx.girth(G)\n        print(f\"Girth: {girth}\")\n    except Exception as e:\n        print(f\"Girth check: {e}\")\n    \n    print(f\"Edge (2,5) present: {(2,5) in solution_edges}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 973.68
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport networkx as nx\n\nsolution_edges = [(0, 1), (0, 2), (1, 4), (2, 5), (3, 7), (3, 8), (4, 8), (5, 6), (6, 7)]\n\nG = nx.Graph()\nG.add_nodes_from(range(9))\nG.add_edges_from(solution_edges)\n\nprint(\"=== VERIFICATION ===\")\nprint(f\"Edges: {sorted(solution_edges)}\")\nprint(f\"Number of edges: {len(solution_edges)}\")\n\n# Degrees\nprint(\"\\nDegrees:\")\nfor v in range(9):\n    d = G.degree(v)\n    ok = 2 <= d <= 5\n    print(f\"  Vertex {v}: degree {d} {'\u2713' if ok else '\u2717'}\")\n\n# Girth\ngirth = nx.girth(G)\nprint(f\"\\nGirth: {girth} {'\u2713 (>=8)' if girth >= 8 else '\u2717'}\")\n\n# Fixed edge\nprint(f\"\\nFixed edge (2,5) present: {G.has_edge(2,5)} {'\u2713' if G.has_edge(2,5) else '\u2717'}\")\n\n# Show the cycle structure\nprint(\"\\nConnected components:\", list(nx.connected_components(G)))\nprint(\"\\nThe graph forms a 9-cycle (C9):\")\n# Trace the cycle\npath = [0]\nvisited = {0}\ncurrent = 0\nfor _ in range(8):\n    for nb in G.neighbors(current):\n        if nb not in visited:\n            path.append(nb)\n            visited.add(nb)\n            current = nb\n            break\nprint(\" -> \".join(map(str, path)) + f\" -> {path[0]}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 781.76
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          0,
+          2,
+          1,
+          4,
+          2,
+          5,
+          3,
+          7,
+          3,
+          8,
+          4,
+          8,
+          5,
+          6,
+          6,
+          7
+        ],
+        "reasoning": "The graph is a 9-cycle (C9): 0-1-4-8-3-7-6-5-2-0. This satisfies all constraints:\n1. Girth = 9 \u2265 8 (the shortest cycle has length 9, since it IS a single 9-cycle)\n2. Every vertex has degree exactly 2 (between 2 and 5) \u2713\n3. The required edge (2,5) is present \u2713 (it's the edge between vertices 2 and 5 in the cycle)\nEdges: (0,1), (0,2), (1,4), (2,5), (3,7), (3,8), (4,8), (5,6), (6,7)"
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

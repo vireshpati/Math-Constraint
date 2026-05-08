@@ -1,0 +1,155 @@
+{
+  "problem_name": "graceful_graph_k3_p6__v4_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1860.4,
+    "search_space": 3686553210602841700043063296,
+    "num_variables": 51,
+    "num_constraints": 37,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.41,
+    "solve_pct_type": 93.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    8,
+    22,
+    33,
+    4,
+    1,
+    2,
+    32,
+    25,
+    20,
+    19,
+    31,
+    29,
+    9,
+    14,
+    3,
+    28,
+    30
+  ],
+  "reasoning": "This labeling uses distinct vertex labels in 0..33. Computing the absolute differences on the 18 clique edges and 15 matching edges gives exactly the set {1,2,...,33}, so all 33 edge labels are distinct.",
+  "raw_response": null,
+  "cot_trace": "**Solving graceful labeling**\n\nI need to find a solution for graceful labeling on the graph G_{3,6}. This requires 18 unique labels chosen from 0 to 33, where the edge differences must all be distinct. With 33 edges, we have to use differences from 1 to 33, so I\u2019ll aim to create a list of integers that fulfills this requirement.\n\nTo solve this efficiently, I might need to utilize tools like Python search or SAT solvers. My goal is to formulate this correctly and find a workable assignment. I'd be considering approaches like brute force or using libraries like PySAT.**Exploring graceful labeling**\n\nI\u2019m exploring the graceful labeling for the graph K3 x P6, actually considering a configuration with a K3 vertical matching. I could use computational methods like backtracking or Z3 for constraints to find a solution. \n\nWith m = 33, it's important to note that an edge must connect labels 0 and 33. I might exploit graph automorphisms by permuting columns and reversing paths. This would help me fix an edge at (0,33) and utilize automorphisms to determine edge orbits and internal connections effectively.**Clarifying edge differences**\n\nI\u2019m realizing that the positions of cliques at path endpoints and interior vertices aren't the same. Fixing this isn\u2019t arbitrary unless I can prove it. The difference of 33 could apply to any edge, so I need to consider that. \n\nHowever, I can still branch out from here. I might use SAT encoding to represent the problem, especially since there are 18 vertices and 34 potential labels. I need to ensure that all edge differences are unique and properly accounted for.\n---\n**Exploring optimization approaches**\n\nIt looks like Z3 has timed out, so I need to think of a better approach. Maybe I could use CP-SAT instead, though it might have a slow import due to protobuf. I wonder if I should allow for a longer execution time? Perhaps I should try running CP-SAT with a full 60 seconds to see if that helps. There\u2019s definitely something to consider here!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 14449,
+  "completion_tokens": 3233,
+  "reasoning_tokens": 1131,
+  "cached_tokens": 5632,
+  "cost_usd": 0.143891,
+  "cost_source": "openrouter",
+  "latency_ms": 141453.04584503174,
+  "tool_dispatch_ms_total": 74876.88493728638,
+  "tool_calls_made": 7,
+  "tool_rounds": 7,
+  "n_execute_python": 6,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys, pkgutil\nmods=['z3','ortools','pysat','cpmpy']\nfor m in mods:\n    print(m, pkgutil.find_loader(m))",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 163.82
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\nprint('ortools ok')",
+        "timeout_seconds": 10
+      },
+      "ok": false,
+      "latency_ms": 10019.14
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import z3, time\nn_cliques=6;k=3\nV=n_cliques*k\nm=33\nedges=[]\n# intra triangles\nfor g in range(n_cliques):\n    verts=[g*k+i for i in range(k)]\n    for i in range(k):\n        for j in range(i+1,k):\n            edges.append((verts[i],verts[j],f'T{g}_{i}{j}'))\n# matchings\nfor g in range(n_cliques-1):\n    for i in range(k):\n        edges.append((g*k+i,(g+1)*k+i,f'M{g}_{i}'))\nprint(V,len(edges))\nL=[z3.Int(f'L_{v}') for v in range(V)]\nD=[z3.Int(f'D_{e}') for e in range(len(edges))]\ns=z3.Solver()\ns.set('timeout', 60000)\nfor x in L:\n    s.add(x>=0,x<=m)\ns.add(z3.Distinct(L))\nfor idx,(u,v,name) in enumerate(edges):\n    s.add(D[idx]>=1,D[idx]<=m)\n    s.add(z3.Or(D[idx]==L[u]-L[v], D[idx]==L[v]-L[u]))\ns.add(z3.Distinct(D))\n# symmetry: complement labels, set L[0] < 16? or edge with diff 33 includes labels 0,33; break min position?\n# At least enforce label 0 position less than label 33 position? difficult.\n# we can add one vertex label 0? graceful labels may not use all labels, but edge 33 requires endpoints 0,33 yes both used.\n# graph automorphism: reverse clique order and permute vertices globally (same i across all cliques?) automorphism S3 on columns and path reversal.\n# break: vertex 0 label < complement? e.g. L0 < 17 maybe valid via complement.\ns.add(L[0] < 17)  # complement symmetry\n# maybe require clique0 vertex0 label < clique0 vertex1? column permutation? but automorphism permits permute columns globally, not within clique arbitrary? clique edges and matching same i, global S3. break order labels at clique0: L0<L1<L2\ns.add(L[0]<L[1], L[1]<L[2])\n# solve\nstart=time.time()\nres=s.check()\nprint('res',res,'time',time.time()-start)\nif res==z3.sat:\n    model=s.model()\n    sol=[model.eval(x).as_long() for x in L]\n    ds=[model.eval(d).as_long() for d in D]\n    print(sol)\n    print(sorted(ds), len(set(ds)))\n    for idx,e in enumerate(edges): print(idx,e,ds[idx])\nelse:\n    print(s.reason_unknown())",
+        "timeout_seconds": 70
+      },
+      "ok": false,
+      "latency_ms": 60064.67
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import time\nstart=time.time()\nfrom ortools.sat.python import cp_model\nprint('imported', time.time()-start)\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 1168.62
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\nimport time, os\nn_cliques=6;k=3;V=18;m=33\nedges=[]\nfor g in range(n_cliques):\n    for i in range(k):\n        for j in range(i+1,k):\n            edges.append((g*k+i,g*k+j))\nfor g in range(n_cliques-1):\n    for i in range(k):\n        edges.append((g*k+i,(g+1)*k+i))\nmodel=cp_model.CpModel()\nL=[model.NewIntVar(0,m,f'L{v}') for v in range(V)]\nmodel.AddAllDifferent(L)\nD=[]\nfor idx,(u,v) in enumerate(edges):\n    diff=model.NewIntVar(-m,m,f'diff{idx}')\n    d=model.NewIntVar(1,m,f'D{idx}')\n    model.Add(diff==L[u]-L[v])\n    model.AddAbsEquality(d,diff)\n    D.append(d)\nmodel.AddAllDifferent(D)\n# Since 33 diffs domain 1..33, allDifferent implies set but add sum\nmodel.Add(sum(D)==m*(m+1)//2)\n# symmetries: complement: maybe L0<17; global column permutation: sort clique 0 labels\nmodel.Add(L[0] < 17)\nmodel.Add(L[0] < L[1]); model.Add(L[1] < L[2])\n# path reversal: lex clique0 vs clique5? implement label tuple <= reversed? maybe not with sorted not stable? automorphism reverse cliques. add L0 < L15 perhaps? risky? reverse maps clique0 to clique5 same columns, with sorted clique0 after column permutation? Could maybe add later.\n# Add endpoints of edge 33: some edge connects labels 0 and33. Use inverse? no.\n# decision strategy labels\nmodel.AddDecisionStrategy(L, cp_model.CHOOSE_FIRST, cp_model.SELECT_MIN_VALUE)\n# maybe prefer D assigned high? no\nsolver=cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds=55\nsolver.parameters.num_search_workers=8\nsolver.parameters.log_search_progress=True\nsolver.parameters.cp_model_presolve=True\nsolver.parameters.linearization_level=0\nstart=time.time(); status=solver.Solve(model); print('status',solver.StatusName(status),'time',time.time()-start)\nif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):\n    sol=[solver.Value(x) for x in L]\n    print(sol)\n    ds=[solver.Value(d) for d in D]\n    print(ds, sorted(ds), len(set(ds)))\n    print(edges)\nelse:\n    print('no sol/stat')",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 1745.38
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\nimport time\nn_cliques=6;k=3;V=18;m=33\nedges=[]\nfor g in range(n_cliques):\n    for i in range(k):\n        for j in range(i+1,k):\n            edges.append((g*k+i,g*k+j))\nfor g in range(n_cliques-1):\n    for i in range(k):\n        edges.append((g*k+i,(g+1)*k+i))\nmodel=cp_model.CpModel()\nL=[model.NewIntVar(0,m,f'L{v}') for v in range(V)]\nmodel.AddAllDifferent(L)\nD=[]\nfor idx,(u,v) in enumerate(edges):\n    diff=model.NewIntVar(-m,m,f'diff{idx}')\n    d=model.NewIntVar(1,m,f'D{idx}')\n    model.Add(diff==L[u]-L[v])\n    model.AddAbsEquality(d,diff)\n    D.append(d)\nmodel.AddAllDifferent(D)\nmodel.Add(sum(D)==m*(m+1)//2)\nmodel.Add(L[0] < 17)\nmodel.Add(L[0] < L[1]); model.Add(L[1] < L[2])\n# endpoints 0 and33 used; add exactly via inverse? skip\nmodel.AddDecisionStrategy(L, cp_model.CHOOSE_FIRST, cp_model.SELECT_MIN_VALUE)\nsolver=cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds=55\nsolver.parameters.num_search_workers=8\nsolver.parameters.log_search_progress=False\nsolver.parameters.linearization_level=0\n# solver.parameters.search_branching=cp_model.FIXED_SEARCH\nstart=time.time(); status=solver.Solve(model); print('status',solver.StatusName(status),'time',time.time()-start)\nif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):\n    sol=[solver.Value(x) for x in L]\n    print('sol=',sol)\n    ds=[solver.Value(d) for d in D]\n    print('sorted ds', sorted(ds), 'unique', len(set(ds)))\n    print('ds=',ds)\n    for e,d in zip(edges,ds): print(e,d)\nelse:\n    print('stats',solver.ResponseStats())",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 1715.26
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          8,
+          22,
+          33,
+          4,
+          1,
+          2,
+          32,
+          25,
+          20,
+          19,
+          31,
+          29,
+          9,
+          14,
+          3,
+          28,
+          30
+        ],
+        "reasoning": "This labeling uses distinct vertex labels in 0..33. Computing the absolute differences on the 18 clique edges and 15 matching edges gives exactly the set {1,2,...,33}, so all 33 edge labels are distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

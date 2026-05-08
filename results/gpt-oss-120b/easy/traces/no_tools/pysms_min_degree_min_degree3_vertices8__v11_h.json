@@ -1,0 +1,109 @@
+{
+  "problem_name": "pysms_min_degree_min_degree3_vertices8__v11_h",
+  "problem_type": "pysms_min_degree",
+  "params": {
+    "min_degree": 3,
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 46.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 28,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 21.24,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-oss-120b:free",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      6,
+      7
+    ]
+  ],
+  "reasoning": "The given fixed edges give degrees: deg0=1, deg1=0, deg2=1, deg3=1, deg4=1, deg5=0, deg6=3, deg7=3. Adding the nine edges listed raises every vertex degree to at least 3 while respecting the constraints (no loops, u<v, no duplicate edges). Hence a valid graph exists.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [\n        [0, 1],\n        [0, 2],\n        [0, 3],\n        [0, 6],\n        [1, 4],\n        [1, 5],\n        [1, 6],\n        [2, 5],\n        [2, 6],\n        [3, 5],\n        [3, 7],\n        [4, 5],\n        [4, 7],\n        [6, 7]\n    ],\n    \"reasoning\": \"The given fixed edges give degrees: deg0=1, deg1=0, deg2=1, deg3=1, deg4=1, deg5=0, deg6=3, deg7=3. Adding the nine edges listed raises every vertex degree to at least 3 while respecting the constraints (no loops, u<v, no duplicate edges). Hence a valid graph exists.\"\n}",
+  "cot_trace": "We need graph with 8 vertices, min degree >=3. Already have edges list. Need add edges to satisfy degree >=3 for all vertices. Let's compute current degrees.\n\nVertices 0-7.\n\nEdges: (2,6), (0,6), (4,7), (6,7), (3,7)\n\nDegrees:\n0:1 (to6)\n1:0\n2:1 (to6)\n3:1 (to7)\n4:1 (to7)\n5:0\n6: connections to2,0,7 => degree3\n7: connections to4,6,3 => degree3\n\nWe need each vertex degree >=3. So need add edges.\n\nWe can add edges arbitrarily as long as no loops, u<v, no duplicates.\n\nGoal: give a set of additional edges to bring degrees of 0,1,2,3,4,5 up to >=3 while not reducing others (they already >=3). Adding edges can increase degrees further, that's fine.\n\nCurrent degrees: deg0=1 need +2; deg1=0 need +3; deg2=1 need +2; deg3=1 need +2; deg4=1 need +2; deg5=0 need +3; deg6=3 ok; deg7=3 ok.\n\nWe can add edges among low-degree vertices and also connect to high-degree ones.\n\nLet's design.\n\nWe need total degree increments sum = (2+3+2+2+2+3)=14. Each added edge contributes 2 to sum. So need at least 7 edges added.\n\nWe can try to add 7 edges.\n\nLet's list possible edges not already present.\n\nAll pairs 0-7 except those 5.\n\nWe'll construct.\n\nWe need to give each low vertex enough connections.\n\nLet's try to connect 1 with many: edges (1,0),(1,2),(1,3),(1,4),(1,5),(1,6),(1,7). Need at least 3 of them.\n\nSimilarly for 5.\n\nLet's attempt systematic.\n\nAdd edges:\n\n(0,1) -> deg0 now2, deg1 1\n(0,2) -> deg0 3 satisfied, deg2 2\n(0,3) -> deg0 4, deg3 2\nNow deg0 satisfied.\n\nAdd (1,4) -> deg1 2, deg4 2\nAdd (1,5) -> deg1 3 satisfied, deg5 1\nAdd (1,6) -> deg1 4, deg6 4 (ok)\n\nNow deg1 satisfied, deg4 still need 1 more (currently2), deg5 need 2 more (currently1), deg2 need 1 more (currently2), deg3 need 1 more (currently2).\n\nAdd (2,5) -> deg2 3 satisfied, deg5 2\nAdd (3,5) -> deg3 3 satisfied, deg5 3 satisfied.\n\nNow check degrees:\n\n0: edges (0,6),(0,1),(0,2),(0,3) => degree4 >=3\n1: edges (1,0),(1,4),(1,5),(1,6) plus maybe others? also (1,?) we have (1,0) already counted, (1,4),(1,5),(1,6) => degree4\n2: edges (2,6),(2,0),(2,5) => degree3\n3: edges (3,7),(3,0),(3,5) => degree3\n4: edges (4,7),(4,1) => degree2 only, need >=3. Oops need one more for 4.\n\nWe need add another edge involving 4, maybe (4,5) or (4,2) etc. Adding will increase some other vertex degree but that's fine.\n\nAdd (4,5) -> deg4 becomes3, deg5 becomes4.\n\nNow all degrees:\n\n0 4\n1 4\n2 3\n3 3\n4 3\n5 4\n6 4\n7 3\n\nAll >=3.\n\nCount added edges: we added (0,1),(0,2),(0,3),(1,4),(1,5),(1,6),(2,5),(3,5),(4,5) =9 edges. Total edges =5+9=14.\n\nProvide list of all edges sorted maybe.\n\nList all edges:\n\n(0,1)\n(0,2)\n(0,3)\n(0,6)\n(1,4)\n(1,5)\n(1,6)\n(2,5)\n(2,6)\n(3,5)\n(3,7)\n(4,5)\n(4,7)\n(5,?) we have (5,?) edges already listed: (1,5),(2,5),(3,5),(4,5) that's fine.\n(6,7)\n\nCheck duplicates none.\n\nReturn solution.\n\n",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 314,
+  "completion_tokens": 1263,
+  "reasoning_tokens": 772,
+  "cached_tokens": 208,
+  "cost_usd": 0.0,
+  "cost_source": "openrouter",
+  "latency_ms": 37372.96223640442,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

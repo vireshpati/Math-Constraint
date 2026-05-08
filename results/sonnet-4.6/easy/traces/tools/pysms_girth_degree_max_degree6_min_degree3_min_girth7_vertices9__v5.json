@@ -1,0 +1,87 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree6_min_degree3_min_girth7_vertices9__v5",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 6,
+    "min_degree": 3,
+    "min_girth": 7,
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 21.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": -1,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 11.47,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "This problem is unsatisfiable. The Moore bound argument proves it: any vertex v with degree \u2265 3 has at least 3 neighbors. For girth \u2265 5 (a weaker requirement than girth \u2265 7), no two neighbors of v can be adjacent (no 3-cycle) and no two neighbors can share a common neighbor (no 4-cycle). Therefore, each of v's 3 neighbors must have at least 2 additional distinct neighbors, all different from each other and from {v, a, b, c}. This requires at least 1 + 3 + 3\u00d72 = 10 distinct vertices, but we only have 9. This contradiction shows that even girth \u2265 5 with minimum degree 3 is impossible on 9 vertices, making girth \u2265 7 with degrees 3\u20136 on 9 vertices definitively unsatisfiable. This was also confirmed by an exhaustive SAT solver search.",
+  "raw_response": "{\n    \"satisfiable\": false,\n    \"solution\": null,\n    \"reasoning\": \"This problem is unsatisfiable. The Moore bound argument proves it: any vertex v with degree \u2265 3 has at least 3 neighbors. For girth \u2265 5 (a weaker requirement than girth \u2265 7), no two neighbors of v can be adjacent (no 3-cycle) and no two neighbors can share a common neighbor (no 4-cycle). Therefore, each of v's 3 neighbors must have at least 2 additional distinct neighbors, all different from each other and from {v, a, b, c}. This requires at least 1 + 3 + 3\u00d72 = 10 distinct vertices, but we only have 9. This contradiction shows that even girth \u2265 5 with minimum degree 3 is impossible on 9 vertices, making girth \u2265 7 with degrees 3\u20136 on 9 vertices definitively unsatisfiable. This was also confirmed by an exhaustive SAT solver search.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Correct UNSAT",
+  "prompt_tokens": 21645,
+  "completion_tokens": 5067,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.14094,
+  "cost_source": "openrouter",
+  "latency_ms": 76525.40254592896,
+  "tool_dispatch_ms_total": 641.5867805480957,
+  "tool_calls_made": 4,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef check_girth(edges, n):\n    \"\"\"Return the girth (length of shortest cycle) of the graph, or infinity if acyclic.\"\"\"\n    # Build adjacency list\n    adj = [set() for _ in range(n)]\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    min_cycle = float('inf')\n    \n    # BFS from each vertex to find shortest cycle through that vertex\n    for start in range(n):\n        # BFS to find shortest cycle through 'start'\n        dist = [-1] * n\n        dist[start] = 0\n        from collections import deque\n        queue = deque([(start, -1)])  # (node, parent)\n        \n        while queue:\n            node, parent = queue.popleft()\n            for neighbor in adj[node]:\n                if neighbor == parent:\n                    continue\n                if dist[neighbor] == -1:\n                    dist[neighbor] = dist[node] + 1\n                    queue.append((neighbor, node))\n                else:\n                    # Found a cycle\n                    cycle_len = dist[node] + dist[neighbor] + 1\n                    min_cycle = min(min_cycle, cycle_len)\n    \n    return min_cycle\n\n# Note: the BFS above doesn't handle multigraph cycles correctly for girth.\n# Let me use a proper girth computation.\n\ndef girth(edges, n):\n    \"\"\"Compute girth using BFS from each vertex.\"\"\"\n    adj = [[] for _ in range(n)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    min_cycle = float('inf')\n    \n    from collections import deque\n    \n    for start in range(n):\n        # BFS tree, track distances\n        dist = [-1] * n\n        dist[start] = 0\n        queue = deque([(start, -1)])\n        \n        while queue and min_cycle > 2:\n            node, par = queue.popleft()\n            for nb in adj[node]:\n                if nb == par:\n                    continue\n                if dist[nb] == -1:\n                    dist[nb] = dist[node] + 1\n                    queue.append((nb, node))\n                else:\n                    # Cross edge or back edge found\n                    cycle_len = dist[node] + dist[nb] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    \n    return min_cycle\n\n# Test with a known example\ntest_edges = [(0,1),(1,2),(2,3),(3,4),(4,5),(5,6),(6,0)]\nprint(\"7-cycle girth:\", girth(test_edges, 7))\n"
+      },
+      "ok": true,
+      "latency_ms": 105.77
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's think about this more carefully.\n# n=9 vertices, girth >= 7, min degree 3.\n# \n# Moore bound: for degree d and girth g, the minimum number of vertices is:\n# For d=3, g=7: Moore bound = 1 + 3*(1 + 2 + 4) = 1 + 21 = 22 vertices\n# So a 3-regular graph with girth 7 needs at least 22 vertices!\n# \n# With only 9 vertices, girth >= 7 is very restrictive.\n# Let's check what's possible.\n#\n# If girth >= 7, then the neighborhood structure must be tree-like up to depth 3.\n# For a vertex v with degree d:\n# - Level 0: 1 vertex (v)\n# - Level 1: d vertices\n# - Level 2: at least d*(d-1) vertices (no back edges allowed before cycle of length 5)\n# - Level 3: at least d*(d-1)^2 vertices (no back edges allowed before cycle of length 7)\n# \n# For d=3: 1 + 3 + 6 + 12 = 22 vertices needed just for girth >= 7\n# For d=2: 1 + 2 + 2 + 2 = 7 vertices (but we need degree >= 3)\n#\n# This means with 9 vertices, we CANNOT have any vertex of degree >= 3 with girth >= 7!\n# \n# Wait, let me reconsider. The Moore bound counts distinct vertices in the BFS tree.\n# With 9 vertices total, if one vertex has degree 3:\n# Level 1: 3 neighbors\n# Level 2: each of those 3 has at least 2 more neighbors (not back to v) = 6 more\n# But 1 + 3 + 6 = 10 > 9, so already impossible!\n\n# Let me verify: with 9 vertices, degree >= 3, girth >= 7\n# From vertex v with degree d >= 3:\n# - v has d >= 3 neighbors at distance 1\n# - Each neighbor has d-1 >= 2 other neighbors at distance 2 (can't connect back to v, girth >= 3)\n# - These d*(d-1) >= 6 vertices at distance 2 must all be distinct from each other \n#   (otherwise we'd have a cycle of length <= 4, since girth >= 5 requires this)\n# - So we need at least 1 + 3 + 6 = 10 vertices just for distances 0,1,2\n# - But we only have 9!\n\n# Actually wait - for girth >= 7, we need no cycles of length <= 6.\n# For girth >= 5: vertices at distance 2 from v must be distinct (no two neighbors of v share a neighbor)\n# For girth >= 7: additionally, vertices at distance 3 must be distinct from all previous levels\n\n# For girth >= 5 alone: need 1 + d + d(d-1) vertices\n# With d=3: 1 + 3 + 6 = 10 > 9\n\n# So even girth >= 5 with min degree 3 is impossible on 9 vertices!\n\nprint(\"Moore bound analysis:\")\nfor d in range(3, 7):\n    count_g5 = 1 + d + d*(d-1)\n    count_g7 = 1 + d + d*(d-1) + d*(d-1)**2\n    print(f\"  degree {d}: need >= {count_g5} vertices for girth>=5, >= {count_g7} for girth>=7\")\n\nprint()\nprint(\"With only 9 vertices:\")\nprint(\"Even girth >= 5 with min degree 3 requires at least 10 vertices -> IMPOSSIBLE\")\nprint(\"Therefore girth >= 7 with min degree 3 on 9 vertices is UNSATISFIABLE\")\n"
+      },
+      "ok": true,
+      "latency_ms": 67.19
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let me make the proof airtight with a formal argument and also verify by exhaustive search.\n\n# Claim: No graph on 9 vertices can have girth >= 5 AND every vertex degree >= 3.\n# \n# Proof: Pick any vertex v. It has degree >= 3, so at least 3 neighbors: a, b, c.\n# For girth >= 5, no two neighbors of v can share a common neighbor \n# (that would create a 4-cycle: v-a-x-b-v).\n# Also, no two neighbors of v can be adjacent (that would create a 3-cycle: v-a-b-v).\n# \n# So a, b, c each need at least 2 additional neighbors (besides v), \n# and all these additional neighbors must be distinct from each other and from {v,a,b,c}.\n# That's at least 6 new vertices, giving total >= 1 + 3 + 6 = 10 > 9. Contradiction.\n\n# Let's also do a brute-force verification for small cases\nfrom itertools import combinations\n\ndef verify_exhaustive(n=9, min_deg=3, max_deg=6, min_girth=5):\n    \"\"\"Try all possible edge sets - but this is too large. Use smarter approach.\"\"\"\n    # Instead, let's use the degree sequence argument\n    # Total edges = sum of degrees / 2\n    # With n=9, min_deg=3: total edges >= 9*3/2 = 13.5, so >= 14 edges\n    # With max_deg=6: total edges <= 9*6/2 = 27 edges\n    \n    # For girth >= 5 (even weaker than girth >= 7):\n    # The number of edges in a graph with n vertices and girth >= 5 is at most\n    # roughly n^(1+1/2) / 2 (by the Bondy-Simonovits theorem / Zarankiewicz problem)\n    # For n=9: at most about 9^1.5 / 2 \u2248 13.5 edges\n    # But we need at least 14 edges! This is another way to see it's impossible.\n    \n    # Actually the exact bound: ex(n, C3, C4) - the Zarankiewicz/K\u0151v\u00e1ri\u2013S\u00f3s\u2013Tur\u00e1n\n    # For girth >= 5 (no C3 or C4): e <= (1/2)(1 + sqrt(4n-3)) * n/2... \n    # Let me just use the Moore bound argument which is cleaner.\n    \n    print(f\"Exhaustive verification for n={n}, min_deg={min_deg}, girth>={min_girth}\")\n    print()\n    print(\"Moore bound argument:\")\n    print(f\"  Any vertex v with degree >= {min_deg} has >= {min_deg} neighbors.\")\n    print(f\"  For girth >= 5: no two neighbors of v can be adjacent or share a neighbor.\")\n    print(f\"  So v's {min_deg} neighbors each need >= {min_deg-1} distinct new neighbors.\")\n    print(f\"  Minimum vertices needed: 1 + {min_deg} + {min_deg}*{min_deg-1} = {1 + min_deg + min_deg*(min_deg-1)}\")\n    print(f\"  But we only have {n} vertices. CONTRADICTION.\")\n    print()\n    print(\"Therefore: UNSATISFIABLE\")\n\nverify_exhaustive()\n"
+      },
+      "ok": true,
+      "latency_ms": 51.22
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Final confirmation using a SAT/CSP solver approach to be 100% sure\nfrom pysat.formula import CNF\nfrom pysat.solvers import Solver\n\n# Variables: x_{u,v} = 1 if edge (u,v) exists, for 0<=u<v<9\nn = 9\nedges_all = [(u,v) for u in range(n) for v in range(u+1,n)]\nedge_idx = {e: i+1 for i, e in enumerate(edges_all)}  # 1-indexed for SAT\n\nprint(f\"Total possible edges: {len(edges_all)}\")\n\ncnf = CNF()\n\n# Degree constraints: each vertex has degree 3..6\n# degree(v) = sum of edge variables incident to v\n# We need 3 <= degree(v) <= 6 for all v\n\n# Use a cardinality encoding\nfrom pysat.card import CardEnc, EncType\n\ntop_id = len(edges_all) + 1\n\nfor v in range(n):\n    incident = [edge_idx[(min(v,u), max(v,u))] for u in range(n) if u != v]\n    \n    # degree >= 3: at least 3 of incident edges are 1\n    atmost_enc = CardEnc.atleast(lits=incident, bound=3, top_id=top_id, encoding=EncType.seqcounter)\n    cnf.extend(atmost_enc.clauses)\n    top_id = atmost_enc.nv + 1\n    \n    # degree <= 6: at most 6 of incident edges are 1\n    atmost_enc2 = CardEnc.atmost(lits=incident, bound=6, top_id=top_id, encoding=EncType.seqcounter)\n    cnf.extend(atmost_enc2.clauses)\n    top_id = atmost_enc2.nv + 1\n\n# Girth >= 7: no cycles of length 3, 4, 5, or 6\n# No triangle: for all triples (a,b,c), not (a-b AND b-c AND a-c)\nfrom itertools import combinations\n\n# No 3-cycles\nfor a,b,c in combinations(range(n), 3):\n    e1 = edge_idx[(min(a,b),max(a,b))]\n    e2 = edge_idx[(min(b,c),max(b,c))]\n    e3 = edge_idx[(min(a,c),max(a,c))]\n    cnf.append([-e1, -e2, -e3])\n\n# No 4-cycles: for all 4-tuples forming a cycle\nfor a,b,c,d in combinations(range(n), 4):\n    # All possible 4-cycles on these 4 vertices\n    for cycle in [(a,b,c,d),(a,b,d,c),(a,c,b,d)]:\n        x,y,z,w = cycle\n        e1 = edge_idx[(min(x,y),max(x,y))]\n        e2 = edge_idx[(min(y,z),max(y,z))]\n        e3 = edge_idx[(min(z,w),max(z,w))]\n        e4 = edge_idx[(min(w,x),max(w,x))]\n        cnf.append([-e1,-e2,-e3,-e4])\n\n# No 5-cycles\nfor verts in combinations(range(n), 5):\n    from itertools import permutations\n    seen = set()\n    for perm in permutations(verts):\n        # Canonical form of cycle\n        min_idx = perm.index(min(perm))\n        rotated = perm[min_idx:] + perm[:min_idx]\n        if rotated[1] > rotated[-1]:\n            rotated = (rotated[0],) + rotated[1:][::-1]\n        if rotated in seen:\n            continue\n        seen.add(rotated)\n        a,b,c,d,e = rotated\n        e1 = edge_idx[(min(a,b),max(a,b))]\n        e2 = edge_idx[(min(b,c),max(b,c))]\n        e3 = edge_idx[(min(c,d),max(c,d))]\n        e4 = edge_idx[(min(d,e),max(d,e))]\n        e5 = edge_idx[(min(e,a),max(e,a))]\n        cnf.append([-e1,-e2,-e3,-e4,-e5])\n\n# No 6-cycles\nfor verts in combinations(range(n), 6):\n    from itertools import permutations\n    seen = set()\n    for perm in permutations(verts):\n        min_idx = perm.index(min(perm))\n        rotated = perm[min_idx:] + perm[:min_idx]\n        if rotated[1] > rotated[-1]:\n            rotated = (rotated[0],) + rotated[1:][::-1]\n        if rotated in seen:\n            continue\n        seen.add(rotated)\n        a,b,c,d,e,f = rotated\n        e1 = edge_idx[(min(a,b),max(a,b))]\n        e2 = edge_idx[(min(b,c),max(b,c))]\n        e3 = edge_idx[(min(c,d),max(c,d))]\n        e4 = edge_idx[(min(d,e),max(d,e))]\n        e5 = edge_idx[(min(e,f),max(e,f))]\n        e6 = edge_idx[(min(f,a),max(f,a))]\n        cnf.append([-e1,-e2,-e3,-e4,-e5,-e6])\n\nprint(f\"CNF has {cnf.nv} variables and {len(cnf.clauses)} clauses\")\n\nwith Solver(name='g4', bootstrap_with=cnf) as solver:\n    result = solver.solve()\n    print(f\"SAT result: {result}\")\n    if result:\n        model = solver.get_model()\n        solution_edges = [edges_all[i] for i, e in enumerate(edges_all) if model[edge_idx[e]-1] > 0]\n        print(\"Solution edges:\", solution_edges)\n    else:\n        print(\"UNSATISFIABLE confirmed by SAT solver\")\n"
+      },
+      "ok": true,
+      "latency_ms": 417.41
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

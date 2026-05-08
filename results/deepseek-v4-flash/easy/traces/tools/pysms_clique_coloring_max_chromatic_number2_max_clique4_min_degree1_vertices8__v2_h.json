@@ -1,0 +1,99 @@
+{
+  "problem_name": "pysms_clique_coloring_max_chromatic_number2_max_clique4_min_degree1_vertices8__v2_h",
+  "problem_type": "pysms_clique_coloring",
+  "params": {
+    "max_chromatic_number": 2,
+    "max_clique": 4,
+    "min_degree": 1,
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 13.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 14,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 7.52,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    5,
+    1,
+    4,
+    2,
+    7,
+    3,
+    6
+  ],
+  "reasoning": "The graph with edges (0,5), (1,4), (2,7), (3,6) satisfies all constraints. It is bipartite (chromatic number = 2) with partition A={0,1,2,3} and B={4,5,6,7}. The maximum clique size is 2 (just edges), which is \u2264 4. Every vertex has degree exactly 1 (\u2265 1). The fixed edges (2,7) and (0,5) are included.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 5883,
+  "completion_tokens": 1971,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.0017679,
+  "cost_source": "openrouter",
+  "latency_ms": 214406.20064735413,
+  "tool_dispatch_ms_total": 97.16558456420898,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# We need a bipartite graph with 8 vertices\n# Let's try different bipartitions\n\ndef is_bipartite(edges, n=8):\n    # Check if graph is bipartite using coloring\n    adj = [[] for _ in range(n)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    color = [-1] * n\n    for start in range(n):\n        if color[start] == -1:\n            color[start] = 0\n            stack = [start]\n            while stack:\n                u = stack.pop()\n                for v in adj[u]:\n                    if color[v] == -1:\n                        color[v] = 1 - color[u]\n                        stack.append(v)\n                    elif color[v] == color[u]:\n                        return False, None\n    return True, color\n\ndef max_clique_size(edges, n=8):\n    # Brute force for n=8\n    adj = [[False]*n for _ in range(n)]\n    for u,v in edges:\n        adj[u][v] = adj[v][u] = True\n    \n    max_size = 0\n    for r in range(1, n+1):\n        for combo in itertools.combinations(range(n), r):\n            ok = True\n            for i in range(r):\n                for j in range(i+1, r):\n                    if not adj[combo[i]][combo[j]]:\n                        ok = False\n                        break\n                if not ok:\n                    break\n            if ok:\n                max_size = max(max_size, r)\n    return max_size\n\ndef degrees(edges, n=8):\n    deg = [0]*n\n    for u,v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    return deg\n\n# Fixed edges\nfixed = [(2,7), (0,5)]\n\n# Let's try a simple bipartite graph\n# Partition A = {0,1,2,3}, Partition B = {4,5,6,7}\n\n# We need each vertex to have degree >= 1\n# Let's add edges systematically\n\n# First, include fixed edges\nedges = set(fixed)\n\n# Check which vertices need more edges\ndeg = degrees(list(edges))\nprint(\"Initial degrees:\", deg)\nprint(\"Vertices with degree 0:\", [i for i in range(8) if deg[i] == 0])\n\n# Vertices with degree 0: 1, 3, 4, 6\n# Let's add edges to connect them\n\n# Partition A = {0,1,2,3}, Partition B = {4,5,6,7}\n# Add edges between A and B\n\ncandidates = []\nfor a in [0,1,2,3]:\n    for b in [4,5,6,7]:\n        if (a,b) not in edges and (b,a) not in edges:\n            candidates.append((a,b))\n\nprint(\"Possible edges:\", candidates)\n\n# Let's try to find a solution\nfrom itertools import combinations\n\n# We need to add edges to cover vertices 1,3,4,6\n# 1 needs an edge to B\n# 3 needs an edge to B\n# 4 needs an edge to A\n# 6 needs an edge to A\n\n# Let's try: (1,4), (3,6) - this covers all four\ntest_edges = set(fixed)\ntest_edges.add((1,4))\ntest_edges.add((3,6))\n\ndeg = degrees(list(test_edges))\nprint(\"Test degrees:\", deg)\nprint(\"All >= 1?\", all(d >= 1 for d in deg))\n\nbip, col = is_bipartite(list(test_edges))\nprint(\"Bipartite:\", bip)\nprint(\"Max clique:\", max_clique_size(list(test_edges)))"
+      },
+      "ok": true,
+      "latency_ms": 33.89
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(2,7), (0,5), (1,4), (3,6)]\nprint(\"Edges:\", edges)\nprint(\"Sorted:\", sorted(edges))\n\n# Verify all constraints\nfrom collections import defaultdict\nadj = defaultdict(set)\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\nprint(\"\\nDegrees:\")\nfor v in range(8):\n    print(f\"  Vertex {v}: degree {len(adj[v])}\")\n\nprint(\"\\nAll degrees >= 1:\", all(len(adj[v]) >= 1 for v in range(8)))\n\n# Check bipartite\ncolor = [-1]*8\ndef dfs(u, c):\n    color[u] = c\n    for v in adj[u]:\n        if color[v] == -1:\n            if not dfs(v, 1-c):\n                return False\n        elif color[v] == c:\n            return False\n    return True\n\nbip = True\nfor v in range(8):\n    if color[v] == -1:\n        if not dfs(v, 0):\n            bip = False\n            break\nprint(\"Bipartite:\", bip)\nprint(\"Colors:\", color)\n\n# Max clique\nimport itertools\nn=8\nadj_mat = [[False]*n for _ in range(n)]\nfor u,v in edges:\n    adj_mat[u][v] = adj_mat[v][u] = True\n\nmax_clique = 0\nfor r in range(1, n+1):\n    for combo in itertools.combinations(range(n), r):\n        ok = True\n        for i in range(r):\n            for j in range(i+1, r):\n                if not adj_mat[combo[i]][combo[j]]:\n                    ok = False\n                    break\n            if not ok:\n                break\n        if ok:\n            max_clique = max(max_clique, r)\nprint(\"Max clique size:\", max_clique)\nprint(\"Max clique <= 4:\", max_clique <= 4)"
+      },
+      "ok": true,
+      "latency_ms": 63.28
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          5,
+          1,
+          4,
+          2,
+          7,
+          3,
+          6
+        ],
+        "reasoning": "The graph with edges (0,5), (1,4), (2,7), (3,6) satisfies all constraints. It is bipartite (chromatic number = 2) with partition A={0,1,2,3} and B={4,5,6,7}. The maximum clique size is 2 (just edges), which is \u2264 4. Every vertex has degree exactly 1 (\u2265 1). The fixed edges (2,7) and (0,5) are included."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

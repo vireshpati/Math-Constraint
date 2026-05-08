@@ -1,0 +1,81 @@
+{
+  "problem_name": "pysms_chromatic_girth_max_chromatic_number5_min_edges16_min_girth5_vertices14__v11_nh",
+  "problem_type": "pysms_chromatic_girth",
+  "params": {
+    "max_chromatic_number": 5,
+    "min_edges": 16,
+    "min_girth": 5,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 99.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 21,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 40.41,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": null,
+  "reasoning": "Found a valid graph with 14 vertices, 16 edges, girth 5, and 5-colorable. The edges are: [(0, 1), (0, 4), (0, 13), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (7, 11), (8, 9), (9, 10), (10, 11), (11, 12), (12, 13)]. This is essentially a 14-cycle with two additional chords (0,4) and (7,11) that create 5-cycles but no triangles or 4-cycles. The graph is 5-colorable (verified by backtracking).",
+  "raw_response": null,
+  "cot_trace": "We need to generate a graph with n=14 vertices, chromatic number at most 5 (i.e., 5-colorable), girth at least 5 (no cycles of length 3 or 4), and at least 16 edges. We need to return the graph as a list of edges (u,v) with 0 <= u < v < 14, or state \"UNSATISFIABLE\" if no graph exists.\n\nWe need to determine if such a graph exists. Likely yes. We need to find one. We can use Python to search or construct manually.\n\nGirth at least 5 means no triangles (C3) and no 4-cycles (C4). So the graph is C3-free and C4-free. It can have cycles of length >=5.\n\nWe need at least 16 edges. 14 vertices, girth >=5. There are known extremal results: ex(n, {C3,C4}) maximum edges in an n-vertex graph with girth >=5. For n=14, the maximum edges is known? The extremal number ex(n, C3, C4) for n=14? Let's think.\n\nGraphs of girth >=5 are bipartite? No, odd cycles of length >=5 are allowed, so not necessarily bipartite. But no triangles or 4-cycles.\n\nWe can try to construct a graph with 14 vertices, girth >=5, and many edges, then check 5-colorability. Since 5-colorability is easy (chromatic number <=5). Actually, any graph with max degree <=4 is 5-colorable? No, Brooks theorem says chromatic number <= max degree unless complete or odd cycle. But we just need 5-colorable, which is true for any graph that doesn't contain K_6 minor? No, 5-colorable means chi <=5. Could be high but unlikely for small n. We need at least 16 edges. 16 edges on 14 vertices is not huge.\n\nWe can try to construct a graph manually: maybe take a cycle C14 (length 14) which has girth 14, 14 edges, 2-colorable. That already satisfies all constraints: 14 edges >=16? No, 14 < 16. So need at least 16 edges. So add two more edges to C14 without creating C3 or C4.\n\nC14 vertices 0-13 in a cycle: edges (i, i+1 mod 14). That's 14 edges. Add chords? Need to avoid creating triangles or 4-cycles.\n\nIf we add a chord between vertices distance 2 apart (like 0-2), that creates a triangle 0-1-2-0? Actually edges: 0-1,1-2,2-0 => triangle. So distance 2 is bad.\n\nDistance 3: vertices 0 and 3. Paths of length 3 along cycle: 0-1-2-3. Adding 0-3 creates a 4-cycle 0-1-2-3-0 (length 4). So distance 3 creates C4.\n\nDistance 4: vertices 0 and 4. Paths: 0-1-2-3-4 (length 4). Adding 0-4 creates a 5-cycle 0-1-2-3-4-0. That is okay, girth at least 5, and we get a 5-cycle. But does it create any other shorter cycle? Could there be a shorter path between 0 and 4 other than the two along the cycle? In C14, no. So adding chord of distance >=4 should be okay regarding creating cycles solely with the outer cycle. However, multiple chords could interact to create C3 or C4.\n\nSo start with C14 (girth 14). Add two chords of distance >=4, ensuring no new short cycles formed by combinations of chords.\n\nLet's try chords (0,4) and (7,11). These are distance 4 each. Add them. Total edges = 16. Check for triangles and 4-cycles. Let's test with Python. Also check 5-colorability (should be fine). Let's do that.\n---\nThe code generated a 14-cycle with 2 extra edges: (0,4) and (7,11). Let me verify this manually.\n\nVertices: 0-13\nCycle edges: (0,1), (1,2), (2,3), (3,4), (4,5), (5,6), (6,7), (7,8), (8,9), (9,10), (10,11), (11,12), (12,13), (0,13)\nExtra edges: (0,4), (7,11)\n\nWait, the cycle edges include (0,13) and (0,1), so it's a cycle 0-1-2-3-4-5-6-7-8-9-10-11-12-13-0.\n\nAdding (0,4): creates cycle 0-1-2-3-4-0 of length 5. Good.\nAdding (7,11): creates cycle 7-8-9-10-11-7 of length 5. Good.\n\nAre there any shorter cycles?\n- (0,4) with path 0-13-12-11-10-9-8-7-6-5-4: length 12\n- (7,11) with path 7-6-5-4-3-2-1-0-13-12-11: length 12\n- Any other cycle involving both chords? Let's see: 0-4 and 7-11 don't interact much.\n\nThe girth should be 5. Let me double check by running a more careful check.\n---\nThe graph I found has:\n- 14 vertices\n- 16 edges\n- Girth at least 5 (minimum cycle length is 5)\n- 5-colorable\n\nLet me double-check the edges and make sure they satisfy 0 <= u < v < 14.\n\nEdges: [(0, 1), (0, 4), (0, 13), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (7, 11), (8, 9), (9, 10), (10, 11), (11, 12), (12, 13)]\n\nAll edges have u < v and all vertices are in range [0, 13].\n\nThis is a valid solution. Let me submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Claimed SAT but no solution provided",
+  "prompt_tokens": 3579,
+  "completion_tokens": 2743,
+  "reasoning_tokens": 1084,
+  "cached_tokens": 576,
+  "cost_usd": 0.01379021,
+  "cost_source": "openrouter",
+  "latency_ms": 276111.0589504242,
+  "tool_dispatch_ms_total": 92.65851974487305,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef check_graph(edges, n=14):\n    # adjacency list\n    adj = [set() for _ in range(n)]\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # check girth at least 5\n    # BFS from each vertex to find shortest cycle\n    for start in range(n):\n        dist = [-1]*n\n        parent = [-1]*n\n        dist[start] = 0\n        q = [start]\n        for u in q:\n            for v in adj[u]:\n                if dist[v] == -1:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    q.append(v)\n                elif parent[u] != v and parent[v] != u:\n                    # found a cycle\n                    # length = dist[u] + dist[v] + 1\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len < 5:\n                        return False, f\"cycle length {cycle_len} found\"\n    # check 5-colorable via brute force (14 vertices, 5^14 is huge but we can use backtracking)\n    colors = [-1]*n\n    order = sorted(range(n), key=lambda x: len(adj[x]), reverse=True)\n    \n    def dfs(idx):\n        if idx == n:\n            return True\n        u = order[idx]\n        used = set()\n        for v in adj[u]:\n            if colors[v] != -1:\n                used.add(colors[v])\n        for c in range(5):\n            if c not in used:\n                colors[u] = c\n                if dfs(idx+1):\n                    return True\n                colors[u] = -1\n        return False\n    \n    colorable = dfs(0)\n    return True, \"girth ok\", colorable\n\nn=14\ncycle_edges = [(i, (i+1)%n) for i in range(n)]\n# make u<v\ncycle_edges = [(min(u,v), max(u,v)) for u,v in cycle_edges]\n\nextra = [(0,4), (7,11)]\nedges = list(set(cycle_edges + extra))\nprint(len(edges))\nprint(edges)\nprint(check_graph(edges))\n"
+      },
+      "ok": true,
+      "latency_ms": 48.72
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def verify_girth(edges, n=14):\n    adj = [set() for _ in range(n)]\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # BFS from each vertex to find shortest cycle\n    min_cycle = float('inf')\n    for start in range(n):\n        dist = [-1]*n\n        parent = [-1]*n\n        dist[start] = 0\n        q = [start]\n        for u in q:\n            for v in adj[u]:\n                if dist[v] == -1:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    q.append(v)\n                elif parent[u] != v:\n                    # found a cycle\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n                        print(f\"Found cycle length {cycle_len} from {start}: {u}-{v}\")\n    return min_cycle\n\nn=14\ncycle_edges = [(i, (i+1)%n) for i in range(n)]\ncycle_edges = [(min(u,v), max(u,v)) for u,v in cycle_edges]\nextra = [(0,4), (7,11)]\nedges = list(set(cycle_edges + extra))\nprint(\"Edges:\", sorted(edges))\nprint(\"Num edges:\", len(edges))\nprint(\"Min cycle length:\", verify_girth(edges))\n\n# Also verify 5-colorable\ncolors = [-1]*n\norder = sorted(range(n), key=lambda x: len([1 for u,v in edges if u==x or v==x]), reverse=True)\nprint(\"Order:\", order)\n\ndef dfs(idx):\n    if idx == n:\n        return True\n    u = order[idx]\n    used = set()\n    for v in adj[u]:\n        if colors[v] != -1:\n            used.add(colors[v])\n    for c in range(5):\n        if c not in used:\n            colors[u] = c\n            if dfs(idx+1):\n                return True\n            colors[u] = -1\n    return False\n\nadj = [set() for _ in range(n)]\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\nprint(\"5-colorable:\", dfs(0))\nprint(\"Colors:\", colors)\n"
+      },
+      "ok": true,
+      "latency_ms": 43.94
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": null,
+        "reasoning": "Found a valid graph with 14 vertices, 16 edges, girth 5, and 5-colorable. The edges are: [(0, 1), (0, 4), (0, 13), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 7), (7, 8), (7, 11), (8, 9), (9, 10), (10, 11), (11, 12), (12, 13)]. This is essentially a 14-cycle with two additional chords (0,4) and (7,11) that create 5-cycles but no triangles or 4-cycles. The graph is 5-colorable (verified by backtracking)."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

@@ -1,0 +1,135 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree5_min_degree2_min_girth4_vertices15__v6_h",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 2,
+    "min_girth": 4,
+    "vertices": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 96.9,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 31,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 38.16,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-oss-120b:free",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      13
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      12
+    ],
+    [
+      3,
+      10
+    ],
+    [
+      3,
+      12
+    ],
+    [
+      3,
+      13
+    ],
+    [
+      4,
+      8
+    ],
+    [
+      4,
+      11
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      6,
+      9
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      10,
+      14
+    ],
+    [
+      11,
+      14
+    ],
+    [
+      12,
+      13
+    ],
+    [
+      13,
+      3
+    ],
+    [
+      13,
+      0
+    ],
+    [
+      14,
+      10
+    ]
+  ],
+  "reasoning": "A 15\u2011vertex graph was built as a 15\u2011cycle that includes all required edges, and an extra edge (3,10) gives vertex 3 degree 3. No triangles are created, so the girth is at least 4, and every vertex has degree between 2 and 5.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [\n        [0,1],\n        [0,13],\n        [1,10],\n        [2,5],\n        [2,12],\n        [3,10],\n        [3,12],\n        [3,13],\n        [4,8],\n        [4,11],\n        [5,6],\n        [6,9],\n        [7,8],\n        [7,9],\n        [10,14],\n        [11,14],\n        [12,13],\n        [13,3],\n        [13,0],\n        [14,10]\n    ],\n    \"reasoning\": \"A 15\u2011vertex graph was built as a 15\u2011cycle that includes all required edges, and an extra edge (3,10) gives vertex 3 degree 3. No triangles are created, so the girth is at least 4, and every vertex has degree between 2 and 5.\"\n}",
+  "cot_trace": "We need to find any graph meeting constraints. Likely exists. Provide edges list. Quick construct: start with cycle of length 5? Need girth >=4 so no triangles. Build simple 4-regular-ish. I'll craft edges manually ensuring no triangles.\n\nLet's make base: use cycle of length 15 gives girth 15 >=4, degree 2 each. Add extra edges to increase degrees up to 5 but avoid triangles. We have some fixed edges, must ensure no triangle with them.\n\nFixed edges: (2,12), (3,10), (6,9), (3,13), (3,12), (0,13).\n\nCheck triangles: need to avoid any third edge that creates triangle with these. So avoid edges (2,3), (12,3) already present (3,12) is fixed, so triangle would need (2,3) or (2,12) already there, but (2,12) exists, so triangle would be (2,3) would create triangle 2-12-3? Actually edges: 2-12, 3-12, 2-3 would be triangle. So must not add (2,3). Also avoid (10,3) already fixed, need avoid (10,?) that together with others? triangle with (3,10) and (3,12) would need (10,12) not add. Also (3,13) fixed, avoid (10,13) etc.\n\nWe'll just keep degree 2 maybe enough. All vertices degree between 2 and5, degree 2 is okay. So just need a 2-regular graph (disjoint cycles) with girth >=4, i.e., no 3-cycles. A cycle of length >=4 works. We have 15 vertices, we can make one 5-cycle and one 10-cycle etc. Ensure fixed edges belong to those cycles.\n\nLet's construct cycles: We'll create a single 15-cycle that includes all fixed edges. Need order of vertices around cycle such that edges are consecutive. Let's attempt sequence:\n\n0-13 (fixed)\n13-3 (fixed)\n3-12 (fixed)\n12-2 (fixed)\n2-? need continue not create triangle. choose 5.\n5-? continue eventually to 10 etc. also need edge 3-10 fixed, but 3 already has neighbors 13 and12 in cycle, can't have third neighbor because degree 2. So we cannot include (3,10) as cycle edge if degree 2 already used. So need degree >2 for vertex 3. But degree must be at least 2, can be up to5. So we can give vertex 3 extra edges beyond cycle. That's okay as long as no triangles.\n\nSo make base cycle using fixed edges as part of it: 0-13-3-12-2-5-6-9-... need include (6,9) fixed, good. Also need (3,10) extra edge, (3,13) already used, (3,12) used, (3,10) extra.\n\nLet's design cycle: 0-13-3-12-2-5-6-9-7-8-4-11-14-10-1-0 (that's 15 vertices? count: 0,13,3,12,2,5,6,9,7,8,4,11,14,10,1 =15). Edges are consecutive pairs plus closing 1-0.\n\nCheck fixed edges present: (0,13) yes consecutive. (3,13) yes consecutive? In cycle we have 13-3 edge, good. (3,12) yes consecutive 3-12, good. (2,12) we have 12-2 edge, good. (6,9) consecutive 6-9, good. (3,10) not in cycle; we will add extra edge (3,10). Ensure no triangle: need to check neighbors of 3 are 13,12,10. Are 13-12 edge? No (13,12) not in cycle. 13-10? not. 12-10? not. So no triangle.\n\nNow ensure degree constraints: vertices in cycle have degree 2, except 3 will have degree 3 (extra edge). That's within 2-5. All good.\n\nNow list all edges: cycle edges list:\n\n(0,13)\n(13,3)\n(3,12)\n(12,2)\n(2,5)\n(5,6)\n(6,9)\n(9,7)\n(7,8)\n(8,4)\n(4,11)\n(11,14)\n(14,10)\n(10,1)\n(1,0)\n\nAdd extra edge (3,10).\n\nCheck any triangle formed with extra edge: need edges between 3 and 10 neighbors: 3's neighbors 13,12,10. 10's neighbors in cycle are 14 and1 plus 3. Edges (13,10) none, (12,10) none, (14,3) none, (1,3) none. So no triangle.\n\nThus solution.\n\nReturn list sorted maybe any order.\n\n",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Duplicate edges found",
+  "prompt_tokens": 335,
+  "completion_tokens": 1315,
+  "reasoning_tokens": 877,
+  "cached_tokens": 208,
+  "cost_usd": 0.0,
+  "cost_source": "openrouter",
+  "latency_ms": 42425.60172080994,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

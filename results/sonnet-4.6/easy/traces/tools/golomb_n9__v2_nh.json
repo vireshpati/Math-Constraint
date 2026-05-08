@@ -1,0 +1,122 @@
+{
+  "problem_name": "golomb_n9__v2_nh",
+  "problem_type": "golomb",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 4578.6,
+    "search_space": 167619550409708032,
+    "num_variables": 9,
+    "num_constraints": 5,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 97.18,
+    "solve_pct_type": 75.0
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    5,
+    12,
+    25,
+    27,
+    35,
+    41,
+    44
+  ],
+  "reasoning": "A valid 9-mark Golomb ruler exists: [0, 1, 5, 12, 25, 27, 35, 41, 44]. This is the known optimal 9-mark Golomb ruler with length 44. It has C(9,2) = 36 pairwise differences, all of which are distinct (covering values 1\u201344 with some gaps). Every pair of marks produces a unique distance, satisfying the Golomb ruler property.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 16425,
+  "completion_tokens": 2048,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.07999499999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 30769.875288009644,
+  "tool_dispatch_ms_total": 222.3365306854248,
+  "tool_calls_made": 6,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's find a Golomb ruler with 9 marks\n# A Golomb ruler has all pairwise distances unique\n# Known optimal 9-mark Golomb ruler has length 44\n\n# First, let's try with a known result, then verify it\n# The optimal 9-mark Golomb ruler is: 0, 1, 5, 11, 13, 22, 23, 28, 44 (length 44)\n# Let's verify this\n\ndef verify_golomb(marks):\n    marks = sorted(marks)\n    distances = []\n    for i in range(len(marks)):\n        for j in range(i+1, len(marks)):\n            d = marks[j] - marks[i]\n            distances.append(d)\n    return len(distances) == len(set(distances)), distances\n\n# Known 9-mark Golomb ruler\ncandidate = [0, 1, 5, 11, 13, 22, 23, 28, 44]\nvalid, dists = verify_golomb(candidate)\nprint(f\"Candidate: {candidate}\")\nprint(f\"Valid Golomb ruler: {valid}\")\nprint(f\"Number of distances: {len(dists)}\")\nprint(f\"All distances unique: {len(dists) == len(set(dists))}\")\nprint(f\"Distances: {sorted(dists)}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 47.72
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let me look up the correct known Golomb rulers and verify them\n# Known perfect/optimal Golomb rulers:\n# Order 9: 0 1 5 11 13 22 23 28 44  -- let me recheck\n\n# Actually the correct optimal 9-mark Golomb ruler is:\ncandidates_9 = [\n    [0, 1, 5, 11, 13, 22, 23, 28, 44],\n    [0, 1, 5, 11, 22, 23, 28, 33, 44],  # another candidate\n    [0, 1, 5, 11, 13, 22, 23, 28, 44],\n    [0, 1, 5, 12, 25, 27, 35, 41, 44],  # from literature\n]\n\nfor c in candidates_9:\n    valid, dists = verify_golomb(c)\n    print(f\"{c}: valid={valid}, unique_dists={len(set(dists))}/{len(dists)}\")\n"
+      },
+      "ok": false,
+      "latency_ms": 34.2
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef verify_golomb(marks):\n    marks = sorted(marks)\n    distances = []\n    for i in range(len(marks)):\n        for j in range(i+1, len(marks)):\n            d = marks[j] - marks[i]\n            distances.append(d)\n    return len(distances) == len(set(distances)), distances\n\n# Known 9-mark Golomb rulers from literature\ncandidates_9 = [\n    [0, 1, 5, 11, 13, 22, 23, 28, 44],\n    [0, 1, 5, 12, 25, 27, 35, 41, 44],\n    [0, 1, 5, 11, 22, 23, 28, 33, 44],\n    [0, 1, 5, 11, 13, 22, 23, 28, 44],\n    [0, 1, 5, 11, 22, 23, 28, 33, 44],\n    [0, 1, 5, 11, 13, 22, 23, 28, 44],\n    # Correct optimal from OGR project: \n    [0, 1, 5, 11, 13, 22, 23, 28, 44],  # length 44\n]\n\nfor c in candidates_9:\n    valid, dists = verify_golomb(c)\n    print(f\"{c}: valid={valid}\")\n    if not valid:\n        from collections import Counter\n        cnt = Counter(dists)\n        dups = {k:v for k,v in cnt.items() if v > 1}\n        print(f\"  Duplicate distances: {dups}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 54.82
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Great! [0, 1, 5, 12, 25, 27, 35, 41, 44] is valid!\n# Let's fully verify it\n\ndef verify_golomb(marks):\n    marks = sorted(marks)\n    distances = []\n    for i in range(len(marks)):\n        for j in range(i+1, len(marks)):\n            d = marks[j] - marks[i]\n            distances.append(d)\n    return len(distances) == len(set(distances)), distances\n\nsolution = [0, 1, 5, 12, 25, 27, 35, 41, 44]\nvalid, dists = verify_golomb(solution)\nprint(f\"Solution: {solution}\")\nprint(f\"Number of marks: {len(solution)}\")\nprint(f\"Valid Golomb ruler: {valid}\")\nprint(f\"Number of pairwise distances: {len(dists)} (expected {9*8//2} = 36)\")\nprint(f\"All distances unique: {len(dists) == len(set(dists))}\")\nprint(f\"Length (max - min): {max(solution) - min(solution)}\")\nprint(f\"Sorted distances: {sorted(dists)}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 52.35
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Final confirmation with detailed output\nsolution = [0, 1, 5, 12, 25, 27, 35, 41, 44]\nprint(\"=\" * 50)\nprint(f\"9-mark Golomb Ruler: {solution}\")\nprint(\"=\" * 50)\nprint(f\"\\nAll 36 pairwise distances (all unique):\")\ndists = {}\nfor i in range(len(solution)):\n    for j in range(i+1, len(solution)):\n        d = solution[j] - solution[i]\n        dists[(solution[i], solution[j])] = d\n\nfor pair, d in sorted(dists.items(), key=lambda x: x[1]):\n    print(f\"  {pair[1]} - {pair[0]} = {d}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.24
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          5,
+          12,
+          25,
+          27,
+          35,
+          41,
+          44
+        ],
+        "reasoning": "A valid 9-mark Golomb ruler exists: [0, 1, 5, 12, 25, 27, 35, 41, 44]. This is the known optimal 9-mark Golomb ruler with length 44. It has C(9,2) = 36 pairwise differences, all of which are distinct (covering values 1\u201344 with some gaps). Every pair of marks produces a unique distance, satisfying the Golomb ruler property."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

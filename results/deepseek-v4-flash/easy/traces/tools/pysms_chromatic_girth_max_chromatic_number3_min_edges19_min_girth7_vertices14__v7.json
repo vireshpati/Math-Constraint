@@ -1,0 +1,127 @@
+{
+  "problem_name": "pysms_chromatic_girth_max_chromatic_number3_min_edges19_min_girth7_vertices14__v7",
+  "problem_type": "pysms_chromatic_girth",
+  "params": {
+    "max_chromatic_number": 3,
+    "min_edges": 19,
+    "min_girth": 7,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 1766.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": -1,
+    "backend": "pysms",
+    "solve_tier": "hard",
+    "solve_pct_global": 89.66,
+    "solve_pct_type": 95.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": "Let me think about this more carefully. The 14-cycle with chords approach is limited because chords at distance 7 create short cycles when too close together. Let me try a SAT-based approach to search for a graph.\n\n",
+  "cot_trace": "Let me analyze this more carefully. The 4-cycle found is 0-13-6-7-0. Let me trace:\n- 0-13: cycle edge (13-0)\n- 13-6: chord (6,13)\n- 6-7: cycle edge (6-7)\n- 7-0: chord (0,7)\n\nSo chords at 0 and 6 (distance 6 apart) create a 4-cycle. Indeed, |0-6| = 6, and 2*min(6, 7-6)+2 = 2*1+2 = 4.\n\nSo with chords at 0, 3, 6: chords 0 and 6 are distance 6 apart (or equivalently 1 apart going the other way), creating a 4-cycle.\n\nSo the constraint is: for any two selected chords i and j, we need min(|i-j|, 7-|i-j|) \u2265 3. In other words, |i-j| \u2208 {3, 4}.\n\nSo we need to select a subset of {0,1,2,3,4,5,6} such that all pairwise distances are 3 or 4.\n\nLet me think about this. If I select 0, then I can select 3 or 4 (since |0-3|=3, |0-4|=4). If I select 0 and 3, then I can also select 6? |3-6|=3, |0-6|=6 which is not 3 or 4. So no.\n\nIf I select 0 and 4, then I can select 1? |0-1|=1 no. |4-1|=3 yes. So 0, 4, 1 works? |0-1|=1 no.\n\nSo the maximum size of a subset where all pairwise distances are 3 or 4... Let me think.\n\nActually, the condition is that for any two selected chords i and j, the distance along the 7-cycle (the smaller of |i-j| and 7-|i-j|) must be 3. Because distance 4 is the same as distance 3 (since 7-4=3).\n\nWait, |i-j| = 4 means the smaller distance is min(4, 3) = 3. So the condition is that the chord distance (mod 7) is exactly 3.\n\nSo we need a subset of {0,...,6} where all pairs are at distance exactly 3 (mod 7). This means we can only have at most 2 chords! Because if we have 3 chords, by pigeonhole principle, two of them would be at distance < 3 or > 4.\n\nWait, let me check: {0, 3} works (distance 3). {0, 4} works (distance 4, which is same as 3 mod 7). Can we have {0, 3, 6}? |0-3|=3, |3-6|=3, |0-6|=6 which is distance 1 mod 7. So no.\n\nCan we have {0, 3, ?}? If we add 1: |0-1|=1 no. If we add 2: |0-2|=2 no. If we add 4: |3-4|=1 no. If we add 5: |0-5|=2 no. If we add 6: |0-6|=1 no. So {0, 3} is maximal.\n\nSimilarly {0, 4} is maximal (can't add any other).\n\nSo with the 14-cycle, we can add at most 2 chords at distance 7, giving at most 16 edges. But we need at least 19 edges!\n\nSo the 14-cycle approach won't work. I need a different graph structure.\n\nLet me think about other graphs with girth \u2265 7 on 14 vertices.\n\nActually, wait. I was assuming the graph must contain a Hamiltonian cycle (a 14-cycle). But that's not necessary. The graph could have a different structure.\n\nLet me think about what graphs with girth \u2265 7 on 14 vertices look like.\n\nThe Moore bound for girth 7 and minimum degree \u03b4:\n- If \u03b4 = 2: 1 + 2 + 2*1 + 2*1^2 + 2*1^3 = 1+2+2+2+2 = 9 vertices minimum\n- If \u03b4 = 3: 1 + 3 + 3*2 + 3*2^2 + 3*2^3 = 1+3+6+12+24 = 46 vertices minimum\n\nSo with 14 vertices, the maximum degree is limited. Let me think about the maximum number of edges.\n\nFor a graph with girth 2k+1 = 7 (k=3), the extremal number ex(n, C_3, C_4, C_5, C_6) is bounded.\n\nActually, let me try a different approach. Let me use a SAT solver to find such a graph.\n\nActually, let me think about this differently. Maybe I should try to construct a graph that is not based on a single cycle.\n\nOne approach: take a bipartite graph with parts of size 7 each. Since it's bipartite, it's 2-colorable. The girth of a bipartite graph is always even, so we need girth \u2265 8 (since 7 is odd, the girth must be even in a bipartite graph, so girth \u2265 8).\n\nWait, the problem says girth \u2265 7, which means no cycles of length 3, 4, 5, or 6. In a bipartite graph, there are no odd cycles, so we need no cycles of length 4 or 6. So girth \u2265 8.\n\nA complete bipartite graph K_{7,7} has 49 edges but girth 4 (many 4-cycles).\n\nI need a bipartite graph with parts of size 7, girth \u2265 8, and at least 19 edges.\n\nThis is like finding a bipartite graph with no 4-cycles or 6-cycles. This is related to the Zarankiewicz problem.\n\nFor a bipartite graph with parts of size 7, the maximum number of edges with no 4-cycles is... well, K_{3,3} has girth 4 (it has 4-cycles). Actually, K_{3,3} has 9 edges and girth 4 (since it has 4-cycles like a1-b1-a2-b2-a1).\n\nA bipartite graph with girth \u2265 8 on 14 vertices... Let me think about incidence graphs of finite projective planes. The incidence graph of PG(2,2) (Fano plane) has 7+7=14 vertices, girth 6 (since the Fano plane has triangles, the incidence graph has 6-cycles). So that doesn't work.\n\nWhat about the incidence graph of a generalized quadrangle? Or a bipartite graph with no 4-cycles?\n\nActually, let me try a computational approach. Let me use SAT to search for such a graph.\n\nLet me encode:\n- 14 vertices\n- Variables for each possible edge\n- Constraint: at least 19 edges\n- Constraint: 3-colorable (this is automatically satisfied if bipartite, but let me encode it)\n- Constraint: no cycles of length 3, 4, 5, or 6\n\nFor the no-cycle constraints, I need to forbid all subsets of edges that form a cycle of length \u2264 6. This is a lot of constraints but manageable.\n\nLet me try this.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 39525,
+  "completion_tokens": 11524,
+  "reasoning_tokens": 1655,
+  "cached_tokens": 20480,
+  "cost_usd": 0.00646646,
+  "cost_source": "openrouter",
+  "latency_ms": 385626.6624927521,
+  "tool_dispatch_ms_total": 720.1247215270996,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat import CNF\nfrom pysat.solvers import Glucose3\n\n# We have 14 vertices, we want to find edges such that:\n# 1. Graph is 3-colorable\n# 2. Girth >= 7 (no cycles of length 3,4,5,6)\n# 3. At least 19 edges\n\nn = 14\n# Possible edges: all pairs (i,j) with i<j\npossible_edges = [(i,j) for i in range(n) for j in range(i+1,n)]\nm = len(possible_edges)\nprint(f\"Total possible edges: {m}\")\n\n# We'll use a SAT approach.\n# Variables:\n# For each possible edge e (index k), variable x_k = 1 if edge is present\n# For each vertex v and color c (0,1,2), variable c_v_c = 1 if vertex v has color c\n\n# Let's try a different approach: search for graphs with girth >= 7\n\n# First, let's think about what graphs with girth >= 7 on 14 vertices look like.\n# The maximum number of edges in a graph with girth >= 7 on n vertices...\n# For girth 2k+1, there's a bound: e <= n^(1+1/k) + n (for k=3, e <= n^(4/3) + n)\n# n=14, n^(4/3) = 14^(1.333) \u2248 14 * 14^(0.333) \u2248 14 * 2.41 \u2248 33.7\n# So e <= 33.7 + 14 \u2248 48, which is not restrictive.\n\n# But the 3-colorability constraint is restrictive.\n\n# Let me try to construct a graph manually first.\n# A cycle C14 has girth 14, is 2-colorable (bipartite), has 14 edges.\n# We need at least 19 edges, so we need to add 5+ chords to a 14-cycle.\n\n# But adding chords creates shorter cycles. We need to ensure no cycle < 7.\n\n# Let's think about the structure. If we have a 14-cycle (0-1-2-...-13-0),\n# adding a chord (i,j) creates two cycles: one of length j-i (going forward) \n# and one of length 14-(j-i). We need both to be >= 7.\n# So we need |j-i| >= 7 and 14-|j-i| >= 7, meaning |j-i| = 7 exactly.\n# So chords can only connect vertices at distance 7 on the cycle.\n\n# Let's try this approach.",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 33.56
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Check what's available in pysat\nimport pysat\nprint(dir(pysat))\nprint(pysat.__version__ if hasattr(pysat, '__version__') else 'no version')",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 33.43
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's try to use pysat properly\nfrom pysat.formula import CNF\nfrom pysat.solvers import Glucose3\n\nprint(\"pysat works\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 234.88
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify the graph with 14-cycle + all 7 chords\n\nn = 14\nedges = set()\n\n# 14-cycle\nfor i in range(n):\n    edges.add((i, (i+1) % n))\n\n# chords at distance 7\nfor i in range(n):\n    j = (i + 7) % n\n    if i < j:\n        edges.add((i, j))\n\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Edges: {sorted(edges)}\")\n\n# Check girth\nfrom collections import defaultdict, deque\n\nadj = defaultdict(set)\nfor u, v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# BFS from each vertex to find shortest cycle\ndef shortest_cycle(start):\n    dist = {start: 0}\n    parent = {start: -1}\n    q = deque([start])\n    min_cycle = float('inf')\n    \n    while q:\n        v = q.popleft()\n        for u in adj[v]:\n            if u == parent[v]:\n                continue\n            if u in dist:\n                # Found a cycle\n                cycle_len = dist[v] + dist[u] + 1\n                if cycle_len < min_cycle:\n                    min_cycle = cycle_len\n            else:\n                dist[u] = dist[v] + 1\n                parent[u] = v\n                q.append(u)\n    return min_cycle\n\nmin_girth = float('inf')\nfor v in range(n):\n    g = shortest_cycle(v)\n    if g < min_girth:\n        min_girth = g\n\nprint(f\"Girth: {min_girth}\")\n\n# Check 3-colorability (bipartite check)\ncolors = {}\ndef dfs(v, c):\n    colors[v] = c\n    for u in adj[v]:\n        if u in colors:\n            if colors[u] == c:\n                return False\n        else:\n            if not dfs(u, 1-c):\n                return False\n    return True\n\nis_bipartite = dfs(0, 0)\nprint(f\"Is bipartite (2-colorable): {is_bipartite}\")\nprint(f\"Colors: {colors}\")\n\n# So it's satisfiable\nprint(f\"\\nSatisfiable: True\")\nprint(f\"Solution (edges): {sorted(edges)}\")\nprint(f\"Number of edges: {len(edges)}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 53.69
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "n = 14\nedges = set()\nfor i in range(n):\n    edges.add((i, (i+1) % n))\nfor i in range(n):\n    j = (i + 7) % n\n    if i < j:\n        edges.add((i, j))\n\nadj = defaultdict(set)\nfor u, v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# Find all 4-cycles\nfrom itertools import combinations\n\nfor v in range(n):\n    neighbors = list(adj[v])\n    for u1, u2 in combinations(neighbors, 2):\n        if u1 < u2 and u2 in adj[u1]:\n            # Found a triangle? No, u1 and u2 are both neighbors of v, and u1-u2 is an edge\n            # That's a 3-cycle (triangle): v-u1-u2-v\n            print(f\"Triangle: {v}-{u1}-{u2}-{v}\")\n        # For 4-cycle, we need v-u1-w-u2-v where w is a common neighbor of u1 and u2 other than v\n        common = adj[u1] & adj[u2] - {v}\n        for w in common:\n            if w > v:  # avoid duplicates\n                print(f\"4-cycle: {v}-{u1}-{w}-{u2}-{v}\")\n\n# Let me look at the structure more carefully\nprint(\"\\nAdjacency:\")\nfor v in range(n):\n    print(f\"{v}: {sorted(adj[v])}\")",
+        "timeout_seconds": 10
+      },
+      "ok": false,
+      "latency_ms": 32.61
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from collections import defaultdict\nfrom itertools import combinations\n\nn = 14\nedges = set()\nfor i in range(n):\n    edges.add((i, (i+1) % n))\nfor i in range(n):\n    j = (i + 7) % n\n    if i < j:\n        edges.add((i, j))\n\nadj = defaultdict(set)\nfor u, v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# Find all short cycles\nfor v in range(n):\n    neighbors = list(adj[v])\n    for u1, u2 in combinations(neighbors, 2):\n        if u2 in adj[u1]:\n            print(f\"Triangle: {v}-{u1}-{u2}-{v}\")\n        common = adj[u1] & adj[u2] - {v}\n        for w in common:\n            if w > v:\n                print(f\"4-cycle: {v}-{u1}-{w}-{u2}-{v}\")\n\nprint(\"\\nAdjacency:\")\nfor v in range(n):\n    print(f\"{v}: {sorted(adj[v])}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 52.81
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Glucose3\nfrom itertools import combinations\nfrom collections import defaultdict\n\nn = 14\npossible_edges = [(i,j) for i in range(n) for j in range(i+1,n)]\nm = len(possible_edges)\n\n# We'll encode this as a SAT problem.\n# Variables:\n# For each possible edge (i,j), variable index = edge_var(i,j)\n# For each vertex v and color c in {0,1,2}, variable index = color_var(v,c)\n\ndef edge_var(i, j):\n    if i > j:\n        i, j = j, i\n    return possible_edges.index((i,j)) + 1  # 1-indexed for pysat\n\ndef color_var(v, c):\n    return m + v * 3 + c + 1\n\ntotal_vars = m + n * 3\n\n# Let's try a simpler approach first: enumerate all subsets of the 7 chords\n# and check if they work with the 14-cycle.\n\n# Actually, let me think about this more systematically.\n# We need girth >= 7. Let me try to find a graph by searching.\n\n# First, let's check if there's a known graph: the (3,7)-cage has 24 vertices.\n# The (3,6)-cage (Heawood graph) has 14 vertices, girth 6, is bipartite, has 21 edges.\n# But we need girth >= 7, not 6.\n\n# The (3,7)-cage (McGee graph) has 24 vertices, girth 7, degree 3, 36 edges.\n# So with 14 vertices, we can't have a 3-regular graph with girth 7.\n\n# Let me try to construct something.\n\n# Actually, let me think about the maximum number of edges in a graph with girth >= 7 on 14 vertices.\n# This is related to extremal graph theory.\n\n# Let me just try a SAT approach with constraints.\n\n# Constraint 1: At least 19 edges\n# Constraint 2: 3-colorable\n# Constraint 3: No cycles of length 3,4,5,6\n\n# For constraint 3, we need to forbid all cycles of length <= 6.\n# That's a lot of constraints. Let me think of a smarter way.\n\n# Actually, let me try to construct a graph manually.\n# The 14-cycle has girth 14. Adding chords reduces girth.\n# We need to add at least 5 chords (to get from 14 to 19 edges).\n# Each chord creates cycles. We need all cycles to be >= 7.\n\n# Let me try adding chords that are \"far apart\" on the cycle.\n\n# If we add chords (0,7), (2,9), (4,11), (6,13) - that's 4 chords, total 18 edges.\n# Need one more. Let's check girth.\n\nedges = set()\nfor i in range(n):\n    edges.add((i, (i+1) % n))\nfor i in [0, 2, 4, 6]:\n    edges.add((i, i+7))\n\nadj = defaultdict(set)\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# Check girth\ndef shortest_cycle_bfs(start):\n    dist = {start: 0}\n    parent = {start: -1}\n    q = [start]\n    min_cycle = float('inf')\n    for v in q:\n        for u in adj[v]:\n            if u == parent.get(v, -1):\n                continue\n            if u in dist:\n                cycle_len = dist[v] + dist[u] + 1\n                if cycle_len < min_cycle:\n                    min_cycle = cycle_len\n            else:\n                dist[u] = dist[v] + 1\n                parent[u] = v\n                q.append(u)\n    return min_cycle\n\nmin_g = float('inf')\nfor v in range(n):\n    g = shortest_cycle_bfs(v)\n    if g < min_g:\n        min_g = g\nprint(f\"Girth with chords at 0,2,4,6: {min_g}\")\nprint(f\"Edges: {len(edges)}\")\n\n# Try adding chord (1,8) too\nedges.add((1, 8))\nadj = defaultdict(set)\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\nmin_g = float('inf')\nfor v in range(n):\n    g = shortest_cycle_bfs(v)\n    if g < min_g:\n        min_g = g\nprint(f\"Girth with chords at 0,1,2,4,6: {min_g}\")\n\n# Let me try different combinations\nedges = set()\nfor i in range(n):\n    edges.add((i, (i+1) % n))\n\n# Try chords at 0, 3, 6 (distance 3 apart)\nfor i in [0, 3, 6]:\n    edges.add((i, i+7))\nadj = defaultdict(set)\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\nmin_g = float('inf')\nfor v in range(n):\n    g = shortest_cycle_bfs(v)\n    if g < min_g:\n        min_g = g\nprint(f\"Girth with chords at 0,3,6: {min_g}, edges: {len(edges)}\")\n\n# Try chords at 0, 3 (distance 3)\nedges = set()\nfor i in range(n):\n    edges.add((i, (i+1) % n))\nfor i in [0, 3]:\n    edges.add((i, i+7))\nadj = defaultdict(set)\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\nmin_g = float('inf')\nfor v in range(n):\n    g = shortest_cycle_bfs(v)\n    if g < min_g:\n        min_g = g\nprint(f\"Girth with chords at 0,3: {min_g}, edges: {len(edges)}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 224.43
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from collections import defaultdict\n\nn = 14\nedges = set()\nfor i in range(n):\n    edges.add((i, (i+1) % n))\n\n# Try chords at 0, 3, 6 (all distance 3 apart)\nfor i in [0, 3, 6]:\n    edges.add((i, i+7))\n\nadj = defaultdict(set)\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# Find all cycles up to length 10\ndef find_cycles(start, max_len=10):\n    cycles = []\n    def dfs(v, visited, path):\n        if len(path) > max_len:\n            return\n        for u in adj[v]:\n            if u == start and len(path) >= 3:\n                cycles.append(path + [u])\n            elif u not in visited and u > start:  # avoid duplicates\n                dfs(u, visited | {u}, path + [u])\n    dfs(start, {start}, [start])\n    return cycles\n\nfor v in range(n):\n    cycles = find_cycles(v, 10)\n    for c in cycles:\n        if len(c) - 1 < 8:  # len(c)-1 is cycle length\n            print(f\"Short cycle: {c}, length={len(c)-1}\")\n\n# Let me also check girth properly\ndef shortest_cycle_bfs(start):\n    dist = {start: 0}\n    parent = {start: -1}\n    q = [start]\n    min_cycle = float('inf')\n    for v in q:\n        for u in adj[v]:\n            if u == parent.get(v, -1):\n                continue\n            if u in dist:\n                cycle_len = dist[v] + dist[u] + 1\n                if cycle_len < min_cycle:\n                    min_cycle = cycle_len\n            else:\n                dist[u] = dist[v] + 1\n                parent[u] = v\n                q.append(u)\n    return min_cycle\n\nmin_g = float('inf')\nfor v in range(n):\n    g = shortest_cycle_bfs(v)\n    if g < min_g:\n        min_g = g\nprint(f\"Girth: {min_g}\")\nprint(f\"Edges: {len(edges)}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 54.72
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "max_rounds",
+  "forced_submit": false
+}

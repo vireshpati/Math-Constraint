@@ -1,0 +1,109 @@
+{
+  "problem_name": "graceful_graph_k2_p5__v1_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1003.9,
+    "search_space": 289254654976,
+    "num_variables": 23,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 70.49,
+    "solve_pct_type": 6.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    3,
+    13,
+    12,
+    0,
+    1,
+    7,
+    5,
+    10,
+    4,
+    2
+  ],
+  "reasoning": "The graph G_{2,5} has 10 vertices and 13 edges. A graceful labeling was found using a SAT solver, which assigns unique labels from 0 to 13 to the vertices such that all edge differences are distinct and in the range 1 to 13. The labels are [3, 13, 12, 0, 1, 7, 5, 10, 4, 2]. Checking these labels:\n- Edges: (0,1), (2,3), (4,5), (6,7), (8,9), (0,2), (1,3), (2,4), (3,5), (4,6), (5,7), (6,8), (7,9)\n- Differences:\n  |3-13|=10, |12-0|=12, |1-7|=6, |5-10|=5, |4-2|=2\n  |3-12|=9, |13-0|=13, |12-1|=11, |0-7|=7, |1-5|=4, |7-10|=3, |5-4|=1, |10-2|=8\n- All differences {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13} are distinct and cover all values from 1 to 13.\nThe labeling is valid.",
+  "raw_response": null,
+  "cot_trace": "**Analyzing Graph Properties**\n\nOkay, I've got a handle on $G_{2,5}$ now. The vertex count is confirmed at 10, with 13 edges, which is interesting. I'm focusing on the vertex and edge structure and have defined the vertices with $v_{g,i}$ with $g$ and $i$ iterating through the appropriate ranges. So far, the intra-clique edges are fully defined. Now I'll be looking into the inter-clique edge structures.\n\n\n**Verifying Edge Count and Labeling**\n\nI've re-confirmed the edge count: 5 intra-clique plus 8 inter-clique, totaling 13. The graceful labeling requirements are now clear. With 10 vertices and 13 edges, the vertex labels must be a subset of {0, 1, ..., 13}, and the edge labels must be distinct values from {1, 2, ..., 13}. I have re-confirmed the counts and labeling.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 9251,
+  "completion_tokens": 3643,
+  "reasoning_tokens": 496,
+  "cached_tokens": 0,
+  "cost_usd": 0.00777725,
+  "cost_source": "openrouter",
+  "latency_ms": 19815.535068511963,
+  "tool_dispatch_ms_total": 933.1135749816895,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef is_graceful(labels, edges):\n    vertex_labels = labels\n    edge_labels = set()\n    for u, v in edges:\n        diff = abs(vertex_labels[u] - vertex_labels[v])\n        if diff in edge_labels or diff == 0 or diff > 13:\n            return False\n        edge_labels.add(diff)\n    return len(edge_labels) == 13\n\n# Vertices: (g, i) where g in 0..4, i in 0..1\n# Map (g, i) to index 2*g + i\n# Edges:\n# Within clique g: (2*g, 2*g+1) for g in 0..4\n# Between clique g and g+1: (2*g, 2*(g+1)) and (2*g+1, 2*(g+1)+1) for g in 0..3\n\nedges = []\nfor g in range(5):\n    edges.append((2*g, 2*g+1))\nfor g in range(4):\n    edges.append((2*g, 2*(g+1)))\n    edges.append((2*g+1, 2*(g+1)+1))\n\n# We need to assign 10 distinct labels from {0, 1, ..., 13} to the 10 vertices.\n# This is a constraint satisfaction problem.\n# Let's use a backtracking search.\n\ndef solve():\n    import itertools\n    \n    # 10 vertices, 14 possible labels (0 to 13)\n    # We need to pick 10 labels out of 14.\n    \n    for labels in itertools.combinations(range(14), 10):\n        # Try all permutations of these 10 labels\n        for p in itertools.permutations(labels):\n            if is_graceful(p, edges):\n                return p\n    return None\n\n# The search space is too large (14C10 * 10! = 1001 * 3,628,800 = 3.6 billion).\n# Let's use a more efficient approach, like a SAT solver or backtracking with pruning.\n\nfrom pysat.solvers import Glucose3\n\ndef solve_with_sat():\n    # Variables: x_{v, l} is true if vertex v has label l\n    # v in 0..9, l in 0..13\n    \n    solver = Glucose3()\n    \n    # Each vertex has exactly one label\n    for v in range(10):\n        solver.add_clause([v * 14 + l + 1 for l in range(14)])\n        for l1 in range(14):\n            for l2 in range(l1 + 1, 14):\n                solver.add_clause([-(v * 14 + l1 + 1), -(v * 14 + l2 + 1)])\n                \n    # Each label is used at most once\n    for l in range(14):\n        for v1 in range(10):\n            for v2 in range(v1 + 1, 10):\n                solver.add_clause([-(v1 * 14 + l + 1), -(v2 * 14 + l + 1)])\n                \n    # Edge labels must be distinct\n    # Edge labels are |label(u) - label(v)|\n    # Let e_{e, d} be true if edge e has label d, where d in 1..13\n    # This is more complex. Let's use a simpler approach first.\n    \n    # Actually, let's just use backtracking with pruning.\n    pass\n\n# Let's try a simple backtracking with pruning.\ndef backtrack(vertex_idx, current_labels, used_labels, used_edge_diffs):\n    if vertex_idx == 10:\n        return current_labels\n    \n    for label in range(14):\n        if label not in used_labels:\n            # Check if this label is valid for the current vertex\n            # This is hard because we need to check edge differences.\n            # Let's only check edge differences when both vertices of an edge are labeled.\n            \n            new_labels = current_labels + [label]\n            new_used_labels = used_labels | {label}\n            \n            # Check edges connected to vertex_idx\n            # Edges:\n            # (2*g, 2*g+1)\n            # (2*g, 2*(g+1))\n            # (2*g+1, 2*(g+1)+1)\n            \n            possible = True\n            new_edge_diffs = set(used_edge_diffs)\n            \n            # Check all edges that are now fully labeled\n            for u, v in edges:\n                if u < vertex_idx and v < vertex_idx:\n                    diff = abs(new_labels[u] - new_labels[v])\n                    if diff in new_edge_diffs or diff == 0:\n                        possible = False\n                        break\n                    new_edge_diffs.add(diff)\n            \n            if possible:\n                res = backtrack(vertex_idx + 1, new_labels, new_used_labels, new_edge_diffs)\n                if res:\n                    return res\n    return None\n\nprint(backtrack(0, [], set(), set()))\n"
+      },
+      "ok": true,
+      "latency_ms": 586.74
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# The previous backtracking was too slow or incorrect.\n# Let's re-examine the graph structure.\n# 5 cliques K2: (0,1), (2,3), (4,5), (6,7), (8,9)\n# Edges:\n# (0,1), (2,3), (4,5), (6,7), (8,9)\n# (0,2), (1,3), (2,4), (3,5), (4,6), (5,7), (6,8), (7,9)\n# Total 13 edges.\n# Labels 0..13.\n\n# Let's use a constraint solver (pysat) properly.\nfrom pysat.solvers import Glucose3\n\ndef solve_with_sat():\n    solver = Glucose3()\n    \n    # Variables: x_{v, l} is true if vertex v has label l\n    # v in 0..9, l in 0..13\n    # x_{v, l} = v * 14 + l + 1\n    \n    def get_var(v, l):\n        return v * 14 + l + 1\n    \n    # Each vertex has exactly one label\n    for v in range(10):\n        solver.add_clause([get_var(v, l) for l in range(14)])\n        for l1 in range(14):\n            for l2 in range(l1 + 1, 14):\n                solver.add_clause([-get_var(v, l1), -get_var(v, l2)])\n                \n    # Each label is used at most once\n    for l in range(14):\n        for v1 in range(10):\n            for v2 in range(v1 + 1, 10):\n                solver.add_clause([-get_var(v1, l), -get_var(v2, l)])\n                \n    # Edge labels must be distinct\n    # Edge labels are |label(u) - label(v)|\n    # Let y_{e, d} be true if edge e has label d, where d in 1..13\n    # e in 0..12\n    # y_{e, d} = 10 * 14 + e * 13 + d\n    \n    def get_edge_var(e, d):\n        return 10 * 14 + e * 13 + d\n    \n    edges = []\n    for g in range(5):\n        edges.append((2*g, 2*g+1))\n    for g in range(4):\n        edges.append((2*g, 2*(g+1)))\n        edges.append((2*g+1, 2*(g+1)+1))\n        \n    # Each edge has exactly one label\n    for e in range(13):\n        solver.add_clause([get_edge_var(e, d) for d in range(1, 14)])\n        for d1 in range(1, 14):\n            for d2 in range(d1 + 1, 14):\n                solver.add_clause([-get_edge_var(e, d1), -get_edge_var(e, d2)])\n                \n    # Each label is used at most once for edges\n    for d in range(1, 14):\n        for e1 in range(13):\n            for e2 in range(e1 + 1, 13):\n                solver.add_clause([-get_edge_var(e1, d), -get_edge_var(e2, d)])\n                \n    # Link vertex labels to edge labels\n    # For each edge (u, v), and each pair of labels (l1, l2),\n    # if vertex u has label l1 and vertex v has label l2,\n    # then the edge (u, v) must have label |l1 - l2|.\n    \n    for e_idx, (u, v) in enumerate(edges):\n        for l1 in range(14):\n            for l2 in range(14):\n                if l1 == l2: continue\n                d = abs(l1 - l2)\n                # If u has l1 and v has l2, then edge e_idx has label d\n                # (-x_{u, l1} OR -x_{v, l2} OR y_{e_idx, d})\n                solver.add_clause([-get_var(u, l1), -get_var(v, l2), get_edge_var(e_idx, d)])\n                \n    if solver.solve():\n        model = solver.get_model()\n        labels = [0] * 10\n        for v in range(10):\n            for l in range(14):\n                if model[get_var(v, l) - 1] > 0:\n                    labels[v] = l\n        return labels\n    else:\n        return None\n\nprint(solve_with_sat())\n"
+      },
+      "ok": true,
+      "latency_ms": 276.27
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check_graceful(labels, edges):\n    edge_labels = set()\n    for u, v in edges:\n        diff = abs(labels[u] - labels[v])\n        if diff in edge_labels or diff == 0 or diff > 13:\n            return False, diff\n        edge_labels.add(diff)\n    return len(edge_labels) == 13, edge_labels\n\nedges = []\nfor g in range(5):\n    edges.append((2*g, 2*g+1))\nfor g in range(4):\n    edges.append((2*g, 2*(g+1)))\n    edges.append((2*g+1, 2*(g+1)+1))\n\nlabels = [3, 13, 12, 0, 1, 7, 5, 10, 4, 2]\nis_graceful, edge_labels = check_graceful(labels, edges)\nprint(f\"Is graceful: {is_graceful}\")\nprint(f\"Edge labels: {sorted(list(edge_labels))}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 70.1
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          3,
+          13,
+          12,
+          0,
+          1,
+          7,
+          5,
+          10,
+          4,
+          2
+        ],
+        "reasoning": "The graph G_{2,5} has 10 vertices and 13 edges. A graceful labeling was found using a SAT solver, which assigns unique labels from 0 to 13 to the vertices such that all edge differences are distinct and in the range 1 to 13. The labels are [3, 13, 12, 0, 1, 7, 5, 10, 4, 2]. Checking these labels:\n- Edges: (0,1), (2,3), (4,5), (6,7), (8,9), (0,2), (1,3), (2,4), (3,5), (4,6), (5,7), (6,8), (7,9)\n- Differences:\n  |3-13|=10, |12-0|=12, |1-7|=6, |5-10|=5, |4-2|=2\n  |3-12|=9, |13-0|=13, |12-1|=11, |0-7|=7, |1-5|=4, |7-10|=3, |5-4|=1, |10-2|=8\n- All differences {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13} are distinct and cover all values from 1 to 13.\nThe labeling is valid."
+      },
+      "ok": true,
+      "latency_ms": 0.01
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

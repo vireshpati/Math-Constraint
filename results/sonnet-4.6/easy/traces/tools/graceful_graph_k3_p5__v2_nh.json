@@ -1,0 +1,151 @@
+{
+  "problem_name": "graceful_graph_k3_p5__v2_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1655.4,
+    "search_space": 5097655355238390956032,
+    "num_variables": 42,
+    "num_constraints": 31,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.91,
+    "solve_pct_type": 81.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    26,
+    16,
+    4,
+    6,
+    8,
+    21,
+    27,
+    1,
+    2,
+    0,
+    24,
+    18,
+    9,
+    20,
+    23
+  ],
+  "reasoning": "Found a graceful labeling via simulated annealing. The 15 vertex labels are [26,16,4, 6,8,21, 27,1,2, 0,24,18, 9,20,23] (grouped by clique). All 15 labels are distinct values in [0,27], and the 27 edge absolute differences are exactly {1,2,...,27} \u2014 all distinct and covering the full range. Verified: intra-clique edges give differences {10,22,12}, {2,15,13}, {26,25,1}, {24,18,6}, {11,14,3}; inter-clique edges give {20,8,17}, {21,7,19}, {27,23,16}, {9,4,5}.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 29550,
+  "completion_tokens": 4892,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.16203,
+  "cost_source": "openrouter",
+  "latency_ms": 90907.75990486145,
+  "tool_dispatch_ms_total": 24339.09511566162,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# First, let's understand the graph structure\n# 5 cliques of K_3, each clique has 3 vertices\n# Within each clique: edges between all pairs (3 edges per clique, 5 cliques = 15 edges)\n# Between consecutive cliques: 3 edges connecting vertex i of clique g to vertex i of clique g+1\n# 4 pairs of consecutive cliques * 3 edges = 12 edges\n# Total: 15 + 12 = 27 edges \u2713\n\n# Vertices: 15 total (vertex (g,i) for g in 0..4, i in 0..2)\n# Labels: 0 to 27 (28 values for 15 vertices - we use 15 of them)\n# Edge labels: |label(u) - label(v)| must all be distinct, ranging 1..27\n\ndef build_graph():\n    edges = []\n    # Within each clique (K_3 edges)\n    for g in range(5):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3+i, g*3+j))\n    # Between consecutive cliques\n    for g in range(4):\n        for i in range(3):\n            edges.append((g*3+i, (g+1)*3+i))\n    return edges\n\nedges = build_graph()\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Edges: {edges}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 37.19
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\nimport random\n\n# Try using OR-Tools CP-SAT solver\ntry:\n    from ortools.sat.python import cp_model\n    \n    model = cp_model.CpModel()\n    \n    n_vertices = 15\n    n_edges = 27\n    max_label = 27\n    \n    edges = []\n    for g in range(5):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3+i, g*3+j))\n    for g in range(4):\n        for i in range(3):\n            edges.append((g*3+i, (g+1)*3+i))\n    \n    # Variables: label for each vertex\n    labels = [model.NewIntVar(0, max_label, f'v{i}') for i in range(n_vertices)]\n    \n    # All vertex labels distinct\n    model.AddAllDifferent(labels)\n    \n    # Edge difference variables\n    edge_diffs = []\n    for u, v in edges:\n        diff = model.NewIntVar(1, max_label, f'e_{u}_{v}')\n        abs_diff = model.NewIntVar(1, max_label, f'abs_{u}_{v}')\n        model.Add(diff == labels[u] - labels[v])\n        model.AddAbsEquality(abs_diff, diff)\n        edge_diffs.append(abs_diff)\n    \n    # All edge differences distinct\n    model.AddAllDifferent(edge_diffs)\n    \n    solver = cp_model.CpSolver()\n    solver.parameters.max_time_in_seconds = 60.0\n    solver.parameters.num_search_workers = 8\n    \n    status = solver.Solve(model)\n    \n    if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:\n        solution = [solver.Value(labels[i]) for i in range(n_vertices)]\n        print(\"Solution found!\")\n        print(f\"Labels: {solution}\")\n        \n        # Verify\n        edge_label_set = set()\n        for u, v in edges:\n            d = abs(solution[u] - solution[v])\n            edge_label_set.add(d)\n        print(f\"Edge labels: {sorted(edge_label_set)}\")\n        print(f\"All distinct: {len(edge_label_set) == n_edges}\")\n        print(f\"Range 1-27: {min(edge_label_set) == 1 and max(edge_label_set) == 27}\")\n    else:\n        print(f\"Status: {solver.StatusName(status)}\")\n        \nexcept ImportError:\n    print(\"OR-Tools not available\")\n"
+      },
+      "ok": true,
+      "latency_ms": 128.53
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Try with python-constraint\ntry:\n    from constraint import Problem, AllDifferentConstraint\n    print(\"python-constraint available\")\nexcept ImportError:\n    print(\"python-constraint not available\")\n\n# Try pysat\ntry:\n    import pysat\n    print(\"pysat available\")\nexcept ImportError:\n    print(\"pysat not available\")\n"
+      },
+      "ok": true,
+      "latency_ms": 71.31
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's try a smarter approach - use backtracking with pruning\n# or encode as ILP\n\n# First, let's try a randomized search / simulated annealing approach\nimport random\nimport math\n\ndef build_edges():\n    edges = []\n    for g in range(5):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3+i, g*3+j))\n    for g in range(4):\n        for i in range(3):\n            edges.append((g*3+i, (g+1)*3+i))\n    return edges\n\nedges = build_edges()\nn_vertices = 15\nn_edges = 27\n\ndef evaluate(labels):\n    \"\"\"Count number of distinct edge differences (want 27)\"\"\"\n    diffs = set()\n    for u, v in edges:\n        d = abs(labels[u] - labels[v])\n        diffs.add(d)\n    return len(diffs)\n\ndef conflicts(labels):\n    \"\"\"Count conflicts (duplicate edge differences)\"\"\"\n    diffs = []\n    for u, v in edges:\n        d = abs(labels[u] - labels[v])\n        diffs.append(d)\n    from collections import Counter\n    c = Counter(diffs)\n    return sum(v-1 for v in c.values() if v > 1)\n\nbest_solution = None\nbest_score = 0\n\n# Try many random starts with local search\nfor trial in range(1000):\n    # Random permutation of 15 values from 0..27\n    available = list(range(28))\n    random.shuffle(available)\n    labels = available[:15]\n    \n    score = evaluate(labels)\n    if score > best_score:\n        best_score = score\n        best_solution = labels[:]\n        if best_score == 27:\n            print(f\"Found perfect solution at trial {trial}!\")\n            break\n    \n    # Local search: swap labels\n    for _ in range(500):\n        i = random.randint(0, 14)\n        j = random.randint(0, 14)\n        if i != j:\n            labels[i], labels[j] = labels[j], labels[i]\n            new_score = evaluate(labels)\n            if new_score >= score:\n                score = new_score\n                if score > best_score:\n                    best_score = score\n                    best_solution = labels[:]\n            else:\n                labels[i], labels[j] = labels[j], labels[i]\n        \n        if score == 27:\n            break\n    \n    if best_score == 27:\n        break\n\nprint(f\"Best score: {best_score}/27\")\nif best_solution:\n    print(f\"Best solution: {best_solution}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 2668.99
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's try a more sophisticated approach - encode as integer programming with scipy\n# or use a dedicated backtracking solver\n\nimport random\nfrom collections import defaultdict\n\ndef build_edges():\n    edges = []\n    for g in range(5):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3+i, g*3+j))\n    for g in range(4):\n        for i in range(3):\n            edges.append((g*3+i, (g+1)*3+i))\n    return edges\n\nedges = build_edges()\nn_vertices = 15\nn_edges = 27\n\ndef get_edge_diffs(labels):\n    return [abs(labels[u] - labels[v]) for u, v in edges]\n\ndef count_conflicts(labels):\n    diffs = get_edge_diffs(labels)\n    from collections import Counter\n    c = Counter(diffs)\n    return sum(v-1 for v in c.values() if v > 1)\n\n# Simulated annealing with better moves\ndef simulated_annealing(max_iter=500000):\n    # Start with random assignment\n    available = list(range(28))\n    random.shuffle(available)\n    labels = available[:15]\n    unused = set(available[15:])\n    \n    current_conflicts = count_conflicts(labels)\n    best_labels = labels[:]\n    best_conflicts = current_conflicts\n    \n    T = 5.0\n    cooling = 0.99995\n    \n    for iteration in range(max_iter):\n        T *= cooling\n        \n        move_type = random.random()\n        \n        if move_type < 0.5:\n            # Swap two vertex labels\n            i, j = random.sample(range(15), 2)\n            labels[i], labels[j] = labels[j], labels[i]\n            new_conflicts = count_conflicts(labels)\n            delta = new_conflicts - current_conflicts\n            if delta <= 0 or random.random() < math.exp(-delta/max(T, 0.001)):\n                current_conflicts = new_conflicts\n                if current_conflicts < best_conflicts:\n                    best_conflicts = current_conflicts\n                    best_labels = labels[:]\n            else:\n                labels[i], labels[j] = labels[j], labels[i]\n        else:\n            # Replace a vertex label with an unused one\n            i = random.randint(0, 14)\n            old_val = labels[i]\n            new_val = random.choice(list(unused))\n            labels[i] = new_val\n            unused.discard(new_val)\n            unused.add(old_val)\n            new_conflicts = count_conflicts(labels)\n            delta = new_conflicts - current_conflicts\n            if delta <= 0 or random.random() < math.exp(-delta/max(T, 0.001)):\n                current_conflicts = new_conflicts\n                if current_conflicts < best_conflicts:\n                    best_conflicts = current_conflicts\n                    best_labels = labels[:]\n            else:\n                labels[i] = old_val\n                unused.discard(old_val)\n                unused.add(new_val)\n        \n        if best_conflicts == 0:\n            return best_labels, 0\n    \n    return best_labels, best_conflicts\n\nimport math\n\nbest_overall = None\nbest_conf = float('inf')\n\nfor trial in range(20):\n    sol, conf = simulated_annealing(500000)\n    print(f\"Trial {trial}: conflicts={conf}\")\n    if conf < best_conf:\n        best_conf = conf\n        best_overall = sol[:]\n    if conf == 0:\n        print(\"FOUND!\")\n        break\n\nprint(f\"\\nBest conflicts: {best_conf}\")\nprint(f\"Best solution: {best_overall}\")\n"
+      },
+      "ok": false,
+      "latency_ms": 15017.68
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport random\nimport math\nfrom collections import Counter\n\ndef build_edges():\n    edges = []\n    for g in range(5):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3+i, g*3+j))\n    for g in range(4):\n        for i in range(3):\n            edges.append((g*3+i, (g+1)*3+i))\n    return edges\n\nedges = build_edges()\nn_vertices = 15\nn_edges = 27\n\ndef count_conflicts(labels):\n    diffs = [abs(labels[u] - labels[v]) for u, v in edges]\n    c = Counter(diffs)\n    return sum(v-1 for v in c.values() if v > 1)\n\ndef simulated_annealing(seed=None, max_iter=200000):\n    if seed is not None:\n        random.seed(seed)\n    \n    available = list(range(28))\n    random.shuffle(available)\n    labels = available[:15]\n    unused = list(available[15:])\n    \n    current_conflicts = count_conflicts(labels)\n    best_labels = labels[:]\n    best_conflicts = current_conflicts\n    \n    T = 3.0\n    \n    for iteration in range(max_iter):\n        T = 3.0 * (1 - iteration/max_iter) + 0.01\n        \n        if random.random() < 0.6:\n            i, j = random.sample(range(15), 2)\n            labels[i], labels[j] = labels[j], labels[i]\n            new_conflicts = count_conflicts(labels)\n            delta = new_conflicts - current_conflicts\n            if delta <= 0 or random.random() < math.exp(-delta/T):\n                current_conflicts = new_conflicts\n                if current_conflicts < best_conflicts:\n                    best_conflicts = current_conflicts\n                    best_labels = labels[:]\n            else:\n                labels[i], labels[j] = labels[j], labels[i]\n        else:\n            i = random.randint(0, 14)\n            j = random.randint(0, len(unused)-1)\n            old_val = labels[i]\n            new_val = unused[j]\n            labels[i] = new_val\n            unused[j] = old_val\n            new_conflicts = count_conflicts(labels)\n            delta = new_conflicts - current_conflicts\n            if delta <= 0 or random.random() < math.exp(-delta/T):\n                current_conflicts = new_conflicts\n                if current_conflicts < best_conflicts:\n                    best_conflicts = current_conflicts\n                    best_labels = labels[:]\n            else:\n                labels[i] = old_val\n                unused[j] = new_val\n        \n        if best_conflicts == 0:\n            return best_labels, 0\n    \n    return best_labels, best_conflicts\n\nbest_overall = None\nbest_conf = float('inf')\n\nfor trial in range(30):\n    sol, conf = simulated_annealing(seed=trial, max_iter=200000)\n    if conf < best_conf:\n        best_conf = conf\n        best_overall = sol[:]\n        print(f\"Trial {trial}: conflicts={conf}, labels={sol}\")\n    if conf == 0:\n        print(\"FOUND GRACEFUL LABELING!\")\n        break\n\nprint(f\"\\nBest conflicts: {best_conf}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 6380.83
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution\nsolution = [26, 16, 4, 6, 8, 21, 27, 1, 2, 0, 24, 18, 9, 20, 23]\n\ndef build_edges():\n    edges = []\n    for g in range(5):\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((g*3+i, g*3+j))\n    for g in range(4):\n        for i in range(3):\n            edges.append((g*3+i, (g+1)*3+i))\n    return edges\n\nedges = build_edges()\n\nprint(\"Verification:\")\nprint(f\"Labels: {solution}\")\nprint(f\"All labels unique: {len(set(solution)) == 15}\")\nprint(f\"Labels in range [0,27]: {min(solution) >= 0 and max(solution) <= 27}\")\n\nedge_diffs = []\nfor u, v in edges:\n    d = abs(solution[u] - solution[v])\n    edge_diffs.append(d)\n\nprint(f\"Edge differences: {sorted(edge_diffs)}\")\nprint(f\"All edge diffs unique: {len(set(edge_diffs)) == 27}\")\nprint(f\"Edge diffs range: [{min(edge_diffs)}, {max(edge_diffs)}]\")\nprint(f\"Edge diffs = {{1,...,27}}: {set(edge_diffs) == set(range(1, 28))}\")\n\nprint(\"\\nClique breakdown:\")\nfor g in range(5):\n    clique_labels = solution[g*3:(g+1)*3]\n    print(f\"  Clique {g}: vertices {g*3},{g*3+1},{g*3+2} -> labels {clique_labels}\")\n\nprint(\"\\nEdge details:\")\nfor u, v in edges:\n    d = abs(solution[u] - solution[v])\n    print(f\"  ({u},{v}): |{solution[u]}-{solution[v]}| = {d}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 34.56
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          26,
+          16,
+          4,
+          6,
+          8,
+          21,
+          27,
+          1,
+          2,
+          0,
+          24,
+          18,
+          9,
+          20,
+          23
+        ],
+        "reasoning": "Found a graceful labeling via simulated annealing. The 15 vertex labels are [26,16,4, 6,8,21, 27,1,2, 0,24,18, 9,20,23] (grouped by clique). All 15 labels are distinct values in [0,27], and the 27 edge absolute differences are exactly {1,2,...,27} \u2014 all distinct and covering the full range. Verified: intra-clique edges give differences {10,22,12}, {2,15,13}, {26,25,1}, {24,18,6}, {11,14,3}; inter-clique edges give {20,8,17}, {21,7,19}, {27,23,16}, {9,4,5}."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

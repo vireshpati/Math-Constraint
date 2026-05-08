@@ -1,0 +1,116 @@
+{
+  "problem_name": "low_autocorrelation_n23__v4_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 23
+  },
+  "difficulty": {
+    "solve_time_ms": 2252.8,
+    "search_space": 8388608,
+    "num_variables": 45,
+    "num_constraints": 29,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 92.29,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "The fixed values are inconsistent due to parity: for even k, C_k must be odd (since n=23 is odd, n-k odd => sum of odd number of \u00b11 is odd), but c[12]=0 (even) and c[16]=0 (even) violate this. Similarly for c[13]=-3 (odd) but k=13 odd requires even C_k.",
+  "raw_response": "{\n    \"satisfiable\": false,\n    \"solution\": null,\n    \"reasoning\": \"The fixed values are inconsistent due to parity: for even k, C_k must be odd (since n=23 is odd, n-k odd => sum of odd number of \u00b11 is odd), but c[12]=0 (even) and c[16]=0 (even) violate this. Similarly for c[13]=-3 (odd) but k=13 odd requires even C_k.\"\n}",
+  "cot_trace": "The problem asks to find a binary sequence of length 23 over {-1, +1} with low aperiodic autocorrelation. Specifically, the sum over k=1 to 22 of C_k\u00b2 should be at most 59, where C_k is the sum from i...I need to find a binary sequence of length 23 using -1 and +1, with the sum of the squares of its aperiodic autocorrelations C_k from k=1 to 22 being at most 59. The sequence has some positions already set: seq[5]=-1, seq[10]=-1, seq[13]=1, seq[19]=1. There are also given values for C_12=0, C_13=-3, C_16=0, C_19=-1. If no such sequence exists, I should return \"UNSATISFIABLE\".\n\nSincethe length is 23 and only 4 positions are fixed, there are 19 free positions, which is about 524,000 combinations. Checking each one would be computationally intensive, but feasible with a script. I can use the code execution tool to run a Python script that generates all possible assignments for the free positions, sets the fixed values, computes the required C_k values, and checks if they match the given ones and if the total sum of squares is \u226459.\n\nFirst, I need to identify the free indices: 0,1,2,3,4,6,7,8,9,11,12,14,15,16,17,18,20,21,22 (that's 19).\n\nI'll map the positions to a list seq of length 23, set the fixed ones, and use itertools.product to generate all combinations of -1 and +1 for the free spots.\n---\nThe timeout for Python execution is around 15s by default, but it can go up to 60s. A brute force for 23 bits is 8 million, but with fixed positions, let's see.\nI need to find a binary sequence of length 23 using -1 and +1, with low aperiodic autocorrelation, specifically the sum of squares of C_k from 1 to 22 being at most 59. There are some positions fixed and some autocorrelation values fixed that I have to respect.\n---\nThe problem is to find a binary sequence of length 23 with values -1 or +1 that has the sum of squares of its aperiodic autocorrelations C_k for k=1 to 22 being at most 59. There are some fixed values...I noticed that for n=23, when k=12, the number of terms in C_12 is 23-12=11, which is odd. Each term in the autocorrelation is \u00b11 (since seq[i]*seq[i+k] is +1 or -1), and the sum of an odd numberof \u00b11's must be odd.",
+  "finish_reason": "stop",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "claimed UNSAT, expected SAT",
+  "prompt_tokens": 20335,
+  "completion_tokens": 6078,
+  "reasoning_tokens": 3449,
+  "cached_tokens": 8704,
+  "cost_usd": 0.0614708,
+  "cost_source": "openrouter",
+  "latency_ms": 143313.86494636536,
+  "tool_dispatch_ms_total": 71300.10986328125,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import time\nstart = time.time()\ncount = 0\nfor i in range(524288):\n    count += i % 10\nprint(time.time() - start)\nprint(count)"
+      },
+      "ok": true,
+      "latency_ms": 116.33
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport time\nstart = time.time()\n\nn = 23\nfixed = {5: -1, 10: -1, 13: 1, 19: 1}\nfixed_c = {12: 0, 13: -3, 16: 0, 19: -1}\nfree_pos = [i for i in range(n) if i not in fixed]\n\nfound = False\nsolution = None\nmin_merit = float('inf')\n\nfor bits in itertools.product([-1,1], repeat=len(free_pos)):\n    seq = [0]*n\n    for i, pos in enumerate(free_pos):\n        seq[pos] = bits[i]\n    for pos, val in fixed.items():\n        seq[pos] = val\n    \n    # compute C_k\n    C = [0] * n\n    for k in range(1, n):\n        for i in range(n - k):\n            C[k] += seq[i] * seq[i + k]\n    \n    # check fixed C\n    match = True\n    for k, val in fixed_c.items():\n        if C[k] != val:\n            match = False\n            break\n    if not match:\n        continue\n    \n    merit = sum(c*c for c in C[1:])\n    if merit < min_merit:\n        min_merit = merit\n    if merit <= 59:\n        found = True\n        solution = seq\n        break\n\nprint(\"Time taken:\", time.time() - start)\nprint(\"Found:\", found)\nif found:\n    print(\"Solution:\", solution)\n    print(\"Merit:\", merit)\nprint(\"Min merit found:\", min_merit)"
+      },
+      "ok": false,
+      "latency_ms": 15016.91
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport time\nstart = time.time()\n\nn = 23\nfixed = {5: -1, 10: -1, 13: 1, 19: 1}\nfixed_c = {12: 0, 13: -3, 16: 0, 19: -1}\nfree_pos = [i for i in range(n) if i not in fixed]\nprint(\"Free positions:\", free_pos)\nprint(\"Number of free:\", len(free_pos))\n\n# Precompute which C_k depend on which variables\n# But for now, just run with limit\ncount = 0\nfound = False\nsolution = None\nmin_merit = float('inf')\nmax_checked = 1000000\n\nfor bits in itertools.product([-1,1], repeat=len(free_pos)):\n    count += 1\n    if count > max_checked:\n        break\n    seq = [0]*n\n    for i, pos in enumerate(free_pos):\n        seq[pos] = bits[i]\n    for pos, val in fixed.items():\n        seq[pos] = val\n    \n    # compute C_k\n    C = [0] * n\n    for k in range(1, n):\n        s = 0\n        for i in range(n - k):\n            s += seq[i] * seq[i + k]\n        C[k] = s\n    \n    # check fixed C\n    match = all(C[k] == val for k, val in fixed_c.items())\n    if not match:\n        continue\n    \n    merit = sum(c*c for c in C[1:])\n    if merit < min_merit:\n        min_merit = merit\n    if merit <= 59:\n        found = True\n        solution = seq\n        break\n\nprint(\"Checked:\", count)\nprint(\"Time taken:\", time.time() - start)\nprint(\"Found:\", found)\nif found:\n    print(\"Solution:\", solution)\n    print(\"Merit factor or sum sq:\", merit)\nprint(\"Min merit found:\", min_merit)"
+      },
+      "ok": false,
+      "latency_ms": 15002.75
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import numpy as np\nfrom itertools import product\nimport time\nstart = time.time()\n\nn = 23\nfixed = {5: -1, 10: -1, 13: 1, 19: 1}\nfixed_c = {12: 0, 13: -3, 16: 0, 19: -1}\nfree_pos = [i for i in range(n) if i not in fixed]\nm = len(free_pos)\nprint('Free:', m, free_pos)\n\n# Use numpy for faster computation\nseq_base = np.zeros(n, dtype=int)\nfor p, v in fixed.items():\n    seq_base[p] = v\n\nfound = False\nsolution = None\nmin_merit = float('inf')\ncount = 0\nMAX_COUNT = 200000  # limit to avoid timeout\n\nfor bits_tup in product([-1,1], repeat=m):\n    count += 1\n    if count > MAX_COUNT:\n        break\n    bits = np.array(bits_tup)\n    seq = seq_base.copy()\n    seq[free_pos] = bits\n    \n    # Compute all C_k fast\n    C = np.zeros(n, dtype=int)\n    for k in range(1, n):\n        C[k] = np.dot(seq[:n-k], seq[k:])\n    \n    if not all(C[k] == v for k,v in fixed_c.items()):\n        continue\n    \n    merit = np.sum(C[1:]**2)\n    if merit < min_merit:\n        min_merit = merit\n    if merit <= 59:\n        found = True\n        solution = seq.tolist()\n        break\n\nprint('Checked:', count)\nprint('Time:', time.time() - start)\nprint('Found:', found)\nif found:\n    print('Solution:', solution)\n    print('Merit:', merit)\nprint('Best merit:', min_merit)"
+      },
+      "ok": true,
+      "latency_ms": 10253.41
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import numpy as np\nfrom itertools import product\nimport time\nstart = time.time()\n\nn = 23\nfixed = {5: -1, 10: -1, 13: 1, 19: 1}\nfixed_c = {12: 0, 13: -3, 16: 0, 19: -1}\nfree_pos = [i for i in range(n) if i not in fixed]\nm = len(free_pos)\n\nseq_base = np.zeros(n, dtype=int)\nfor p, v in fixed.items():\n    seq_base[p] = v\n\nfound = False\nsolution = None\nmin_merit = float('inf')\ncount = 0\nMAX_COUNT = 10000000  # 10M\n\nfor bits_tup in product([-1,1], repeat=m):\n    count += 1\n    if count > MAX_COUNT:\n        break\n    bits = np.array(bits_tup)\n    seq = seq_base.copy()\n    seq[free_pos] = bits\n    \n    C = np.zeros(n, dtype=int)\n    for k in range(1, n):\n        C[k] = np.dot(seq[:n-k], seq[k:])\n    \n    if all(C[k] == v for k,v in fixed_c.items()):\n        merit = int(np.sum(C[1:]**2))\n        if merit < min_merit:\n            min_merit = merit\n        if merit <= 59:\n            found = True\n            solution = seq.tolist()\n            break\n\nprint('Checked:', count)\nprint('Time:', round(time.time() - start, 2))\nprint('Found:', found)\nif found:\n    print('Solution:', solution)\n    print('Merit:', merit)\nprint('Best merit:', min_merit if min_merit != float('inf') else 'none')"
+      },
+      "ok": false,
+      "latency_ms": 15017.72
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import numpy as np\n\nn = 23\nfixed = {5: -1, 10: -1, 13: 1, 19: 1}\nfixed_c = {12: 0, 13: -3, 16: 0, 19: -1}\nfree_pos = [i for i in range(n) if i not in fixed]\nprint(free_pos)\n\nseq_base = np.zeros(n, dtype=int)\nfor p, v in fixed.items():\n    seq_base[p] = v\nprint('Fixed seq base:', seq_base.tolist())\n\n# Test a random one\nnp.random.seed(42)\ntest_bits = np.random.choice([-1,1], size=len(free_pos))\nseq = seq_base.copy()\nseq[free_pos] = test_bits\nprint('Test seq:', seq.tolist())\n\nC = np.zeros(n, dtype=int)\nfor k in range(1, n):\n    C[k] = np.dot(seq[:n-k], seq[k:])\n\nprint('C[1:]:', C[1:].tolist())\nprint('Fixed C match?', all(C[k] == v for k,v in fixed_c.items()))\nprint('Merit:', np.sum(C[1:]**2))"
+      },
+      "ok": true,
+      "latency_ms": 507.97
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import numpy as np\nfrom itertools import product\nimport time\nstart = time.time()\n\nn = 23\nfixed = {5: -1, 10: -1, 13: 1, 19: 1}\nfixed_c = {12: 0, 13: -3, 16: 0, 19: -1}\nfree_pos = np.array([i for i in range(n) if i not in fixed])\nm = len(free_pos)\n\nseq_base = np.zeros(n, dtype=int)\nfor p, v in fixed.items():\n    seq_base[p] = v\n\nfound = False\nsolution = None\nmin_merit = float('inf')\ncount = 0\nMAX_COUNT = 5000000  \n\nfor bits_tup in product([-1,1], repeat=m):\n    count += 1\n    if count > MAX_COUNT:\n        break\n    bits = np.array(bits_tup, dtype=int)\n    seq = seq_base.copy()\n    seq[free_pos] = bits\n    \n    C = np.correlate(seq, seq, mode='valid')[1:][::-1]  # this gives C[1] to C[22] ? Wait check\n    # np.correlate(seq, seq, 'valid') gives full auto corr at lags 0 to 22 but in reverse order? Let's use dot for safety\n    # Better stick to loop or fix\n    Cs = np.zeros(n, dtype=int)\n    for k in range(1, n):\n        Cs[k] = np.dot(seq[0:n-k], seq[k:])\n    if all(Cs[k] == v for k,v in fixed_c.items()):\n        merit = int(np.sum(Cs[1:]**2))\n        if merit < min_merit:\n            min_merit = merit\n        if merit <= 59:\n            found = True\n            solution = seq.tolist()\n            break\n\nprint('Checked:', count)\nprint('Time:', round(time.time() - start, 2))\nprint('Found:', found)\nif found:\n    print('Solution:', solution)\n    print('Merit:', merit)\nprint('Best merit:', min_merit if min_merit < float('inf') else 'none')"
+      },
+      "ok": false,
+      "latency_ms": 15018.25
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import numpy as np\n\nn = 23\nseq = np.array([1, -1, 1, 1, -1, -1, 1, 1, 1, -1, -1, 1, 1, 1, -1, -1, 1, -1, -1, 1, -1, 1, 1])\nprint('seq:', seq.tolist())\n\nC = np.zeros(n, dtype=int)\nfor k in range(1, n):\n    C[k] = np.dot(seq[:n-k], seq[k:])\n\nprint('C:', C[1:].tolist())\nprint('sum C^2:', np.sum(C[1:]**2).item())"
+      },
+      "ok": true,
+      "latency_ms": 366.76
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": true
+}

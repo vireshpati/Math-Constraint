@@ -1,0 +1,190 @@
+{
+  "problem_name": "pysms_mtf_vertices9__v2_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 21.4,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 14,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 11.84,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    0,
+    2,
+    0,
+    3,
+    0,
+    5,
+    0,
+    6,
+    0,
+    7,
+    1,
+    4,
+    1,
+    8,
+    2,
+    4,
+    2,
+    8,
+    3,
+    4,
+    3,
+    8,
+    4,
+    5,
+    4,
+    6,
+    4,
+    7,
+    5,
+    8,
+    6,
+    8,
+    7,
+    8
+  ],
+  "reasoning": "Found a maximal triangle-free graph on 9 vertices using a SAT solver. The graph has 18 edges and satisfies: (1) triangle-free \u2014 no three mutually adjacent vertices, (2) maximal \u2014 every missing edge (u,v) has a common neighbor w with both (u,w) and (v,w) present, so adding it would create a triangle, (3) includes both required edges (0,7) and (4,7).",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial mismatch: expected edges to contain [4, 7]",
+  "prompt_tokens": 26289,
+  "completion_tokens": 4647,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.14857199999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 57324.18155670166,
+  "tool_dispatch_ms_total": 403.1972885131836,
+  "tool_calls_made": 7,
+  "tool_rounds": 7,
+  "n_execute_python": 6,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef is_triangle_free(edges, n=9):\n    adj = [[False]*n for _ in range(n)]\n    for u, v in edges:\n        adj[u][v] = True\n        adj[v][u] = True\n    for i in range(n):\n        for j in range(i+1, n):\n            if adj[i][j]:\n                for k in range(j+1, n):\n                    if adj[i][k] and adj[j][k]:\n                        return False\n    return True\n\ndef creates_triangle(edges, new_edge, n=9):\n    adj = [[False]*n for _ in range(n)]\n    for u, v in edges:\n        adj[u][v] = True\n        adj[v][u] = True\n    u, v = new_edge\n    # Check if adding (u,v) creates a triangle\n    for w in range(n):\n        if w != u and w != v:\n            if adj[u][w] and adj[v][w]:\n                return True\n    return False\n\ndef is_maximal_triangle_free(edges, n=9):\n    if not is_triangle_free(edges, n):\n        return False\n    edge_set = set(edges)\n    for u in range(n):\n        for v in range(u+1, n):\n            if (u,v) not in edge_set:\n                if not creates_triangle(edges, (u,v), n):\n                    return False  # Can add edge without triangle => not maximal\n    return True\n\n# Use a greedy/backtracking approach\n# Start with required edges and build up\nrequired = [(0,7), (4,7)]\n\n# Try to use a known maximal triangle-free graph structure\n# The Tur\u00e1n graph T(9,3) is the complete 3-partite graph K_{3,3,3}\n# which is triangle-free and maximal triangle-free\n# Partition: {0,1,2}, {3,4,5}, {6,7,8}\ndef turan_3_partite(partition, n=9):\n    edges = []\n    for i, part_i in enumerate(partition):\n        for j, part_j in enumerate(partition):\n            if i < j:\n                for u in part_i:\n                    for v in part_j:\n                        u2, v2 = min(u,v), max(u,v)\n                        edges.append((u2, v2))\n    return edges\n\n# Check all possible 3-partitions of 9 vertices into 3 groups of 3\n# that include required edges (0,7) and (4,7)\n# Edge (u,v) exists iff u and v are in different parts\n# So (0,7) means 0 and 7 in different parts\n# (4,7) means 4 and 7 in different parts\n# => 0, 4, 7 must all be in different parts\n\nfrom itertools import permutations\n\nn = 9\nvertices = list(range(n))\n\n# Try all ways to assign vertices to 3 parts of size 3\n# with constraint: 0,4,7 in different parts\ndef generate_partitions():\n    # Fix 0 in part 0, 4 in part 1, 7 in part 2\n    remaining = [1, 2, 3, 5, 6, 8]\n    for assignment in combinations(remaining, 2):\n        part0 = [0] + list(assignment)\n        rest = [v for v in remaining if v not in assignment]\n        for assignment2 in combinations(rest, 2):\n            part1 = [4] + list(assignment2)\n            part2 = [7] + [v for v in rest if v not in assignment2]\n            yield [part0, part1, part2]\n\nbest = None\nfor partition in generate_partitions():\n    edges = turan_3_partite(partition)\n    edge_set = set(edges)\n    if (0,7) in edge_set and (4,7) in edge_set:\n        if is_maximal_triangle_free(edges):\n            print(f\"Found! Partition: {partition}\")\n            print(f\"Edges ({len(edges)}): {sorted(edges)}\")\n            best = edges\n            break\n\nif best is None:\n    print(\"No 3-partite solution found, trying other approach\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 36.07
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let me debug - check why 3-partite doesn't work\nfor partition in generate_partitions():\n    edges = turan_3_partite(partition)\n    edge_set = set(edges)\n    has_req = (0,7) in edge_set and (4,7) in edge_set\n    if has_req:\n        print(f\"Partition: {partition}, edges count: {len(edges)}, maximal: {is_maximal_triangle_free(edges)}\")\n        break\n\n# Check a specific partition\npartition = [[0,1,2],[4,3,5],[7,6,8]]\nedges = turan_3_partite(partition)\nprint(f\"\\nPartition {partition}:\")\nprint(f\"Edges: {sorted(edges)}\")\nprint(f\"Has (0,7): {(0,7) in set(edges)}\")\nprint(f\"Has (4,7): {(4,7) in set(edges)}\")\nprint(f\"Triangle free: {is_triangle_free(edges)}\")\nprint(f\"Maximal: {is_maximal_triangle_free(edges)}\")\n",
+        "timeout_seconds": 15
+      },
+      "ok": false,
+      "latency_ms": 32.75
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef is_triangle_free(edges, n=9):\n    adj = [[False]*n for _ in range(n)]\n    for u, v in edges:\n        adj[u][v] = True\n        adj[v][u] = True\n    for i in range(n):\n        for j in range(i+1, n):\n            if adj[i][j]:\n                for k in range(j+1, n):\n                    if adj[i][k] and adj[j][k]:\n                        return False\n    return True\n\ndef creates_triangle(edges, new_edge, n=9):\n    adj = [[False]*n for _ in range(n)]\n    for u, v in edges:\n        adj[u][v] = True\n        adj[v][u] = True\n    u, v = new_edge\n    for w in range(n):\n        if w != u and w != v:\n            if adj[u][w] and adj[v][w]:\n                return True\n    return False\n\ndef is_maximal_triangle_free(edges, n=9):\n    if not is_triangle_free(edges, n):\n        return False\n    edge_set = set(edges)\n    for u in range(n):\n        for v in range(u+1, n):\n            if (u,v) not in edge_set:\n                if not creates_triangle(edges, (u,v), n):\n                    return False\n    return True\n\ndef turan_3_partite(partition):\n    edges = []\n    for i in range(len(partition)):\n        for j in range(i+1, len(partition)):\n            for u in partition[i]:\n                for v in partition[j]:\n                    u2, v2 = min(u,v), max(u,v)\n                    edges.append((u2, v2))\n    return edges\n\n# Check specific partition\npartition = [[0,1,2],[4,3,5],[7,6,8]]\nedges = turan_3_partite(partition)\nedge_set = set(edges)\nprint(f\"Partition {partition}:\")\nprint(f\"Edges: {sorted(edges)}\")\nprint(f\"Has (0,7): {(0,7) in edge_set}\")\nprint(f\"Has (4,7): {(4,7) in edge_set}\")\nprint(f\"Triangle free: {is_triangle_free(edges)}\")\nprint(f\"Maximal: {is_maximal_triangle_free(edges)}\")\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 33.15
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# K_{3,3,3} should be triangle-free! Let me check why it's not\n# Oh wait - in K_{3,3,3}, edges go between ALL pairs of different parts\n# Let me check for a triangle\npartition = [[0,1,2],[4,3,5],[7,6,8]]\nedges = turan_3_partite(partition)\nedge_set = set(edges)\n\n# Find a triangle\nfor i in range(9):\n    for j in range(i+1, 9):\n        if (i,j) in edge_set:\n            for k in range(j+1, 9):\n                if (i,k) in edge_set and (j,k) in edge_set:\n                    print(f\"Triangle: {i},{j},{k}\")\n                    # Which parts are they in?\n                    for pi, p in enumerate(partition):\n                        if i in p: print(f\"  {i} in part {pi}\")\n                        if j in p: print(f\"  {j} in part {pi}\")\n                        if k in p: print(f\"  {k} in part {pi}\")\n",
+        "timeout_seconds": 15
+      },
+      "ok": false,
+      "latency_ms": 35.3
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let me just use a SAT solver approach with pysat\nfrom pysat.solvers import Glucose3\nfrom itertools import combinations\n\nn = 9\nall_edges = [(u,v) for u in range(n) for v in range(u+1,n)]\nedge_idx = {e: i+1 for i, e in enumerate(all_edges)}  # 1-indexed for SAT\n\nrequired = [(0,7), (4,7)]\n\nsolver = Glucose3()\n\n# For each edge (u,v): variable edge_idx[(u,v)] = True means edge present\n\n# Required edges must be present\nfor e in required:\n    solver.add_clause([edge_idx[e]])\n\n# Triangle-free: for every triple (i,j,k), not all three edges present\nfor i,j,k in combinations(range(n), 3):\n    e1 = (min(i,j), max(i,j))\n    e2 = (min(i,k), max(i,k))\n    e3 = (min(j,k), max(j,k))\n    solver.add_clause([-edge_idx[e1], -edge_idx[e2], -edge_idx[e3]])\n\n# Maximality: for every non-edge (u,v), adding it creates a triangle\n# i.e., there exists w such that (u,w) and (v,w) are both edges\n# Equivalently: NOT (edge(u,v)=False AND for all w, NOT(edge(u,w) AND edge(v,w)))\n# = edge(u,v)=True OR exists w: edge(u,w) AND edge(v,w)\n# \n# For maximality: for each potential edge (u,v):\n# If (u,v) is not present, then for some w, both (u,w) and (v,w) are present\n# \n# We need: edge(u,v)=0 => OR_w [edge(u,w) AND edge(v,w)]\n# Equivalently: edge(u,v)=1 OR OR_w [edge(u,w) AND edge(v,w)]\n#\n# Introduce auxiliary variable aux[u,v,w] = edge(u,w) AND edge(v,w)\n# Then: edge(u,v) OR OR_w aux[u,v,w]\n# aux[u,v,w] => edge(u,w)\n# aux[u,v,w] => edge(v,w)\n# (edge(u,w) AND edge(v,w)) => aux[u,v,w]  -- not needed for soundness\n\naux = {}\naux_count = len(all_edges) + 1\n\nfor u,v in all_edges:\n    euv = edge_idx[(u,v)]\n    witnesses = []\n    for w in range(n):\n        if w == u or w == v:\n            continue\n        uw = (min(u,w), max(u,w))\n        vw = (min(v,w), max(v,w))\n        # aux variable\n        aux_var = aux_count\n        aux[(u,v,w)] = aux_var\n        aux_count += 1\n        # aux => edge(u,w)\n        solver.add_clause([-aux_var, edge_idx[uw]])\n        # aux => edge(v,w)\n        solver.add_clause([-aux_var, edge_idx[vw]])\n        witnesses.append(aux_var)\n    # edge(u,v) OR OR witnesses\n    solver.add_clause([euv] + witnesses)\n\nresult = solver.solve()\nprint(f\"SAT: {result}\")\nif result:\n    model = solver.get_model()\n    sol_edges = []\n    for e, idx in edge_idx.items():\n        if model[idx-1] > 0:\n            sol_edges.append(e)\n    sol_edges.sort()\n    print(f\"Edges ({len(sol_edges)}): {sol_edges}\")\n    \n    # Verify\n    def is_triangle_free(edges, n=9):\n        adj = [[False]*n for _ in range(n)]\n        for u, v in edges:\n            adj[u][v] = True\n            adj[v][u] = True\n        for i in range(n):\n            for j in range(i+1, n):\n                if adj[i][j]:\n                    for k in range(j+1, n):\n                        if adj[i][k] and adj[j][k]:\n                            return False, (i,j,k)\n        return True, None\n\n    def is_maximal_triangle_free(edges, n=9):\n        tf, tri = is_triangle_free(edges, n)\n        if not tf:\n            return False, f\"Has triangle {tri}\"\n        adj = [[False]*n for _ in range(n)]\n        for u, v in edges:\n            adj[u][v] = True\n            adj[v][u] = True\n        edge_set = set(edges)\n        for u in range(n):\n            for v in range(u+1, n):\n                if (u,v) not in edge_set:\n                    # Check if adding creates triangle\n                    creates = False\n                    for w in range(n):\n                        if w != u and w != v and adj[u][w] and adj[v][w]:\n                            creates = True\n                            break\n                    if not creates:\n                        return False, f\"Can add edge ({u},{v}) without triangle\"\n        return True, \"OK\"\n\n    ok, msg = is_maximal_triangle_free(sol_edges)\n    print(f\"Valid maximal triangle-free: {ok}, {msg}\")\n    print(f\"Required edges present: {(0,7) in set(sol_edges)}, {(4,7) in set(sol_edges)}\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 227.25
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nsol_edges = [(0,1),(0,2),(0,3),(0,5),(0,6),(0,7),(1,4),(1,8),(2,4),(2,8),(3,4),(3,8),(4,5),(4,6),(4,7),(5,8),(6,8),(7,8)]\nprint(\"Solution edges:\", sol_edges)\nprint(f\"Count: {len(sol_edges)}\")\nprint(f\"Required (0,7): {(0,7) in sol_edges}\")\nprint(f\"Required (4,7): {(4,7) in sol_edges}\")\n",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 38.67
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          0,
+          2,
+          0,
+          3,
+          0,
+          5,
+          0,
+          6,
+          0,
+          7,
+          1,
+          4,
+          1,
+          8,
+          2,
+          4,
+          2,
+          8,
+          3,
+          4,
+          3,
+          8,
+          4,
+          5,
+          4,
+          6,
+          4,
+          7,
+          5,
+          8,
+          6,
+          8,
+          7,
+          8
+        ],
+        "reasoning": "Found a maximal triangle-free graph on 9 vertices using a SAT solver. The graph has 18 edges and satisfies: (1) triangle-free \u2014 no three mutually adjacent vertices, (2) maximal \u2014 every missing edge (u,v) has a common neighbor w with both (u,w) and (v,w) present, so adding it would create a triangle, (3) includes both required edges (0,7) and (4,7)."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

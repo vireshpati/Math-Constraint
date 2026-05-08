@@ -1,0 +1,102 @@
+{
+  "problem_name": "costas_array_n10__v0_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 1070.6,
+    "search_space": 3628800,
+    "num_variables": 10,
+    "num_constraints": 11,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 75.75,
+    "solve_pct_type": 72.22
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    3,
+    7,
+    4,
+    9,
+    8,
+    6,
+    2,
+    5
+  ],
+  "reasoning": "Found a Costas array of order 10 via backtracking search with constraint propagation. The permutation [0, 1, 3, 7, 4, 9, 8, 6, 2, 5] places one mark per row and column, and all 45 displacement vectors (dr, dc) between pairs of marks are pairwise distinct, satisfying the Costas array property.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4926,
+  "completion_tokens": 1306,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.00116082,
+  "cost_source": "openrouter",
+  "latency_ms": 110377.34889984131,
+  "tool_dispatch_ms_total": 67.54040718078613,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport sys\n\n# Let's try a backtracking approach first to see if we can find a Costas array of order 10\n\ndef is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            if (dr, dc) in vectors:\n                return False\n            vectors.add((dr, dc))\n    return True\n\n# Known Costas arrays of order 10 exist. Let me try to find one using known constructions.\n# The Welch construction works for primes. For n=10, we can use the Lempel construction or search.\n\n# Let's try a known Costas array of order 10\n# Known example from literature:\nknown = [0, 2, 7, 5, 3, 8, 6, 4, 9, 1]  # This is a known one? Let me check\n\nprint(\"Checking known array:\", known)\nprint(\"Is Costas?\", is_costas(known))\n\n# Let me try another known one\nknown2 = [0, 1, 3, 6, 2, 7, 5, 8, 4, 9]\nprint(\"Checking known2:\", known2)\nprint(\"Is Costas?\", is_costas(known2))\n\n# Let me search using backtracking with pruning\ndef find_costas(n):\n    # Use backtracking with constraint propagation\n    used_rows = [False] * n\n    # Store all displacement vectors seen so far\n    vectors = set()\n    \n    def backtrack(col, perm):\n        if col == n:\n            return perm[:]\n        \n        for row in range(n):\n            if used_rows[row]:\n                continue\n            \n            # Check if adding this position creates any duplicate vectors\n            valid = True\n            new_vectors = []\n            for prev_col in range(col):\n                prev_row = perm[prev_col]\n                dr = row - prev_row\n                dc = col - prev_col\n                if (dr, dc) in vectors:\n                    valid = False\n                    break\n                new_vectors.append((dr, dc))\n            \n            if not valid:\n                continue\n            \n            # Place the mark\n            used_rows[row] = True\n            for v in new_vectors:\n                vectors.add(v)\n            perm.append(row)\n            \n            result = backtrack(col + 1, perm)\n            if result:\n                return result\n            \n            # Backtrack\n            perm.pop()\n            for v in new_vectors:\n                vectors.remove(v)\n            used_rows[row] = False\n        \n        return None\n    \n    return backtrack(0, [])\n\nprint(\"\\nSearching for Costas array of order 10...\")\nresult = find_costas(10)\nprint(\"Result:\", result)\nif result:\n    print(\"Is Costas?\", is_costas(result))",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 34.71
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def verify_costas(perm):\n    n = len(perm)\n    print(f\"Permutation: {perm}\")\n    print(f\"Length: {n}\")\n    \n    # Check one per row\n    if sorted(perm) != list(range(n)):\n        print(\"FAIL: Not a permutation\")\n        return False\n    \n    vectors = {}\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            key = (dr, dc)\n            if key in vectors:\n                print(f\"FAIL: Duplicate vector {key} from columns ({i},{j}) and {vectors[key]}\")\n                return False\n            vectors[key] = (i, j)\n    \n    print(f\"All {n*(n-1)//2} vectors are distinct!\")\n    print(\"Vectors:\", sorted(vectors.keys()))\n    return True\n\nperm = [0, 1, 3, 7, 4, 9, 8, 6, 2, 5]\nverify_costas(perm)\n\n# Also visualize\nprint(\"\\nGrid visualization:\")\nfor r in range(9, -1, -1):\n    line = \"\"\n    for c in range(10):\n        if perm[c] == r:\n            line += \"X \"\n        else:\n            line += \". \"\n    print(f\"{r:2d} {line}\")\nprint(\"   \", end=\"\")\nfor c in range(10):\n    print(f\"{c} \", end=\"\")\nprint()",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 32.83
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          3,
+          7,
+          4,
+          9,
+          8,
+          6,
+          2,
+          5
+        ],
+        "reasoning": "Found a Costas array of order 10 via backtracking search with constraint propagation. The permutation [0, 1, 3, 7, 4, 9, 8, 6, 2, 5] places one mark per row and column, and all 45 displacement vectors (dr, dc) between pairs of marks are pairwise distinct, satisfying the Costas array property."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,74 @@
+{
+  "problem_name": "graph_k_coloring_density14_k3_n27_seed57327__v14_nh",
+  "problem_type": "graph_k_coloring",
+  "params": {
+    "density": 14,
+    "k": 3,
+    "n": 27,
+    "seed": 57327
+  },
+  "difficulty": {
+    "solve_time_ms": 1866.2,
+    "search_space": 7625597484987,
+    "num_variables": 27,
+    "num_constraints": 54,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 50.0,
+    "solve_pct_type": 10.42
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[0, 0, 1, 2, 1, 0, 1, 1, 2, 1, 0, 2, 1, 1, 1, 2, 2, 2, 0, 2, 1, 1, 0, 1, 2, 0, 0]",
+  "reasoning": "Used a SAT solver (PySAT with Glucose3) to encode the 3-coloring problem. Each vertex v has 3 boolean variables x[v][c] indicating if vertex v has color c. Constraints ensure each vertex gets exactly one color and adjacent vertices get different colors. The solver found a valid coloring which was verified against all 51 edges.",
+  "raw_response": null,
+  "cot_trace": "I need to determine if a graph with 27 vertices and 51 edges admits a proper 3-coloring. This is a classic NP-complete problem. Let me use a constraint solver to find the answer.\n\nI'll use Python with a SAT solver or constraint programming approach to solve this.\n---\nThe solver found a valid 3-coloring. Let me verify this is correct and submit the answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3131,
+  "completion_tokens": 1101,
+  "reasoning_tokens": 82,
+  "cached_tokens": 0,
+  "cost_usd": 0.003164525,
+  "cost_source": "openrouter",
+  "latency_ms": 23704.283237457275,
+  "tool_dispatch_ms_total": 221.07362747192383,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nfrom pysat.card import *\n\n# Define the graph\nedges = [\n    (0,3), (0,9), (0,12), (0,21), (1,6), (1,11), (1,14), (1,16), (1,17), (1,20),\n    (2,16), (2,17), (3,14), (3,22), (4,5), (4,8), (5,6), (5,11), (5,14), (5,20),\n    (6,18), (6,24), (7,8), (7,11), (7,16), (7,22), (8,12), (8,14), (9,10), (9,11),\n    (9,18), (9,25), (9,26), (10,13), (10,15), (11,14), (11,20), (13,15), (13,19),\n    (13,25), (14,25), (15,22), (15,26), (16,20), (16,25), (17,25), (17,26),\n    (18,23), (19,20), (21,22), (24,26)\n]\n\nn_vertices = 27\nn_colors = 3\n\n# Create SAT solver\nsolver = Glucose3()\n\n# Variables: x[v][c] means vertex v has color c\n# We'll encode x[v][c] as variable v*n_colors + c + 1 (1-indexed for SAT)\ndef var(v, c):\n    return v * n_colors + c + 1\n\n# Constraint 1: Each vertex must have exactly one color\nfor v in range(n_vertices):\n    # At least one color\n    solver.add_clause([var(v, c) for c in range(n_colors)])\n    # At most one color (pairwise exclusion)\n    for c1 in range(n_colors):\n        for c2 in range(c1+1, n_colors):\n            solver.add_clause([-var(v, c1), -var(v, c2)])\n\n# Constraint 2: Adjacent vertices must have different colors\nfor u, v in edges:\n    for c in range(n_colors):\n        solver.add_clause([-var(u, c), -var(v, c)])\n\n# Solve\nif solver.solve():\n    model = solver.get_model()\n    # Extract coloring\n    coloring = [0] * n_vertices\n    for v in range(n_vertices):\n        for c in range(n_colors):\n            if var(v, c) in model:\n                coloring[v] = c\n                break\n    print(\"SATISFIABLE\")\n    print(\"Coloring:\", coloring)\n    \n    # Verify the solution\n    valid = True\n    for u, v in edges:\n        if coloring[u] == coloring[v]:\n            print(f\"ERROR: Edge ({u},{v}) has same color {coloring[u]}\")\n            valid = False\n    if valid:\n        print(\"Solution verified!\")\nelse:\n    print(\"UNSATISFIABLE\")\n\nsolver.delete()\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 221.07
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[0, 0, 1, 2, 1, 0, 1, 1, 2, 1, 0, 2, 1, 1, 1, 2, 2, 2, 0, 2, 1, 1, 0, 1, 2, 0, 0]",
+        "reasoning": "Used a SAT solver (PySAT with Glucose3) to encode the 3-coloring problem. Each vertex v has 3 boolean variables x[v][c] indicating if vertex v has color c. Constraints ensure each vertex gets exactly one color and adjacent vertices get different colors. The solver found a valid coloring which was verified against all 51 edges."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

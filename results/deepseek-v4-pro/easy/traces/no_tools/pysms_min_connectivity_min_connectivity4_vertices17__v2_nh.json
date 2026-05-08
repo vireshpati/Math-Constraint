@@ -1,0 +1,189 @@
+{
+  "problem_name": "pysms_min_connectivity_min_connectivity4_vertices17__v2_nh",
+  "problem_type": "pysms_min_connectivity",
+  "params": {
+    "min_connectivity": 4,
+    "vertices": 17
+  },
+  "difficulty": {
+    "solve_time_ms": 5677.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 136,
+    "backend": "pysms",
+    "solve_tier": "hard",
+    "solve_pct_global": 97.56,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      15
+    ],
+    [
+      0,
+      16
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      16
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      8,
+      9
+    ],
+    [
+      8,
+      10
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      9,
+      11
+    ],
+    [
+      10,
+      11
+    ],
+    [
+      10,
+      12
+    ],
+    [
+      11,
+      12
+    ],
+    [
+      11,
+      13
+    ],
+    [
+      12,
+      13
+    ],
+    [
+      12,
+      14
+    ],
+    [
+      13,
+      14
+    ],
+    [
+      13,
+      15
+    ],
+    [
+      14,
+      15
+    ],
+    [
+      14,
+      16
+    ],
+    [
+      15,
+      16
+    ]
+  ],
+  "reasoning": "A Harary graph H_{4,17} with vertices 0..16 and edges connecting each vertex to its 1st and 2nd neighbors on a cycle (mod 17) is known to be 4-connected for 17 > 4. It satisfies the vertex-connectivity requirement.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [\n        [0, 1], [0, 2], [0, 15], [0, 16],\n        [1, 2], [1, 3], [1, 16],\n        [2, 3], [2, 4],\n        [3, 4], [3, 5],\n        [4, 5], [4, 6],\n        [5, 6], [5, 7],\n        [6, 7], [6, 8],\n        [7, 8], [7, 9],\n        [8, 9], [8, 10],\n        [9, 10], [9, 11],\n        [10, 11], [10, 12],\n        [11, 12], [11, 13],\n        [12, 13], [12, 14],\n        [13, 14], [13, 15],\n        [14, 15], [14, 16],\n        [15, 16]\n    ],\n    \"reasoning\": \"A Harary graph H_{4,17} with vertices 0..16 and edges connecting each vertex to its 1st and 2nd neighbors on a cycle (mod 17) is known to be 4-connected for 17 > 4. It satisfies the vertex-connectivity requirement.\"\n}",
+  "cot_trace": "We need to generate a graph with 17 vertices with vertex-connectivity at least 4. This means the graph must be at least 4-connected: removing any 3 or fewer vertices should leave the graph connected. Equivalently, the minimum number of vertices whose removal disconnects the graph is at least 4.\n\nWe need to output edges as list of (u,v) with 0 <= u < v < 17, or \"UNSATISFIABLE\" if impossible.\n\nIs it possible? Yes, there exist 4-connected graphs on 17 vertices, e.g., a complete graph K17 is 16-connected, but we can construct sparser ones. For example, a circulant graph or a Harary graph. But we just need to produce a valid graph. The simplest is to provide a complete graph, but maybe they expect a minimal-ish or just any valid graph? The problem says \"Generate a graph\", no requirement to be minimal. So we can give K17, which has connectivity 16 >=4. But K17 has many edges: 17*16/2 = 136 edges. That might be too many to list, but it's acceptable. Alternatively, we could provide a cycle plus chords to ensure 4-connectivity. But listing 136 edges is tedious manually, but we can construct a compact representation? We need to output as JSON with list of edges. I can generate a smaller graph, like a 4-regular 4-connected graph? There are known constructions: for n >= 5, the Harary graph H_{k,n} with k even gives k-connected graph on n vertices. For k=4, n=17, H_{4,17}: vertices 0..16, each i connected to i+1, i-1 mod 17, and i+2, i-2 mod 17? That would be 4-regular, connectivity 4. That's 17*2 = 34 edges (since each edge counted twice). Edges: for each i, edges (i, (i+1)%17), (i, (i+2)%17). But careful: need to ensure no duplicate. That graph is 4-connected if n >= 5? Harary graphs: For k even, H_{k,n} is formed by joining each vertex to its k/2 nearest neighbors in each direction on a cycle. So for k=4, each vertex connects to neighbors at distance 1 and 2 mod n. This graph is proven to be k-connected when n > k. Here n=17 > 4, so it's 4-connected. That's a valid graph with 34 edges. Much easier to list.\n\nLet's verify: vertex connectivity of Harary graph H_{4,17} is exactly 4. Yes, Harary graph H_{k,n} has vertex connectivity k for n > k. So it works.\n\nWe need to output list of edges as pairs (u,v) with u < v. For n=17, vertices 0..16. Edges: for each i from 0 to 16, add edges (i, (i+1)%17) and (i, (i+2)%17) with i < j. This will generate each edge twice? Actually, we'll generate (i, i+1) and also later when i is i+1, it will generate (i+1, i) if we do both directions. So we need to only include when u < v. We can generate by iterating i from 0 to 16, and for each i, consider neighbors j = (i+d)%17 for d=1,2, and if i < j, add edge (i,j). This yields each undirected edge exactly once. That gives 17*2 = 34 edges? Let's check: degree 4, total edges = 17*4/2 = 34. Yes.\n\nWe'll list them. Let's compute manually: vertices 0..16. Edges for distances 1 and 2 mod 17.\n\nDistance 1: (0,1), (1,2), (2,3), (3,4), (4,5), (5,6), (6,7), (7,8), (8,9), (9,10), (10,11), (11,12), (12,13), (13,14), (14,15), (15,16), (0,16) [since 0 < 16, that's (0,16)]\n\nDistance 2: (0,2), (1,3), (2,4), (3,5), (4,6), (5,7), (6,8), (7,9), (8,10), (9,11), (10,12), (11,13), (12,14), (13,15), (14,16), (0,15)? Wait: i=15, j=(15+2)%17=0 -> (0,15); i=16, j=(16+2)%17=1 -> (1,16). So distance 2 edges: (0,2), (1,3), (2,4), (3,5), (4,6), (5,7), (6,8), (7,9), (8,10), (9,11), (10,12), (11,13), (12,14), (13,15), (14,16), (0,15), (1,16). That's 17 edges.\n\nTotal 34 edges. Let's list all sorted by u then v. We'll produce JSON list.\n\nWe can also double-check connectivity: Is H_{4,17} 4-connected? The Harary graph H_{4,17} is the circulant graph C_{17}(1,2). It is known that for odd n, C_n(1,2) is 4-connected. For n=17, it's fine. So it meets the requirement.\n\nNow, output as JSON: {\"satisfiable\": true, \"solution\": [[0,1],[0,2],[0,15],[0,16], ...], \"reasoning\": \"Harary graph H_{4,17} is 4-connected.\"}\n\nI'll generate the full edge list programmatically in mind. Let's write them down carefully:\n\nEdges with difference 1 (mod 17):\n(0,1)\n(1,2)\n(2,3)\n(3,4)\n(4,5)\n(5,6)\n(6,7)\n(7,8)\n(8,9)\n(9,10)\n(10,11)\n(11,12)\n(12,13)\n(13,14)\n(14,15)\n(15,16)\n(0,16)  (since 16-0=16, but mod 17, distance 1: 0 and 16 are adjacent? In cycle, 0's neighbors are 1 and 16. Yes, (0,16) is edge.)\n\nEdges with difference 2:\n(0,2)\n(1,3)\n(2,4)\n(3,5)\n(4,6)\n(5,7)\n(6,8)\n(7,9)\n(8,10)\n(9,11)\n(10,12)\n(11,13)\n(12,14)\n(13,15)\n(14,16)\n(0,15)  (15+2=17\u22610, so (0,15))\n(1,16)  (16+2=18\u22611, so (1,16))\n\nSorting by first then second:\n(0,1)\n(0,2)\n(0,15)\n(0,16)\n(1,2)\n(1,3)\n(1,16)\n(2,3)\n(2,4)\n(3,4)\n(3,5)\n(4,5)\n(4,6)\n(5,6)\n(5,7)\n(6,7)\n(6,8)\n(7,8)\n(7,9)\n(8,9)\n(8,10)\n(9,10)\n(9,11)\n(10,11)\n(10,12)\n(11,12)\n(11,13)\n(12,13)\n(12,14)\n(13,14)\n(13,15)\n(14,15)\n(14,16)\n(15,16)  Wait, (15,16) from diff 1, yes.\nAlso (0,15) and (0,16), (1,16) already listed.\n\nLet's do a systematic list with u from 0 to 16:\nu=0: edges to 1,2,15,16. So (0,1), (0,2), (0,15), (0,16)\nu=1: edges to 2,3,16 (plus 0 already). So (1,2), (1,3), (1,16)\nu=2: edges to 3,4 (plus 0,1). So (2,3), (2,4)\nu=3: edges to 4,5 (plus 1,2). (3,4), (3,5)\nu=4: edges to 5,6 (plus 2,3). (4,5), (4,6)\nu=5: (5,6), (5,7)\nu=6: (6,7), (6,8)\nu=7: (7,8), (7,9)\nu=8: (8,9), (8,10)\nu=9: (9,10), (9,11)\nu=10: (10,11), (10,12)\nu=11: (11,12), (11,13)\nu=12: (12,13), (12,14)\nu=13: (13,14), (13,15)\nu=14: (14,15), (14,16)\nu=15: (15,16)  (plus 0,13,14? Actually u=15 connects to 16, 0, 13, 14. (0,15) and (13,15) and (14,15) already from earlier u. So only (15,16) is new.\nu=16: already all covered: (0,16), (1,16), (14,16), (15,16).\n\nSo complete list: 34 edges. I'll list them in order. That's fine.\n\nNow, the output format requires JSON with keys: satisfiable, solution, reasoning. Solution is list of edges. I'll present as list of [u,v] pairs.\n\nThus final answer.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 194,
+  "completion_tokens": 2597,
+  "reasoning_tokens": 2291,
+  "cached_tokens": 128,
+  "cost_usd": 0.00917096,
+  "cost_source": "openrouter",
+  "latency_ms": 73883.12363624573,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

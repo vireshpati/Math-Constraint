@@ -1,0 +1,126 @@
+{
+  "problem_name": "magic_sequence_n15__v9_nh",
+  "problem_type": "magic_sequence",
+  "params": {
+    "n": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 1045.5,
+    "search_space": 437893890380859375,
+    "num_variables": 15,
+    "num_constraints": 27,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 74.62,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    11,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "reasoning": "A magic sequence of length n is a sequence x[0..n-1] where each x[i] equals the number of times i appears in the sequence. For n=15, the sequence [11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0] satisfies all constraints: there are 11 zeros (at indices 3-10,12-14), 2 ones (at indices 2 and 11), 1 two (at index 1), and 1 eleven (at index 0). The sum is 15 and the weighted sum is also 15, as required.",
+  "raw_response": null,
+  "cot_trace": "We need to find a magic sequence of length 15. A magic sequence (also known as a self-descriptive sequence) of length n is a sequence x_0, x_1, ..., x_{n-1} such that for each i, x_i equals the number of times i appears in the sequence.\n\nWe need to find such a sequence for n=15.\n\nLet's think about constraints. Let the sequence be a_0, a_1, ..., a_{14}. Each a_i is a nonnegative integer. The sum of all a_i must equal n = 15, because each position counts occurrences of some number, and the total number of occurrences counted is the length of the sequence.\n\nAlso, sum_{i} i * a_i = n, because the sum of the values equals the sum of indices times their counts? Wait: The sum of the elements of the sequence is sum_i a_i = n. Also, the sum of i * a_i = sum of all numbers in the sequence? Actually, each occurrence of number i contributes i to the sum of the sequence elements. So sum of the sequence elements = sum_i i * a_i. But also the sum of the sequence elements is sum_i a_i? No, the sequence elements are a_i, not i. Wait, the sequence is x[0], x[1], ..., x[14]. The value at position i is x[i], which is the count of i. So the sum of all x[i] is the total number of entries, which is n. So sum_i x[i] = n.\n\nAlso, the sum of i * x[i] = sum of all numbers that appear? Actually, each occurrence of number i contributes i to the sum of the values in the sequence? No, the values in the sequence are x[i], not i. But if we consider the multiset of numbers that appear in the sequence: each position j has value x[j]. But x[j] is the count of j. So the number j appears x[j] times. So the sum of all numbers in the multiset is sum_j j * x[j]. But that sum is also equal to sum_i x[i]? No, that's different. Actually, the sum of the sequence elements (the x[i]'s) is sum_i x[i] = n. The sum of the indices weighted by their counts is sum_i i * x[i]. There's no direct equality between these two sums.\n\nBut there is another constraint: For each i, x[i] is the count of i. So if we look at the multiset of values x[i], the count of each value k is the number of i such that x[i] = k. But also, x[k] is the count of k. So the number of positions i where x[i] = k must equal x[k]. That's the self-referential property.\n\nLet's try to solve using Python with constraint satisfaction or SAT.\n\nWe can formulate as integer constraints. Let's try to use a SAT solver or just brute force search with constraints.\n\nFor n=15, the search space is large but we can use constraints to prune.\n\nLet's write Python code to search for a solution.\n---\nWe have pysat available. Let's use it to solve the magic sequence problem.\n\nThe problem: find a sequence x[0..14] such that for each i, x[i] = number of times i appears in the sequence.\n\nThis is a classic \"self-describing sequence\" or \"Golomb's sequence\"? Actually it's known as \"self-counting sequence\" or \"magic sequence\". For length n, there are known solutions for certain n.\n\nLet's formulate as SAT. Variables: x[i] is an integer between 0 and n. But we can encode as binary or use cardinality constraints.\n\nBetter: we can use a SAT solver with cardinality constraints. pysat has a card module.\n\nLet's think about constraints:\n- For each i, x[i] = count of positions j where x[j] = i.\n- That is: for each i, exactly x[i] positions have value i.\n\nWe can encode: for each position j, we have a variable indicating its value. But the value domain is 0..14, which is large. We could use one-hot encoding: for each position j and each value v, a Boolean variable y_{j,v} meaning x[j] = v. Then constraints:\n- Each position has exactly one value: ExactlyOne(y_{j,0}, ..., y_{j,14}) for each j.\n- For each value v, the count of positions with value v equals x[v]. But x[v] is also a variable. We can encode x[v] as an integer variable (0..15). Then we need: sum_j y_{j,v} = x[v].\n- Also, x[v] = count of positions with value v, but x[v] itself is the value at position v. So we have: y_{v, x[v]} is true. That is, the value at position v is x[v]. But x[v] is an integer variable. This is tricky.\n\nAlternative approach: Use integer variables directly with a CP/SAT solver that supports integer variables. pysat is a SAT solver (Boolean), but we can use cardinality constraints and binary encoding.\n\nLet's try a different approach: use Python to search with backtracking and constraint propagation.\n\nActually, there's a known result: magic sequences exist only for certain lengths. For length n, there is a solution if and only if n mod something? Let's recall.\n\nThe magic sequence definition: x[i] = number of times i appears in the sequence.\n\nLet's denote the sequence length n. Then sum_i x[i] = n (since each position contributes 1 to some count). Also sum_i i * x[i] = n (since the sum of all values equals sum of indices times their counts? Wait: sum of all elements = sum over positions of x[j] = sum over i of i * (number of positions with value i) = sum_i i * x[i]. But also sum of all elements = sum_i x[i] = n. So we have sum_i i * x[i] = n.\n\nSo constraints:\n(1) sum_i x[i] = n\n(2) sum_i i * x[i] = n\n(3) x[i] >= 0 integer\n(4) x[i] = count of i in x.\n\nBut (4) is the tricky one.\n\nLet's try to solve with pysat using cardinality constraints and maybe an iterative approach: guess the values of x[i] and check consistency.\n\nActually, we can think of it as: we need to assign each position a value. Let's use a SAT encoding with one-hot and then use a Python script to iterate over possible x vectors? But the space is huge.\n\nLet's try to use pysat's cardinality constraints to encode the problem directly.\n\nWe have n=15 positions, each with value in 0..14. Let's create Boolean variables p_{j,v} meaning position j has value v. Then:\n\n- For each j, ExactlyOne(p_{j,0..14}).\n- For each v, let c_v = number of positions with value v. c_v = sum_j p_{j,v}. This is a cardinality.\n- Then we need that for each v, the value at position v equals c_v. That is: p_{v, c_v} is true. But c_v is not a fixed number; it's a variable. So we need: if c_v = k, then p_{v,k} is true. That is: for each v, for each k, (c_v = k) => p_{v,k}. And also the converse: p_{v,k} => (c_v = k).\n\nThis is a kind of \"channeling\" constraint.\n\nWe can encode c_v as an integer variable using binary representation. Let's use log2(n) bits for each c_v (4 bits for 0..15). Then we can encode the equality constraints.\n\nBut pysat is a SAT solver, not a SMT solver. We'd need to encode everything as CNF. That's possible but complex.\n\nMaybe we can use a simpler approach: since n=15 is small, we can search over possible vectors x (the counts) rather than the full assignment. The vector x itself must satisfy: x[i] is the count of i in x. But x is exactly the sequence! So the sequence is the same as the count vector. So we need to find a vector x of length 15 such that for each i, x[i] = number of occurrences of i in x.\n\nThis is a self-referential condition. We can think of it as: we need to assign each position a value, and the counts of each value must match the values at those indices.\n\nLet's try to solve using integer programming with Python's simple backtracking but with constraint propagation.\n\nWe can iterate over possible values for x[0], x[1], ... but with pruning.\n\nKey constraints:\n- sum(x) = 15\n- sum(i * x[i]) = 15\n- For each i, x[i] is between 0 and 15.\n- Also, x[i] = number of positions with value i. But since x is the sequence, the number of positions with value i is exactly the count of indices j such that x[j] = i. So we need: for each i, x[i] = count_{j} (x[j] == i).\n\nThis is a fixed-point condition.\n\nWe can search over possible x vectors. The number of possible vectors is huge (16^15), but we can prune using the sum constraints.\n\nLet's write a backtracking search that assigns values to x[0..14] one by one, maintaining counts of how many times each value has been used so far, and checking consistency with the already assigned x[i]'s.\n\nActually, we can use a more clever approach: treat it as a constraint satisfaction problem and use a SAT solver with cardinality constraints via pysat's `CardEnc` or similar.\n\nBut maybe we can just use a simple Python script with `itertools.product` and pruning? 16^15 is way too large.\n\nLet's try to use pysat with a custom encoding. I'll write a script that uses pysat's `Solver` and adds clauses for the one-hot encoding and cardinality constraints, and then uses a technique to enforce the equality between c_v and the value at position v.\n\nActually, we can avoid one-hot for values: we can encode the value of each position using 4 bits (binary). Then the count of positions with value i is a cardinality constraint on the comparison of these binary numbers to i. That's complex.\n\nBetter: use one-hot encoding. For each position j and each value v, variable y_{j,v}. Exactly one true per j. Then for each v, the count c_v = sum_j y_{j,v}. We need c_v to be equal to the value at position v. But the value at position v is represented by which y_{v,*} is true. So we need: y_{v,k} is true iff c_v = k.\n\nWe can encode \"c_v = k\" as a Boolean variable? Actually, we can create variables for \"c_v = k\" using cardinality constraints. But we also need to link them to y_{v,k}.\n\nAlternatively, we can think of it as: the sequence x is a fixed point of the \"counting\" function. We can start with a guess and iterate: given a sequence, compute its count vector, and check if equal. This is like iterating to a fixed point. But we need to find a fixed point.\n\nMaybe we can use a SAT solver to find a sequence that satisfies the sum constraints and then check the fixed point? But we need exact.\n\nLet's try to use pysat's `Solver` with a Python loop that adds constraints incrementally? Actually, we can encode the whole thing as a SAT problem with cardinality constraints using the built-in `CardEnc` or by using the `pysat.card` module.\n\nLet me explore pysat's capabilities.\n---\nLet me think about this problem more carefully.\n\nA magic sequence (also called self-descriptive sequence) of length n is a sequence x[0], x[1], ..., x[n-1] such that for each i, x[i] equals the number of times i appears in the sequence.\n\nProperties:\n1. Sum of all x[i] = n (since each position contributes 1 to the count of some number)\n2. Sum of i * x[i] = n (since the sum of all values equals the sum of counts weighted by value, which is just the sum of all positions' values, which is n because each position has a value)\n\nFrom these:\n- x[0] + x[1] + ... + x[n-1] = n\n- 0*x[0] + 1*x[1] + ... + (n-1)*x[n-1] = n\n\nAlso, x[i] >= 0 and x[i] <= n.\n\nLet's try to find a solution for n=15.\n\nI recall that for n >= 7, there is a known pattern:\nFor n >= 7, a solution is:\nx[0] = n - 4\nx[1] = 2\nx[2] = 1\nx[n-4] = 1\nAll other x[i] = 0\n\nLet's check: for n=15, this would give:\nx[0] = 11\nx[1] = 2\nx[2] = 1\nx[11] = 1\nOthers 0.\n\nCheck: \n- Count of 0's: positions with value 0 are all except 0,1,2,11 => that's 11 positions. x[0]=11 \u2713\n- Count of 1's: positions with value 1 are x[1] and x[11]? Wait, x[1]=2, not 1. So only x[11]=1? Actually x[1]=2, so value 1 appears only at position 11? Let's count: values: x[0]=11, x[1]=2, x[2]=1, x[11]=1, others 0. So value 1 appears at positions 2 and 11? No, x[2]=1 (value at position 2 is 1), and x[11]=1 (value at position 11 is 1). So value 1 appears twice. But x[1]=2, so that matches. \u2713\n- Count of 2's: value 2 appears at position 1 only. x[2]=1 \u2713\n- Count of 11's: value 11 appears at position 0 only. x[11]=1 \u2713\n- Count of other numbers: 0.\n\nSo the sequence is:\n[11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]\n\nLet's verify with code.\n---\nWait, I just found a solution? Let me verify.\n\nThe sequence: [11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]\n\nCheck:\n- x[0] = 11. Count of 0's in the sequence: positions 3,4,5,6,7,8,9,10,12,13,14 = 11 zeros. Yes.\n- x[1] = 2. Count of 1's: positions 2 and 11 = 2 ones. Yes.\n- x[2] = 1. Count of 2's: position 1 = 1 two. Yes.\n- x[3] = 0. Count of 3's: none. Yes.\n- ...\n- x[11] = 1. Count of 11's: position 0 = 1 eleven. Yes.\n- Others are 0.\n\nSum = 11+2+1+1 = 15. Weighted sum = 0*11 + 1*2 + 2*1 + 11*1 = 0+2+2+11 = 15. Yes.\n\nSo the solution is [11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0].\n\nBut wait, I need to double-check: x[11] = 1, and indeed 11 appears once (at position 0). x[0] = 11, and 0 appears 11 times (positions 3-10,12-14). That's correct.\n\nSo the magic sequence of length 15 is: [11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0].\n\nBut let me also check if there are other solutions. The problem says \"Find a magic sequence of length 15.\" So any valid sequence works.\n\nLet me confirm with a more thorough check.\n---\nThe sequence [11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0] works:\n\n- x[0] = 11: there are 11 zeros in the sequence (positions 3,4,5,6,7,8,9,10,12,13,14)\n- x[1] = 2: there are 2 ones (positions 2 and 11)\n- x[2] = 1: there is 1 two (position 1)\n- x[3] = 0: there are 0 threes\n- ...\n- x[11] = 1: there is 1 eleven (position 0)\n- x[12] = 0: there are 0 twelves\n- x[13] = 0: there are 0 thirteens\n- x[14] = 0: there are 0 fourteens\n\nSum = 11+2+1+1 = 15. Weighted sum = 0*11 + 1*2 + 2*1 + 11*1 = 0+2+2+11 = 15.\n\nThis is a valid magic sequence of length 15.\n\nBut wait, let me double-check: the sequence is:\nindex: 0  1  2  3  4  5  6  7  8  9  10 11 12 13 14\nvalue: 11 2  1  0  0  0  0  0  0  0  0  1  0  0  0\n\nCount of 0: positions 3,4,5,6,7,8,9,10,12,13,14 \u2192 11 zeros. x[0]=11 \u2713\nCount of 1: positions 2,11 \u2192 2 ones. x[1]=2 \u2713\nCount of 2: position 1 \u2192 1 two. x[2]=1 \u2713\nCount of 3: none \u2192 0. x[3]=0 \u2713\n...\nCount of 11: position 0 \u2192 1 eleven. x[11]=1 \u2713\nCount of 12: none \u2192 0. x[12]=0 \u2713\nCount of 13: none \u2192 0. x[13]=0 \u2713\nCount of 14: none \u2192 0. x[14]=0 \u2713\n\nAll good.\n\nBut is this the only solution? There might be others. The problem just asks for \"a magic sequence\", so any valid one works.\n\nLet me also verify that there isn't a different solution expected. The classic \"self-descriptive sequence\" for n=15 is indeed [11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0].\n\nI'll submit this.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 10386,
+  "completion_tokens": 6609,
+  "reasoning_tokens": 3651,
+  "cached_tokens": 4352,
+  "cost_usd": 0.042621400000000004,
+  "cost_source": "openrouter",
+  "latency_ms": 371515.89274406433,
+  "tool_dispatch_ms_total": 380.3374767303467,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def find_magic_sequence(n):\n    # We'll use backtracking with constraints.\n    # Let x = [0]*n initially.\n    # Constraints:\n    # sum(x) = n\n    # for each i, x[i] = count of i in x\n    # Also, x[i] >= 0 integer.\n    \n    # We can think of it as: the number of positions with value v is x[v].\n    # So we can iterate over possible values for x[0], etc.\n    # But better: use integer linear programming or SAT.\n    \n    # Let's try using python's itertools with pruning.\n    # But n=15 is too large for brute force.\n    # Let's use a SAT solver via pysat if available.\n    pass\n\n# Let's check if pysat is available\ntry:\n    import pysat\n    print(\"pysat available\")\nexcept:\n    print(\"pysat not available\")\n\n# Let's try to use z3 if available\ntry:\n    import z3\n    print(\"z3 available\")\nexcept:\n    print(\"z3 not available\")\n\n# Let's try ortools\ntry:\n    from ortools.sat.python import cp_model\n    print(\"ortools available\")\nexcept:\n    print(\"ortools not available\")"
+      },
+      "ok": true,
+      "latency_ms": 34.52
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import pysat\nfrom pysat.card import CardEnc, EncType\nfrom pysat.solvers import Solver\n\n# Let's try to encode the magic sequence problem for n=15.\n# We'll use one-hot encoding: for each position j (0..14) and each value v (0..14),\n# variable y_{j,v} meaning x[j] = v.\n# Total variables: 15*15 = 225.\n\nn = 15\n\n# We'll create a mapping from (j,v) to variable index (1-based for SAT)\nvar_map = {}\ncounter = 1\nfor j in range(n):\n    for v in range(n):\n        var_map[(j,v)] = counter\n        counter += 1\n\n# Now we need to add constraints.\n# 1. Each position has exactly one value.\n# We'll use cardinality constraints: exactly one true among y_{j,0..14} for each j.\n\n# We'll use a SAT solver and add clauses manually.\n# For \"exactly one\", we can use pairwise \"at most one\" and \"at least one\".\n# But pysat has CardEnc which can encode cardinality constraints efficiently.\n\n# Let's first try a simpler approach: use the iterative fixed-point method with backtracking.\n# Actually, let's just try to solve using a simple Python search with constraint propagation.\n\n# Let's think about the structure of magic sequences.\n# Known fact: for length n, a magic sequence exists iff n is not 2, 3, 6? Let's check small n.\n\ndef check_sequence(seq):\n    n = len(seq)\n    for i in range(n):\n        count = sum(1 for x in seq if x == i)\n        if seq[i] != count:\n            return False\n    return True\n\ndef find_magic_bruteforce(n):\n    # Use recursion with pruning\n    # We'll build seq incrementally\n    from functools import lru_cache\n    \n    # But we can use the fact that sum(seq) = n and sum(i*seq[i]) = n\n    # Let's try to find all solutions for small n first to see pattern.\n    pass\n\n# Let's try small n with brute force using integer partitions?\n# Actually, we can search over possible count vectors directly.\n# The count vector IS the sequence. So we need x[i] = count of i in x.\n# This is a self-referential condition.\n\n# Let's try to solve for n=15 using a SAT solver with cardinality constraints.\n# We'll encode the problem as a SAT instance and solve.\n\n# But first, let's check if there is a known solution for n=15.\n# I recall that magic sequences exist for n=1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15...\n# Actually, I think solutions exist for all n except 2, 3, 6? Let's test small n with a simple search.\n\ndef search_magic(n):\n    # Use recursion with pruning based on partial sums.\n    # We'll assign x[0], x[1], ... sequentially.\n    # Maintain counts of assigned values so far.\n    \n    seq = [0]*n\n    # We'll use recursion.\n    # But we can also use the fact that x[i] <= n - i? Not necessarily.\n    \n    # Let's try a simple backtracking with constraint propagation.\n    # Actually, we can use the \"self-counting\" property to derive constraints.\n    \n    # Let's try to use a SAT solver via pysat.\n    pass\n\n# Let's just try to use pysat with cardinality constraints.\n# We'll encode the problem and see if it's solvable.\n\nprint(\"Testing pysat card encoding...\")\n# Let's try a simpler test: encode that sum of y_{j,v} over j for a given v equals some value.\n# But we need to link that sum to the value at position v.\n\n# Actually, we can use a different formulation: \n# Let x_i be integer variables (0..n). \n# But pysat is purely Boolean. We can encode integers as binary.\n\n# Let's try to use the iterative approach: start with a guess, compute counts, update, repeat.\n# This might converge to a fixed point.\n\ndef iterate_magic(n, initial=None):\n    if initial is None:\n        seq = [0]*n\n    else:\n        seq = list(initial)\n    for _ in range(100):\n        counts = [0]*n\n        for v in seq:\n            if v < n:\n                counts[v] += 1\n        if counts == seq:\n            return seq\n        seq = counts\n    return None\n\n# Try from various initial seeds\nimport random\nrandom.seed(0)\nfor _ in range(1000):\n    init = [random.randint(0,14) for _ in range(15)]\n    # But sum must be 15, so maybe initialize with something that sums to 15?\n    # Actually the iteration might not preserve sum.\n    # Let's try random starts and see if any converge.\n    pass\n\n# Let's try a more systematic approach: use constraint programming via simple backtracking.\n# But first, let's check known results.\n\n# I think magic sequences are also called \"self-descriptive sequences\".\n# For n=15, there might be a solution.\n\n# Let's try to use the fact that x[0] + x[1] + ... + x[14] = 15\n# and 0*x[0] + 1*x[1] + ... + 14*x[14] = 15.\n\n# From these, we can derive some constraints.\n# Let's try to solve using integer linear programming with Python's simple search.\n\nprint(\"Let's try to solve using backtracking with pruning...\")"
+      },
+      "ok": true,
+      "latency_ms": 277.38
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check(seq):\n    n = len(seq)\n    for i in range(n):\n        count = sum(1 for x in seq if x == i)\n        if seq[i] != count:\n            return False\n    return True\n\nn = 15\nseq = [0]*n\nseq[0] = n - 4  # 11\nseq[1] = 2\nseq[2] = 1\nseq[n-4] = 1  # index 11\n\nprint(seq)\nprint(\"Valid?\", check(seq))\nprint(\"Sum:\", sum(seq))\nprint(\"Weighted sum:\", sum(i*seq[i] for i in range(n)))"
+      },
+      "ok": true,
+      "latency_ms": 35.61
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check(seq):\n    n = len(seq)\n    for i in range(n):\n        count = sum(1 for x in seq if x == i)\n        if seq[i] != count:\n            print(f\"Fail at i={i}: seq[i]={seq[i]}, count={count}\")\n            return False\n    return True\n\nseq = [11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]\nprint(\"Length:\", len(seq))\nprint(\"Valid:\", check(seq))\nprint(\"Sum:\", sum(seq))\nprint(\"Weighted sum:\", sum(i*seq[i] for i in range(len(seq))))\nprint(\"Sequence:\", seq)"
+      },
+      "ok": true,
+      "latency_ms": 32.83
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          11,
+          2,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "reasoning": "A magic sequence of length n is a sequence x[0..n-1] where each x[i] equals the number of times i appears in the sequence. For n=15, the sequence [11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0] satisfies all constraints: there are 11 zeros (at indices 3-10,12-14), 2 ones (at indices 2 and 11), 1 two (at index 1), and 1 eleven (at index 0). The sum is 15 and the weighted sum is also 15, as required."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

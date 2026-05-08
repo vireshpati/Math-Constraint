@@ -1,0 +1,116 @@
+{
+  "problem_name": "all_interval_n14__v1_h",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 993.6,
+    "search_space": 87178291200,
+    "num_variables": 27,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 69.74,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    13,
+    1,
+    12,
+    2,
+    11,
+    3,
+    10,
+    4,
+    9,
+    5,
+    8,
+    6,
+    7
+  ],
+  "reasoning": "Found an all-interval series of size 14: [0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7]. This is the classic \"zigzag\" all-interval series where consecutive differences are 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 \u2014 a permutation of 1-13. All fixed constraints are satisfied: x[6]=3, x[12]=6, d[3]=10, d[11]=2.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 10313,
+  "completion_tokens": 2483,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.068184,
+  "cost_source": "openrouter",
+  "latency_ms": 60998.7108707428,
+  "tool_dispatch_ms_total": 227.5106906890869,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\n# Let me use a SAT/constraint solver approach\n# x[0..13] is a permutation of 0..13\n# d[i] = |x[i+1] - x[i]| for i in 0..12\n# d[0..12] must be a permutation of 1..13\n\n# Fixed constraints:\n# x[6] = 3, x[12] = 6\n# d[3] = 10, d[11] = 2\n\n# Let's use python-constraint or backtracking\n# Try with OR-Tools CP-SAT\n\nfrom ortools.sat.python import cp_model\n\nmodel = cp_model.CpModel()\n\nN = 14\n\n# Variables\nx = [model.NewIntVar(0, N-1, f'x{i}') for i in range(N)]\nd = [model.NewIntVar(1, N-1, f'd{i}') for i in range(N-1)]\n\n# x is a permutation of 0..13\nmodel.AddAllDifferent(x)\n\n# d is a permutation of 1..13\nmodel.AddAllDifferent(d)\n\n# d[i] = |x[i+1] - x[i]|\nfor i in range(N-1):\n    diff = model.NewIntVar(-(N-1), N-1, f'diff{i}')\n    model.Add(diff == x[i+1] - x[i])\n    model.AddAbsEquality(d[i], diff)\n\n# Fixed assignments\nmodel.Add(x[6] == 3)\nmodel.Add(x[12] == 6)\nmodel.Add(d[3] == 10)\nmodel.Add(d[11] == 2)\n\n# Solve\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30.0\n\nstatus = solver.Solve(model)\n\nif status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:\n    x_vals = [solver.Value(x[i]) for i in range(N)]\n    d_vals = [solver.Value(d[i]) for i in range(N-1)]\n    print(\"Solution found!\")\n    print(\"x =\", x_vals)\n    print(\"d =\", d_vals)\n    \n    # Verify\n    print(\"\\nVerification:\")\n    print(\"x is permutation of 0-13:\", sorted(x_vals) == list(range(14)))\n    computed_d = [abs(x_vals[i+1] - x_vals[i]) for i in range(13)]\n    print(\"computed d =\", computed_d)\n    print(\"d is permutation of 1-13:\", sorted(computed_d) == list(range(1, 14)))\n    print(\"x[6]=3:\", x_vals[6] == 3)\n    print(\"x[12]=6:\", x_vals[12] == 6)\n    print(\"d[3]=10:\", computed_d[3] == 10)\n    print(\"d[11]=2:\", computed_d[11] == 2)\nelse:\n    print(\"No solution found, status:\", status)\n"
+      },
+      "ok": false,
+      "latency_ms": 136.88
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Use backtracking search\ndef solve_all_interval():\n    N = 14\n    x = [None] * N\n    used_x = set()\n    used_d = set()\n    \n    # Fixed assignments\n    x[6] = 3\n    x[12] = 6\n    used_x.add(3)\n    used_x.add(6)\n    \n    # d[3] = 10, d[11] = 2\n    fixed_d = {3: 10, 11: 2}\n    \n    def backtrack(pos):\n        if pos == N:\n            return True\n        \n        if x[pos] is not None:\n            # Position is fixed, check constraints with previous\n            if pos > 0 and x[pos-1] is not None:\n                diff = abs(x[pos] - x[pos-1])\n                d_idx = pos - 1\n                if d_idx in fixed_d:\n                    if diff != fixed_d[d_idx]:\n                        return False\n                if diff == 0 or diff > 13:\n                    return False\n                if diff in used_d:\n                    return False\n                used_d.add(diff)\n                result = backtrack(pos + 1)\n                used_d.remove(diff)\n                return result\n            else:\n                return backtrack(pos + 1)\n        \n        for val in range(N):\n            if val in used_x:\n                continue\n            \n            # Check difference constraint with previous position\n            if pos > 0 and x[pos-1] is not None:\n                diff = abs(val - x[pos-1])\n                d_idx = pos - 1\n                if d_idx in fixed_d and diff != fixed_d[d_idx]:\n                    continue\n                if diff == 0 or diff > 13:\n                    continue\n                if diff in used_d:\n                    continue\n                \n                x[pos] = val\n                used_x.add(val)\n                used_d.add(diff)\n                \n                if backtrack(pos + 1):\n                    return True\n                \n                x[pos] = None\n                used_x.remove(val)\n                used_d.remove(diff)\n            else:\n                x[pos] = val\n                used_x.add(val)\n                \n                if backtrack(pos + 1):\n                    return True\n                \n                x[pos] = None\n                used_x.remove(val)\n        \n        return False\n    \n    if backtrack(0):\n        return x\n    return None\n\nresult = solve_all_interval()\nif result:\n    print(\"Solution:\", result)\n    d_vals = [abs(result[i+1] - result[i]) for i in range(13)]\n    print(\"Differences:\", d_vals)\n    print(\"x permutation check:\", sorted(result) == list(range(14)))\n    print(\"d permutation check:\", sorted(d_vals) == list(range(1, 14)))\n    print(\"x[6]=3:\", result[6] == 3)\n    print(\"x[12]=6:\", result[12] == 6)\n    print(\"d[3]=10:\", d_vals[3] == 10)\n    print(\"d[11]=2:\", d_vals[11] == 2)\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": true,
+      "latency_ms": 57.43
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nresult = [0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7]\nd_vals = [abs(result[i+1] - result[i]) for i in range(13)]\n\nprint(\"All-Interval Series of size 14:\")\nprint(\"x =\", result)\nprint()\nprint(\"Consecutive differences:\")\nfor i in range(13):\n    print(f\"  |x[{i+1}] - x[{i}]| = |{result[i+1]} - {result[i]}| = {d_vals[i]}\")\nprint()\nprint(\"Constraints satisfied:\")\nprint(f\"  x[6] = {result[6]} (required: 3) \u2713\" if result[6]==3 else \"FAIL\")\nprint(f\"  x[12] = {result[12]} (required: 6) \u2713\" if result[12]==6 else \"FAIL\")\nprint(f\"  d[3] = {d_vals[3]} (required: 10) \u2713\" if d_vals[3]==10 else \"FAIL\")\nprint(f\"  d[11] = {d_vals[11]} (required: 2) \u2713\" if d_vals[11]==2 else \"FAIL\")\nprint(f\"  x is permutation of 0-13: {sorted(result) == list(range(14))} \u2713\")\nprint(f\"  d is permutation of 1-13: {sorted(d_vals) == list(range(1,14))} \u2713\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.2
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          13,
+          1,
+          12,
+          2,
+          11,
+          3,
+          10,
+          4,
+          9,
+          5,
+          8,
+          6,
+          7
+        ],
+        "reasoning": "Found an all-interval series of size 14: [0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7]. This is the classic \"zigzag\" all-interval series where consecutive differences are 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1 \u2014 a permutation of 1-13. All fixed constraints are satisfied: x[6]=3, x[12]=6, d[3]=10, d[11]=2."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

@@ -1,0 +1,130 @@
+{
+  "problem_name": "knight_tour_n5__v0_h",
+  "problem_type": "knight_tour",
+  "params": {
+    "n": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1816.3,
+    "search_space": 15511210043330985984000000,
+    "num_variables": 25,
+    "num_constraints": 28,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.04,
+    "solve_pct_type": 12.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    7,
+    14,
+    23,
+    16,
+    5,
+    2,
+    9,
+    18,
+    21,
+    10,
+    1,
+    12,
+    3,
+    6,
+    15,
+    22,
+    19,
+    8,
+    11,
+    20,
+    17,
+    24,
+    13,
+    4
+  ],
+  "reasoning": "Found via backtracking search respecting the fixed positions and knight move constraints; verified it's a valid permutation with all knight moves.",
+  "raw_response": null,
+  "cot_trace": "The problem is to find an open knight's tour on a 5x5 chessboard starting at cell 0. It's a 5x5 grid, cells numbered 0 to 24 in row-major order. So row 0: 0 1 2 3 4, row 1: 5 6 7 8 9, and so on up to ...\n---\nThe graph degrees are known. Corners have 2, etc. Now, there's a partial assignment: x[3]=23, x[4]=16, x[5]=5, x[15]=15, x[22]=24. I think x[i] means the step when cell i is visited? No.\n\n---\nThe backtracking found a solution: [0, 7, 14, 23, 16, 5, 2, 9, 18, 21, 10, 1, 12, 3, 6, 15, 22, 19, 8, 11, 20, 17, 24, 13, 4]\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3416,
+  "completion_tokens": 2183,
+  "reasoning_tokens": 1567,
+  "cached_tokens": 2304,
+  "cost_usd": 0.0157828,
+  "cost_source": "openrouter",
+  "latency_ms": 35066.69545173645,
+  "tool_dispatch_ms_total": 70.63698768615723,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def get_pos(cell, size=5):\n    return divmod(cell, size)\n\ndeltas = [(1,2),(1,-2),(-1,2),(-1,-2),(2,1),(2,-1),(-2,1),(-2,-1)]\n\ndef get_neighbors(cell, size=5):\n    r, c = get_pos(cell, size)\n    neigh = []\n    for dr, dc in deltas:\n        nr, nc = r + dr, c + dc\n        if 0 <= nr < size and 0 <= nc < size:\n            neigh.append(nr * size + nc)\n    return neigh\n\nadj = {i: get_neighbors(i) for i in range(25)}\nprint({k: len(v) for k,v in adj.items()})"
+      },
+      "ok": true,
+      "latency_ms": 32.83
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def is_valid_move(from_cell, to_cell, size=5):\n    r1, c1 = divmod(from_cell, size)\n    r2, c2 = divmod(to_cell, size)\n    dr, dc = abs(r1 - r2), abs(c1 - c2)\n    return (dr == 1 and dc == 2) or (dr == 2 and dc == 1)\n\nfixed = {3:23, 4:16, 5:5, 15:15, 22:24}\npath = [None] * 25\npath[0] = 0\nused = set([0])\n\ndef backtrack(step):\n    if step == 25:\n        return True\n    if step in fixed:\n        cell = fixed[step]\n        if cell in used or not is_valid_move(path[step-1], cell):\n            return False\n        path[step] = cell\n        used.add(cell)\n        if backtrack(step + 1):\n            return True\n        used.remove(cell)\n        path[step] = None\n        return False\n    for cell in range(25):\n        if cell not in used and is_valid_move(path[step-1], cell):\n            path[step] = cell\n            used.add(cell)\n            if backtrack(step + 1):\n                return True\n            used.remove(cell)\n            path[step] = None\n    return False\n\nif backtrack(1):\n    print(path)\nelse:\n    print(\"No solution\")"
+      },
+      "ok": true,
+      "latency_ms": 37.8
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          7,
+          14,
+          23,
+          16,
+          5,
+          2,
+          9,
+          18,
+          21,
+          10,
+          1,
+          12,
+          3,
+          6,
+          15,
+          22,
+          19,
+          8,
+          11,
+          20,
+          17,
+          24,
+          13,
+          4
+        ],
+        "reasoning": "Found via backtracking search respecting the fixed positions and knight move constraints; verified it's a valid permutation with all knight moves."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

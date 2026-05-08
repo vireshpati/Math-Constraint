@@ -1,0 +1,96 @@
+{
+  "problem_name": "golomb_n8__v5_h",
+  "problem_type": "golomb",
+  "params": {
+    "n": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 2326.3,
+    "search_space": 318644812890625,
+    "num_variables": 8,
+    "num_constraints": 5,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 92.67,
+    "solve_pct_type": 58.33
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    3,
+    7,
+    13,
+    21,
+    30,
+    45
+  ],
+  "reasoning": "Verified all 28 pairwise distances are unique. x[1]=2 is respected.",
+  "raw_response": null,
+  "cot_trace": " I'm checking known optimal Golomb rulers with 8 marks\u2014the standard one is {0, 1, 4, 9, 15, 22, 32, 34} with length 34, though there are actually multiple optimal solutions like {0, 2, 12, 17, 22, 27...} that achieve the same minimal span.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5540,
+  "completion_tokens": 945,
+  "reasoning_tokens": 61,
+  "cached_tokens": 0,
+  "cost_usd": 0.051325,
+  "cost_source": "openrouter",
+  "latency_ms": 49529.78491783142,
+  "tool_dispatch_ms_total": 72.6168155670166,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef find_ruler(n=8, max_len=50):\n    # x[0]=0, x[1]=2\n    def backtrack(marks, used_dists):\n        if len(marks) == n:\n            return marks[:]\n        last = marks[-1]\n        for nxt in range(last+1, max_len+1):\n            new_dists = set()\n            ok = True\n            for m in marks:\n                d = nxt - m\n                if d in used_dists or d in new_dists:\n                    ok = False\n                    break\n                new_dists.add(d)\n            if ok:\n                marks.append(nxt)\n                used_dists |= new_dists\n                r = backtrack(marks, used_dists)\n                if r: return r\n                marks.pop()\n                used_dists -= new_dists\n        return None\n    \n    marks = [0, 2]\n    used = {2}\n    return backtrack(marks, used)\n\nprint(find_ruler())\n"
+      },
+      "ok": true,
+      "latency_ms": 36.22
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nmarks = [0, 2, 3, 7, 13, 21, 30, 45]\ndists = []\nfor i in range(len(marks)):\n    for j in range(i+1, len(marks)):\n        dists.append(marks[j]-marks[i])\nprint(len(dists), len(set(dists)))\n"
+      },
+      "ok": true,
+      "latency_ms": 36.4
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          3,
+          7,
+          13,
+          21,
+          30,
+          45
+        ],
+        "reasoning": "Verified all 28 pairwise distances are unique. x[1]=2 is respected."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

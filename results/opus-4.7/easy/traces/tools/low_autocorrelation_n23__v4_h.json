@@ -1,0 +1,101 @@
+{
+  "problem_name": "low_autocorrelation_n23__v4_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 23
+  },
+  "difficulty": {
+    "solve_time_ms": 2252.8,
+    "search_space": 8388608,
+    "num_variables": 45,
+    "num_constraints": 29,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 92.29,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "Parity argument: C_k = sum of (n-k) terms each \u00b11, so C_k \u2261 (n-k) mod 2. For n=23, k=12: n-k=11 is odd, so C_12 must be odd, but required value 0 is even. Contradiction. (Also k=16: n-k=7 odd, required 0 even.) Hence UNSAT.",
+  "raw_response": null,
+  "cot_trace": " For N=23, I need to find the known optimal merit factor\u2014it should involve 3 squared times some value. Let me search for the minimum sum of squares directly using constrained optimization.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "claimed UNSAT, expected SAT",
+  "prompt_tokens": 17878,
+  "completion_tokens": 2258,
+  "reasoning_tokens": 48,
+  "cached_tokens": 0,
+  "cost_usd": 0.14584,
+  "cost_source": "openrouter",
+  "latency_ms": 59454.734802246094,
+  "tool_dispatch_ms_total": 10605.043649673462,
+  "tool_calls_made": 6,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import product\n\nn = 23\nfixed = {5:-1, 10:-1, 13:1, 19:1}\nc_fixed = {12:0, 13:-3, 16:0, 19:-1}\n\ndef compute_c(s, k):\n    return sum(s[i]*s[i+k] for i in range(n-k))\n\n# Try with random restarts / backtracking\nimport random\n\nbest = None\n# Backtrack assigning positions, pruning with sum of squares and fixed c constraints\n# c_k depends on all pairs at distance k. c_19 has only 4 terms (i=0..3), c_16 has 7 terms, c_13 has 10, c_12 has 11.\n\n# Let's do DFS with pruning. At each step s[0..p-1] assigned. For k where n-k <= p, c_k is fully determined.\n# For k=19: determined when p>=20 (pairs i=0..3, i+19=19..22, so need p>=23... wait)\n# c_k uses s[0..n-k-1] and s[k..n-1]. Fully determined when all indices < p. So when p >= n, i.e., p=23.\n# Actually we need s[i+k] for i up to n-k-1, so max index n-1. Determined only at end.\n# But partial c_k lower bound? Not useful directly.\n\n# Alternative: SAT/brute. 2^23 = 8M, with 4 fixed = 2^19 \u2248 500K. Feasible.\n\nfree_idx = [i for i in range(n) if i not in fixed]\nprint(len(free_idx))  # 19\n\nimport itertools\ncount = 0\nsolutions = []\nfor bits in itertools.product([-1,1], repeat=len(free_idx)):\n    s = [0]*n\n    for i,v in fixed.items(): s[i]=v\n    for idx,v in zip(free_idx, bits): s[idx]=v\n    # check c constraints\n    ok = True\n    for k,cv in c_fixed.items():\n        if compute_c(s,k) != cv:\n            ok=False; break\n    if not ok: continue\n    total = sum(compute_c(s,k)**2 for k in range(1,n))\n    if total <= 59:\n        solutions.append((total, s))\n        if total <= 59:\n            print(total, s)\n            break\n    count+=1\nprint(\"done\", len(solutions))\n"
+      },
+      "ok": true,
+      "latency_ms": 3591.14
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import product\nn = 23\nfixed = {5:-1, 10:-1, 13:1, 19:1}\nc_fixed = {12:0, 13:-3, 16:0, 19:-1}\n\ndef compute_c(s, k):\n    return sum(s[i]*s[i+k] for i in range(n-k))\n\nfree_idx = [i for i in range(n) if i not in fixed]\n\nbest = (10**9, None)\nimport itertools\nfor bits in itertools.product([-1,1], repeat=len(free_idx)):\n    s = [0]*n\n    for i,v in fixed.items(): s[i]=v\n    for idx,v in zip(free_idx, bits): s[idx]=v\n    ok = True\n    for k,cv in c_fixed.items():\n        if compute_c(s,k) != cv:\n            ok=False; break\n    if not ok: continue\n    total = sum(compute_c(s,k)**2 for k in range(1,n))\n    if total < best[0]:\n        best = (total, s[:])\n        if total <= 59:\n            print(total, s)\nprint(\"best:\", best)\n"
+      },
+      "ok": true,
+      "latency_ms": 3355.13
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# No sequences satisfy c constraints? Let me verify with just fixed positions\nfrom itertools import product\nn = 23\nfixed = {5:-1, 10:-1, 13:1, 19:1}\nc_fixed = {12:0, 13:-3, 16:0, 19:-1}\n\ndef compute_c(s, k):\n    return sum(s[i]*s[i+k] for i in range(n-k))\n\nfree_idx = [i for i in range(n) if i not in fixed]\n\n# count how many satisfy c constraints\ncnt=0\nimport itertools\nfor bits in itertools.product([-1,1], repeat=len(free_idx)):\n    s = [0]*n\n    for i,v in fixed.items(): s[i]=v\n    for idx,v in zip(free_idx, bits): s[idx]=v\n    ok = True\n    for k,cv in c_fixed.items():\n        if compute_c(s,k) != cv:\n            ok=False; break\n    if ok:\n        cnt+=1\nprint(cnt)\n"
+      },
+      "ok": true,
+      "latency_ms": 3587.45
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Hmm, 0 satisfy. Let me check parity. c_k has n-k terms, each \u00b11, so c_k \u2261 n-k (mod 2)\n# c_12: n-k=11, odd. But c_fixed[12]=0 even. Contradiction!\nn=23\nfor k in [12,13,16,19]:\n    print(k, n-k, \"parity\", (n-k)%2)\n"
+      },
+      "ok": true,
+      "latency_ms": 35.34
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# c_12 must be odd, but required 0 (even) -> UNSAT\n# c_16 must be odd, but required 0 (even) -> UNSAT\nprint(\"UNSAT due to parity\")\n"
+      },
+      "ok": true,
+      "latency_ms": 35.98
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Parity argument: C_k = sum of (n-k) terms each \u00b11, so C_k \u2261 (n-k) mod 2. For n=23, k=12: n-k=11 is odd, so C_12 must be odd, but required value 0 is even. Contradiction. (Also k=16: n-k=7 odd, required 0 even.) Hence UNSAT.",
+        "satisfiable": false
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": false
+}

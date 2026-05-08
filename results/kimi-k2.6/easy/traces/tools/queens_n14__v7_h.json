@@ -1,0 +1,108 @@
+{
+  "problem_name": "queens_n14__v7_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 1143.3,
+    "search_space": 11112006825558016,
+    "num_variables": 14,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 78.01,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    2,
+    0,
+    7,
+    10,
+    4,
+    9,
+    1,
+    13,
+    11,
+    6,
+    8,
+    12,
+    5,
+    3
+  ],
+  "reasoning": "Found a valid 14-queens solution using backtracking with the fixed constraints q[4]=4 and q[6]=1. Verified that all queens are in distinct columns and no two queens share a diagonal.",
+  "raw_response": null,
+  "cot_trace": " We need to solve N-Queens for N=14 with fixed positions: q[4]=4 (row 4 column 4), q[6]=1 (row 6 column 1). Need to find a solution or determine unsatisfiable. N-Queens for N=14 is known to have many solutions. With two fixed positions, likely satisfiable. We can use Python to find a solution via backtracking or using a SAT solver. Let's use Python to search. We need to output a list of 14 integers (0-indexed columns). Let's write a backtracking solver with constraints. Use\n---\n The solver found a solution: [2, 0, 7, 10, 4, 9, 1, 13, 11, 6, 8, 12, 5, 3]\n\nLet me verify:\n- q[4]=4 \u2713\n- q[6]=1 \u2713\n- 14 queens on 14x14 board\n- No two in same row (by construction)\n- No two in same column: {2,0,7,10,4,9,1,13,11,6,8,12,5,3} - all distinct \u2713\n- No two on same diagonal: need to check |r1-r2| == |c1-c2|\n\nLet me quickly verify with Python.\n---\nThe solution is valid. Let me submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2603,
+  "completion_tokens": 966,
+  "reasoning_tokens": 228,
+  "cached_tokens": 320,
+  "cost_usd": 0.0063617866,
+  "cost_source": "openrouter",
+  "latency_ms": 86912.0602607727,
+  "tool_dispatch_ms_total": 70.55830955505371,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def solve_n_queens(n, fixed):\n    # fixed: dict row->col\n    cols = set()\n    diag1 = set()  # row-col\n    diag2 = set()  # row+col\n    board = [-1]*n\n    \n    def backtrack(r):\n        if r == n:\n            return True\n        if r in fixed:\n            c = fixed[r]\n            if c in cols or (r-c) in diag1 or (r+c) in diag2:\n                return False\n            cols.add(c)\n            diag1.add(r-c)\n            diag2.add(r+c)\n            board[r] = c\n            if backtrack(r+1):\n                return True\n            cols.remove(c)\n            diag1.remove(r-c)\n            diag2.remove(r+c)\n            board[r] = -1\n            return False\n        else:\n            for c in range(n):\n                if c in cols or (r-c) in diag1 or (r+c) in diag2:\n                    continue\n                cols.add(c)\n                diag1.add(r-c)\n                diag2.add(r+c)\n                board[r] = c\n                if backtrack(r+1):\n                    return True\n                cols.remove(c)\n                diag1.remove(r-c)\n                diag2.remove(r+c)\n                board[r] = -1\n            return False\n    \n    if backtrack(0):\n        return board\n    else:\n        return None\n\nfixed = {4:4, 6:1}\nsol = solve_n_queens(14, fixed)\nprint(sol)\n"
+      },
+      "ok": true,
+      "latency_ms": 37.81
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "sol = [2, 0, 7, 10, 4, 9, 1, 13, 11, 6, 8, 12, 5, 3]\n\n# Verify fixed assignments\nassert sol[4] == 4\nassert sol[6] == 1\n\n# Verify all columns distinct\nassert len(set(sol)) == 14\n\n# Verify diagonals\nfor i in range(14):\n    for j in range(i+1, 14):\n        if abs(i-j) == abs(sol[i]-sol[j]):\n            print(f\"Conflict: rows {i},{j} cols {sol[i]},{sol[j]}\")\n            \nprint(\"Solution is valid!\")\nprint(sol)\n"
+      },
+      "ok": true,
+      "latency_ms": 32.74
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          2,
+          0,
+          7,
+          10,
+          4,
+          9,
+          1,
+          13,
+          11,
+          6,
+          8,
+          12,
+          5,
+          3
+        ],
+        "reasoning": "Found a valid 14-queens solution using backtracking with the fixed constraints q[4]=4 and q[6]=1. Verified that all queens are in distinct columns and no two queens share a diagonal."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

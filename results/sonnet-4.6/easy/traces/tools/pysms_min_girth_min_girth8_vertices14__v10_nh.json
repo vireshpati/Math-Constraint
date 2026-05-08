@@ -1,0 +1,169 @@
+{
+  "problem_name": "pysms_min_girth_min_girth8_vertices14__v10_nh",
+  "problem_type": "pysms_min_girth",
+  "params": {
+    "min_girth": 8,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 860.2,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 13,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 56.2,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    5,
+    0,
+    7,
+    1,
+    2,
+    1,
+    8,
+    1,
+    11,
+    2,
+    6,
+    3,
+    10,
+    3,
+    13,
+    4,
+    5,
+    4,
+    13,
+    5,
+    6,
+    7,
+    9,
+    8,
+    12,
+    9,
+    10,
+    9,
+    11,
+    12,
+    13
+  ],
+  "reasoning": "\nI found a graph on 14 vertices with girth exactly 8 (\u2265 8) using a greedy edge-addition algorithm.\n\nThe 16 edges are:\n(0,5), (0,7), (1,2), (1,8), (1,11), (2,6), (3,10), (3,13), (4,5), (4,13), (5,6), (7,9), (8,12), (9,10), (9,11), (12,13)\n\nVerification:\n- Girth = 8 (confirmed by BFS from every vertex)\n- Example shortest cycle of length 8: 0\u21927\u21929\u219210\u21923\u219213\u21924\u21925\u21920\n- Degree sequence: four vertices of degree 3, ten vertices of degree 2\n- All edges satisfy 0 \u2264 u < v < 14\n",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Invalid edge format: 0",
+  "prompt_tokens": 20931,
+  "completion_tokens": 3784,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.119553,
+  "cost_source": "openrouter",
+  "latency_ms": 60606.624126434326,
+  "tool_dispatch_ms_total": 1248.366117477417,
+  "tool_calls_made": 6,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef check_girth(edges, n, min_girth=8):\n    \"\"\"Check if graph has girth >= min_girth using BFS from each vertex.\"\"\"\n    # Build adjacency list\n    adj = [[] for _ in range(n)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    # BFS from each vertex to find shortest cycle\n    for start in range(n):\n        # BFS to find shortest cycle through start\n        dist = [-1] * n\n        parent = [-1] * n\n        dist[start] = 0\n        queue = [start]\n        qi = 0\n        while qi < len(queue):\n            u = queue[qi]; qi += 1\n            for w in adj[u]:\n                if dist[w] == -1:\n                    dist[w] = dist[u] + 1\n                    parent[w] = u\n                    queue.append(w)\n                elif parent[u] != w:\n                    # Found a cycle of length dist[u] + dist[w] + 1\n                    cycle_len = dist[u] + dist[w] + 1\n                    if cycle_len < min_girth:\n                        return False, cycle_len\n    return True, None\n\n# Try using a known cage or construction\n# The (3,8)-cage is the Tutte-Coxeter graph (Levi graph) with 30 vertices\n# For 14 vertices with girth 8, we need a sparse graph\n\n# Let's try a SAT/constraint approach or known constructions\n# A graph with n=14, girth>=8 must have few edges\n# Moore bound: for degree d, girth g, n >= 1 + d*sum_{i=0}^{(g-3)/2} (d-1)^i\n# For girth 8 (even), Moore bound: n >= 2*(1 + d + d(d-1) + d(d-1)^2)\n# For d=2: n >= 2*(1+2+2) = 10, so a cycle of length >= 8 works\n# For d=3: n >= 2*(1+3+6+12) = 44 (too large)\n\n# So we can have at most degree 2 for all vertices if we want girth 8 with 14 vertices\n# But degree-2 graph is just a union of cycles - we need one big cycle of length >= 8\n\n# Actually we can have higher degree if not all vertices have high degree\n# Let's try to maximize edges while keeping girth >= 8\n\n# Use a greedy/backtracking approach\nimport random\n\ndef girth_at_least(edges_set, adj, n, min_girth=8):\n    \"\"\"Check girth constraint.\"\"\"\n    for start in range(n):\n        dist = [-1] * n\n        dist[start] = 0\n        queue = [start]\n        qi = 0\n        while qi < len(queue):\n            u = queue[qi]; qi += 1\n            for w in adj[u]:\n                if dist[w] == -1:\n                    dist[w] = dist[u] + 1\n                    queue.append(w)\n                elif dist[w] >= dist[u]:\n                    cycle_len = dist[u] + dist[w] + 1\n                    if cycle_len < min_girth:\n                        return False\n    return True\n\n# Try adding edges greedily\nn = 14\nbest_edges = []\n\nrandom.seed(42)\nall_possible = [(u,v) for u in range(n) for v in range(u+1,n)]\n\nfor trial in range(1000):\n    random.shuffle(all_possible)\n    edges = []\n    adj = [[] for _ in range(n)]\n    \n    for u, v in all_possible:\n        # Try adding edge (u,v)\n        adj[u].append(v)\n        adj[v].append(u)\n        edges.append((u,v))\n        \n        ok, _ = check_girth(edges, n, 8)\n        if not ok:\n            adj[u].remove(v)\n            adj[v].remove(u)\n            edges.pop()\n    \n    if len(edges) > len(best_edges):\n        best_edges = edges[:]\n        print(f\"Trial {trial}: found {len(edges)} edges\")\n\nprint(f\"\\nBest: {len(best_edges)} edges\")\nprint(best_edges)\nok, _ = check_girth(best_edges, n, 8)\nprint(f\"Girth >= 8: {ok}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 1114.87
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's verify the solution more carefully and also try to find something with more edges\n# using a smarter approach\n\ndef bfs_girth(adj, n):\n    \"\"\"Return the actual girth of the graph.\"\"\"\n    min_cycle = float('inf')\n    for start in range(n):\n        dist = [-1] * n\n        parent = [-1] * n\n        dist[start] = 0\n        queue = [start]\n        qi = 0\n        while qi < len(queue):\n            u = queue[qi]; qi += 1\n            for w in adj[u]:\n                if dist[w] == -1:\n                    dist[w] = dist[u] + 1\n                    parent[w] = u\n                    queue.append(w)\n                elif parent[u] != w:\n                    cycle_len = dist[u] + dist[w] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    return min_cycle\n\nn = 14\nbest_edges = [(5, 6), (0, 5), (4, 13), (2, 6), (3, 10), (1, 11), (1, 8), (1, 2), \n              (4, 5), (7, 9), (3, 13), (8, 12), (9, 10), (12, 13), (9, 11), (0, 7)]\n\nadj = [[] for _ in range(n)]\nfor u, v in best_edges:\n    adj[u].append(v)\n    adj[v].append(u)\n\ng = bfs_girth(adj, n)\nprint(f\"Actual girth: {g}\")\nprint(f\"Number of edges: {len(best_edges)}\")\nprint(f\"Edges: {sorted(best_edges)}\")\n\n# Print degree sequence\ndegrees = [len(adj[i]) for i in range(n)]\nprint(f\"Degree sequence: {sorted(degrees, reverse=True)}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 34.41
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Perfect! Let's visualize the structure to confirm\n# Girth is exactly 8, which satisfies girth >= 8\n\nedges = [(0, 5), (0, 7), (1, 2), (1, 8), (1, 11), (2, 6), (3, 10), (3, 13), \n         (4, 5), (4, 13), (5, 6), (7, 9), (8, 12), (9, 10), (9, 11), (12, 13)]\n\nprint(\"Final answer - Graph with 14 vertices, girth = 8 (\u2265 8)\")\nprint(f\"Number of edges: {len(edges)}\")\nprint(\"\\nEdge list:\")\nfor e in edges:\n    print(f\"  {e}\")\n\n# Double-check: find the actual shortest cycle\nn = 14\nadj = [[] for _ in range(n)]\nfor u, v in edges:\n    adj[u].append(v)\n    adj[v].append(u)\n\n# Find one shortest cycle\ndef find_shortest_cycle(adj, n):\n    for start in range(n):\n        dist = [-1] * n\n        parent = [-1] * n\n        dist[start] = 0\n        queue = [start]\n        qi = 0\n        while qi < len(queue):\n            u = queue[qi]; qi += 1\n            for w in adj[u]:\n                if dist[w] == -1:\n                    dist[w] = dist[u] + 1\n                    parent[w] = u\n                    queue.append(w)\n                elif parent[u] != w and dist[w] + dist[u] + 1 == 8:\n                    # Reconstruct cycle\n                    path1 = []\n                    x = u\n                    while x != -1:\n                        path1.append(x)\n                        x = parent[x]\n                    path2 = []\n                    x = w\n                    while x != -1:\n                        path2.append(x)\n                        x = parent[x]\n                    return path1[::-1] + path2[1:]\n    return None\n\ncycle = find_shortest_cycle(adj, n)\nprint(f\"\\nShortest cycle (length {len(cycle)-1} if closed): {cycle}\")\nprint(f\"Cycle length: {len(cycle)-1}\")  # path has start repeated at end\n"
+      },
+      "ok": true,
+      "latency_ms": 32.7
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Hmm, there's a discrepancy - let me recheck the girth carefully\n\nn = 14\nedges = [(0, 5), (0, 7), (1, 2), (1, 8), (1, 11), (2, 6), (3, 10), (3, 13), \n         (4, 5), (4, 13), (5, 6), (7, 9), (8, 12), (9, 10), (9, 11), (12, 13)]\n\nadj = [[] for _ in range(n)]\nfor u, v in edges:\n    adj[u].append(v)\n    adj[v].append(u)\n\n# Check cycle: 0-7-9-10-3-13-4-5-0\npath = [0, 7, 9, 10, 3, 13, 4, 5, 0]\nprint(\"Checking path:\", path)\nfor i in range(len(path)-1):\n    u, v = path[i], path[i+1]\n    e = (min(u,v), max(u,v))\n    print(f\"  Edge {e}: {'EXISTS' if e in edges else 'MISSING'}\")\n\nprint(f\"\\nPath length: {len(path)-1}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 32.88
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Great! The cycle is length 8 (8 edges), not 7. My cycle-finding function had an off-by-one.\n# The girth IS 8. Let me do a clean final verification.\n\ndef compute_girth(edges, n):\n    adj = [[] for _ in range(n)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    min_cycle = float('inf')\n    for start in range(n):\n        dist = [-1] * n\n        dist[start] = 0\n        queue = [start]\n        qi = 0\n        while qi < len(queue):\n            u = queue[qi]; qi += 1\n            for w in adj[u]:\n                if dist[w] == -1:\n                    dist[w] = dist[u] + 1\n                    queue.append(w)\n                elif dist[w] >= dist[u]:  # back edge, not tree edge\n                    cycle_len = dist[u] + dist[w] + 1\n                    min_cycle = min(min_cycle, cycle_len)\n    return min_cycle\n\nedges = [(0, 5), (0, 7), (1, 2), (1, 8), (1, 11), (2, 6), (3, 10), (3, 13), \n         (4, 5), (4, 13), (5, 6), (7, 9), (8, 12), (9, 10), (9, 11), (12, 13)]\n\ng = compute_girth(edges, 14)\nprint(f\"Girth = {g}\")\nprint(f\"Girth >= 8: {g >= 8}\")\nprint(f\"\\nVerified cycle of length 8: 0-7-9-10-3-13-4-5-0\")\nprint(f\"All edges in this cycle exist: YES (verified above)\")\nprint(f\"\\nFinal edge list ({len(edges)} edges):\")\nfor e in edges:\n    print(f\"  {e[0]} -- {e[1]}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.51
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          5,
+          0,
+          7,
+          1,
+          2,
+          1,
+          8,
+          1,
+          11,
+          2,
+          6,
+          3,
+          10,
+          3,
+          13,
+          4,
+          5,
+          4,
+          13,
+          5,
+          6,
+          7,
+          9,
+          8,
+          12,
+          9,
+          10,
+          9,
+          11,
+          12,
+          13
+        ],
+        "reasoning": "\nI found a graph on 14 vertices with girth exactly 8 (\u2265 8) using a greedy edge-addition algorithm.\n\nThe 16 edges are:\n(0,5), (0,7), (1,2), (1,8), (1,11), (2,6), (3,10), (3,13), (4,5), (4,13), (5,6), (7,9), (8,12), (9,10), (9,11), (12,13)\n\nVerification:\n- Girth = 8 (confirmed by BFS from every vertex)\n- Example shortest cycle of length 8: 0\u21927\u21929\u219210\u21923\u219213\u21924\u21925\u21920\n- Degree sequence: four vertices of degree 3, ten vertices of degree 2\n- All edges satisfy 0 \u2264 u < v < 14\n"
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

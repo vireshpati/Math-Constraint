@@ -1,0 +1,108 @@
+{
+  "problem_name": "all_interval_n14__v1_h",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 993.6,
+    "search_space": 87178291200,
+    "num_variables": 27,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 69.74,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    13,
+    1,
+    12,
+    2,
+    11,
+    3,
+    10,
+    4,
+    9,
+    5,
+    8,
+    6,
+    7
+  ],
+  "reasoning": "Found a valid all-interval series of size 14 using SAT solving. The solution is x = [0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7], which gives consecutive absolute differences d = [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]. This satisfies all constraints: x is a permutation of 0-13, d is a permutation of 1-13, and the partial assignments x[6]=3, x[12]=6, d[3]=10, d[11]=2 are all respected.",
+  "raw_response": null,
+  "cot_trace": " We need to find an all-interval series (also known as a \"Skolem sequence\" or \"Langford pairing\"? Actually all-interval series is a permutation of 0..n-1 such that the absolute differences between consecutive elements are a permutation of 1..n-1. For n=14, we need a permutation x[0..13] of {0,...,13} such that d[i] = |x[i+1]-x[i]| for i=0..12, and {d[0..12]} = {1,...,13}. Also given partial assignment: x[6]=3, x[12]=6, d[3]=10, d[11]=2.\n\nWe need to find a complete solution consistent with these fixed assignments.\n\nWe can formulate as a CSP and solve using Python, maybe using OR-Tools or pysat or brute force with backtracking. Since n=14, there are 14! permutations, too many for brute force. But with constraints and partial assignments, we can use a SAT solver or CP-SAT (OR-Tools). Let's try using OR-Tools CP-SAT. It is likely installed. If not, we can use python-constraint or write a backtracking with pruning.\n\nLet's try OR-Tools CP-SAT. We'll define variables x[0..13] in 0..13, all-different. Variables d[0..12] in 1..13, all-different. Constraints: d[i] = abs(x[i+1]-x[i]). Also x[6]=3, x[12]=6, d[3]=10, d[11]=2.\n\nWe need to find one solution.\n\nLet's write Python code using ortools.sat.python.cp_model.\n---\n The OR-Tools solver timed out. Let me try a different approach. I can use a SAT solver or a more efficient backtracking approach. Let me try using python-sat or a custom backtracking with constraint propagation.\n\nActually, let me try a smarter approach. The all-interval series problem is well-known. Let me use a SAT solver or a more efficient search.\n\nLet me try with python-sat (pysat) or just write a backtracking solver with constraint propagation.\n---\n The solver found a solution:\nx: [0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7]\nd: [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]\n\nLet me verify the partial assignments:\n- x[6] = 3 \u2713\n- x[12] = 6 \u2713\n- d[3] = |x[4] - x[3]| = |2 - 12| = 10 \u2713\n- d[11] = |x[12] - x[11]| = |6 - 8| = 2 \u2713\n\nThis is a valid solution!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 3993,
+  "completion_tokens": 2798,
+  "reasoning_tokens": 517,
+  "cached_tokens": 704,
+  "cost_usd": 0.015577332400000001,
+  "cost_source": "openrouter",
+  "latency_ms": 98061.90776824951,
+  "tool_dispatch_ms_total": 15880.893230438232,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\nn = 14\nmodel = cp_model.CpModel()\n\nx = [model.NewIntVar(0, n-1, f'x{i}') for i in range(n)]\nd = [model.NewIntVar(1, n-1, f'd{i}') for i in range(n-1)]\n\n# All-different\nmodel.AddAllDifferent(x)\nmodel.AddAllDifferent(d)\n\n# Link d and x\nfor i in range(n-1):\n    # d[i] = |x[i+1] - x[i]|\n    model.AddAbsEquality(d[i], x[i+1] - x[i])\n\n# Partial assignments\nmodel.Add(x[6] == 3)\nmodel.Add(x[12] == 6)\nmodel.Add(d[3] == 10)\nmodel.Add(d[11] == 2)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30.0\nsolver.parameters.num_search_workers = 8\n\nstatus = solver.Solve(model)\nprint('Status', status, cp_model.CpStatus().Name(status))\nif status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n    xs = [solver.Value(x[i]) for i in range(n)]\n    ds = [solver.Value(d[i]) for i in range(n-1)]\n    print('x:', xs)\n    print('d:', ds)\n    # verify\n    assert sorted(xs) == list(range(n))\n    assert sorted(ds) == list(range(1, n))\n    for i in range(n-1):\n        assert ds[i] == abs(xs[i+1] - xs[i])\n    print('Verified')\nelse:\n    print('No solution found')\n"
+      },
+      "ok": false,
+      "latency_ms": 15043.08
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom itertools import permutations\n\nn = 14\n\n# Let's try a smarter backtracking approach with constraint propagation\n# Variables: x[0..13] is a permutation of 0..13\n# d[i] = |x[i+1] - x[i]| must be a permutation of 1..13\n\n# Partial assignments:\n# x[6] = 3, x[12] = 6\n# d[3] = 10, d[11] = 2\n\n# d[3] = |x[4] - x[3]| = 10\n# d[11] = |x[12] - x[11]| = |6 - x[11]| = 2\n# So x[11] = 4 or x[11] = 8\n\n# Let's do backtracking with constraint propagation\n\nused_x = set()\nused_d = set()\n\n# x[i] values\nx = [None] * n\n# d[i] values\nd = [None] * (n-1)\n\nx[6] = 3\nx[12] = 6\nd[3] = 10\nd[11] = 2\n\nused_x.add(3)\nused_x.add(6)\nused_d.add(10)\nused_d.add(2)\n\n# From d[11] = |x[12] - x[11]| = |6 - x[11]| = 2\n# x[11] = 4 or 8\n\n# Let's implement backtracking\n\ndef solve():\n    # Find the most constrained unassigned variable\n    # Try to assign x and d together\n    \n    # First, let's see what we can derive\n    # d[3] = |x[4] - x[3]| = 10\n    # Possible pairs (x[3], x[4]): (0,10), (10,0), (1,11), (11,1), (2,12), (12,2), (3,13), (13,3)\n    # But x[6]=3, so x[3] cannot be 3. Also x[12]=6, so neither can be 6.\n    \n    # d[11] = |x[12] - x[11]| = |6 - x[11]| = 2\n    # x[11] = 4 or 8\n    \n    pass\n\n# Let's use a SAT encoding instead\n# x[i] = j for i in 0..13, j in 0..13\n# Use boolean variables p[i][j] meaning x[i] = j\n# Use boolean variables q[i][k] meaning d[i] = k for i in 0..12, k in 1..13\n\n# Total variables: 14*14 + 13*13 = 196 + 169 = 365\n\n# Let's encode in SAT\n\ndef var_p(i, j):\n    # x[i] = j\n    return i * 14 + j + 1\n\ndef var_q(i, k):\n    # d[i] = k\n    return 14*14 + i * 13 + k\n\nclauses = []\n\n# Each x[i] gets exactly one value\nfor i in range(14):\n    clauses.append([var_p(i, j) for j in range(14)])\n    for j1 in range(14):\n        for j2 in range(j1+1, 14):\n            clauses.append([-var_p(i, j1), -var_p(i, j2)])\n\n# Each d[i] gets exactly one value\nfor i in range(13):\n    clauses.append([var_q(i, k) for k in range(1, 14)])\n    for k1 in range(1, 14):\n        for k2 in range(k1+1, 14):\n            clauses.append([-var_q(i, k1), -var_q(i, k2)])\n\n# All x different\nfor i1 in range(14):\n    for i2 in range(i1+1, 14):\n        for j in range(14):\n            clauses.append([-var_p(i1, j), -var_p(i2, j)])\n\n# All d different\nfor i1 in range(13):\n    for i2 in range(i1+1, 13):\n        for k in range(1, 14):\n            clauses.append([-var_q(i1, k), -var_q(i2, k)])\n\n# Link d and x: d[i] = |x[i+1] - x[i]|\nfor i in range(13):\n    for j1 in range(14):\n        for j2 in range(14):\n            if j1 != j2:\n                diff = abs(j2 - j1)\n                if diff >= 1 and diff <= 13:\n                    # If x[i]=j1 and x[i+1]=j2, then d[i]=diff\n                    clauses.append([-var_p(i, j1), -var_p(i+1, j2), var_q(i, diff)])\n\n# Partial assignments\nclauses.append([var_p(6, 3)])\nclauses.append([var_p(12, 6)])\nclauses.append([var_q(3, 10)])\nclauses.append([var_q(11, 2)])\n\nprint(f\"Total clauses: {len(clauses)}\")\n\nwith Solver(name='g3') as solver:\n    for clause in clauses:\n        solver.add_clause(clause)\n    \n    if solver.solve():\n        model = solver.get_model()\n        x_sol = [None] * 14\n        d_sol = [None] * 13\n        for lit in model:\n            if lit > 0:\n                if lit <= 14*14:\n                    v = lit - 1\n                    i = v // 14\n                    j = v % 14\n                    x_sol[i] = j\n                else:\n                    v = lit - 14*14 - 1\n                    i = v // 13\n                    k = v % 13 + 1\n                    d_sol[i] = k\n        print('x:', x_sol)\n        print('d:', d_sol)\n        \n        # Verify\n        assert sorted(x_sol) == list(range(14))\n        assert sorted(d_sol) == list(range(1, 14))\n        for i in range(13):\n            assert d_sol[i] == abs(x_sol[i+1] - x_sol[i])\n        print('Verified!')\n    else:\n        print('UNSAT')\n"
+      },
+      "ok": true,
+      "latency_ms": 837.82
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          13,
+          1,
+          12,
+          2,
+          11,
+          3,
+          10,
+          4,
+          9,
+          5,
+          8,
+          6,
+          7
+        ],
+        "reasoning": "Found a valid all-interval series of size 14 using SAT solving. The solution is x = [0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7], which gives consecutive absolute differences d = [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1]. This satisfies all constraints: x is a permutation of 0-13, d is a permutation of 1-13, and the partial assignments x[6]=3, x[12]=6, d[3]=10, d[11]=2 are all respected."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

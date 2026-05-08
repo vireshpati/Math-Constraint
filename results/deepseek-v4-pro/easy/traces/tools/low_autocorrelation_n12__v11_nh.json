@@ -1,0 +1,104 @@
+{
+  "problem_name": "low_autocorrelation_n12__v11_nh",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1544.4,
+    "search_space": 4096,
+    "num_variables": 23,
+    "num_constraints": 18,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 87.41,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    1
+  ],
+  "reasoning": "Exhaustive search over all 2^12 = 4096 binary sequences of length 12 with alphabet {-1, +1} found many sequences with sum of squared aperiodic autocorrelations \u2264 25. The best found has sum = 10. One such sequence is [-1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1], which yields C_k values: k=1:1, k=2:0, k=3:1, k=4:0, k=5:-1, k=6:2, k=7:1, k=8:0, k=9:-1, k=10:0, k=11:-1, sum of squares = 10 \u2264 25.",
+  "raw_response": null,
+  "cot_trace": "We need to find a binary sequence of length 12 over {-1, +1} such that the sum over k=1..11 of C_k^2 <= 25, where C_k = sum_{i=0}^{n-k-1} seq[i]*seq[i+k] (aperiodic autocorrelation).\n\nThis is a known problem: finding sequences with low aperiodic autocorrelation (merit factor). For length 12, we can search exhaustively (2^12 = 4096 possibilities) or use known results.\n\nLet's write a Python script to search.\n\nWe need to minimize sum_{k=1}^{n-1} C_k^2. For binary sequences, this is related to the \"merit factor\" but we just need <= 25.\n\nLet's compute.\n---\nThe search found many sequences with sum of squares of aperiodic autocorrelations <= 25. The best found was 10. Let me verify one of them and provide a solution.\n\nLet me pick one sequence that works, e.g., (-1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1) with value 10.\n\nLet me double-check the calculation.\n---\nWe found many sequences with sum of squares of aperiodic autocorrelation \u2264 25. The best found has value 10. Let's verify the sum: 1^2 + 0^2 + 1^2 + 0^2 + (-1)^2 + 2^2 + 1^2 + 0^2 + (-1)^2 + 0^2 + (-1)^2 = 1+0+1+0+1+4+1+0+1+0+1 = 10. That's \u2264 25.\n\nSo the problem is satisfiable. I'll provide one such sequence.\n\nLet me pick a simple one: (-1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1) which gives sum = 10.\n\nBut wait, the problem says \"low aperiodic autocorrelation: specifically, the sum over k=1..11 of C_k^2 must be at most 25.\" So any sequence with sum \u2264 25 works. I'll provide one.\n\nLet me just confirm the sequence is length 12 and values are -1 or +1.\n\nI'll submit.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 9545,
+  "completion_tokens": 1269,
+  "reasoning_tokens": 401,
+  "cached_tokens": 0,
+  "cost_usd": 0.0256281,
+  "cost_source": "openrouter",
+  "latency_ms": 138940.2027130127,
+  "tool_dispatch_ms_total": 133.04877281188965,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef aperiodic_autocorr(seq):\n    n = len(seq)\n    C_sq_sum = 0\n    for k in range(1, n):\n        Ck = sum(seq[i] * seq[i+k] for i in range(n - k))\n        C_sq_sum += Ck * Ck\n    return C_sq_sum\n\nbest = None\nbest_seq = None\nbest_val = float('inf')\n\nfor bits in itertools.product([-1, 1], repeat=12):\n    val = aperiodic_autocorr(bits)\n    if val < best_val:\n        best_val = val\n        best_seq = bits\n        best = bits\n    if val <= 25:\n        print(\"Found:\", bits, val)\n\nprint(\"Best:\", best_val, best_seq)"
+      },
+      "ok": true,
+      "latency_ms": 87.85
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def aperiodic_autocorr(seq):\n    n = len(seq)\n    C_sq_sum = 0\n    for k in range(1, n):\n        Ck = sum(seq[i] * seq[i+k] for i in range(n - k))\n        C_sq_sum += Ck * Ck\n    return C_sq_sum\n\nseq = (-1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1)\nprint(\"Value:\", aperiodic_autocorr(seq))\nprint(\"Seq:\", seq)\n# Also compute individual C_k\nn = len(seq)\nfor k in range(1, n):\n    Ck = sum(seq[i] * seq[i+k] for i in range(n - k))\n    print(f\"k={k}: C_k={Ck}\")"
+      },
+      "ok": true,
+      "latency_ms": 45.2
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          1,
+          -1,
+          -1,
+          1,
+          -1,
+          1
+        ],
+        "reasoning": "Exhaustive search over all 2^12 = 4096 binary sequences of length 12 with alphabet {-1, +1} found many sequences with sum of squared aperiodic autocorrelations \u2264 25. The best found has sum = 10. One such sequence is [-1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1], which yields C_k values: k=1:1, k=2:0, k=3:1, k=4:0, k=5:-1, k=6:2, k=7:1, k=8:0, k=9:-1, k=10:0, k=11:-1, sum of squares = 10 \u2264 25."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,82 @@
+{
+  "problem_name": "latin_square_completion_density30_n8_seed50977__v9_nh",
+  "problem_type": "latin_square_completion",
+  "params": {
+    "density": 30,
+    "n": 8,
+    "seed": 50977
+  },
+  "difficulty": {
+    "solve_time_ms": 1910.8,
+    "search_space": 6984964247141514123629140377600000000,
+    "num_variables": 64,
+    "num_constraints": 23,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 64.89,
+    "solve_pct_type": 79.55
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[0, 6, 1, 4, 5, 2, 3, 7, 4, 2, 7, 0, 1, 5, 6, 3, 2, 0, 5, 6, 7, 3, 4, 1, 1, 3, 0, 7, 2, 4, 5, 6, 6, 1, 4, 2, 3, 0, 7, 5, 7, 5, 6, 3, 0, 1, 2, 4, 3, 4, 2, 5, 6, 7, 1, 0, 5, 7, 3, 1, 4, 6, 0, 2]",
+  "reasoning": "Used backtracking with constraint propagation to fill the partial Latin square. Each row and column was verified to contain all values 0-7 exactly once, and all pre-filled clues were preserved.",
+  "raw_response": null,
+  "cot_trace": "Let me analyze this Latin square problem. I need to complete an 8x8 Latin square where each value from 0 to 7 appears exactly once in each row and column.\n\nThe pre-filled clues are given in row-major order. Let me first parse them into a grid:\n\nRow 0: [0, 6, -1, -1, 5, -1, -1, -1]\nRow 1: [4, 2, 7, -1, -1, -1, -1, 3]\nRow 2: [2, -1, 5, -1, -1, -1, -1, 1]\nRow 3: [-1, -1, -1, -1, -1, -1, -1, -1]\nRow 4: [-1, -1, -1, 2, 3, -1, 7, -1]\nRow 5: [-1, 5, -1, 3, -1, 1, -1, -1]\nRow 6: [-1, -1, -1, 5, 6, -1, -1, -1]\nRow 7: [-1, -1, -1, -1, -1, -1, -1, 2]\n\nLet me verify the count: 8*8 = 64 cells.\n\nLet me use a constraint solver to find the solution.\n---\nThe solver found a valid solution. Let me verify it quickly to make sure it's correct.\n\n---\nThe solution has been verified. All rows and columns contain each value 0-7 exactly once, and all pre-filled clues are preserved. Let me submit the answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6177,
+  "completion_tokens": 1891,
+  "reasoning_tokens": 372,
+  "cached_tokens": 0,
+  "cost_usd": 0.005694975,
+  "cost_source": "openrouter",
+  "latency_ms": 37764.5697593689,
+  "tool_dispatch_ms_total": 64.91565704345703,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import product\n\n# Parse the clues\nclues = [0, 6, -1, -1, 5, -1, -1, -1, 4, 2, 7, -1, -1, -1, -1, 3, 2, -1, 5, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 2, 3, -1, 7, -1, -1, 5, -1, 3, -1, 1, -1, -1, -1, -1, -1, 5, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 2]\n\nn = 8\ngrid = [[-1]*n for _ in range(n)]\nfor i in range(n):\n    for j in range(n):\n        grid[i][j] = clues[i*n + j]\n\nprint(\"Initial grid:\")\nfor row in grid:\n    print(row)\n\n# Use backtracking with constraint propagation\ndef solve_latin_square(grid, n):\n    # Find empty cell\n    empty = None\n    for i in range(n):\n        for j in range(n):\n            if grid[i][j] == -1:\n                empty = (i, j)\n                break\n        if empty:\n            break\n    \n    if empty is None:\n        return True  # All cells filled\n    \n    i, j = empty\n    \n    # Get used values in row and column\n    used_row = set(grid[i][k] for k in range(n) if grid[i][k] != -1)\n    used_col = set(grid[k][j] for k in range(n) if grid[k][j] != -1)\n    \n    for val in range(n):\n        if val not in used_row and val not in used_col:\n            grid[i][j] = val\n            if solve_latin_square(grid, n):\n                return True\n            grid[i][j] = -1\n    \n    return False\n\nif solve_latin_square(grid, n):\n    print(\"\\nSolution found:\")\n    for row in grid:\n        print(row)\n    \n    # Flatten\n    flat = [grid[i][j] for i in range(n) for j in range(n)]\n    print(\"\\nFlat solution:\", flat)\nelse:\n    print(\"UNSATISFIABLE\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 33.33
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify the solution\nsolution = [0, 6, 1, 4, 5, 2, 3, 7, 4, 2, 7, 0, 1, 5, 6, 3, 2, 0, 5, 6, 7, 3, 4, 1, 1, 3, 0, 7, 2, 4, 5, 6, 6, 1, 4, 2, 3, 0, 7, 5, 7, 5, 6, 3, 0, 1, 2, 4, 3, 4, 2, 5, 6, 7, 1, 0, 5, 7, 3, 1, 4, 6, 0, 2]\n\nn = 8\ngrid = [solution[i*n:(i+1)*n] for i in range(n)]\n\n# Check rows\nfor i in range(n):\n    assert sorted(grid[i]) == list(range(n)), f\"Row {i} invalid: {grid[i]}\"\n\n# Check columns\nfor j in range(n):\n    col = [grid[i][j] for i in range(n)]\n    assert sorted(col) == list(range(n)), f\"Column {j} invalid: {col}\"\n\n# Check clues match\nclues = [0, 6, -1, -1, 5, -1, -1, -1, 4, 2, 7, -1, -1, -1, -1, 3, 2, -1, 5, -1, -1, -1, -1, 1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 2, 3, -1, 7, -1, -1, 5, -1, 3, -1, 1, -1, -1, -1, -1, -1, 5, 6, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, 2]\nfor idx in range(64):\n    if clues[idx] != -1:\n        assert solution[idx] == clues[idx], f\"Clue mismatch at index {idx}: expected {clues[idx]}, got {solution[idx]}\"\n\nprint(\"All checks passed! Solution is valid.\")\n",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 31.59
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[0, 6, 1, 4, 5, 2, 3, 7, 4, 2, 7, 0, 1, 5, 6, 3, 2, 0, 5, 6, 7, 3, 4, 1, 1, 3, 0, 7, 2, 4, 5, 6, 6, 1, 4, 2, 3, 0, 7, 5, 7, 5, 6, 3, 0, 1, 2, 4, 3, 4, 2, 5, 6, 7, 1, 0, 5, 7, 3, 1, 4, 6, 0, 2]",
+        "reasoning": "Used backtracking with constraint propagation to fill the partial Latin square. Each row and column was verified to contain all values 0-7 exactly once, and all pre-filled clues were preserved."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

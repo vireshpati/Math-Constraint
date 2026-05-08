@@ -1,0 +1,118 @@
+{
+  "problem_name": "pysms_clique_coloring_max_chromatic_number2_max_clique4_min_degree3_vertices11__v1_h",
+  "problem_type": "pysms_clique_coloring",
+  "params": {
+    "max_chromatic_number": 2,
+    "max_clique": 4,
+    "min_degree": 3,
+    "vertices": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 85.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 24,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 28.01,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 24177,
+  "completion_tokens": 3979,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.0060291,
+  "cost_source": "openrouter",
+  "latency_ms": 475399.8341560364,
+  "tool_dispatch_ms_total": 1219.956874847412,
+  "tool_calls_made": 7,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport random\n\n# We need 11 vertices, bipartite, max clique <= 4 (automatically true for bipartite since max clique in bipartite is 2... wait, actually bipartite graphs can have cliques of size at most 2, since a triangle requires 3 vertices all connected to each other, which would need 3 vertices in the same partition... no, in a bipartite graph, edges only go between partitions, so a clique of size 3 would require all 3 vertices to be connected to each other, which is impossible in a bipartite graph since vertices in the same partition aren't connected).\n\n# Actually wait - in a bipartite graph, there are no edges within a partition. So the maximum clique size is at most 2. So \"max clique size at most 4\" is automatically satisfied.\n\n# So the constraints are:\n# 1. Bipartite (chromatic number <= 2)\n# 2. Every vertex degree >= 3\n# 3. Must include edges: (1,10), (0,4), (0,8), (2,9)\n\n# Let's try to find a bipartite graph satisfying these.\n\n# First, let's think about the bipartition. We need to assign each vertex to one of two sides.\n# Then edges only go between sides.\n\n# Let's try to use a SAT solver approach.\n\nfrom pysat import CNF, Solver\nfrom pysat.card import CardEnc\n\n# We'll encode this as a SAT problem.\n\n# Variables: for each possible edge (i,j) with i<j, variable x_{i,j} indicates if edge is present.\n# But that's 55 variables. Let's also need to encode bipartiteness.\n\n# Actually, let's think differently. Let's first decide a bipartition, then find edges.\n\n# Let's try all possible bipartitions (2^11 = 2048, manageable) and see if we can add edges to satisfy degree constraints.\n\ndef check_bipartition(part):\n    \"\"\"part is a list of 11 values, 0 or 1, indicating which side each vertex is on\"\"\"\n    # Fixed edges must be valid (go between partitions)\n    fixed_edges = [(1,10), (0,4), (0,8), (2,9)]\n    for u,v in fixed_edges:\n        if part[u] == part[v]:\n            return None  # Invalid bipartition for these fixed edges\n    \n    # Now we need to add edges to satisfy degree >= 3 for all vertices\n    # We can add any edge between different partitions\n    \n    # Let's compute current degrees from fixed edges\n    deg = [0]*11\n    for u,v in fixed_edges:\n        deg[u] += 1\n        deg[v] += 1\n    \n    # For each vertex, how many more edges needed\n    needed = [max(0, 3 - d) for d in deg]\n    \n    # Available edges: all pairs (i,j) with i<j, part[i]!=part[j], not already a fixed edge\n    fixed_set = set(fixed_edges)\n    available = []\n    for i in range(11):\n        for j in range(i+1, 11):\n            if part[i] != part[j] and (i,j) not in fixed_set:\n                available.append((i,j))\n    \n    # We need to select a subset of available edges such that each vertex gets enough edges\n    # This is a bipartite graph edge selection problem.\n    # Let's use SAT or just brute force with constraints.\n    \n    # Actually, let's use a simple greedy/iterative approach first.\n    # Sort vertices by needed degree, try to connect them.\n    \n    # Let's use integer programming or just try random sampling.\n    \n    return available, needed, deg\n\n# Let's first find valid bipartitions for the fixed edges\nvalid_parts = []\nfor bits in range(2**11):\n    part = [(bits >> i) & 1 for i in range(11)]\n    ok = True\n    for u,v in [(1,10), (0,4), (0,8), (2,9)]:\n        if part[u] == part[v]:\n            ok = False\n            break\n    if ok:\n        valid_parts.append(part)\n\nprint(f\"Number of valid bipartitions: {len(valid_parts)}\")\n\n# For each valid bipartition, try to find edges\n# Let's use a SAT solver for the edge selection problem\n\nfrom pysat import CNF, Solver\nfrom pysat.card import CardEnc, EncType\n\ndef solve_for_partition(part):\n    fixed_edges = [(1,10), (0,4), (0,8), (2,9)]\n    fixed_set = set(fixed_edges)\n    \n    # Map each possible edge to a variable\n    available = []\n    var_map = {}\n    var_idx = 1\n    for i in range(11):\n        for j in range(i+1, 11):\n            if part[i] != part[j] and (i,j) not in fixed_set:\n                available.append((i,j))\n                var_map[(i,j)] = var_idx\n                var_idx += 1\n    \n    n_vars = var_idx - 1\n    if n_vars == 0:\n        return None\n    \n    cnf = CNF()\n    \n    # For each vertex, we need at least (3 - current_degree) edges from available edges\n    deg = [0]*11\n    for u,v in fixed_edges:\n        deg[u] += 1\n        deg[v] += 1\n    \n    for v in range(11):\n        needed = max(0, 3 - deg[v])\n        if needed == 0:\n            continue\n        # Get variables for edges incident to v\n        vars_for_v = []\n        for (i,j), var in var_map.items():\n            if i == v or j == v:\n                vars_for_v.append(var)\n        if len(vars_for_v) < needed:\n            return None  # Impossible\n        # At least 'needed' of these must be true\n        cnf.extend(CardEnc.atleast(lits=vars_for_v, bound=needed, topk=1, encoding=EncType.SEQCOUNTER))\n    \n    solver = Solver(name='cadical153')\n    solver.append_formula(cnf)\n    if solver.solve():\n        model = solver.get_model()\n        # Extract edges\n        edges = list(fixed_edges)\n        for (i,j), var in var_map.items():\n            if model[var-1] > 0:  # True\n                edges.append((i,j))\n        return edges\n    return None\n\n# Try all valid bipartitions\nfor part in valid_parts:\n    result = solve_for_partition(part)\n    if result is not None:\n        print(f\"Found solution with partition: {part}\")\n        print(f\"Edges: {sorted(result)}\")\n        # Verify\n        deg = [0]*11\n        for u,v in result:\n            deg[u] += 1\n            deg[v] += 1\n        print(f\"Degrees: {deg}\")\n        print(f\"Min degree: {min(deg)}\")\n        break\nelse:\n    print(\"No solution found\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 67.04
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Check pysat available modules\nimport pysat\nprint(dir(pysat))\nprint(pysat.__version__ if hasattr(pysat, '__version__') else 'no version')",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 34.12
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Check pysat submodules\nimport pysat\nprint(pysat.__all__)\n# Try to find CNF\nimport pysat.formula\nprint(dir(pysat.formula))\nfrom pysat.formula import CNF\nprint(\"CNF imported successfully\")\nfrom pysat.solvers import Solver\nprint(\"Solver imported successfully\")\nfrom pysat.card import CardEnc, EncType\nprint(\"CardEnc imported successfully\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 256.18
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc, EncType\n\n# We need 11 vertices, bipartite, max clique <= 4 (automatic for bipartite), every vertex degree >= 3\n# Fixed edges: (1,10), (0,4), (0,8), (2,9)\n\n# First, find all valid bipartitions for the fixed edges\nvalid_parts = []\nfor bits in range(2**11):\n    part = [(bits >> i) & 1 for i in range(11)]\n    ok = True\n    for u,v in [(1,10), (0,4), (0,8), (2,9)]:\n        if part[u] == part[v]:\n            ok = False\n            break\n    if ok:\n        valid_parts.append(part)\n\nprint(f\"Number of valid bipartitions: {len(valid_parts)}\")\n\ndef solve_for_partition(part):\n    fixed_edges = [(1,10), (0,4), (0,8), (2,9)]\n    fixed_set = set(fixed_edges)\n    \n    # Map each possible edge to a variable\n    available = []\n    var_map = {}\n    var_idx = 1\n    for i in range(11):\n        for j in range(i+1, 11):\n            if part[i] != part[j] and (i,j) not in fixed_set:\n                available.append((i,j))\n                var_map[(i,j)] = var_idx\n                var_idx += 1\n    \n    n_vars = var_idx - 1\n    if n_vars == 0:\n        return None\n    \n    cnf = CNF()\n    \n    # For each vertex, we need at least (3 - current_degree) edges from available edges\n    deg = [0]*11\n    for u,v in fixed_edges:\n        deg[u] += 1\n        deg[v] += 1\n    \n    for v in range(11):\n        needed = max(0, 3 - deg[v])\n        if needed == 0:\n            continue\n        # Get variables for edges incident to v\n        vars_for_v = []\n        for (i,j), var in var_map.items():\n            if i == v or j == v:\n                vars_for_v.append(var)\n        if len(vars_for_v) < needed:\n            return None  # Impossible\n        # At least 'needed' of these must be true\n        cnf.extend(CardEnc.atleast(lits=vars_for_v, bound=needed, topk=1, encoding=EncType.SEQCOUNTER))\n    \n    solver = Solver(name='cadical153')\n    solver.append_formula(cnf)\n    if solver.solve():\n        model = solver.get_model()\n        # Extract edges\n        edges = list(fixed_edges)\n        for (i,j), var in var_map.items():\n            if model[var-1] > 0:  # True\n                edges.append((i,j))\n        return edges\n    return None\n\n# Try all valid bipartitions\nfor idx, part in enumerate(valid_parts):\n    result = solve_for_partition(part)\n    if result is not None:\n        print(f\"Found solution with partition: {part}\")\n        print(f\"Edges: {sorted(result)}\")\n        # Verify\n        deg = [0]*11\n        for u,v in result:\n            deg[u] += 1\n            deg[v] += 1\n        print(f\"Degrees: {deg}\")\n        print(f\"Min degree: {min(deg)}\")\n        break\n    if idx % 100 == 0:\n        print(f\"Tried {idx} partitions...\")\nelse:\n    print(\"No solution found\")",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 239.58
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.card import EncType\nprint(dir(EncType))",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 147.74
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc, EncType\n\n# We need 11 vertices, bipartite, max clique <= 4 (automatic for bipartite), every vertex degree >= 3\n# Fixed edges: (1,10), (0,4), (0,8), (2,9)\n\n# First, find all valid bipartitions for the fixed edges\nvalid_parts = []\nfor bits in range(2**11):\n    part = [(bits >> i) & 1 for i in range(11)]\n    ok = True\n    for u,v in [(1,10), (0,4), (0,8), (2,9)]:\n        if part[u] == part[v]:\n            ok = False\n            break\n    if ok:\n        valid_parts.append(part)\n\nprint(f\"Number of valid bipartitions: {len(valid_parts)}\")\n\ndef solve_for_partition(part):\n    fixed_edges = [(1,10), (0,4), (0,8), (2,9)]\n    fixed_set = set(fixed_edges)\n    \n    # Map each possible edge to a variable\n    available = []\n    var_map = {}\n    var_idx = 1\n    for i in range(11):\n        for j in range(i+1, 11):\n            if part[i] != part[j] and (i,j) not in fixed_set:\n                available.append((i,j))\n                var_map[(i,j)] = var_idx\n                var_idx += 1\n    \n    n_vars = var_idx - 1\n    if n_vars == 0:\n        return None\n    \n    cnf = CNF()\n    \n    # For each vertex, we need at least (3 - current_degree) edges from available edges\n    deg = [0]*11\n    for u,v in fixed_edges:\n        deg[u] += 1\n        deg[v] += 1\n    \n    for v in range(11):\n        needed = max(0, 3 - deg[v])\n        if needed == 0:\n            continue\n        # Get variables for edges incident to v\n        vars_for_v = []\n        for (i,j), var in var_map.items():\n            if i == v or j == v:\n                vars_for_v.append(var)\n        if len(vars_for_v) < needed:\n            return None  # Impossible\n        # At least 'needed' of these must be true\n        cnf.extend(CardEnc.atleast(lits=vars_for_v, bound=needed, topk=1, encoding=EncType.seqcounter))\n    \n    solver = Solver(name='cadical153')\n    solver.append_formula(cnf)\n    if solver.solve():\n        model = solver.get_model()\n        # Extract edges\n        edges = list(fixed_edges)\n        for (i,j), var in var_map.items():\n            if model[var-1] > 0:  # True\n                edges.append((i,j))\n        return edges\n    return None\n\n# Try all valid bipartitions\nfor idx, part in enumerate(valid_parts):\n    result = solve_for_partition(part)\n    if result is not None:\n        print(f\"Found solution with partition: {part}\")\n        print(f\"Edges: {sorted(result)}\")\n        # Verify\n        deg = [0]*11\n        for u,v in result:\n            deg[u] += 1\n            deg[v] += 1\n        print(f\"Degrees: {deg}\")\n        print(f\"Min degree: {min(deg)}\")\n        break\n    if idx % 20 == 0:\n        print(f\"Tried {idx} partitions...\")\nelse:\n    print(\"No solution found\")",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 240.4
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import inspect\nfrom pysat.card import CardEnc\nprint(inspect.signature(CardEnc.atleast))\n# Also check the source\nimport inspect\nprint(inspect.getsource(CardEnc.atleast)[:2000])",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 234.89
+    }
+  ],
+  "error": "JSONDecodeError: Expecting value: line 89 column 1 (char 484)",
+  "failure_bucket": "api_error",
+  "forced_submit": false
+}

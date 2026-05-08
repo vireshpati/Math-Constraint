@@ -1,0 +1,210 @@
+{
+  "problem_name": "pysms_min_connectivity_min_connectivity4_vertices11__v8_nh",
+  "problem_type": "pysms_min_connectivity",
+  "params": {
+    "min_connectivity": 4,
+    "vertices": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 365.7,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 55,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 53.2,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      6,
+      9
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      7,
+      10
+    ],
+    [
+      8,
+      9
+    ],
+    [
+      8,
+      10
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      1,
+      9
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      2,
+      10
+    ]
+  ],
+  "reasoning": "I constructed a circulant graph C(11, {1,2,3}) where each vertex i is connected to vertices i\u00b11, i\u00b12, and i\u00b13 (mod 11). This produces a 6-regular graph on 11 vertices. I verified computationally that this graph has vertex-connectivity \u03ba = 5, which satisfies the requirement of \u03ba \u2265 4. The graph has 33 edges and removing any set of 3 or fewer vertices leaves the graph connected.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [1, 4], [2, 3], [2, 4], [2, 5], [3, 4], [3, 5], [3, 6], [4, 5], [4, 6], [4, 7], [5, 6], [5, 7], [5, 8], [6, 7], [6, 8], [6, 9], [7, 8], [7, 9], [7, 10], [8, 9], [8, 10], [0, 8], [9, 10], [0, 9], [1, 9], [0, 10], [1, 10], [2, 10]],\n    \"reasoning\": \"I constructed a circulant graph C(11, {1,2,3}) where each vertex i is connected to vertices i\u00b11, i\u00b12, and i\u00b13 (mod 11). This produces a 6-regular graph on 11 vertices. I verified computationally that this graph has vertex-connectivity \u03ba = 5, which satisfies the requirement of \u03ba \u2265 4. The graph has 33 edges and removing any set of 3 or fewer vertices leaves the graph connected.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 11689,
+  "completion_tokens": 2367,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.070572,
+  "cost_source": "openrouter",
+  "latency_ms": 32413.41805458069,
+  "tool_dispatch_ms_total": 306.7765235900879,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\nfrom collections import defaultdict, deque\n\ndef bfs_connected(adj, nodes, source, forbidden=set()):\n    \"\"\"Check connectivity among nodes minus forbidden, starting from source.\"\"\"\n    if source in forbidden:\n        return set()\n    visited = {source}\n    queue = deque([source])\n    while queue:\n        u = queue.popleft()\n        for v in adj[u]:\n            if v not in visited and v not in forbidden:\n                visited.add(v)\n                queue.append(v)\n    return visited\n\ndef vertex_connectivity(n, edges):\n    \"\"\"Compute vertex connectivity of a graph.\"\"\"\n    adj = defaultdict(set)\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    nodes = set(range(n))\n    \n    # Check basic connectivity first\n    visited = bfs_connected(adj, nodes, 0)\n    if len(visited) < n:\n        return 0\n    \n    # Try removing k vertices for k = 1, 2, 3, ...\n    for k in range(1, n-1):\n        # Try all subsets of size k\n        for subset in itertools.combinations(range(n), k):\n            forbidden = set(subset)\n            remaining = nodes - forbidden\n            if len(remaining) == 0:\n                continue\n            source = next(iter(remaining))\n            visited = bfs_connected(adj, nodes, source, forbidden)\n            if len(visited) < len(remaining):\n                return k - 1  # connectivity is less than k\n        # If no subset of size k disconnects, connectivity >= k\n    return n - 1\n\n# A simple approach: use a 4-regular or higher graph\n# One well-known construction: complete bipartite graph K_{5,6} has connectivity 5\n# But let's try a simpler construction: \n# Take a cycle and add edges to make it 4-connected\n\n# Let's try: each vertex connects to the 4 nearest neighbors in a circular arrangement\n# (i.e., a circulant graph C(11, {1,2})) - this gives 4-regular graph\n\nn = 11\nedges = []\n# Circulant graph with offsets 1, 2 (each vertex connects to \u00b11 and \u00b12 mod 11)\nfor i in range(n):\n    for offset in [1, 2]:\n        j = (i + offset) % n\n        u, v = min(i, j), max(i, j)\n        if (u, v) not in edges:\n            edges.append((u, v))\n\nprint(\"Circulant graph edges:\", edges)\nprint(\"Number of edges:\", len(edges))\nkappa = vertex_connectivity(n, edges)\nprint(\"Vertex connectivity:\", kappa)\n"
+      },
+      "ok": true,
+      "latency_ms": 73.68
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Circulant with offsets 1,2 gives connectivity 3. Let's try offsets 1,2,3 (6-regular)\n# or try a different construction.\n\n# Let's try circulant C(11, {1, 2, 3}) - each vertex connects to \u00b11, \u00b12, \u00b13\nn = 11\nedges = []\nfor i in range(n):\n    for offset in [1, 2, 3]:\n        j = (i + offset) % n\n        u, v = min(i, j), max(i, j)\n        if (u, v) not in edges:\n            edges.append((u, v))\n\nprint(\"Circulant C(11,{1,2,3}) edges:\", edges)\nprint(\"Number of edges:\", len(edges))\nkappa = vertex_connectivity(n, edges)\nprint(\"Vertex connectivity:\", kappa)\n"
+      },
+      "ok": false,
+      "latency_ms": 78.0
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\nfrom collections import defaultdict, deque\n\ndef bfs_connected(adj, nodes, source, forbidden=set()):\n    if source in forbidden:\n        return set()\n    visited = {source}\n    queue = deque([source])\n    while queue:\n        u = queue.popleft()\n        for v in adj[u]:\n            if v not in visited and v not in forbidden:\n                visited.add(v)\n                queue.append(v)\n    return visited\n\ndef vertex_connectivity(n, edges):\n    adj = defaultdict(set)\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    nodes = set(range(n))\n    visited = bfs_connected(adj, nodes, 0)\n    if len(visited) < n:\n        return 0\n    for k in range(1, n-1):\n        for subset in itertools.combinations(range(n), k):\n            forbidden = set(subset)\n            remaining = nodes - forbidden\n            if len(remaining) == 0:\n                continue\n            source = next(iter(remaining))\n            visited = bfs_connected(adj, nodes, source, forbidden)\n            if len(visited) < len(remaining):\n                return k - 1\n    return n - 1\n\n# Circulant C(11, {1,2,3}) - 6-regular\nn = 11\nedges = []\nfor i in range(n):\n    for offset in [1, 2, 3]:\n        j = (i + offset) % n\n        u, v = min(i, j), max(i, j)\n        if (u, v) not in edges:\n            edges.append((u, v))\n\nprint(\"Number of edges:\", len(edges))\nkappa = vertex_connectivity(n, edges)\nprint(\"Vertex connectivity:\", kappa)\nprint(\"Edges:\", edges)\n"
+      },
+      "ok": true,
+      "latency_ms": 155.1
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

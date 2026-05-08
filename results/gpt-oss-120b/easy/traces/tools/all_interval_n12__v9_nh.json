@@ -1,0 +1,83 @@
+{
+  "problem_name": "all_interval_n12__v9_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 997.3,
+    "search_space": 479001600,
+    "num_variables": 23,
+    "num_constraints": 15,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 70.11,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-oss-120b:free",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    11,
+    1,
+    10,
+    2,
+    9,
+    3,
+    8,
+    4,
+    7,
+    5,
+    6
+  ],
+  "reasoning": "The provided permutation uses each number 0\u201111 exactly once, and the absolute differences between consecutive elements are [11,10,9,8,7,6,5,4,3,2,1], which is a permutation of 1\u201111. Hence it satisfies the all\u2011interval series constraints.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6],\n    \"reasoning\": \"The provided permutation uses each number 0\u201111 exactly once, and the absolute differences between consecutive elements are [11,10,9,8,7,6,5,4,3,2,1], which is a permutation of 1\u201111. Hence it satisfies the all\u2011interval series constraints.\"\n}",
+  "cot_trace": "We need find all-interval series size 12. Known problem; solution exists. Let's quickly compute via python.\n---\nBrute force too big. Use SAT solver via python? Use python with python-constraint? Could use simple backtracking. Let's implement search with pruning.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2942,
+  "completion_tokens": 577,
+  "reasoning_tokens": 65,
+  "cached_tokens": 1712,
+  "cost_usd": 0.0,
+  "cost_source": "openrouter",
+  "latency_ms": 71224.58481788635,
+  "tool_dispatch_ms_total": 20320.605754852295,
+  "tool_calls_made": 2,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nn=12\nnums=range(n)\nfor perm in itertools.permutations(nums):\n    diffs=[abs(perm[i+1]-perm[i]) for i in range(n-1)]\n    if set(diffs)==set(range(1,n)):\n        print(perm)\n        break\n",
+        "timeout_seconds": 20
+      },
+      "ok": false,
+      "latency_ms": 20022.28
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def search(n):\n    used=[False]*n\n    used_diff=[False]*n\n    sol=[0]*n\n    def backtrack(pos):\n        if pos==n:\n            return sol.copy()\n        for v in range(n):\n            if not used[v]:\n                if pos==0:\n                    used[v]=True; sol[pos]=v\n                    res=backtrack(pos+1)\n                    if res: return res\n                    used[v]=False\n                else:\n                    d=abs(v-sol[pos-1])\n                    if d==0 or d>=n or used_diff[d]: continue\n                    used[v]=True; used_diff[d]=True; sol[pos]=v\n                    res=backtrack(pos+1)\n                    if res: return res\n                    used[v]=False; used_diff[d]=False\n        return None\n    return backtrack(0)\n\nprint(search(12))\n",
+        "timeout_seconds": 20
+      },
+      "ok": true,
+      "latency_ms": 298.33
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

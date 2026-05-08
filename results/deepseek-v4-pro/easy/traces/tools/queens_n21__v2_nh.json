@@ -1,0 +1,122 @@
+{
+  "problem_name": "queens_n21__v2_nh",
+  "problem_type": "queens",
+  "params": {
+    "n": 21
+  },
+  "difficulty": {
+    "solve_time_ms": 1423.3,
+    "search_space": 5842587018385982521381124421,
+    "num_variables": 21,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 85.15,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    15,
+    5,
+    8,
+    6,
+    3,
+    12,
+    17,
+    1,
+    20,
+    10,
+    19,
+    9,
+    2,
+    13,
+    11,
+    7,
+    18,
+    4,
+    0,
+    14,
+    16
+  ],
+  "reasoning": "The 21-queens problem is satisfiable. Using a min-conflicts local search algorithm, a valid solution was found where no two queens share the same row, column, or diagonal. The solution was verified by checking all pairs of queens for conflicts.",
+  "raw_response": null,
+  "cot_trace": "We need to place 21 non-attacking queens on a 21x21 board. This is the classic N-Queens problem for N=21. It's known that N-Queens has solutions for all N >= 4. So it's satisfiable. We need to find one solution.\n\nWe can use a SAT solver or a backtracking algorithm. Let's write Python code to find a solution. We can use the `python-constraint` or just implement a simple backtracking with heuristics (like min-conflicts). But we need to ensure we get a valid solution.\n\nLet's use the `pysat` library if available, or implement a simple backtracking. Since N=21 is moderate, backtracking might be okay with proper pruning.\n\nAlternatively, we can use the known explicit solutions for N-Queens. There are known patterns: for N > 3, we can construct solutions using various methods. For N=21, we can use the standard backtracking.\n\nLet's try to use Python's `itertools` and backtracking. But 21! is huge; we need smarter search.\n\nWe can use the min-conflicts algorithm (local search) which is very effective for N-Queens. It usually finds solutions quickly for large N.\n\nLet's implement min-conflicts in Python.\n\nAlternatively, we can use `python-constraint` or `pysat`. Let's check what's available.\n\nLet's write a script that uses min-conflicts (or backtracking with forward checking).\n---\nThe min-conflicts algorithm found a solution. Let me verify it more carefully with a script.\n---\nThe solution is valid. Let me submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4902,
+  "completion_tokens": 1538,
+  "reasoning_tokens": 366,
+  "cached_tokens": 1024,
+  "cost_usd": 0.0151158,
+  "cost_source": "openrouter",
+  "latency_ms": 220393.62049102783,
+  "tool_dispatch_ms_total": 103.03211212158203,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\n\ndef min_conflicts(n, max_steps=100000):\n    # Initialize with one queen per row in random columns\n    queens = [random.randrange(n) for _ in range(n)]\n    \n    # Precompute column conflicts\n    col_conflicts = [0] * n\n    diag1_conflicts = [0] * (2*n - 1)  # r+c\n    diag2_conflicts = [0] * (2*n - 1)  # r-c + n-1\n    \n    for r, c in enumerate(queens):\n        col_conflicts[c] += 1\n        diag1_conflicts[r + c] += 1\n        diag2_conflicts[r - c + n - 1] += 1\n    \n    for step in range(max_steps):\n        # Find conflicted queens\n        conflicted = []\n        for r, c in enumerate(queens):\n            if col_conflicts[c] > 1 or diag1_conflicts[r + c] > 1 or diag2_conflicts[r - c + n - 1] > 1:\n                conflicted.append(r)\n        \n        if not conflicted:\n            return queens  # solution found\n        \n        # Pick a random conflicted queen\n        r = random.choice(conflicted)\n        old_c = queens[r]\n        \n        # Find column with minimum conflicts for this row\n        min_conf = float('inf')\n        best_cols = []\n        for c in range(n):\n            if c == old_c:\n                continue\n            conflicts = (col_conflicts[c] + \n                        diag1_conflicts[r + c] + \n                        diag2_conflicts[r - c + n - 1])\n            if conflicts < min_conf:\n                min_conf = conflicts\n                best_cols = [c]\n            elif conflicts == min_conf:\n                best_cols.append(c)\n        \n        # Move queen to best column\n        new_c = random.choice(best_cols)\n        \n        # Update conflicts\n        col_conflicts[old_c] -= 1\n        diag1_conflicts[r + old_c] -= 1\n        diag2_conflicts[r - old_c + n - 1] -= 1\n        \n        col_conflicts[new_c] += 1\n        diag1_conflicts[r + new_c] += 1\n        diag2_conflicts[r - new_c + n - 1] += 1\n        \n        queens[r] = new_c\n    \n    return None  # failed\n\n# Try multiple times\nfor attempt in range(100):\n    sol = min_conflicts(21, max_steps=50000)\n    if sol:\n        print(\"Solution found:\", sol)\n        # Verify\n        n = 21\n        ok = True\n        for i in range(n):\n            for j in range(i+1, n):\n                if sol[i] == sol[j] or abs(sol[i] - sol[j]) == abs(i - j):\n                    ok = False\n                    print(f\"Conflict: ({i},{sol[i]}) and ({j},{sol[j]})\")\n        print(\"Valid:\", ok)\n        break\nelse:\n    print(\"No solution found\")"
+      },
+      "ok": true,
+      "latency_ms": 68.89
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def verify_n_queens(solution):\n    n = len(solution)\n    for i in range(n):\n        for j in range(i+1, n):\n            if solution[i] == solution[j] or abs(solution[i] - solution[j]) == abs(i - j):\n                return False, (i, solution[i], j, solution[j])\n    return True, None\n\nsol = [15, 5, 8, 6, 3, 12, 17, 1, 20, 10, 19, 9, 2, 13, 11, 7, 18, 4, 0, 14, 16]\nvalid, conflict = verify_n_queens(sol)\nprint(\"Valid:\", valid)\nif conflict:\n    print(\"Conflict:\", conflict)\n\n# Also print the board visually\nn = 21\nfor r in range(n):\n    line = \"\"\n    for c in range(n):\n        if sol[r] == c:\n            line += \"Q \"\n        else:\n            line += \". \"\n    print(f\"{r:2d}: {line}\")"
+      },
+      "ok": true,
+      "latency_ms": 34.14
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          15,
+          5,
+          8,
+          6,
+          3,
+          12,
+          17,
+          1,
+          20,
+          10,
+          19,
+          9,
+          2,
+          13,
+          11,
+          7,
+          18,
+          4,
+          0,
+          14,
+          16
+        ],
+        "reasoning": "The 21-queens problem is satisfiable. Using a min-conflicts local search algorithm, a valid solution was found where no two queens share the same row, column, or diagonal. The solution was verified by checking all pairs of queens for conflicts."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,88 @@
+{
+  "problem_name": "queens_n8__v10_nh",
+  "problem_type": "queens",
+  "params": {
+    "n": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 1232.3,
+    "search_space": 16777216,
+    "num_variables": 8,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 79.51,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    4,
+    7,
+    5,
+    2,
+    6,
+    1,
+    3
+  ],
+  "reasoning": "The 8-Queens problem is satisfiable \u2014 there are 92 distinct solutions. Using backtracking, I found the solution [0, 4, 7, 5, 2, 6, 1, 3], meaning queens are placed at columns 0,4,7,5,2,6,1,3 in rows 0\u20137 respectively. Verified: no two queens share a row (by construction), column (all values distinct), or diagonal (|row_i - row_j| \u2260 |col_i - col_j| for all pairs).",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2857,
+  "completion_tokens": 756,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.019910999999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 11509.083032608032,
+  "tool_dispatch_ms_total": 41.60642623901367,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef solve_8_queens():\n    solutions = []\n    \n    def is_safe(placement, row, col):\n        for r, c in enumerate(placement):\n            if c == col:                      # same column\n                return False\n            if abs(r - row) == abs(c - col):  # same diagonal\n                return False\n        return True\n    \n    def backtrack(placement):\n        row = len(placement)\n        if row == 8:\n            solutions.append(placement[:])\n            return\n        for col in range(8):\n            if is_safe(placement, row, col):\n                placement.append(col)\n                backtrack(placement)\n                placement.pop()\n    \n    backtrack([])\n    return solutions\n\nsolutions = solve_8_queens()\nprint(f\"Total solutions found: {len(solutions)}\")\nprint(f\"\\nFirst solution (col per row): {solutions[0]}\")\n\n# Verify the first solution\nsol = solutions[0]\nprint(\"\\nBoard visualization:\")\nfor row in range(8):\n    line = \"\"\n    for col in range(8):\n        if sol[row] == col:\n            line += \" Q \"\n        else:\n            line += \" . \"\n    print(f\"Row {row}: {line}\")\n\n# Double-check no conflicts\ndef verify(sol):\n    for i in range(8):\n        for j in range(i+1, 8):\n            if sol[i] == sol[j]:\n                return False, f\"Column conflict: rows {i},{j}\"\n            if abs(i-j) == abs(sol[i]-sol[j]):\n                return False, f\"Diagonal conflict: rows {i},{j}\"\n    return True, \"Valid!\"\n\nvalid, msg = verify(sol)\nprint(f\"\\nVerification: {msg}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 41.61
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          4,
+          7,
+          5,
+          2,
+          6,
+          1,
+          3
+        ],
+        "reasoning": "The 8-Queens problem is satisfiable \u2014 there are 92 distinct solutions. Using backtracking, I found the solution [0, 4, 7, 5, 2, 6, 1, 3], meaning queens are placed at columns 0,4,7,5,2,6,1,3 in rows 0\u20137 respectively. Verified: no two queens share a row (by construction), column (all values distinct), or diagonal (|row_i - row_j| \u2260 |col_i - col_j| for all pairs)."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,152 @@
+{
+  "problem_name": "pysms_chromatic_girth_max_chromatic_number5_min_edges16_min_girth5_vertices14__v11_nh",
+  "problem_type": "pysms_chromatic_girth",
+  "params": {
+    "max_chromatic_number": 5,
+    "min_edges": 16,
+    "min_girth": 5,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 99.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 21,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 40.41,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      5,
+      9
+    ],
+    [
+      0,
+      11
+    ],
+    [
+      3,
+      10
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      7,
+      11
+    ],
+    [
+      6,
+      10
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      3,
+      13
+    ],
+    [
+      6,
+      11
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      5,
+      10
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      10,
+      12
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      11,
+      13
+    ],
+    [
+      1,
+      12
+    ]
+  ],
+  "reasoning": "Constructed a graph with 14 vertices and 20 edges satisfying all constraints: (1) Edge count = 20 \u2265 16. (2) Girth = 5 (no triangles or 4-cycles, verified by BFS from every vertex). (3) 5-colorable (actually only needs 3 colors: assignment [0,0,1,0,2,0,0,1,2,1,2,2,1,1]). Built greedily by adding edges only when they don't create triangles (common neighbor check) or 4-cycles (two-hop common neighbor check), then verified all constraints programmatically.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[5, 9], [0, 11], [3, 10], [0, 2], [7, 11], [6, 10], [1, 4], [2, 4], [3, 8], [2, 10], [3, 13], [6, 11], [1, 8], [5, 10], [7, 8], [5, 7], [10, 12], [0, 9], [11, 13], [1, 12]],\n    \"reasoning\": \"Constructed a graph with 14 vertices and 20 edges satisfying all constraints: (1) Edge count = 20 \u2265 16. (2) Girth = 5 (no triangles or 4-cycles, verified by BFS from every vertex). (3) 5-colorable (actually only needs 3 colors: assignment [0,0,1,0,2,0,0,1,2,1,2,2,1,1]). Built greedily by adding edges only when they don't create triangles (common neighbor check) or 4-cycles (two-hop common neighbor check), then verified all constraints programmatically.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 10606,
+  "completion_tokens": 3151,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.079083,
+  "cost_source": "openrouter",
+  "latency_ms": 41245.505809783936,
+  "tool_dispatch_ms_total": 99.03240203857422,
+  "tool_calls_made": 2,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\nimport random\n\n# Key constraints:\n# - 14 vertices (0..13)\n# - Girth >= 5: no cycles of length 3 or 4 (no triangles, no 4-cycles)\n# - Chromatic number <= 5: graph is 5-colorable\n# - At least 16 edges\n\n# Girth >= 5 means:\n# 1. No triangles (no 3-cycles): for any edge (u,v), neighbors of u and v are disjoint\n# 2. No 4-cycles: for any two vertices u,v, they have at most 1 common neighbor\n\n# Let's use a greedy/constructive approach\n# The Petersen graph has girth 5, 10 vertices, 15 edges, chromatic number 3\n# We need 14 vertices and 16 edges\n\n# Let's try to build such a graph using constraint checking\n\ndef has_triangle(adj, u, v):\n    \"\"\"Check if adding edge (u,v) creates a triangle\"\"\"\n    return bool(adj[u] & adj[v])\n\ndef has_4cycle(adj, u, v):\n    \"\"\"Check if adding edge (u,v) creates a 4-cycle\"\"\"\n    # A 4-cycle exists if u and v have a common neighbor,\n    # OR if there's a path of length 2 from u to v through existing edges\n    # More precisely: after adding (u,v), a 4-cycle u-a-w-b-u or u-v-a-b-u\n    # Check: for each neighbor a of u (a != v), check if a has a neighbor b \n    # that is also a neighbor of v (b != u) -- this would be u-v-b-a-u (4-cycle)\n    # Wait, let me think again.\n    # 4-cycle: u-v-a-b-u where a in adj[v], b in adj[u], (a,b) is an edge\n    # OR: u-a-v-b-u where a in adj[u], b in adj[v]... same thing\n    # Actually: adding edge (u,v), 4-cycle means: exists a,b such that\n    # u-v-a-b-u is a cycle: v-a edge, a-b edge, b-u edge, u-v edge\n    # So: a in adj[v], b in adj[u], b in adj[a], a != u, b != v\n    # Equivalently: (adj[u] - {v}) and (adj[v] - {u}) share a common neighbor\n    \n    for a in adj[v]:\n        if a == u:\n            continue\n        # Check if any neighbor of a (other than v) is in adj[u]\n        for b in adj[a]:\n            if b == v:\n                continue\n            if b in adj[u] and b != v:\n                return True\n    return False\n\ndef check_girth5(adj, edges):\n    \"\"\"Verify girth >= 5 for current graph\"\"\"\n    n = len(adj)\n    # BFS from each vertex to find shortest cycle\n    for start in range(n):\n        # BFS\n        dist = [-1] * n\n        dist[start] = 0\n        parent = [-1] * n\n        queue = [start]\n        qi = 0\n        while qi < len(queue):\n            u = queue[qi]; qi += 1\n            for v in adj[u]:\n                if dist[v] == -1:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    queue.append(v)\n                elif parent[u] != v:\n                    # Found a cycle of length dist[u] + dist[v] + 1\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len < 5:\n                        return False\n    return True\n\ndef is_5colorable(adj, n):\n    \"\"\"Check if graph is 5-colorable using greedy + backtracking\"\"\"\n    colors = [-1] * n\n    \n    def backtrack(v):\n        if v == n:\n            return True\n        used = set(colors[u] for u in adj[v] if colors[u] != -1)\n        for c in range(5):\n            if c not in used:\n                colors[v] = c\n                if backtrack(v + 1):\n                    return True\n                colors[v] = -1\n        return False\n    \n    return backtrack(0)\n\n# Build graph greedily\nn = 14\nadj = [set() for _ in range(n)]\nedges = []\n\n# Try random restarts\nbest_edges = []\nrandom.seed(42)\n\nfor trial in range(1000):\n    adj = [set() for _ in range(n)]\n    edges = []\n    \n    # Generate candidate edges in random order\n    candidates = list(combinations(range(n), 2))\n    random.shuffle(candidates)\n    \n    for u, v in candidates:\n        if len(edges) >= 20:\n            break\n        # Check no triangle\n        if has_triangle(adj, u, v):\n            continue\n        # Check no 4-cycle\n        if has_4cycle(adj, u, v):\n            continue\n        # Add edge\n        adj[u].add(v)\n        adj[v].add(u)\n        edges.append((u, v))\n    \n    if len(edges) > len(best_edges):\n        best_edges = edges[:]\n        best_adj = [s.copy() for s in adj]\n        if len(best_edges) >= 16:\n            break\n\nprint(f\"Best: {len(best_edges)} edges after trials\")\nprint(f\"Edges: {best_edges}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 55.37
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution thoroughly\ndef verify_graph(edges, n=14):\n    adj = [set() for _ in range(n)]\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # Check edge count\n    print(f\"Edge count: {len(edges)} (need >= 16): {'OK' if len(edges) >= 16 else 'FAIL'}\")\n    \n    # Check vertex range\n    for u, v in edges:\n        assert 0 <= u < v < n, f\"Invalid edge ({u},{v})\"\n    print(\"Vertex range: OK\")\n    \n    # Check girth >= 5 using BFS\n    min_cycle = float('inf')\n    for start in range(n):\n        dist = [-1] * n\n        dist[start] = 0\n        parent = [-1] * n\n        queue = [start]\n        qi = 0\n        while qi < len(queue):\n            u = queue[qi]; qi += 1\n            for v in adj[u]:\n                if dist[v] == -1:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    queue.append(v)\n                elif parent[u] != v:\n                    cycle_len = dist[u] + dist[v] + 1\n                    min_cycle = min(min_cycle, cycle_len)\n    \n    print(f\"Girth (shortest cycle): {min_cycle} (need >= 5): {'OK' if min_cycle >= 5 else 'FAIL'}\")\n    \n    # Check 5-colorability\n    colors = [-1] * n\n    def backtrack(v):\n        if v == n:\n            return True\n        used = set(colors[u] for u in adj[v] if colors[u] != -1)\n        for c in range(5):\n            if c not in used:\n                colors[v] = c\n                if backtrack(v + 1):\n                    return True\n                colors[v] = -1\n        return False\n    \n    colorable = backtrack(0)\n    print(f\"5-colorable: {colorable} (need True): {'OK' if colorable else 'FAIL'}\")\n    if colorable:\n        # Verify coloring\n        for u, v in edges:\n            assert colors[u] != colors[v], f\"Color conflict on edge ({u},{v})\"\n        print(f\"Coloring used: {max(colors)+1} colors, assignment: {colors}\")\n    \n    return colorable and min_cycle >= 5 and len(edges) >= 16\n\nedges = [(5, 9), (0, 11), (3, 10), (0, 2), (7, 11), (6, 10), (1, 4), (2, 4), \n         (3, 8), (2, 10), (3, 13), (6, 11), (1, 8), (5, 10), (7, 8), (5, 7), \n         (10, 12), (0, 9), (11, 13), (1, 12)]\n\nresult = verify_graph(edges)\nprint(f\"\\nAll constraints satisfied: {result}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 43.66
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

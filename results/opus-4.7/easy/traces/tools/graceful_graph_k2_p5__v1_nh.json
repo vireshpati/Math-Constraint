@@ -1,0 +1,101 @@
+{
+  "problem_name": "graceful_graph_k2_p5__v1_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1003.9,
+    "search_space": 289254654976,
+    "num_variables": 23,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 70.49,
+    "solve_pct_type": 6.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    7,
+    13,
+    1,
+    2,
+    6,
+    12,
+    3,
+    4,
+    5
+  ],
+  "reasoning": "Backtracking search found labeling [0,7,13,1,2,6,12,3,4,5]. Verification: edges within cliques give diffs |0-7|=7, |13-1|=12, |2-6|=4, |12-3|=9, |4-5|=1. Cross-clique edges: |0-13|=13, |7-1|=6, |13-2|=11, |1-6|=5, |2-12|=10, |6-3|=3, |12-4|=8, |3-5|=2. All 13 diffs {1..13} distinct.",
+  "raw_response": null,
+  "cot_trace": " I need to find a graceful labeling for a graph with 10 vertices and 13 edges, where I assign distinct labels from 1 to 13 to each edge. I'm thinking a constraint solver approach would work well here to systematically search for a valid assignment.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6806,
+  "completion_tokens": 1888,
+  "reasoning_tokens": 62,
+  "cached_tokens": 0,
+  "cost_usd": 0.08123,
+  "cost_source": "openrouter",
+  "latency_ms": 20906.792163848877,
+  "tool_dispatch_ms_total": 3117.5434589385986,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n# Vertices: (g,i) for g in 0..4, i in 0..1\n# Edges: within clique g: (g,0)-(g,1); between (g,i)-(g+1,i)\nedges = []\nfor g in range(5):\n    edges.append(((g,0),(g,1)))\nfor g in range(4):\n    for i in range(2):\n        edges.append(((g,i),(g+1,i)))\n\n# 10 vertices, labels from 0..13, all distinct, edge diffs distinct\nfrom itertools import combinations\nimport random\n\nverts = [(g,i) for g in range(5) for i in range(2)]\n# Try random search\ndef try_search():\n    for _ in range(200000):\n        labels = random.sample(range(14), 10)\n        assign = dict(zip(verts, labels))\n        diffs = [abs(assign[u]-assign[v]) for u,v in edges]\n        if len(set(diffs))==13:\n            return labels\n    return None\n\nrandom.seed(1)\nr = try_search()\nprint(r)\n"
+      },
+      "ok": true,
+      "latency_ms": 2266.45
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations, combinations\nverts = [(g,i) for g in range(5) for i in range(2)]\nedges = []\nfor g in range(5):\n    edges.append(((g,0),(g,1)))\nfor g in range(4):\n    for i in range(2):\n        edges.append(((g,i),(g+1,i)))\nvidx = {v:k for k,v in enumerate(verts)}\neidx = [(vidx[u],vidx[v]) for u,v in edges]\n\n# Need edge label 13, so labels 0 and 13 both used and connected by an edge.\n# Backtrack over subsets and assignments\nfrom itertools import combinations\nbest = None\ndef solve():\n    for subset in combinations(range(14),10):\n        if 0 not in subset or 13 not in subset: continue\n        labels = list(subset)\n        # try permutations \u2014 too many (10!) but with pruning\n        # Instead: backtrack\n        result = backtrack(labels)\n        if result: return result\n    return None\n\ndef backtrack(available):\n    assign = [None]*10\n    used_diffs = set()\n    avail = set(available)\n    # order vertices by edge connectivity - BFS from vertex 0\n    order = [0,1,2,3,4,5,6,7,8,9]  # default\n    # build adjacency\n    adj = [[] for _ in range(10)]\n    for a,b in eidx:\n        adj[a].append(b); adj[b].append(a)\n    # BFS order\n    from collections import deque\n    visited=[False]*10\n    order=[]\n    q=deque([0]); visited[0]=True\n    while q:\n        x=q.popleft(); order.append(x)\n        for y in adj[x]:\n            if not visited[y]:\n                visited[y]=True; q.append(y)\n    \n    def rec(i):\n        if i==10:\n            return list(assign)\n        v = order[i]\n        # edges to already-assigned\n        prev_edges = [u for u in adj[v] if assign[u] is not None]\n        for lbl in list(avail):\n            ok=True\n            new_diffs=[]\n            for u in prev_edges:\n                d = abs(lbl - assign[u])\n                if d in used_diffs or d in new_diffs:\n                    ok=False; break\n                new_diffs.append(d)\n            if ok:\n                assign[v]=lbl\n                avail.remove(lbl)\n                for d in new_diffs: used_diffs.add(d)\n                r = rec(i+1)\n                if r: return r\n                assign[v]=None\n                avail.add(lbl)\n                for d in new_diffs: used_diffs.discard(d)\n        return None\n    return rec(0)\n\nr = solve()\nprint(r)\nif r:\n    # verify\n    assign = {verts[k]: r[k] for k in range(10)}\n    diffs = [abs(assign[u]-assign[v]) for u,v in edges]\n    print(sorted(diffs), len(set(diffs)))\n"
+      },
+      "ok": true,
+      "latency_ms": 851.09
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Backtracking search found labeling [0,7,13,1,2,6,12,3,4,5]. Verification: edges within cliques give diffs |0-7|=7, |13-1|=12, |2-6|=4, |12-3|=9, |4-5|=1. Cross-clique edges: |0-13|=13, |7-1|=6, |13-2|=11, |1-6|=5, |2-12|=10, |6-3|=3, |12-4|=8, |3-5|=2. All 13 diffs {1..13} distinct.",
+        "satisfiable": true,
+        "solution": [
+          0,
+          7,
+          13,
+          1,
+          2,
+          6,
+          12,
+          3,
+          4,
+          5
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

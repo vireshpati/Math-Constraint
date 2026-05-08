@@ -1,0 +1,70 @@
+{
+  "problem_name": "pigeons_n20__v1",
+  "problem_type": "pigeons",
+  "params": {
+    "n": 20
+  },
+  "difficulty": {
+    "solve_time_ms": 951.6,
+    "search_space": 37589973457545958193355601,
+    "num_variables": 20,
+    "num_constraints": 1,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 62.97,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "By the pigeonhole principle, placing 20 pigeons into 19 holes with at most one pigeon per hole is impossible. With 20 pigeons and only 19 holes, at least one hole would need to contain two pigeons, violating the constraint. Therefore the problem is unsatisfiable.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Correct UNSAT",
+  "prompt_tokens": 1821,
+  "completion_tokens": 536,
+  "reasoning_tokens": 0,
+  "cached_tokens": 1024,
+  "cost_usd": 0.000290332,
+  "cost_source": "openrouter",
+  "latency_ms": 78005.0437450409,
+  "tool_dispatch_ms_total": 15017.68684387207,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nfrom pysat.formula import CNF\n\nn_pigeons = 20\nn_holes = 19\n\n# Variables: x[i][j] means pigeon i goes to hole j\n# We'll use variable numbering: var = i * n_holes + j + 1 (1-indexed for pysat)\n\ndef var(i, j):\n    return i * n_holes + j + 1\n\nsolver = Glucose3()\n\n# Each pigeon must be in exactly one hole\nfor i in range(n_pigeons):\n    solver.add_clause([var(i, j) for j in range(n_holes)])\n    for j1 in range(n_holes):\n        for j2 in range(j1+1, n_holes):\n            solver.add_clause([-var(i, j1), -var(i, j2)])\n\n# Each hole can have at most one pigeon\nfor j in range(n_holes):\n    for i1 in range(n_pigeons):\n        for i2 in range(i1+1, n_pigeons):\n            solver.add_clause([-var(i1, j), -var(i2, j)])\n\nresult = solver.solve()\nprint(\"Satisfiable:\", result)\nsolver.delete()"
+      },
+      "ok": false,
+      "latency_ms": 15017.69
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": false,
+        "solution": null,
+        "reasoning": "By the pigeonhole principle, placing 20 pigeons into 19 holes with at most one pigeon per hole is impossible. With 20 pigeons and only 19 holes, at least one hole would need to contain two pigeons, violating the constraint. Therefore the problem is unsatisfiable."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

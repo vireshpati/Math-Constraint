@@ -1,0 +1,113 @@
+{
+  "problem_name": "graceful_graph_k3_p4__v3_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1447.9,
+    "search_space": 12855002631049216,
+    "num_variables": 33,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 86.28,
+    "solve_pct_type": 68.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    3,
+    21,
+    15,
+    20,
+    0,
+    1,
+    7,
+    2,
+    17,
+    16,
+    5,
+    9
+  ],
+  "reasoning": "The solution was found using a backtracking search that respects the fixed vertex values and edge label constraints. The resulting vertex labels are [3, 21, 15, 20, 0, 1, 7, 2, 17, 16, 5, 9]. All edge labels are distinct and in the range 1-21, and all vertex labels are distinct and in the range 0-21.",
+  "raw_response": null,
+  "cot_trace": "**Defining the Graph Structure**\n\nI've defined the graph $G_{3,4}$ as having four disjoint $K_3$ cliques, labeled $C_0$ through $C_3$. Each clique $C_g$ comprises three vertices: $v_{g,0}$, $v_{g,1}$, and $v_{g,2}$. That gives a total of 12 vertices. I'm now starting to map out the edges, specifically those within each clique.\n\n\n**Mapping the Edge Connections**\n\nI've enumerated the edges within each $K_3$ clique, and it's 3 edges per clique, and four cliques for 12 edges total. Next, I defined connections between consecutive cliques, again, three edges per link for a total of 9 edges. Therefore, I now have a total of 21 edges for the graph $G_{3,4}$. I was considering graceful labeling and realized the labels must be from 0 to 21.\n\n\n**Refining the Vertex Mapping**\n\nI've streamlined the vertex and edge indexing for clarity, assigning indices 0-11 to vertices and defining edges within and between cliques. I then mapped vertices $v_{g,k}$ to $x_i$ where $i \\in \\{0, 1, ..., 11\\}$. I now have explicitly listed all the 21 edges for the graph $G_{3,4}$ to work with. I've also identified a few fixed values for specific vertices, namely, $x_2=15$ and $x_4=0$. Now I'm working on the values for $d_6$.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 10304,
+  "completion_tokens": 5119,
+  "reasoning_tokens": 1629,
+  "cached_tokens": 0,
+  "cost_usd": 0.010254500000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 38179.26573753357,
+  "tool_dispatch_ms_total": 15101.38201713562,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef solve():\n    # Vertices: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11\n    # Edges:\n    # e0: (x0, x1), e1: (x1, x2), e2: (x2, x0)\n    # e3: (x3, x4), e4: (x4, x5), e5: (x5, x3)\n    # e6: (x6, x7), e7: (x7, x8), e8: (x8, x6)\n    # e9: (x9, x10), e10: (x10, x11), e11: (x11, x9)\n    # e12: (x0, x3), e13: (x1, x4), e14: (x2, x5)\n    # e15: (x3, x6), e16: (x4, x7), e17: (x5, x8)\n    # e18: (x6, x9), e19: (x7, x10), e20: (x8, x11)\n\n    # Fixed:\n    # x2 = 15, x4 = 0\n    # |x6 - x7| = 5\n    # |x9 - x10| = 11\n    # |x3 - x6| = 13\n    # |x6 - x9| = 9\n\n    # We need to find x0..x11 in {0..21}\n    # All x_i distinct\n    # All edge labels distinct and in {1..21}\n\n    from constraint import Problem, AllDifferentConstraint\n\n    problem = Problem()\n    problem.addVariables(range(12), range(22))\n    problem.addConstraint(AllDifferentConstraint())\n\n    # Fixed values\n    problem.addConstraint(lambda x: x == 15, [2])\n    problem.addConstraint(lambda x: x == 0, [4])\n\n    # Edges\n    edges = [\n        (0, 1), (1, 2), (2, 0),\n        (3, 4), (4, 5), (5, 3),\n        (6, 7), (7, 8), (8, 6),\n        (9, 10), (10, 11), (11, 9),\n        (0, 3), (1, 4), (2, 5),\n        (3, 6), (4, 7), (5, 8),\n        (6, 9), (7, 10), (8, 11)\n    ]\n\n    # Fixed edge labels\n    # d6 = |x6 - x7| = 5\n    problem.addConstraint(lambda x6, x7: abs(x6 - x7) == 5, [6, 7])\n    # d9 = |x9 - x10| = 11\n    problem.addConstraint(lambda x9, x10: abs(x9 - x10) == 11, [9, 10])\n    # d15 = |x3 - x6| = 13\n    problem.addConstraint(lambda x3, x6: abs(x3 - x6) == 13, [3, 6])\n    # d18 = |x6 - x9| = 9\n    problem.addConstraint(lambda x6, x9: abs(x6 - x9) == 9, [6, 9])\n\n    # All edge labels must be distinct and in {1..21}\n    def edge_labels_constraint(*vars):\n        labels = []\n        for u, v in edges:\n            labels.append(abs(vars[u] - vars[v]))\n        return len(set(labels)) == 21 and min(labels) >= 1 and max(labels) <= 21\n\n    problem.addConstraint(edge_labels_constraint, range(12))\n\n    # This might be slow, let's try to solve it\n    solution = problem.getSolution()\n    return solution\n\nprint(solve())\n"
+      },
+      "ok": false,
+      "latency_ms": 15017.76
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef solve():\n    # Use a backtracking approach with pruning\n    # Vertices: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11\n    # Fixed: x2=15, x4=0\n    # Edges:\n    # e0: (x0, x1), e1: (x1, x2), e2: (x2, x0)\n    # e3: (x3, x4), e4: (x4, x5), e5: (x5, x3)\n    # e6: (x6, x7), e7: (x7, x8), e8: (x8, x6)\n    # e9: (x9, x10), e10: (x10, x11), e11: (x11, x9)\n    # e12: (x0, x3), e13: (x1, x4), e14: (x2, x5)\n    # e15: (x3, x6), e16: (x4, x7), e17: (x5, x8)\n    # e18: (x6, x9), e19: (x7, x10), e20: (x8, x11)\n\n    # Fixed edge labels:\n    # d6 = |x6 - x7| = 5\n    # d9 = |x9 - x10| = 11\n    # d15 = |x3 - x6| = 13\n    # d18 = |x6 - x9| = 9\n\n    # Let's try to assign values to variables one by one\n    # Order: x2=15, x4=0, x6, x7, x9, x10, x3, x0, x1, x5, x8, x11\n    # This order respects the fixed edge constraints early.\n\n    # x2=15, x4=0\n    # |x6-x7|=5, |x9-x10|=11, |x3-x6|=13, |x6-x9|=9\n\n    # Possible values for x6, x7, x9, x10, x3:\n    # x6 in 0..21\n    # x7 = x6 +/- 5\n    # x9 = x6 +/- 9\n    # x10 = x9 +/- 11\n    # x3 = x6 +/- 13\n\n    # Let's use a recursive search\n    \n    import sys\n    \n    # Variables: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11\n    # Fixed: x2=15, x4=0\n    \n    # Pre-calculate possible values for x6, x7, x9, x10, x3\n    # x6 can be anything from 0 to 21\n    \n    def is_valid(x):\n        # Check if all assigned x_i are distinct\n        assigned = [v for v in x if v is not None]\n        if len(assigned) != len(set(assigned)):\n            return False\n        \n        # Check edge labels\n        edges = [\n            (0, 1), (1, 2), (2, 0),\n            (3, 4), (4, 5), (5, 3),\n            (6, 7), (7, 8), (8, 6),\n            (9, 10), (10, 11), (11, 9),\n            (0, 3), (1, 4), (2, 5),\n            (3, 6), (4, 7), (5, 8),\n            (6, 9), (7, 10), (8, 11)\n        ]\n        \n        labels = []\n        for u, v in edges:\n            if x[u] is not None and x[v] is not None:\n                diff = abs(x[u] - x[v])\n                if diff in labels:\n                    return False\n                labels.append(diff)\n        \n        # Check if any label is 0 (not allowed)\n        if 0 in labels:\n            return False\n            \n        return True\n\n    def solve_recursive(x, idx):\n        if idx == 12:\n            return x\n        \n        if x[idx] is not None:\n            return solve_recursive(x, idx + 1)\n        \n        for val in range(22):\n            x[idx] = val\n            if is_valid(x):\n                res = solve_recursive(x, idx + 1)\n                if res:\n                    return res\n            x[idx] = None\n        return None\n\n    # Order: x2=15, x4=0, x6, x7, x9, x10, x3, x0, x1, x5, x8, x11\n    # Let's try to set the fixed ones first\n    x = [None] * 12\n    x[2] = 15\n    x[4] = 0\n    \n    # We need to satisfy the fixed edge constraints:\n    # |x6 - x7| = 5\n    # |x9 - x10| = 11\n    # |x3 - x6| = 13\n    # |x6 - x9| = 9\n    \n    # This is still a bit complex. Let's try to iterate over possible values for x6, x7, x9, x10, x3\n    for x6 in range(22):\n        for x7 in [x6 - 5, x6 + 5]:\n            if 0 <= x7 <= 21:\n                for x9 in [x6 - 9, x6 + 9]:\n                    if 0 <= x9 <= 21:\n                        for x10 in [x9 - 11, x9 + 11]:\n                            if 0 <= x10 <= 21:\n                                for x3 in [x6 - 13, x6 + 13]:\n                                    if 0 <= x3 <= 21:\n                                        # Now we have x6, x7, x9, x10, x3\n                                        # Check if they are distinct and valid\n                                        x_temp = [None] * 12\n                                        x_temp[2] = 15\n                                        x_temp[4] = 0\n                                        x_temp[6] = x6\n                                        x_temp[7] = x7\n                                        x_temp[9] = x9\n                                        x_temp[10] = x10\n                                        x_temp[3] = x3\n                                        \n                                        if len(set([v for v in x_temp if v is not None])) == len([v for v in x_temp if v is not None]):\n                                            # Try to fill the rest\n                                            res = solve_recursive(x_temp, 0)\n                                            if res:\n                                                return res\n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 42.73
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check_solution(x):\n    # Vertices: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11\n    # Edges:\n    edges = [\n        (0, 1), (1, 2), (2, 0),\n        (3, 4), (4, 5), (5, 3),\n        (6, 7), (7, 8), (8, 6),\n        (9, 10), (10, 11), (11, 9),\n        (0, 3), (1, 4), (2, 5),\n        (3, 6), (4, 7), (5, 8),\n        (6, 9), (7, 10), (8, 11)\n    ]\n    \n    labels = []\n    for u, v in edges:\n        labels.append(abs(x[u] - x[v]))\n    \n    print(\"Labels:\", sorted(labels))\n    print(\"Unique labels:\", len(set(labels)))\n    print(\"All labels in range 1-21:\", all(1 <= l <= 21 for l in labels))\n    print(\"All vertices distinct:\", len(set(x)) == 12)\n    print(\"All vertices in range 0-21:\", all(0 <= v <= 21 for v in x))\n    \n    # Check fixed values\n    print(\"x[2]=15:\", x[2] == 15)\n    print(\"x[4]=0:\", x[4] == 0)\n    print(\"d[6]=5:\", abs(x[6]-x[7]) == 5)\n    print(\"d[9]=11:\", abs(x[9]-x[10]) == 11)\n    print(\"d[15]=13:\", abs(x[3]-x[6]) == 13)\n    print(\"d[18]=9:\", abs(x[6]-x[9]) == 9)\n\nx = [3, 21, 15, 20, 0, 1, 7, 2, 17, 16, 5, 9]\ncheck_solution(x)\n"
+      },
+      "ok": true,
+      "latency_ms": 40.89
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "solution": [
+          3,
+          21,
+          15,
+          20,
+          0,
+          1,
+          7,
+          2,
+          17,
+          16,
+          5,
+          9
+        ],
+        "reasoning": "The solution was found using a backtracking search that respects the fixed vertex values and edge label constraints. The resulting vertex labels are [3, 21, 15, 20, 0, 1, 7, 2, 17, 16, 5, 9]. All edge labels are distinct and in the range 1-21, and all vertex labels are distinct and in the range 0-21.",
+        "satisfiable": true
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

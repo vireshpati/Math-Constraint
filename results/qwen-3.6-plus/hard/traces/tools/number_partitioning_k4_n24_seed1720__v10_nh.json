@@ -1,0 +1,79 @@
+{
+  "problem_name": "number_partitioning_k4_n24_seed1720__v10_nh",
+  "problem_type": "number_partitioning",
+  "params": {
+    "k": 4,
+    "n": 24,
+    "seed": 1720
+  },
+  "difficulty": {
+    "solve_time_ms": 1611.0,
+    "search_space": 281474976710656,
+    "num_variables": 24,
+    "num_constraints": 10,
+    "num_edges": -1,
+    "backend": "pycsp"
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 1, 2, 3, 3, 3, 0, 3, 2, 2, 1]",
+  "reasoning": "Found a valid partition of {1,...,24} into 4 subsets each summing to 75:\n- Subset 0: {1,2,3,4,5,6,7,8,9,10,20} sum=75\n- Subset 1: {11,12,13,15,24} sum=75\n- Subset 2: {14,16,22,23} sum=75\n- Subset 3: {17,18,19,21} sum=75\nAll 24 numbers are used exactly once and each subset sums to 75.",
+  "raw_response": null,
+  "cot_trace": "I need to partition the integers {1, 2, ..., 24} into 4 disjoint subsets, each summing to 75.\n\nLet me think about this problem. The total sum is 300, and we need 4 subsets each summing to 75.\n\nThis is a constraint satisfaction problem. Let me try to solve it using Python with a constraint solver or by writing a backtracking algorithm.\n\nLet me use Python to solve this.\n---\nThe backtracking solver found a solution. Let me verify it:\n- Subset 0: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20], sum = 75\n- Subset 1: [11, 12, 13, 15, 24], sum = 75\n- Subset 2: [14, 16, 22, 23], sum = 75\n- Subset 3: [17, 18, 19, 21], sum = 75\n\nThe assignment is: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 1, 2, 3, 3, 3, 0, 3, 2, 2, 1]\n\nLet me verify this is correct by checking each subset sum.\n---\nThe solution is verified. Let me submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4117,
+  "completion_tokens": 1241,
+  "reasoning_tokens": 343,
+  "cached_tokens": 0,
+  "cost_usd": 0.003757975,
+  "cost_source": "openrouter",
+  "latency_ms": 26666.98122024536,
+  "tool_dispatch_ms_total": 147.96113967895508,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import combinations\n\n# We need to partition {1, 2, ..., 24} into 4 subsets each summing to 75\n# Let's use a constraint-based approach\n\ndef solve_partition():\n    n = 24\n    target = 75\n    nums = list(range(1, n+1))\n    \n    # Use backtracking with constraint propagation\n    # assignment[i] = which subset (0-3) number i+1 belongs to\n    assignment = [-1] * n\n    subset_sums = [0] * 4\n    \n    def backtrack(idx):\n        if idx == n:\n            return all(s == target for s in subset_sums)\n        \n        num = nums[idx]\n        for subset in range(4):\n            if subset_sums[subset] + num <= target:\n                assignment[idx] = subset\n                subset_sums[subset] += num\n                if backtrack(idx + 1):\n                    return True\n                subset_sums[subset] -= num\n                assignment[idx] = -1\n        \n        return False\n    \n    if backtrack(0):\n        return assignment\n    return None\n\nresult = solve_partition()\nprint(\"Result:\", result)\nif result:\n    # Verify\n    subsets = [[] for _ in range(4)]\n    for i, s in enumerate(result):\n        subsets[s].append(i+1)\n    for i, sub in enumerate(subsets):\n        print(f\"Subset {i}: {sub}, sum = {sum(sub)}\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 117.4
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify the solution\nassignment = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 1, 2, 3, 3, 3, 0, 3, 2, 2, 1]\nsubsets = [[] for _ in range(4)]\nfor i, s in enumerate(assignment):\n    subsets[s].append(i+1)\n\nfor i, sub in enumerate(subsets):\n    print(f\"Subset {i}: {sub}, sum = {sum(sub)}\")\n\n# Check all numbers 1-24 are used exactly once\nall_nums = sorted([n for sub in subsets for n in sub])\nprint(f\"All numbers: {all_nums}\")\nprint(f\"Complete set: {all_nums == list(range(1, 25))}\")\n",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 30.56
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 2, 1, 2, 3, 3, 3, 0, 3, 2, 2, 1]",
+        "reasoning": "Found a valid partition of {1,...,24} into 4 subsets each summing to 75:\n- Subset 0: {1,2,3,4,5,6,7,8,9,10,20} sum=75\n- Subset 1: {11,12,13,15,24} sum=75\n- Subset 2: {14,16,22,23} sum=75\n- Subset 3: {17,18,19,21} sum=75\nAll 24 numbers are used exactly once and each subset sums to 75."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

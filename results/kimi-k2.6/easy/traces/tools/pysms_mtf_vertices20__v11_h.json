@@ -1,0 +1,520 @@
+{
+  "problem_name": "pysms_mtf_vertices20__v11_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 20
+  },
+  "difficulty": {
+    "solve_time_ms": 118.2,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 36,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 46.43,
+    "solve_pct_type": 95.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      16
+    ],
+    [
+      0,
+      17
+    ],
+    [
+      0,
+      19
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      1,
+      9
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      1,
+      11
+    ],
+    [
+      1,
+      12
+    ],
+    [
+      1,
+      13
+    ],
+    [
+      1,
+      14
+    ],
+    [
+      1,
+      15
+    ],
+    [
+      1,
+      18
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      9
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      2,
+      11
+    ],
+    [
+      2,
+      12
+    ],
+    [
+      2,
+      13
+    ],
+    [
+      2,
+      14
+    ],
+    [
+      2,
+      15
+    ],
+    [
+      2,
+      17
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      3,
+      19
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      18
+    ],
+    [
+      4,
+      19
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      5,
+      9
+    ],
+    [
+      5,
+      10
+    ],
+    [
+      5,
+      11
+    ],
+    [
+      5,
+      12
+    ],
+    [
+      5,
+      13
+    ],
+    [
+      5,
+      14
+    ],
+    [
+      5,
+      15
+    ],
+    [
+      5,
+      16
+    ],
+    [
+      6,
+      17
+    ],
+    [
+      7,
+      16
+    ],
+    [
+      8,
+      19
+    ],
+    [
+      9,
+      19
+    ],
+    [
+      10,
+      19
+    ],
+    [
+      11,
+      19
+    ],
+    [
+      12,
+      19
+    ],
+    [
+      13,
+      19
+    ],
+    [
+      14,
+      19
+    ],
+    [
+      15,
+      19
+    ],
+    [
+      16,
+      18
+    ],
+    [
+      17,
+      18
+    ]
+  ],
+  "reasoning": "A maximal triangle-free graph with 20 vertices and 53 edges was found using SAT encoding. The encoding ensures: (1) no three vertices form a triangle, and (2) every non-edge has at least one common neighbor (maximality). All 7 fixed edges are present. The graph is triangle-free and maximal.",
+  "raw_response": null,
+  "cot_trace": " We need to generate a maximal triangle-free graph with 20 vertices. A maximal triangle-free graph means a triangle-free graph to which no edge can be added without creating a triangle. In other words, for every non-edge (u,v), there exists a vertex w such that both (u,w) and (v,w) are edges (forming a triangle if (u,v) were added). The graph must be triangle-free.\n\nWe have 20 vertices labeled 0..19. We need to output a list of edges (u,v) with u<v. There are fixed edges that must be present: (1,18), (4,18), (16,18), (4,19), (17,18), (11,19), (3,19). We need a complete solution consistent with these.\n\nWe need to find a maximal triangle-free graph on 20 vertices containing those edges.\n\nWe can try to construct one manually or use a SAT solver. Since we have Python with pysat maybe, but we can also use OR-Tools or just brute force search with constraints. However, 20 vertices, complete graph has 190 edges. Triangle-free means no 3-clique. Maximal means for every missing edge, there is a common neighbor.\n\nWe can formulate as a SAT problem: variables x_{i,j} for each edge (i<j). Constraints:\n\n1. For each triple (i,j,k) with i<j<k, at most two of the three edges can be present. Actually triangle-free means not all three present. So clause: \u00acx_{i,j} \u2228 \u00acx_{i,k} \u2228 \u00acx_{j,k}.\n\n2. For each non-edge (i,j) (i<j), if x_{i,j}=0 then there must exist some k (k\u2260i,j) such that x_{i,k}=1 and x_{j,k}=1. This is an implication: \u00acx_{i,j} \u2192 \u2228_{k} (x_{i,k} \u2227 x_{j,k}). But SAT is CNF, so we need to encode this. For each pair (i,j) and each k, we can add clause: x_{i,j} \u2228 \u00acx_{i,k} \u2228 \u00acx_{j,k}. Wait, let's think.\n\nWe want: if x_{i,j} is false, then there exists k such that both x_{i,k} and x_{j,k} are true. The contrapositive: if for all k, either x_{i,k} is false or x_{j,k} is false, then x_{i,j} must be true. But that's a big clause: x_{i,j} \u2228 (\u2228_{k} (\u00acx_{i,k} \u2227 \u00acx_{j,k}))? No.\n\nActually, the condition \"for every non-edge (i,j), there exists a common neighbor\" can be encoded as: for each pair (i,j), and for each subset of vertices S that does NOT contain a common neighbor, we must have x_{i,j}=1. But that's too many.\n\nAlternatively, we can encode using auxiliary variables y_{i,j,k} meaning k is a common neighbor of i and j for the non-edge (i,j). But we need at least one such k.\n\nBetter: For each pair (i,j), we can add a clause: x_{i,j} \u2228 (\u2228_{k} z_{i,j,k}) where z_{i,j,k} represents that k is a common neighbor. But z_{i,j,k} is equivalent to x_{i,k} \u2227 x_{j,k}. We can use Tseitin transformation: introduce auxiliary variable c_{i,j,k} \u2194 (x_{i,k} \u2227 x_{j,k}). Then clause: x_{i,j} \u2228 (\u2228_{k} c_{i,j,k}). And for each k, clauses: \u00acc_{i,j,k} \u2228 x_{i,k}, \u00acc_{i,j,k} \u2228 x_{j,k}, c_{i,j,k} \u2228 \u00acx_{i,k} \u2228 \u00acx_{j,k}.\n\nNumber of variables: x has C(20,2)=190. c has 20*C(20,2) \u2248 20*190=3800. That's fine.\n\nNumber of clauses: triangle constraints: C(20,3)=1140. For each pair (i,j), one clause x_{i,j} \u2228 \u2228 c. For each pair (i,j) and each k, three clauses for c definition. That's 3*20*190 = 11400. Total ~12540 clauses. That's small for a SAT solver.\n\nWe also have fixed assignments: x_{1,18}=1, x_{4,18}=1, x_{16,18}=1, x_{4,19}=1, x_{17,18}=1, x_{11,19}=1, x_{3,19}=1.\n\nWe can use pysat to solve. Let's try.\n\nBut note: pysat might not be installed? The prompt says we may import pysat. Let's try.\n\nWe need to map variables to integers for pysat. Let's write a script.\n\nAlternatively, we can use python's itertools and a SAT solver. Let's do it.\n\nWe need to be careful with indexing. Let's use 1-based variable IDs for SAT.\n\nx_{i,j} for 0 <= i < j < 20. Let's assign ID = 1 + idx where idx is some enumeration.\n\nc_{i,j,k} for i<j, k != i,j. ID after x variables.\n\nLet's code it.\n\nAlso, we need to ensure the graph is maximal triangle-free. The SAT encoding should guarantee that.\n\nLet's write the code.\n---\n I have a syntax error - extra `]` in the line. Let me fix it.\n---\nI have a syntax error. Let me fix the parentheses. The issue is `x_id[tuple(sorted((i,k)))]]` - I have an extra `]`. Let me write cleaner code.\n---\n The solver found a SAT solution with 53 edges. Let me verify the fixed edges are present:\n- (1,18): present \u2713\n- (4,18): present \u2713\n- (16,18): present \u2713\n- (4,19): present \u2713\n- (17,18): present \u2713\n- (11,19): present \u2713\n- (3,19): present \u2713\n\nThe graph is triangle-free and maximal. Let me double-check by looking at the structure more carefully.\n\nActually, let me verify the solution more thoroughly. The graph has 53 edges. For a maximal triangle-free graph on 20 vertices, the maximum number of edges is at most 100 (from Tur\u00e1n's theorem, the complete bipartite graph K_{10,10} has 100 edges and is triangle-free). But a maximal triangle-free graph doesn't need to be complete bipartite.\n\nWait, let me think about whether 53 is reasonable. The complete bipartite graph K_{10,10} is maximal triangle-free (actually it's not maximal - you can add edges within a part without creating triangles... wait, no, adding any edge within a part would create a triangle? No, in K_{10,10}, adding an edge within a part doesn't create a triangle because there are no edges within parts. So K_{10,10} is not maximal. To make it maximal, you need to make each part a complete graph? No, that would create triangles.\n\nActually, a complete bipartite graph K_{a,b} is maximal triangle-free if and only if it's not a subgraph of any larger bipartite graph... wait, that's not the right definition. A graph is maximal triangle-free if adding any missing edge creates a triangle. In K_{a,b}, adding an edge within a part doesn't create a triangle (since there are no edges within parts). So K_{a,b} is NOT maximal triangle-free unless one part has size 1.\n\nFor a graph to be maximal triangle-free, every pair of non-adjacent vertices must have a common neighbor. This is exactly what the SAT encoding ensures.\n\nLet me verify the solution more carefully. I'll check:\n1. All fixed edges are present\n2. No triangles\n3. Every non-edge has a common neighbor\n4. The graph is indeed maximal triangle-free\n\nThe solver already confirmed these, but let me do one more check to be safe.\n---\n The solution looks valid. Let me verify it once more:\n\n1. All fixed edges are present: (1,18), (4,18), (16,18), (4,19), (17,18), (11,19), (3,19) - all confirmed.\n2. Triangle-free: no triangles found.\n3. Maximal: every non-edge has a common neighbor - confirmed.\n4. 53 edges total.\n\nThe graph is a valid maximal triangle-free graph with 20 vertices satisfying all constraints.\n\nLet me format the answer properly.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 15651,
+  "completion_tokens": 6373,
+  "reasoning_tokens": 1712,
+  "cached_tokens": 704,
+  "cost_usd": 0.035304800000000004,
+  "cost_source": "openrouter",
+  "latency_ms": 438129.9042701721,
+  "tool_dispatch_ms_total": 380.5885314941406,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom itertools import combinations\n\nn = 20\n# Map each pair (i,j) with i<j to a variable ID\nx_id = {}\ncur = 1\nfor i in range(n):\n    for j in range(i+1, n):\n        x_id[(i,j)] = cur\n        cur += 1\nnum_x = cur - 1\n\n# Map c_{i,j,k} for i<j, k not in {i,j}\nc_id = {}\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(n):\n            if k == i or k == j:\n                continue\n            c_id[(i,j,k)] = cur\n            cur += 1\nnum_c = cur - 1 - num_x\n\nprint(f\"x variables: {num_x}, c variables: {num_c}, total: {cur-1}\")\n\nclauses = []\n\n# 1. Triangle-free constraints: for each triple, not all three edges present\nfor a,b,c in combinations(range(n), 3):\n    # edges are (a,b), (a,c), (b,c)\n    # clause: ~x_ab OR ~x_ac OR ~x_bc\n    clauses.append([-x_id[(a,b)], -x_id[(a,c)], -x_id[(b,c)]])\n\n# 2. Maximality constraints: for each pair (i,j), either edge present or some common neighbor\n# For each pair (i,j):\n#   x_{i,j} OR (OR_{k} c_{i,j,k})\n# For each c_{i,j,k}:\n#   c_{i,j,k} -> x_{i,k}  =>  ~c OR x_{i,k}\n#   c_{i,j,k} -> x_{j,k}  =>  ~c OR x_{j,k}\n#   (x_{i,k} AND x_{j,k}) -> c_{i,j,k}  =>  ~x_{i,k} OR ~x_{j,k} OR c\nfor i in range(n):\n    for j in range(i+1, n):\n        # main clause\n        clause = [x_id[(i,j)]]\n        for k in range(n):\n            if k == i or k == j:\n                continue\n            cid = c_id[(i,j,k)]\n            clause.append(cid)\n            # c -> x_{i,k}\n            clauses.append([-cid, x_id[tuple(sorted((i,k)))]]])\n            # c -> x_{j,k}\n            clauses.append([-cid, x_id[tuple(sorted((j,k)))]]])\n            # x_{i,k} & x_{j,k} -> c\n            clauses.append([-x_id[tuple(sorted((i,k)))], -x_id[tuple(sorted((j,k)))], cid])\n        clauses.append(clause)\n\nprint(f\"Total clauses: {len(clauses)}\")\n\n# Fixed assignments\nfixed = [\n    (1,18), (4,18), (16,18), (4,19), (17,18), (11,19), (3,19)\n]\n\n# Add unit clauses\nfor u,v in fixed:\n    clauses.append([x_id[(u,v)]])\n\n# Solve\nwith Solver(name='g3') as solver:\n    for cl in clauses:\n        solver.add_clause(cl)\n    sat = solver.solve()\n    print(\"SAT:\", sat)\n    if sat:\n        model = solver.get_model()\n        # Extract edges\n        edges = []\n        for (i,j), vid in x_id.items():\n            if vid in model:\n                edges.append((i,j))\n            elif -vid in model:\n                pass\n            else:\n                # variable not in model? should not happen with standard solver\n                pass\n        print(\"Number of edges:\", len(edges))\n        print(\"Edges:\", edges)\n        # Verify triangle-free\n        # Verify maximal\n        # Let's do quick checks\n        edge_set = set(edges)\n        # triangle check\n        tri = False\n        for a,b,c in combinations(range(n), 3):\n            if (a,b) in edge_set and (a,c) in edge_set and (b,c) in edge_set:\n                tri = True\n                print(\"Triangle found:\", a,b,c)\n                break\n        print(\"Has triangle:\", tri)\n        # maximal check: for each non-edge, check common neighbor\n        non_max = []\n        for i in range(n):\n            for j in range(i+1, n):\n                if (i,j) not in edge_set:\n                    found = False\n                    for k in range(n):\n                        if k==i or k==j:\n                            continue\n                        if (min(i,k), max(i,k)) in edge_set and (min(j,k), max(j,k)) in edge_set:\n                            found = True\n                            break\n                    if not found:\n                        non_max.append((i,j))\n        print(\"Non-maximal non-edges:\", non_max)\n"
+      },
+      "ok": false,
+      "latency_ms": 41.42
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom itertools import combinations\n\nn = 20\n# Map each pair (i,j) with i<j to a variable ID\nx_id = {}\ncur = 1\nfor i in range(n):\n    for j in range(i+1, n):\n        x_id[(i,j)] = cur\n        cur += 1\nnum_x = cur - 1\n\n# Map c_{i,j,k} for i<j, k not in {i,j}\nc_id = {}\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(n):\n            if k == i or k == j:\n                continue\n            c_id[(i,j,k)] = cur\n            cur += 1\nnum_c = cur - 1 - num_x\n\nprint(f\"x variables: {num_x}, c variables: {num_c}, total: {cur-1}\")\n\nclauses = []\n\n# 1. Triangle-free constraints: for each triple, not all three edges present\nfor a,b,c in combinations(range(n), 3):\n    # edges are (a,b), (a,c), (b,c)\n    # clause: ~x_ab OR ~x_ac OR ~x_bc\n    clauses.append([-x_id[(a,b)], -x_id[(a,c)], -x_id[(b,c)]])\n\n# 2. Maximality constraints: for each pair (i,j), either edge present or some common neighbor\n# For each pair (i,j):\n#   x_{i,j} OR (OR_{k} c_{i,j,k})\n# For each c_{i,j,k}:\n#   c_{i,j,k} -> x_{i,k}  =>  ~c OR x_{i,k}\n#   c_{i,j,k} -> x_{j,k}  =>  ~c OR x_{j,k}\n#   (x_{i,k} AND x_{j,k}) -> c_{i,j,k}  =>  ~x_{i,k} OR ~x_{j,k} OR c\nfor i in range(n):\n    for j in range(i+1, n):\n        # main clause\n        clause = [x_id[(i,j)]]\n        for k in range(n):\n            if k == i or k == j:\n                continue\n            cid = c_id[(i,j,k)]\n            clause.append(cid)\n            # c -> x_{i,k}\n            clauses.append([-cid, x_id[tuple(sorted((i,k)))]]])\n            # c -> x_{j,k}\n            clauses.append([-cid, x_id[tuple(sorted((j,k)))]]])\n            # x_{i,k} & x_{j,k} -> c\n            clauses.append([-x_id[tuple(sorted((i,k)))], -x_id[tuple(sorted((j,k)))], cid])\n        clauses.append(clause)\n\nprint(f\"Total clauses: {len(clauses)}\")\n\n# Fixed assignments\nfixed = [\n    (1,18), (4,18), (16,18), (4,19), (17,18), (11,19), (3,19)\n]\n\n# Add unit clauses\nfor u,v in fixed:\n    clauses.append([x_id[(u,v)]])\n\n# Solve\nwith Solver(name='g3') as solver:\n    for cl in clauses:\n        solver.add_clause(cl)\n    sat = solver.solve()\n    print(\"SAT:\", sat)\n    if sat:\n        model = solver.get_model()\n        # Extract edges\n        edges = []\n        for (i,j), vid in x_id.items():\n            if vid in model:\n                edges.append((i,j))\n            elif -vid in model:\n                pass\n            else:\n                # variable not in model? should not happen with standard solver\n                pass\n        print(\"Number of edges:\", len(edges))\n        print(\"Edges:\", edges)\n        # Verify triangle-free\n        # Verify maximal\n        # Let's do quick checks\n        edge_set = set(edges)\n        # triangle check\n        tri = False\n        for a,b,c in combinations(range(n), 3):\n            if (a,b) in edge_set and (a,c) in edge_set and (b,c) in edge_set:\n                tri = True\n                print(\"Triangle found:\", a,b,c)\n                break\n        print(\"Has triangle:\", tri)\n        # maximal check: for each non-edge, check common neighbor\n        non_max = []\n        for i in range(n):\n            for j in range(i+1, n):\n                if (i,j) not in edge_set:\n                    found = False\n                    for k in range(n):\n                        if k==i or k==j:\n                            continue\n                        if (min(i,k), max(i,k)) in edge_set and (min(j,k), max(j,k)) in edge_set:\n                            found = True\n                            break\n                    if not found:\n                        non_max.append((i,j))\n        print(\"Non-maximal non-edges:\", non_max)\n"
+      },
+      "ok": false,
+      "latency_ms": 32.73
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom itertools import combinations\n\nn = 20\n# Map each pair (i,j) with i<j to a variable ID\nx_id = {}\ncur = 1\nfor i in range(n):\n    for j in range(i+1, n):\n        x_id[(i,j)] = cur\n        cur += 1\nnum_x = cur - 1\n\n# Map c_{i,j,k} for i<j, k not in {i,j}\nc_id = {}\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(n):\n            if k == i or k == j:\n                continue\n            c_id[(i,j,k)] = cur\n            cur += 1\nnum_c = cur - 1 - num_x\n\nprint(f\"x variables: {num_x}, c variables: {num_c}, total: {cur-1}\")\n\nclauses = []\n\n# 1. Triangle-free constraints: for each triple, not all three edges present\nfor a,b,c in combinations(range(n), 3):\n    # edges are (a,b), (a,c), (b,c)\n    # clause: ~x_ab OR ~x_ac OR ~x_bc\n    clauses.append([-x_id[(a,b)], -x_id[(a,c)], -x_id[(b,c)]])\n\n# 2. Maximality constraints: for each pair (i,j), either edge present or some common neighbor\n# For each pair (i,j):\n#   x_{i,j} OR (OR_{k} c_{i,j,k})\n# For each c_{i,j,k}:\n#   c_{i,j,k} -> x_{i,k}  =>  ~c OR x_{i,k}\n#   c_{i,j,k} -> x_{j,k}  =>  ~c OR x_{j,k}\n#   (x_{i,k} AND x_{j,k}) -> c_{i,j,k}  =>  ~x_{i,k} OR ~x_{j,k} OR c\nfor i in range(n):\n    for j in range(i+1, n):\n        # main clause\n        clause = [x_id[(i,j)]]\n        for k in range(n):\n            if k == i or k == j:\n                continue\n            cid = c_id[(i,j,k)]\n            clause.append(cid)\n            # c -> x_{i,k}\n            ik = tuple(sorted((i,k)))\n            jk = tuple(sorted((j,k)))\n            clauses.append([-cid, x_id[ik]])\n            # c -> x_{j,k}\n            clauses.append([-cid, x_id[jk]])\n            # x_{i,k} & x_{j,k} -> c\n            clauses.append([-x_id[ik], -x_id[jk], cid])\n        clauses.append(clause)\n\nprint(f\"Total clauses: {len(clauses)}\")\n\n# Fixed assignments\nfixed = [\n    (1,18), (4,18), (16,18), (4,19), (17,18), (11,19), (3,19)\n]\n\n# Add unit clauses\nfor u,v in fixed:\n    clauses.append([x_id[(u,v)]])\n\n# Solve\nwith Solver(name='g3') as solver:\n    for cl in clauses:\n        solver.add_clause(cl)\n    sat = solver.solve()\n    print(\"SAT:\", sat)\n    if sat:\n        model = solver.get_model()\n        # Extract edges\n        edges = []\n        for (i,j), vid in x_id.items():\n            if vid in model:\n                edges.append((i,j))\n            elif -vid in model:\n                pass\n            else:\n                # variable not in model? should not happen with standard solver\n                pass\n        print(\"Number of edges:\", len(edges))\n        print(\"Edges:\", edges)\n        # Verify triangle-free\n        # Verify maximal\n        # Let's do quick checks\n        edge_set = set(edges)\n        # triangle check\n        tri = False\n        for a,b,c in combinations(range(n), 3):\n            if (a,b) in edge_set and (a,c) in edge_set and (b,c) in edge_set:\n                tri = True\n                print(\"Triangle found:\", a,b,c)\n                break\n        print(\"Has triangle:\", tri)\n        # maximal check: for each non-edge, check common neighbor\n        non_max = []\n        for i in range(n):\n            for j in range(i+1, n):\n                if (i,j) not in edge_set:\n                    found = False\n                    for k in range(n):\n                        if k==i or k==j:\n                            continue\n                        ik = tuple(sorted((i,k)))\n                        jk = tuple(sorted((j,k)))\n                        if ik in edge_set and jk in edge_set:\n                            found = True\n                            break\n                    if not found:\n                        non_max.append((i,j))\n        print(\"Non-maximal non-edges:\", non_max)\n"
+      },
+      "ok": true,
+      "latency_ms": 264.84
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0, 1), (0, 16), (0, 17), (0, 19), (1, 3), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), (1, 15), (1, 18), (2, 4), (2, 7), (2, 8), (2, 9), (2, 10), (2, 11), (2, 12), (2, 13), (2, 14), (2, 15), (2, 17), (3, 6), (3, 7), (3, 19), (4, 5), (4, 18), (4, 19), (5, 6), (5, 8), (5, 9), (5, 10), (5, 11), (5, 12), (5, 13), (5, 14), (5, 15), (5, 16), (6, 17), (7, 16), (8, 19), (9, 19), (10, 19), (11, 19), (12, 19), (13, 19), (14, 19), (15, 19), (16, 18), (17, 18)]\n\nfixed = [(1,18), (4,18), (16,18), (4,19), (17,18), (11,19), (3,19)]\n\n# Check fixed edges\nedge_set = set(edges)\nprint(\"Fixed edges present:\")\nfor e in fixed:\n    print(e, e in edge_set)\n\n# Check no triangles\nfrom itertools import combinations\nn = 20\ntriangles = []\nfor a,b,c in combinations(range(n), 3):\n    if (a,b) in edge_set and (a,c) in edge_set and (b,c) in edge_set:\n        triangles.append((a,b,c))\nprint(\"Triangles:\", triangles)\n\n# Check maximality: every non-edge has a common neighbor\nnon_maximal = []\nfor i in range(n):\n    for j in range(i+1, n):\n        if (i,j) not in edge_set:\n            found = False\n            for k in range(n):\n                if k == i or k == j:\n                    continue\n                ik = tuple(sorted((i,k)))\n                jk = tuple(sorted((j,k)))\n                if ik in edge_set and jk in edge_set:\n                    found = True\n                    break\n            if not found:\n                non_maximal.append((i,j))\nprint(\"Non-maximal non-edges:\", non_maximal)\n\n# Print adjacency lists\nadj = {i: [] for i in range(n)}\nfor u,v in edges:\n    adj[u].append(v)\n    adj[v].append(u)\n\nfor i in range(n):\n    print(f\"Vertex {i}: {sorted(adj[i])} (degree {len(adj[i])})\")\n"
+      },
+      "ok": true,
+      "latency_ms": 41.6
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            16
+          ],
+          [
+            0,
+            17
+          ],
+          [
+            0,
+            19
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            9
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            1,
+            13
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            1,
+            15
+          ],
+          [
+            1,
+            18
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            2,
+            9
+          ],
+          [
+            2,
+            10
+          ],
+          [
+            2,
+            11
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            2,
+            13
+          ],
+          [
+            2,
+            14
+          ],
+          [
+            2,
+            15
+          ],
+          [
+            2,
+            17
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            3,
+            19
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            18
+          ],
+          [
+            4,
+            19
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            5,
+            10
+          ],
+          [
+            5,
+            11
+          ],
+          [
+            5,
+            12
+          ],
+          [
+            5,
+            13
+          ],
+          [
+            5,
+            14
+          ],
+          [
+            5,
+            15
+          ],
+          [
+            5,
+            16
+          ],
+          [
+            6,
+            17
+          ],
+          [
+            7,
+            16
+          ],
+          [
+            8,
+            19
+          ],
+          [
+            9,
+            19
+          ],
+          [
+            10,
+            19
+          ],
+          [
+            11,
+            19
+          ],
+          [
+            12,
+            19
+          ],
+          [
+            13,
+            19
+          ],
+          [
+            14,
+            19
+          ],
+          [
+            15,
+            19
+          ],
+          [
+            16,
+            18
+          ],
+          [
+            17,
+            18
+          ]
+        ],
+        "reasoning": "A maximal triangle-free graph with 20 vertices and 53 edges was found using SAT encoding. The encoding ensures: (1) no three vertices form a triangle, and (2) every non-edge has at least one common neighbor (maximality). All 7 fixed edges are present. The graph is triangle-free and maximal."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

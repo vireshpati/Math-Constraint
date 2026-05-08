@@ -1,0 +1,62 @@
+{
+  "problem_name": "ramsey_n7_r3_s3__v1",
+  "problem_type": "ramsey",
+  "params": {
+    "n": 7,
+    "r": 3,
+    "s": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 919.9,
+    "search_space": 2097152,
+    "num_variables": 21,
+    "num_constraints": 210,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 58.83,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 1074,
+  "completion_tokens": 726,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.014112,
+  "cost_source": "openrouter",
+  "latency_ms": 16376.198053359985,
+  "tool_dispatch_ms_total": 223.11139106750488,
+  "tool_calls_made": 1,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\n# Verify using pysat\nfrom pysat.solvers import Glucose3\n\nn = 7\n# Create edge list in lexicographic order\nedges = [(i, j) for i in range(1, n+1) for j in range(i+1, n+1)]\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Edges: {edges}\")\n\n# Map edge to variable index (1-based)\nedge_to_var = {e: idx+1 for idx, e in enumerate(edges)}\n\nsolver = Glucose3()\n\n# For each triangle (i,j,k), add clauses:\n# Not all red: at least one blue (at least one = 1)\n# Not all blue: at least one red (at least one = 0)\n\ntriangles = [(i,j,k) for i in range(1,n+1) for j in range(i+1,n+1) for k in range(j+1,n+1)]\nprint(f\"Number of triangles: {len(triangles)}\")\n\nfor (i,j,k) in triangles:\n    e1 = edge_to_var[(i,j)]\n    e2 = edge_to_var[(i,k)]\n    e3 = edge_to_var[(j,k)]\n    \n    # Not all red (not all 0): at least one must be 1 (blue)\n    solver.add_clause([e1, e2, e3])\n    \n    # Not all blue (not all 1): at least one must be 0 (red), i.e., negation\n    solver.add_clause([-e1, -e2, -e3])\n\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    solution = []\n    for e in edges:\n        var = edge_to_var[e]\n        solution.append(1 if var in model else 0)\n    print(f\"Solution: {solution}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 223.11
+    }
+  ],
+  "error": "JSONDecodeError: Expecting value: line 9 column 1 (char 44)",
+  "failure_bucket": "api_error",
+  "forced_submit": false
+}

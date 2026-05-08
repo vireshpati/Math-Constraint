@@ -1,0 +1,164 @@
+{
+  "problem_name": "low_autocorrelation_n22__v7_nh",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 22
+  },
+  "difficulty": {
+    "solve_time_ms": 2577.9,
+    "search_space": 4194304,
+    "num_variables": 43,
+    "num_constraints": 28,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 93.8,
+    "solve_pct_type": 70.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    -1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    1,
+    -1,
+    1,
+    1,
+    -1,
+    1,
+    -1,
+    -1
+  ],
+  "reasoning": "Found a sequence with merit factor sum of squared aperiodic autocorrelations equal to 55 which is <=56 using simulated annealing search.",
+  "raw_response": null,
+  "cot_trace": "The problem asks to find a binary sequence of length 22 over {-1, +1} with low aperiodic autocorrelation. Specifically, the sum over k=1 to 21 of C_k\u00b2 should be at most 56, where C_k is the sum from i...I need to find a binary sequence of length 22 using -1 and +1 with the sum of C_k squared from k=1 to 21 being at least most 56, where C_k is the aperiodic autocorrelation at lag k.\n---\nThe function gave 51 for the Barker sequence of length 7, which matches what I calculated: 2+1+4+1+4+1+4? Earlier I said 16 but wait.\n\n---\nThe correlate is giving even indices or something. For Barker code of length 7, the aperiodic autocorrelations should be 0 or +/-1.\nI recall that Barker codes are known for their low aperiodic autocorrelation. The classic one for length 7 is [1,1,1,-1,-1,1,-1], and its aperiodic autocorrelations C_k for k=1 to 6 are 0, -1, 0, -1, 0, -1, and the sum of squares is 0+1+0+1+0+1=3, which is very low.\n\nBut the problem is for length 22. I need a binary sequence of length 22 over {-1,1} with sum_{k=1}^{21} C_k^2 \u2264 56, where C_k = sum_{i=0}^{21-k-1} seq[i] * seq[i+k].\n\nThis relates to low autocorrelation sequences, and the merit factor M = n^2 / (2 * sum C_k^2). For n=22, if sum C_k^2 =56, then 2*sum=112, n^2=484, M=484/112\u22484.32. But better known sequences have higher merit factors, so such a sequence should exist.\n\nSince n=22 is small, I can use a backtracking search to build the sequence, pruning when the partial correlations suggest the final sum will exceed 56.\n\nTo make it efficient, I'll fix the first element to +1, as multiplying the entire sequence by -1 doesn't change the correlations, and reversing it also preserves the autocorrelation properties.\n\nI'll implement a recursive function in mymind: start with empty seq, add elements one by correlations.\n\nTo make it efficient, I'll maintain a list of current C_k for k=1 to pos, and when adding a new element, I can update the existing C_k by adding the new cross terms.\n\nWhen adding the (pos+1)-th element(0-based), for each k=1 to pos, C_k new = C_k old + seq[pos-k] * new_seq[pos]\n\nSince the new terms are only for the existing k's, and new k's are not yet added because the window isn't full.\n\nFor aperiodic, all C_k arecomputed over the full length, so to prune early, I need to lower bound the future C_k^2.\n\nBut that seems hard.\n\nSince 2^22 is 4M, but with fix first=1, 2^21 ~2M, and for each, computing the sum C_k^2takes O(n^2) time, since for each k, sum over i is O(n-k), so total time ~ sum_k (n-k) = n(n-1)/2 ~231 per candidate, so 2M *231 ~ 500 billion operations, way too slow.\n\nSo brute force impossible.\n\nNeed smarter way.\n\nLet's try to find known constructions.\n\nUpon recalling, there are sequences like m-sequences or gold codes, but they are for periodic.\n\nFor aperiodic, Barker codes are the best known for small n, but for n=22, there is no Barker code because Barker codes exist only for n=2,3,4,5,7,11,13.\n\nNo Barker for 22.\n\nOther constructions like polyphase, but for binary {-1,1}.\n\nPerhaps use simulated annealing as in the internal reasoning.\n\nThe internal reasoning describes a way to efficiently update the energy when flipping a bit.\n\nYes, that'sbrilliant.\n\nWhen flipping seq[j] to -seq[j], the change in C_k is -2 * seq[j] * (sum of terms involving it).\n\nSpecifically, for C_k where the window includes j and j+k or j-k.\n\nThe code snippet shows exactly that.\n---\nThe sequence found is [-1, -1, -1, -1, 1, -1, 1, 1, -1, 1, 1, 1, 1, -1, -1, 1, 1, -1, 1, 1, 1, -1] with energy 55, which is <=56.\n\n---\nThe code had a bug in the SA implementation. The delta calculation was wrong, and the update of C was inside the if, but anyway, it gave wrong energy.\n\n---\nThe sequence found has energy 55, which is less than or equal to 56. So it's satisfiable.\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 13990,
+  "completion_tokens": 7876,
+  "reasoning_tokens": 6229,
+  "cached_tokens": 5056,
+  "cost_usd": 0.0661352,
+  "cost_source": "openrouter",
+  "latency_ms": 112165.20690917969,
+  "tool_dispatch_ms_total": 1006.3531398773193,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import numpy as np\n\ndef merit_factor(seq):\n    n = len(seq)\n    autocorr = np.correlate(seq, seq, mode='full')\n    c = autocorr[n-1:0:-1]  # C1 to C_{n-1}, but wait full correlate gives from -(n-1) to n-1\n    # Actually np.correlate(a,a,'full')[n:] are the positive lags including 0\n    c_k = autocorr[n:0:-1]  # lags from n-1 down to 1? Let's check\n    sum_sq = np.sum(c_k**2)\n    return sum_sq\n\n# Test with example\nseq = np.array([1,1,1,-1,-1,1,-1])\nprint(merit_factor(seq))"
+      },
+      "ok": true,
+      "latency_ms": 384.57
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import numpy as np\nseq = np.array([1,1,1,-1,-1,1,-1])\nautocorr = np.correlate(seq, seq, mode='full')\nprint(autocorr)\nprint('C0 at index 6:', autocorr[6])\nprint('Positive lags C1 to C6:', autocorr[7:])"
+      },
+      "ok": true,
+      "latency_ms": 402.06
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\nimport math\n\ndef compute_C(seq):\n    n = len(seq)\n    C = [0] * n\n    for k in range(1, n):\n        ck = 0\n        for i in range(n - k):\n            ck += seq[i] * seq[i + k]\n        C[k] = ck\n    return C\n\ndef find_sequence(n=22, target=56, max_trials=50, max_steps=20000):\n    for trial in range(max_trials):\n        seq = [1 if random.random() < 0.5 else -1 for _ in range(n)]\n        C = compute_C(seq)\n        e = sum(c * c for c in C[1:])\n        best_seq = seq[:]\n        best_e = e\n        T = 10.0\n        alpha = 0.999\n        for step in range(max_steps):\n            j = random.randint(0, n-1)\n            delta = [0] * n\n            for k in range(1, n - j):\n                delta[k] -= 2 * seq[j] * seq[j + k]\n            for k in range(1, j + 1):\n                delta[k] -= 2 * seq[j - k] * seq[j]\n            new_e = sum((C[k] + delta[k]) ** 2 for k in range(1, n))\n            if new_e < best_e:\n                best_e = new_e\n                best_seq = seq[:]\n                if best_e <= target:\n                    return best_seq, best_e\n            if new_e < e or random.random() < math.exp((e - new_e) / T):\n                seq[j] = -seq[j]\n                e = new_e\n                for k in range(1, n):\n                    C[k] += delta[k]\n            if step % 100 == 0:\n                T *= alpha\n        if best_e <= target:\n            return best_seq, best_e\n    return None, best_e\n\nrandom.seed(1)\nresult, energy = find_sequence()\nprint(result)\nprint(energy)"
+      },
+      "ok": true,
+      "latency_ms": 63.34
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = [-1, -1, -1, -1, 1, -1, 1, 1, -1, 1, 1, 1, 1, -1, -1, 1, 1, -1, 1, 1, 1, -1]\nC = [0] * 22\nfor k in range(1, 22):\n    ck = 0\n    for i in range(22 - k):\n        ck += seq[i] * seq[i + k]\n    C[k] = ck\n    print(f'C{k}={ck}')\nprint('Sum of squares:', sum(c**2 for c in C[1:]))"
+      },
+      "ok": true,
+      "latency_ms": 40.6
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\nimport math\n\ndef compute_energy(seq):\n    n = len(seq)\n    energy = 0\n    for k in range(1, n):\n        ck = sum(seq[i] * seq[i + k] for i in range(n - k))\n        energy += ck * ck\n    return energy\n\ndef find_sequence(n=22, target=56, max_trials=100, max_steps=100000):\n    best_overall_e = float('inf')\n    best_overall_seq = None\n    for trial in range(max_trials):\n        seq = [1 if random.random() < 0.5 else -1 for _ in range(n)]\n        e = compute_energy(seq)\n        best_e = e\n        best_seq = seq[:]\n        T = 5.0  # start with reasonable temp\n        for step in range(max_steps):\n            j = random.randint(0, n-1)\n            seq[j] = -seq[j]\n            new_e = compute_energy(seq)\n            if new_e < best_e:\n                best_e = new_e\n                best_seq = seq[:]\n                if best_e <= target:\n                    return best_seq, best_e\n            if new_e < e or (T > 0 and random.random() < math.exp((e - new_e) / T)):\n                e = new_e\n            else:\n                seq[j] = -seq[j]  # revert\n            T *= 0.99995  # slow cooling\n        if best_e < best_overall_e:\n            best_overall_e = best_e\n            best_overall_seq = best_seq[:]\n    return best_overall_seq, best_overall_e\n\nrandom.seed(42)\nresult, energy = find_sequence()\nprint(result)\nprint(energy)"
+      },
+      "ok": true,
+      "latency_ms": 51.32
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = [-1, 1, 1, 1, -1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1]\nprint(compute_energy(seq)) # using previous def\ndef compute_energy(seq):\n    n = len(seq)\n    energy = 0\n    for k in range(1, n):\n        ck = sum(seq[i] * seq[i + k] for i in range(n - k))\n        energy += ck * ck\n    return energy\nprint(compute_energy(seq))"
+      },
+      "ok": false,
+      "latency_ms": 32.11
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def compute_energy(seq):\n    n = len(seq)\n    energy = 0\n    for k in range(1, n):\n        ck = sum(seq[i] * seq[i + k] for i in range(n - k))\n        energy += ck * ck\n    return energy\nseq = [-1, 1, 1, 1, -1, -1, -1, 1, -1, 1, 1, 1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1]\nprint(compute_energy(seq))"
+      },
+      "ok": true,
+      "latency_ms": 32.36
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          -1,
+          1,
+          1,
+          1,
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          -1,
+          1,
+          1,
+          -1,
+          1,
+          -1,
+          -1
+        ],
+        "reasoning": "Found a sequence with merit factor sum of squared aperiodic autocorrelations equal to 55 which is <=56 using simulated annealing search."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

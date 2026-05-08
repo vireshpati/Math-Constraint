@@ -1,0 +1,60 @@
+{
+  "problem_name": "langford_n12__v6_nh",
+  "problem_type": "langford",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1602.0,
+    "search_space": 620448401733239439360000,
+    "num_variables": 24,
+    "num_constraints": 305,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.16,
+    "solve_pct_type": 43.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": "We need to construct a Langford sequence L(2,12). This is a known problem: Langford pairing for n=12, with 2 copies of each number 1..12, length 24. The condition: for each v, the two occurrences are exactly v+1 positions apart. So for v=1, they are 2 apart? Wait: \"copies of 1 are 1 position apart\" means the distance between the two 1's is 1? Actually \"v+1 positions apart\" means the gap between them is v+1? Let's read: \"the two occurrences of each value v are exactly v+1 positions apart (so copies of 1 are 1 position apart, copies of 2 are 2 positions apart, etc.)\". Example: L(2,3) has solution [2, 3, 1, 2, 1, 3]. Let's check: For v=1, positions: index 2 and 4 (0-indexed: 2 and 4? Actually list: [2,3,1,2,1,3]. 1's at positions 2 and 4 (0-indexed). Distance = 2 positions apart? But they say \"1 position apart\". Let's compute: positions 2 and 4, difference = 2. But they say \"1 position apart\". Hmm maybe they mean the number of elements between them? Actually \"v+1 positions apart\" might mean the difference in indices is v+1. For v=1, difference = 2. In example: 1's at indices 2 and 4 (0-indexed), difference = 2. So indeed v+1 = 2. So \"1 position apart\" might be misstated; they say \"copies of 1 are 1 position apart\" but actually they are 2 positions apart? Let's check: \"copies of 1 are 1 position apart\" might mean there is 1 element between them? In example: between the two 1's there is a 2? Actually sequence: [2,3,1,2,1,3]. Between the two 1's (positions 2 and 4) there is a 2 at position 3. So there is 1 element between them. So \"1 position apart\" might mean the number of intervening elements is 1. But they also say \"v+1 positions apart\". For v=1, v+1=2. So maybe they mean the distance in indices is v+1. Let's verify with v=2: in example, 2's at positions 0 and 3, difference = 3 = v+1. v=3: positions 1 and 5, difference = 4 = v+1. So indeed the two copies of v are exactly v+1 positions apart in terms of index difference. So for v=1, difference = 2. So \"1 position apart\" is a misnomer; they probably mean \"there is 1 position between them\". Anyway, the condition is: if first occurrence at index i, second at i + v + 1.\n\nThus we need a sequence of length 2n = 24, with numbers 1..12 each appearing twice, such that for each v, the two occurrences are separated by exactly v+1 positions (i.e., indices differ by v+1).\n\nThis is a classic Langford pairing problem. Known results: Langford sequences exist iff n \u2261 0 or 3 mod 4. For n=12, 12 mod 4 = 0, so it should be satisfiable. We need to find one.\n\nWe can use a SAT solver or backtracking to find a solution. Let's use Python with some constraint solving or backtracking.\n\nWe'll write a script to find a Langford sequence for n=12.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 845,
+  "completion_tokens": 1180,
+  "reasoning_tokens": 685,
+  "cached_tokens": 256,
+  "cost_usd": 0.0064801,
+  "cost_source": "openrouter",
+  "latency_ms": 149114.68124389648,
+  "tool_dispatch_ms_total": 34.76881980895996,
+  "tool_calls_made": 1,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef langford(n):\n    # backtracking with pruning\n    seq = [0] * (2*n)\n    # numbers to place: 1..n\n    # We'll try placing numbers from largest to smallest for efficiency\n    def backtrack(pos):\n        if pos == 2*n:\n            return True\n        if seq[pos] != 0:\n            return backtrack(pos+1)\n        # try numbers from n down to 1\n        for v in range(n, 0, -1):\n            # check if v already placed\n            # we can track used numbers\n            pass\n    # Better: use recursion with list of available numbers\n    # Use algorithm: place each number v at positions i and i+v+1\n    # We'll use recursion over numbers\n    used = [False] * (n+1)\n    def solve(v):\n        if v == 0:\n            return True\n        # try to place v at all possible positions i such that i+v+1 < 2n and both empty\n        for i in range(2*n - v - 1):\n            if seq[i] == 0 and seq[i+v+1] == 0:\n                seq[i] = seq[i+v+1] = v\n                if solve(v-1):\n                    return True\n                seq[i] = seq[i+v+1] = 0\n        return False\n    if solve(n):\n        return seq\n    return None\n\nseq = langford(12)\nprint(seq)"
+      },
+      "ok": true,
+      "latency_ms": 34.77
+    }
+  ],
+  "error": "JSONDecodeError: Expecting value: line 271 column 1 (char 1485)",
+  "failure_bucket": "api_error",
+  "forced_submit": false
+}

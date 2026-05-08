@@ -1,0 +1,199 @@
+{
+  "problem_name": "pysms_min_connectivity_min_connectivity4_vertices17__v2_nh",
+  "problem_type": "pysms_min_connectivity",
+  "params": {
+    "min_connectivity": 4,
+    "vertices": 17
+  },
+  "difficulty": {
+    "solve_time_ms": 5677.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 136,
+    "backend": "pysms",
+    "solve_tier": "hard",
+    "solve_pct_global": 97.56,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      15
+    ],
+    [
+      0,
+      16
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      16
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      8,
+      9
+    ],
+    [
+      8,
+      10
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      9,
+      11
+    ],
+    [
+      10,
+      11
+    ],
+    [
+      10,
+      12
+    ],
+    [
+      11,
+      12
+    ],
+    [
+      11,
+      13
+    ],
+    [
+      12,
+      13
+    ],
+    [
+      12,
+      14
+    ],
+    [
+      13,
+      14
+    ],
+    [
+      13,
+      15
+    ],
+    [
+      14,
+      15
+    ],
+    [
+      14,
+      16
+    ],
+    [
+      15,
+      16
+    ]
+  ],
+  "reasoning": "I constructed a circulant graph C(17, {1,2}) where each vertex i connects to vertices i\u00b11 and i\u00b12 (mod 17). This creates a 4-regular graph on 17 vertices with 34 edges. I verified computationally using a max-flow based vertex connectivity algorithm that this graph has vertex-connectivity exactly 4, meaning it remains connected after removing any 3 vertices.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0, 1], [0, 2], [0, 15], [0, 16], [1, 2], [1, 3], [1, 16], [2, 3], [2, 4], [3, 4], [3, 5], [4, 5], [4, 6], [5, 6], [5, 7], [6, 7], [6, 8], [7, 8], [7, 9], [8, 9], [8, 10], [9, 10], [9, 11], [10, 11], [10, 12], [11, 12], [11, 13], [12, 13], [12, 14], [13, 14], [13, 15], [14, 15], [14, 16], [15, 16]],\n    \"reasoning\": \"I constructed a circulant graph C(17, {1,2}) where each vertex i connects to vertices i\u00b11 and i\u00b12 (mod 17). This creates a 4-regular graph on 17 vertices with 34 edges. I verified computationally using a max-flow based vertex connectivity algorithm that this graph has vertex-connectivity exactly 4, meaning it remains connected after removing any 3 vertices.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 5276,
+  "completion_tokens": 1867,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.043833,
+  "cost_source": "openrouter",
+  "latency_ms": 25589.298963546753,
+  "tool_dispatch_ms_total": 81.94899559020996,
+  "tool_calls_made": 1,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\nfrom collections import defaultdict, deque\n\ndef build_circulant(n, offsets):\n    edges = set()\n    for u in range(n):\n        for d in offsets:\n            v = (u + d) % n\n            if u != v:\n                a, b = min(u, v), max(u, v)\n                edges.add((a, b))\n    return sorted(edges)\n\ndef vertex_connectivity(n, edges):\n    \"\"\"Compute vertex connectivity using max-flow.\"\"\"\n    # Use node splitting: each node i -> i_in (i) and i_out (i+n)\n    # Edge u->v in original: u_out -> v_in with capacity 1 (if undirected, both directions)\n    # Internal edge: i_in -> i_out with capacity 1 (except source and sink get inf)\n    \n    from collections import defaultdict, deque\n    \n    def bfs_capacity(graph, source, sink, n_nodes):\n        parent = [-1] * n_nodes\n        visited = [False] * n_nodes\n        visited[source] = True\n        queue = deque([source])\n        while queue:\n            u = queue.popleft()\n            for v in graph[u]:\n                if not visited[v] and graph[u][v] > 0:\n                    visited[v] = True\n                    parent[v] = u\n                    if v == sink:\n                        return parent\n                    queue.append(v)\n        return None\n    \n    def max_flow(graph, source, sink, n_nodes):\n        flow = 0\n        while True:\n            parent = bfs_capacity(graph, source, sink, n_nodes)\n            if parent is None:\n                break\n            # Find min capacity along path\n            path_flow = float('inf')\n            v = sink\n            while v != source:\n                u = parent[v]\n                path_flow = min(path_flow, graph[u][v])\n                v = u\n            # Update capacities\n            v = sink\n            while v != source:\n                u = parent[v]\n                graph[u][v] -= path_flow\n                graph[v][u] += path_flow\n                v = u\n            flow += path_flow\n        return flow\n    \n    # Node i_in = i, i_out = i + n\n    N = 2 * n\n    min_cut = float('inf')\n    \n    adj_list = defaultdict(set)\n    for u, v in edges:\n        adj_list[u].add(v)\n        adj_list[v].add(u)\n    \n    for s in range(n):\n        for t in range(n):\n            if t == s or t not in adj_list[s]:\n                continue\n            # Build flow network\n            graph = defaultdict(lambda: defaultdict(int))\n            for i in range(n):\n                cap = 10**9 if (i == s or i == t) else 1\n                graph[i][i + n] += cap  # i_in -> i_out\n            for u, v in edges:\n                graph[u + n][v] += 1  # u_out -> v_in\n                graph[v + n][u] += 1  # v_out -> u_in\n            \n            f = max_flow(graph, s + n, t, N)\n            min_cut = min(min_cut, f)\n            if min_cut <= 0:\n                return 0\n    \n    return min_cut\n\nn = 17\n# Circulant graph with offsets \u00b11, \u00b12 (4-regular)\noffsets = [1, 2, 15, 16]  # \u00b11, \u00b12 mod 17\nedges = build_circulant(n, offsets)\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Edges: {edges}\")\n\n# Check connectivity\nkappa = vertex_connectivity(n, edges)\nprint(f\"Vertex connectivity: {kappa}\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 81.95
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

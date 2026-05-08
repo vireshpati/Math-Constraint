@@ -1,0 +1,71 @@
+{
+  "problem_name": "queens_n27__v9_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 27
+  },
+  "difficulty": {
+    "solve_time_ms": 1461.1,
+    "search_space": 443426488243037769948249630619149892803,
+    "num_variables": 27,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 86.65,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[22, 11, 8, 15, 17, 12, 10, 24, 5, 23, 26, 19, 13, 7, 25, 20, 18, 16, 1, 4, 9, 21, 6, 3, 0, 2, 14]",
+  "reasoning": "Used a SAT solver (pysat/Glucose3) to encode the 27-queens problem with constraints: each row has exactly one queen, each column has exactly one queen, no two queens share a diagonal or anti-diagonal, and the fixed positions (q[9]=23, q[12]=13, q[18]=1, q[21]=21, q[26]=14) are respected. The solver found a valid solution which was verified to have no conflicts.",
+  "raw_response": null,
+  "cot_trace": "This is the N-Queens problem with N=27, with some pre-assigned queen positions. I need to place 27 queens on a 27\u00d727 chessboard such that no two queens attack each other.\n\nThe constraints are:\n- q[9] = 23 (queen in row 9 is in column 23)\n- q[12] = 13 (queen in row 12 is in column 13)\n- q[18] = 1 (queen in row 18 is in column 1)\n- q[21] = 21 (queen in row 21 is in column 21)\n- q[26] = 14 (queen in row 26 is in column 14)\n\nLet me first check if the pre-assigned positions are consistent with each other (no two queens attack each other):\n- q[9] = 23: row 9, col 23\n- q[12] = 13: row 12, col 13\n- q[18] = 1: row 18, col 1\n- q[21] = 21: row 21, col 21\n- q[26] = 14: row 26, col 14\n\nCheck for conflicts:\n- Rows: 9, 12, 18, 21, 26 - all different \u2713\n- Columns: 23, 13, 1, 21, 14 - all different \u2713\n- Diagonals (row - col): 9-23=-14, 12-13=-1, 18-1=17, 21-21=0, 26-14=12 - all different \u2713\n- Diagonals (row + col): 9+23=32, 12+13=25, 18+1=19, 21+21=42, 26+14=40 - all different \u2713\n\nSo the pre-assigned positions are consistent. Now I need to find a complete solution.\n\nI'll use a constraint solver or backtracking algorithm to solve this. Let me write Python code to solve this.\n---\nThe solver found a valid solution. Let me verify it once more and submit.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2686,
+  "completion_tokens": 1768,
+  "reasoning_tokens": 536,
+  "cached_tokens": 0,
+  "cost_usd": 0.00432055,
+  "cost_source": "openrouter",
+  "latency_ms": 41915.1554107666,
+  "tool_dispatch_ms_total": 270.68400382995605,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc\n\nN = 27\n\n# Pre-assigned positions\nfixed = {9: 23, 12: 13, 18: 1, 21: 21, 26: 14}\n\n# Create SAT solver\nsolver = Glucose3()\n\n# Variable encoding: x[r][c] = True means queen at row r, column c\n# Variable index: r * N + c + 1 (1-indexed for SAT)\ndef var(r, c):\n    return r * N + c + 1\n\n# Constraint 1: Each row has exactly one queen\nfor r in range(N):\n    # At least one queen in row r\n    row_vars = [var(r, c) for c in range(N)]\n    solver.add_clause(row_vars)\n    # At most one queen in row r (pairwise)\n    for c1 in range(N):\n        for c2 in range(c1 + 1, N):\n            solver.add_clause([-var(r, c1), -var(r, c2)])\n\n# Constraint 2: Each column has exactly one queen\nfor c in range(N):\n    # At least one queen in column c\n    col_vars = [var(r, c) for r in range(N)]\n    solver.add_clause(col_vars)\n    # At most one queen in column c (pairwise)\n    for r1 in range(N):\n        for r2 in range(r1 + 1, N):\n            solver.add_clause([-var(r1, c), -var(r2, c)])\n\n# Constraint 3: No two queens on same diagonal (row - col = constant)\n# Diagonals with row - col = d, where d ranges from -(N-1) to (N-1)\nfor d in range(-(N-1), N):\n    diag_vars = []\n    for r in range(N):\n        c = r - d\n        if 0 <= c < N:\n            diag_vars.append(var(r, c))\n    # At most one queen on this diagonal\n    for i in range(len(diag_vars)):\n        for j in range(i + 1, len(diag_vars)):\n            solver.add_clause([-diag_vars[i], -diag_vars[j]])\n\n# Constraint 4: No two queens on same anti-diagonal (row + col = constant)\n# Anti-diagonals with row + col = s, where s ranges from 0 to 2*(N-1)\nfor s in range(2 * N - 1):\n    anti_diag_vars = []\n    for r in range(N):\n        c = s - r\n        if 0 <= c < N:\n            anti_diag_vars.append(var(r, c))\n    # At most one queen on this anti-diagonal\n    for i in range(len(anti_diag_vars)):\n        for j in range(i + 1, len(anti_diag_vars)):\n            solver.add_clause([-anti_diag_vars[i], -anti_diag_vars[j]])\n\n# Constraint 5: Fixed positions\nfor r, c in fixed.items():\n    solver.add_clause([var(r, c)])\n\n# Solve\nif solver.solve():\n    model = solver.get_model()\n    solution = [0] * N\n    for r in range(N):\n        for c in range(N):\n            if var(r, c) in model:\n                solution[r] = c\n                break\n    print(\"Solution found:\", solution)\n    \n    # Verify solution\n    valid = True\n    for r in range(N):\n        for r2 in range(r + 1, N):\n            if solution[r] == solution[r2]:\n                print(f\"Column conflict: rows {r} and {r2}\")\n                valid = False\n            if abs(solution[r] - solution[r2]) == abs(r - r2):\n                print(f\"Diagonal conflict: rows {r} and {r2}\")\n                valid = False\n    \n    if valid:\n        print(\"Solution is valid!\")\n    else:\n        print(\"Solution is invalid!\")\nelse:\n    print(\"UNSATISFIABLE\")\n\nsolver.delete()\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 270.68
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[22, 11, 8, 15, 17, 12, 10, 24, 5, 23, 26, 19, 13, 7, 25, 20, 18, 16, 1, 4, 9, 21, 6, 3, 0, 2, 14]",
+        "reasoning": "Used a SAT solver (pysat/Glucose3) to encode the 27-queens problem with constraints: each row has exactly one queen, each column has exactly one queen, no two queens share a diagonal or anti-diagonal, and the fixed positions (q[9]=23, q[12]=13, q[18]=1, q[21]=21, q[26]=14) are respected. The solver found a valid solution which was verified to have no conflicts."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

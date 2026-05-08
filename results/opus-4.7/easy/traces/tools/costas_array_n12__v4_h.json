@@ -1,0 +1,96 @@
+{
+  "problem_name": "costas_array_n12__v4_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1129.3,
+    "search_space": 479001600,
+    "num_variables": 12,
+    "num_constraints": 13,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 77.63,
+    "solve_pct_type": 83.33
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    6,
+    10,
+    8,
+    9,
+    4,
+    1,
+    11,
+    2,
+    5,
+    7,
+    3
+  ],
+  "reasoning": "Backtracking search with incremental displacement-vector distinctness check found a valid Costas array of order 12 respecting x[3]=8 and x[8]=2. Verified is_costas=True.",
+  "raw_response": null,
+  "cot_trace": " Now I'm searching for a Costas array of order 12 that satisfies the constraints where the 3rd position contains 8 and the 8th position contains 2.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3965,
+  "completion_tokens": 1081,
+  "reasoning_tokens": 37,
+  "cached_tokens": 0,
+  "cost_usd": 0.04685,
+  "cost_source": "openrouter",
+  "latency_ms": 9900.128602981567,
+  "tool_dispatch_ms_total": 151.3996124267578,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\ndef is_costas(p):\n    n = len(p)\n    for dc in range(1, n):\n        seen = set()\n        for c in range(n - dc):\n            dr = p[c+dc] - p[c]\n            if dr in seen:\n                return False\n            seen.add(dr)\n    return True\n\nn = 12\nfixed = {3: 8, 8: 2}\nused = set(fixed.values())\ncols = [c for c in range(n) if c not in fixed]\nrows_avail = [r for r in range(n) if r not in used]\n\nx = [0]*n\nfor c,r in fixed.items():\n    x[c] = r\n\n# backtrack\ndef backtrack(idx, avail):\n    if idx == len(cols):\n        # check full\n        if is_costas(x):\n            return True\n        return False\n    c = cols[idx]\n    for r in list(avail):\n        x[c] = r\n        # partial check: check displacement vectors so far are distinct\n        # full check at end is fine but slow; do incremental\n        avail.remove(r)\n        if backtrack(idx+1, avail):\n            return True\n        avail.add(r)\n    return False\n\n# Better: incremental check\ndef check_partial(assigned_cols):\n    # assigned_cols is list of columns currently assigned\n    # compute all displacement vectors among assigned columns, check distinct\n    pairs = {}\n    cs = sorted(assigned_cols)\n    for i in range(len(cs)):\n        for j in range(i+1, len(cs)):\n            dc = cs[j]-cs[i]\n            dr = x[cs[j]]-x[cs[i]]\n            key = (dc, dr)\n            if key in pairs:\n                return False\n            pairs[key] = True\n    return True\n\nassigned = set(fixed.keys())\n\ndef bt(idx, avail):\n    if idx == len(cols):\n        return True\n    c = cols[idx]\n    for r in list(avail):\n        x[c] = r\n        assigned.add(c)\n        if check_partial(assigned):\n            avail.remove(r)\n            if bt(idx+1, avail):\n                return True\n            avail.add(r)\n        assigned.remove(c)\n    return False\n\navail = set(rows_avail)\nif bt(0, avail):\n    print(x)\n    print(is_costas(x))\nelse:\n    print(\"UNSAT\")\n"
+      },
+      "ok": true,
+      "latency_ms": 151.4
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          6,
+          10,
+          8,
+          9,
+          4,
+          1,
+          11,
+          2,
+          5,
+          7,
+          3
+        ],
+        "reasoning": "Backtracking search with incremental displacement-vector distinctness check found a valid Costas array of order 12 respecting x[3]=8 and x[8]=2. Verified is_costas=True."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

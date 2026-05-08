@@ -1,0 +1,126 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree6_min_degree3_vertices14__v0_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 6,
+    "min_degree": 3,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 56.8,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 42,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 23.87,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": "\n\nLet me try a different approach - maybe I can construct a solution manually using a greedy algorithm.\n\n<\uff5cDSML\uff5ctool_calls>\n<\uff5cDSML\uff5cinvoke name=\"execute_python\">\n<\uff5cDSML\uff5cparameter name=\"code\" string=\"true\">import random\n\nn = 14\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# Let's try to construct a solution manually\n# First, let's see what degrees we have from fixed edges\ndeg = [0]*n\nfor u,v in fixed_edges:\n    deg[u] += 1\n    deg[v] += 1\n\n# We need each vertex to have degree 3-6\n# Let's try a constructive approach\n\n# All possible edges (excluding fixed ones)\nall_possible = [(i,j) for i in range(n) for j in range(i+1,n) if (i,j) not in fixed_edges]\n\n# Let's try to greedily add edges to satisfy constraints\ndef try_construct(seed):\n    random.seed(seed)\n    current_deg = deg.copy()\n    edges = list(fixed_edges)\n    remaining = list(all_possible)\n    random.shuffle(remaining)\n    \n    # First pass: ensure minimum degree\n    for u,v in remaining:\n        if current_deg[u] < 3 and current_deg[v] < 3 and current_deg[u] < 6 and current_deg[v] < 6:\n            if (u,v) not in edges:\n                edges.append((u,v))\n                current_deg[u] += 1\n                current_deg[v] += 1\n    \n    # Second pass: fill remaining needs\n    for u,v in remaining:\n        if (u,v) not in edges:\n            if current_deg[u] < 3 and current_deg[v] < 6:\n                edges.append((u,v))\n                current_deg[u] += 1\n                current_deg[v] += 1\n            elif current_deg[v] < 3 and current_deg[u] < 6:\n                edges.append((u,v))\n                current_deg[u] += 1\n                current_deg[v] += 1\n    \n    # Third pass: add more edges where needed\n    for u,v in remaining:\n        if (u,v) not in edges:\n            if current_deg[u] < 3:\n                if current_deg[v] < 6:\n                    edges.append((u,v))\n                    current_deg[u] += 1\n                    current_deg[v] += 1\n            elif current_deg[v] < 3:\n                if current_deg[u] < 6:\n                    edges.append((u,v))\n                    current_deg[u] += 1\n                    current_deg[v] += 1\n    \n    # Fourth pass: add any remaining edges to help\n    for u,v in remaining:\n        if (u,v) not in edges:\n            if current_deg[u] < 3 or current_deg[v] < 3:\n                if current_deg[u] < 6 and current_deg[v] < 6:\n                    edges.append((u,v))\n                    current_deg[u] += 1\n                    current_deg[v] += 1\n    \n    # Check if all degrees are in [3,6]\n    if all(3 <= d <= 6 for d in current_deg):\n        return edges, current_deg\n    return None, current_deg\n\nfor seed in range(1000):\n    result, final_deg = try_construct(seed)\n    if result is not None:\n        print(f\"Found solution with seed {seed}\")\n        print(f\"Edges: {sorted(result)}\")\n        print(f\"Degrees: {final_deg}\")\n        break\nelse:\n    print(\"No solution found with greedy approach\")\n    \n    # Let's analyze more carefully\n    # Maybe we need to use a more sophisticated approach\n    # Let's try to formulate as a max flow or use a different strategy\n    \n    # Let me check if there's a fundamental issue\n    # The vertices 11, 12, 13 need degree 3-6 but have 0 fixed edges\n    # They can connect to any of the other 13 vertices\n    \n    # Let's try a more systematic approach\n    from itertools import combinations\n    \n    # For each vertex, list which vertices it can connect to\n    possible_connections = {}\n    for v in range(n):\n        possible_connections[v] = [u for u in range(n) if u != v and (min(u,v), max(u,v)) not in fixed_edges]\n    \n    # Let's try to use a simple constraint solver approach\n    # We'll try to add edges one by one\n    \n    # Actually, let me try a different random approach\n    for attempt in range(10000):\n        random.seed(attempt)\n        current_deg = deg.copy()\n        edges = list(fixed_edges)\n        \n        # Get vertices that need more edges, sorted by need\n        vertices_needing = [v for v in range(n) if current_deg[v] < 3]\n        \n        # Randomly try to satisfy\n        random.shuffle(vertices_needing)\n        \n        for v in vertices_needing:\n            # Find possible partners\n            partners = [u for u in range(n) if u != v and (min(u,v), max(u,v)) not in edges and current_deg[u] < 6]\n            random.shuffle(partners)\n            \n            needed = 3 - current_deg[v]\n            for u in partners[:needed]:\n                if current_deg[v] < 3 and current_deg[u] < 6:\n                    edges.append((min(u,v), max(u,v)))\n                    current_deg[v] += 1\n                    current_deg[u] += 1\n        \n        # Now check if all have at least 3\n        if all(d >= 3 for d in current_deg) and all(d <= 6 for d in current_deg):\n            print(f\"Found solution with attempt {attempt}\")\n            print(f\"Edges: {sorted(edges)}\")\n            print(f\"Degrees: {current_deg}\")\n            break\n    else:\n        print(\"Still no solution found\")\n        \n        # Let's check if it's truly impossible\n        # Maybe the SAT solver was right\n        print(\"\\nLet me check if there's a parity or other issue...\")\n        \n        # Count how many vertices need how many more edges\n        needs = [max(0, 3-d) for d in deg]\n        print(f\"Minimum additional edges needed per vertex: {needs}\")\n        print(f\"Total additional degree needed: {sum(needs)}\")\n        print(f\"Total additional edges needed (min): {sum(needs)//2}\")\n        \n        # Maximum additional edges possible\n        max_add = [6-d for d in deg]\n        print(f\"Maximum additional edges per vertex: {max_add}\")\n        print(f\"Total additional degree possible: {sum(max_add)}\")\n        print(f\"Total additional edges possible (max): {sum(max_add)//2}\")</\uff5cDSML\uff5cparameter>\n<\uff5cDSML\uff5cparameter name=\"timeout_seconds\" string=\"false\">30</\uff5cDSML\uff5cparameter>\n</\uff5cDSML\uff5cinvoke>\n</\uff5cDSML\uff5ctool_calls>",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 31193,
+  "completion_tokens": 5792,
+  "reasoning_tokens": 0,
+  "cached_tokens": 19200,
+  "cost_usd": 0.00383838,
+  "cost_source": "openrouter",
+  "latency_ms": 313843.73211860657,
+  "tool_dispatch_ms_total": 1445.1735019683838,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc\n\nn = 14\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# All possible edges\nall_edges = [(i, j) for i in range(n) for j in range(i+1, n)]\n\n# Map edge to variable index\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\n\nsolver = Glucose3()\n\n# Add clauses for fixed edges (must be present)\nfor e in fixed_edges:\n    solver.add_clause([edge_to_var[e]])\n\n# For each vertex, degree constraints: 3 <= deg(v) <= 6\nfor v in range(n):\n    incident_vars = []\n    for e in all_edges:\n        if v in e:\n            incident_vars.append(edge_to_var[e])\n    \n    # At least 3\n    solver.add_clause(CardEnc.atleast(lits=incident_vars, bound=3, topk=len(incident_vars)))\n    # At most 6\n    solver.add_clause(CardEnc.atmost(lits=incident_vars, bound=6, topk=len(incident_vars)))\n\nresult = solver.solve()\nprint(\"Satisfiable:\", result)\n\nif result:\n    model = solver.get_model()\n    solution_edges = []\n    for var, edge in var_to_edge.items():\n        if model[var-1] > 0:\n            solution_edges.append(edge)\n    print(\"Number of edges:\", len(solution_edges))\n    print(\"Edges:\", sorted(solution_edges))\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"Min degree:\", min(deg), \"Max degree:\", max(deg))\n    \n    # Verify fixed edges are present\n    for e in fixed_edges:\n        assert e in solution_edges, f\"Missing fixed edge {e}\"\n    print(\"All fixed edges present!\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 232.78
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc, EncType\n\nn = 14\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# All possible edges\nall_edges = [(i, j) for i in range(n) for j in range(i+1, n)]\n\n# Map edge to variable index\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\n\nsolver = Glucose3()\n\n# Add clauses for fixed edges (must be present)\nfor e in fixed_edges:\n    solver.add_clause([edge_to_var[e]])\n\n# For each vertex, degree constraints: 3 <= deg(v) <= 6\nfor v in range(n):\n    incident_vars = []\n    for e in all_edges:\n        if v in e:\n            incident_vars.append(edge_to_var[e])\n    \n    # At least 3\n    solver.add_clause(CardEnc.atleast(lits=incident_vars, bound=3, encoding=EncType.TOTALIZER))\n    # At most 6\n    solver.add_clause(CardEnc.atmost(lits=incident_vars, bound=6, encoding=EncType.TOTALIZER))\n\nresult = solver.solve()\nprint(\"Satisfiable:\", result)\n\nif result:\n    model = solver.get_model()\n    solution_edges = []\n    for var, edge in var_to_edge.items():\n        if model[var-1] > 0:\n            solution_edges.append(edge)\n    print(\"Number of edges:\", len(solution_edges))\n    print(\"Edges:\", sorted(solution_edges))\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"Min degree:\", min(deg), \"Max degree:\", max(deg))\n    \n    # Verify fixed edges are present\n    for e in fixed_edges:\n        assert e in solution_edges, f\"Missing fixed edge {e}\"\n    print(\"All fixed edges present!\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 221.59
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.card import EncType\nprint(dir(EncType))",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 134.07
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc, EncType\n\nn = 14\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# All possible edges\nall_edges = [(i, j) for i in range(n) for j in range(i+1, n)]\n\n# Map edge to variable index\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\n\nsolver = Glucose3()\n\n# Add clauses for fixed edges (must be present)\nfor e in fixed_edges:\n    solver.add_clause([edge_to_var[e]])\n\n# For each vertex, degree constraints: 3 <= deg(v) <= 6\nfor v in range(n):\n    incident_vars = []\n    for e in all_edges:\n        if v in e:\n            incident_vars.append(edge_to_var[e])\n    \n    # At least 3\n    solver.add_clause(CardEnc.atleast(lits=incident_vars, bound=3, encoding=EncType.totalizer))\n    # At most 6\n    solver.add_clause(CardEnc.atmost(lits=incident_vars, bound=6, encoding=EncType.totalizer))\n\nresult = solver.solve()\nprint(\"Satisfiable:\", result)\n\nif result:\n    model = solver.get_model()\n    solution_edges = []\n    for var, edge in var_to_edge.items():\n        if model[var-1] > 0:\n            solution_edges.append(edge)\n    print(\"Number of edges:\", len(solution_edges))\n    print(\"Edges:\", sorted(solution_edges))\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"Min degree:\", min(deg), \"Max degree:\", max(deg))\n    \n    # Verify fixed edges are present\n    for e in fixed_edges:\n        assert e in solution_edges, f\"Missing fixed edge {e}\"\n    print(\"All fixed edges present!\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 313.85
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc, EncType\n\nn = 14\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# All possible edges\nall_edges = [(i, j) for i in range(n) for j in range(i+1, n)]\n\n# Map edge to variable index\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\n\nsolver = Glucose3()\n\n# Add clauses for fixed edges (must be present)\nfor e in fixed_edges:\n    solver.add_clause([edge_to_var[e]])\n\n# For each vertex, degree constraints: 3 <= deg(v) <= 6\nfor v in range(n):\n    incident_vars = []\n    for e in all_edges:\n        if v in e:\n            incident_vars.append(edge_to_var[e])\n    \n    # At least 3\n    clauses = CardEnc.atleast(lits=incident_vars, bound=3, encoding=EncType.totalizer)\n    for c in clauses:\n        solver.add_clause(c)\n    # At most 6\n    clauses = CardEnc.atmost(lits=incident_vars, bound=6, encoding=EncType.totalizer)\n    for c in clauses:\n        solver.add_clause(c)\n\nresult = solver.solve()\nprint(\"Satisfiable:\", result)\n\nif result:\n    model = solver.get_model()\n    solution_edges = []\n    for var, edge in var_to_edge.items():\n        if model[var-1] > 0:\n            solution_edges.append(edge)\n    print(\"Number of edges:\", len(solution_edges))\n    print(\"Edges:\", sorted(solution_edges))\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"Min degree:\", min(deg), \"Max degree:\", max(deg))\n    \n    # Verify fixed edges are present\n    for e in fixed_edges:\n        assert e in solution_edges, f\"Missing fixed edge {e}\"\n    print(\"All fixed edges present!\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 226.72
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "n = 14\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# Count degrees from fixed edges\ndeg = [0]*n\nfor u,v in fixed_edges:\n    deg[u] += 1\n    deg[v] += 1\n\nprint(\"Degrees from fixed edges:\")\nfor i in range(n):\n    print(f\"  Vertex {i}: {deg[i]} (needs 3-6 total)\")\n\n# For each vertex, how many more edges are needed\nprint(\"\\nAdditional edges needed (min, max):\")\nfor i in range(n):\n    min_needed = max(0, 3 - deg[i])\n    max_possible = 6 - deg[i]\n    print(f\"  Vertex {i}: need {min_needed} to {max_possible} more edges\")\n\n# Check if any vertex already exceeds 6\nfor i in range(n):\n    if deg[i] > 6:\n        print(f\"Vertex {i} already has degree {deg[i]} > 6, UNSAT!\")\n        \n# Check if any vertex needs more edges than possible\n# Max possible additional edges for a vertex = (n-1) - deg[i] (since no self-loops, no multi-edges)\nfor i in range(n):\n    max_possible_additional = (n-1) - deg[i]\n    min_needed = max(0, 3 - deg[i])\n    if min_needed > max_possible_additional:\n        print(f\"Vertex {i} needs {min_needed} more but only {max_possible_additional} possible vertices left!\")\n    if 6 - deg[i] < 0:\n        print(f\"Vertex {i} already has degree {deg[i]} > 6!\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 45.89
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc, EncType\n\nn = 14\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\n# All possible edges\nall_edges = [(i, j) for i in range(n) for j in range(i+1, n)]\n\n# Map edge to variable index\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\n\nsolver = Glucose3()\n\n# Add clauses for fixed edges (must be present)\nfor e in fixed_edges:\n    solver.add_clause([edge_to_var[e]])\n\n# For each vertex, degree constraints: 3 <= deg(v) <= 6\nfor v in range(n):\n    incident_vars = []\n    for e in all_edges:\n        if v in e:\n            incident_vars.append(edge_to_var[e])\n    \n    # At least 3\n    clauses = CardEnc.atleast(lits=incident_vars, bound=3, encoding=EncType.seqcounter)\n    for c in clauses:\n        solver.add_clause(c)\n    # At most 6\n    clauses = CardEnc.atmost(lits=incident_vars, bound=6, encoding=EncType.seqcounter)\n    for c in clauses:\n        solver.add_clause(c)\n\nresult = solver.solve()\nprint(\"Satisfiable:\", result)\n\nif result:\n    model = solver.get_model()\n    solution_edges = []\n    for var, edge in var_to_edge.items():\n        if model[var-1] > 0:\n            solution_edges.append(edge)\n    print(\"Number of edges:\", len(solution_edges))\n    print(\"Edges:\", sorted(solution_edges))\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"Min degree:\", min(deg), \"Max degree:\", max(deg))\n    \n    # Verify fixed edges are present\n    for e in fixed_edges:\n        assert e in solution_edges, f\"Missing fixed edge {e}\"\n    print(\"All fixed edges present!\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 225.52
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "n = 14\nfixed_edges = [(4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8)]\n\ndeg = [0]*n\nfor u,v in fixed_edges:\n    deg[u] += 1\n    deg[v] += 1\n\n# Current sum of degrees\ncurrent_sum = sum(deg)\nprint(f\"Current sum of degrees: {current_sum}\")\n\n# Minimum possible total sum: each vertex at least 3\nmin_total = 3 * n\nprint(f\"Minimum total sum: {min_total}\")\n\n# Maximum possible total sum: each vertex at most 6\nmax_total = 6 * n\nprint(f\"Maximum total sum: {max_total}\")\n\n# Additional sum needed\nadditional_min = min_total - current_sum\nadditional_max = max_total - current_sum\nprint(f\"Additional sum needed: {additional_min} to {additional_max}\")\n\n# Each additional edge adds 2 to the sum\n# So additional sum must be even\nprint(f\"Additional min is even: {additional_min % 2 == 0}\")\nprint(f\"Additional max is even: {additional_max % 2 == 0}\")\n\n# Let's try to find a solution manually using a simple heuristic\n# We need to add edges to satisfy degree constraints\n\n# Let me try a different SAT approach - using python's built-in tools\n# or just brute force search with constraints\n\n# Let me try using z3 if available\ntry:\n    import z3\n    print(\"z3 available\")\nexcept:\n    print(\"z3 not available\")\n\n# Let me try ortools\ntry:\n    from ortools.sat.python import cp_model\n    print(\"ortools available\")\nexcept:\n    print(\"ortools not available\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 44.74
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "max_rounds",
+  "forced_submit": false
+}

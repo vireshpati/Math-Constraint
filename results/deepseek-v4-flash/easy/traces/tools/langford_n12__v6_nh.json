@@ -1,0 +1,124 @@
+{
+  "problem_name": "langford_n12__v6_nh",
+  "problem_type": "langford",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1602.0,
+    "search_space": 620448401733239439360000,
+    "num_variables": 24,
+    "num_constraints": 305,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.16,
+    "solve_pct_type": 43.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": "\n\nLet me try a different approach - I'll use a simple backtracking search to find the Langford sequence.\n\n<\uff5cDSML\uff5ctool_calls>\n<\uff5cDSML\uff5cinvoke name=\"execute_python\">\n<\uff5cDSML\uff5cparameter name=\"code\" string=\"true\">def find_langford(n):\n    \"\"\"Find a Langford sequence L(2,n) using backtracking.\"\"\"\n    N = 2 * n\n    seq = [0] * N\n    # positions where each value can be placed\n    # We'll place values from n down to 1 (harder constraints first)\n    \n    def backtrack(v):\n        if v == 0:\n            return True\n        # Try to place value v\n        for p in range(N - v - 1):\n            if seq[p] == 0 and seq[p + v + 1] == 0:\n                seq[p] = v\n                seq[p + v + 1] = v\n                if backtrack(v - 1):\n                    return True\n                seq[p] = 0\n                seq[p + v + 1] = 0\n        return False\n    \n    if backtrack(n):\n        return seq\n    return None\n\nresult = find_langford(12)\nif result:\n    print(f\"Found: {result}\")\n    # Verify\n    for v in range(1, 13):\n        positions = [i for i, val in enumerate(result) if val == v]\n        print(f\"v={v}: positions {positions}, diff={positions[1]-positions[0]}, expected={v+1}\")\nelse:\n    print(\"No solution found\")</\uff5cDSML\uff5cparameter>\n<\uff5cDSML\uff5cparameter name=\"timeout_seconds\" string=\"false\">60</\uff5cDSML\uff5cparameter>\n</\uff5cDSML\uff5cinvoke>\n</\uff5cDSML\uff5ctool_calls>",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 45929,
+  "completion_tokens": 6221,
+  "reasoning_tokens": 0,
+  "cached_tokens": 18176,
+  "cost_usd": 0.0061362280000000005,
+  "cost_source": "openrouter",
+  "latency_ms": 309771.62885665894,
+  "tool_dispatch_ms_total": 2255.9943199157715,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat import CNF, Solver\nfrom pysat.card import CardEnc\n\nn = 12\nm = 2  # two copies\n\n# We have positions 0..2*n-1 (0-indexed)\n# Variables: for each value v (1..n) and each position p (0..2n-1), \n# variable x_{v,p} means value v is at position p\n# We'll encode as (v-1)*(2*n) + p + 1\n\nN = 2 * n  # total positions\n\ndef var(v, p):\n    \"\"\"v in 1..n, p in 0..N-1\"\"\"\n    return (v-1)*N + p + 1\n\ncnf = CNF()\n\n# 1. Each position gets exactly one value\nfor p in range(N):\n    clause = [var(v, p) for v in range(1, n+1)]\n    cnf.add_clause(clause)  # at least one\n    # at most one: pairwise negative\n    for v1 in range(1, n+1):\n        for v2 in range(v1+1, n+1):\n            cnf.add_clause([-var(v1, p), -var(v2, p)])\n\n# 2. Each value appears exactly twice\nfor v in range(1, n+1):\n    clause = [var(v, p) for p in range(N)]\n    cnf.add_clause(clause)  # at least one... but we need exactly 2\n    # Use cardinality constraint: exactly 2\n    # We'll add at-most-2 and at-least-2\n    # at-most-2: for any triple of positions, at most 2 can have value v\n    # Actually easier: use CardEnc\n    pass\n\n# Let's use a different approach - encode exactly 2 using pairwise constraints\n# At most 2: for any 3 positions, not all can have v\nfor v in range(1, n+1):\n    for p1 in range(N):\n        for p2 in range(p1+1, N):\n            for p3 in range(p2+1, N):\n                cnf.add_clause([-var(v, p1), -var(v, p2), -var(v, p3)])\n\n# At least 2: we need to ensure each v appears at least twice\n# We can use: for each v, not (at most 1) = at least 2\n# at most 1: for any pair of positions, at most 1 can have v... no that's wrong\n# Let's use sequential counter or just add clauses that force at least 2\n# Actually, we can use the fact that total positions = 2n and each position gets exactly one value\n# So if each value appears at most 2, and there are n values and 2n positions, \n# each must appear exactly 2. So at-most-2 + total count = exactly 2.\n# But we need to enforce at least 2 somehow.\n\n# Let's use a different encoding: for each v, we can't have it appear only once or zero times.\n# We'll use a sequential counter or just use CardEnc\n\n# Actually, let's use the CardEnc from pysat\nfrom pysat.card import CardEnc\n\n# Reset\ncnf = CNF()\n\n# Each position gets exactly one value\nfor p in range(N):\n    # at least one\n    cnf.add_clause([var(v, p) for v in range(1, n+1)])\n    # at most one\n    for v1 in range(1, n+1):\n        for v2 in range(v1+1, n+1):\n            cnf.add_clause([-var(v1, p), -var(v2, p)])\n\n# Each value appears exactly twice\nfor v in range(1, n+1):\n    lits = [var(v, p) for p in range(N)]\n    # exactly 2\n    cnf.extend(CardEnc.equals(lits, bound=2, topk=True, encoding='compact'))\n\n# 3. Langford condition: for each value v, if it's at position p, \n# the other copy is at position p+v+1 (or p-v-1)\n# So for each v and each p, if var(v,p) is true, then var(v, p+v+1) must be true (if within bounds)\n# And also, if var(v,p) is true, then var(v, p-v-1) must be true (if within bounds)\n# Actually, we need: for each v, the two positions differ by exactly v+1.\n# So if v is at p, the other is at p+v+1 or p-v-1.\n# We can encode: for each v and each p, var(v,p) -> (var(v,p+v+1) OR var(v,p-v-1))\n# But we also need that if both are true, they are exactly v+1 apart.\n\n# Better: for each v, for each pair of positions (p1, p2) with p2-p1 == v+1:\n# we can say that (var(v,p1) AND var(v,p2)) OR (neither is v)\n# Actually, we need exactly two positions with value v, and they must be v+1 apart.\n\n# Let's encode: for each v, for each p, if var(v,p) is true, then exactly one of var(v,p+v+1) or var(v,p-v-1) is true.\n# And the other positions with v are false.\n\n# Simpler: for each v, for each p where p+v+1 < N:\n#   var(v,p) -> var(v, p+v+1)\n#   var(v,p+v+1) -> var(v, p)\n# This forces that if v is at p, it must also be at p+v+1.\n# But this would force v to appear at both positions, which is what we want.\n# However, this also forces that if v is at p+v+1, it must be at p, which is fine.\n# But we also need to ensure v doesn't appear elsewhere.\n\n# Actually, the standard encoding for Langford is:\n# For each v, for each p from 0 to N-1-v-1:\n#   (var(v,p) AND var(v,p+v+1)) -> (all other positions with v are false)\n# But that's complex.\n\n# Let's use a simpler approach: for each v, we enumerate all possible pairs (p, p+v+1) where p+v+1 < N.\n# Exactly one of these pairs must be the positions of v.\n# So for each v, we create a set of \"pair variables\" and enforce exactly one pair is chosen.\n\n# Let's use auxiliary variables for pairs.\n\n# Actually, let's just use a different encoding that's simpler.\n\ncnf = CNF()\n\n# Each position gets exactly one value\nfor p in range(N):\n    lits = [var(v, p) for v in range(1, n+1)]\n    cnf.add_clause(lits)  # at least one\n    for v1 in range(1, n+1):\n        for v2 in range(v1+1, n+1):\n            cnf.add_clause([-var(v1, p), -var(v2, p)])\n\n# For each value v, it appears exactly twice, and the two positions differ by v+1.\n# We can encode: for each v, for each p from 0 to N-1:\n#   if var(v,p) is true, then var(v, p+v+1) must be true (if p+v+1 < N) \n#   OR var(v, p-v-1) must be true (if p-v-1 >= 0)\n# But we also need that exactly one of these is true.\n\n# Let's use a cleaner encoding with auxiliary variables for each possible pair.\n\n# For each v, let pairs be (p, p+v+1) for p=0..N-v-2\n# We create a variable for each pair: pair_{v,p} means v is at positions p and p+v+1\n# Then exactly one pair variable is true for each v.\n# And for each position, the value assigned must be consistent.\n\npair_var = {}\npair_idx = n * N + 1  # start after value-position vars\n\nfor v in range(1, n+1):\n    for p in range(N - v - 1):\n        pair_var[(v, p)] = pair_idx\n        pair_idx += 1\n\n# Each value has exactly one pair\nfor v in range(1, n+1):\n    pairs = [pair_var[(v, p)] for p in range(N - v - 1)]\n    # at least one\n    cnf.add_clause(pairs)\n    # at most one\n    for i in range(len(pairs)):\n        for j in range(i+1, len(pairs)):\n            cnf.add_clause([-pairs[i], -pairs[j]])\n\n# Link pair variables to position variables\nfor v in range(1, n+1):\n    for p in range(N - v - 1):\n        pv = pair_var[(v, p)]\n        # pair -> both positions have v\n        cnf.add_clause([-pv, var(v, p)])\n        cnf.add_clause([-pv, var(v, p+v+1)])\n        # If both positions have v, then the pair must be selected\n        # (but only if no other position has v... this is tricky)\n        # Actually, we need: var(v,p) AND var(v,p+v+1) -> pv\n        cnf.add_clause([-var(v, p), -var(v, p+v+1), pv])\n\n# Also need: if var(v,p) is true, then there must be some pair that includes p\n# This is already enforced by the above? Let's check.\n# If var(v,p) is true, then there must be some q such that pair (q, q+v+1) includes p.\n# So either p = q (so q=p) or p = q+v+1 (so q = p-v-1).\n# So var(v,p) -> (pair_var[(v,p)] OR (if p-v-1 >= 0 then pair_var[(v, p-v-1)]))\n# But we also need that exactly one pair is selected for v, so this should work.\n\nfor v in range(1, n+1):\n    for p in range(N):\n        clause = [-var(v, p)]\n        if p < N - v - 1:\n            clause.append(pair_var[(v, p)])\n        if p - v - 1 >= 0:\n            clause.append(pair_var[(v, p - v - 1)])\n        cnf.add_clause(clause)\n\nprint(f\"Variables: {pair_idx-1}\")\nprint(f\"Clauses: {len(cnf.clauses)}\")\n\nsolver = Solver(name='cadical')\nsolver.append_formula(cnf.clauses)\nresult = solver.solve()\n\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    # Extract solution\n    seq = [0] * N\n    for v in range(1, n+1):\n        for p in range(N):\n            if model[var(v, p)-1] > 0:\n                seq[p] = v\n    print(f\"Sequence: {seq}\")\n    \n    # Verify\n    for v in range(1, n+1):\n        positions = [i for i, val in enumerate(seq) if val == v]\n        print(f\"Value {v}: positions {positions}, diff = {positions[1]-positions[0]}\")\n        assert positions[1] - positions[0] == v + 1\n    print(\"Verified!\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 35.27
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import pysat\nprint(dir(pysat))\nprint(pysat.__version__ if hasattr(pysat, '__version__') else 'no version')",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 33.84
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\n\nn = 12\nN = 2 * n\n\ndef var(v, p):\n    return (v-1)*N + p + 1\n\ncnf = CNF()\n\n# Each position gets exactly one value\nfor p in range(N):\n    lits = [var(v, p) for v in range(1, n+1)]\n    cnf.add_clause(lits)\n    for v1 in range(1, n+1):\n        for v2 in range(v1+1, n+1):\n            cnf.add_clause([-var(v1, p), -var(v2, p)])\n\n# Each value appears exactly twice\nfor v in range(1, n+1):\n    lits = [var(v, p) for p in range(N)]\n    cnf.extend(CardEnc.equals(lits, bound=2, topk=True, encoding='compact'))\n\n# Pair variables\npair_var = {}\npair_idx = n * N + 1\n\nfor v in range(1, n+1):\n    for p in range(N - v - 1):\n        pair_var[(v, p)] = pair_idx\n        pair_idx += 1\n\n# Each value has exactly one pair\nfor v in range(1, n+1):\n    pairs = [pair_var[(v, p)] for p in range(N - v - 1)]\n    cnf.add_clause(pairs)\n    for i in range(len(pairs)):\n        for j in range(i+1, len(pairs)):\n            cnf.add_clause([-pairs[i], -pairs[j]])\n\n# Link pair variables to position variables\nfor v in range(1, n+1):\n    for p in range(N - v - 1):\n        pv = pair_var[(v, p)]\n        cnf.add_clause([-pv, var(v, p)])\n        cnf.add_clause([-pv, var(v, p+v+1)])\n        cnf.add_clause([-var(v, p), -var(v, p+v+1), pv])\n\n# If var(v,p) is true, then some pair must cover it\nfor v in range(1, n+1):\n    for p in range(N):\n        clause = [-var(v, p)]\n        if p < N - v - 1:\n            clause.append(pair_var[(v, p)])\n        if p - v - 1 >= 0:\n            clause.append(pair_var[(v, p - v - 1)])\n        cnf.add_clause(clause)\n\nprint(f\"Variables: {pair_idx-1}\")\nprint(f\"Clauses: {len(cnf.clauses)}\")\n\nsolver = Solver(name='cadical')\nsolver.append_formula(cnf.clauses)\nresult = solver.solve()\n\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    seq = [0] * N\n    for v in range(1, n+1):\n        for p in range(N):\n            if model[var(v, p)-1] > 0:\n                seq[p] = v\n    print(f\"Sequence: {seq}\")\n    \n    # Verify\n    ok = True\n    for v in range(1, n+1):\n        positions = [i for i, val in enumerate(seq) if val == v]\n        if len(positions) != 2:\n            print(f\"Value {v}: found {len(positions)} times!\")\n            ok = False\n        elif positions[1] - positions[0] != v + 1:\n            print(f\"Value {v}: positions {positions}, diff = {positions[1]-positions[0]}, expected {v+1}\")\n            ok = False\n        else:\n            print(f\"Value {v}: positions {positions}, diff = {positions[1]-positions[0]} OK\")\n    if ok:\n        print(\"All verified!\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 222.68
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nhelp(CNF.__init__)\nprint(\"---\")\nprint([m for m in dir(CNF) if not m.startswith('_')])",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 327.6
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\n\nn = 12\nN = 2 * n\n\ndef var(v, p):\n    return (v-1)*N + p + 1\n\ncnf = CNF()\n\n# Each position gets exactly one value\nfor p in range(N):\n    lits = [var(v, p) for v in range(1, n+1)]\n    cnf.append(lits)\n    for v1 in range(1, n+1):\n        for v2 in range(v1+1, n+1):\n            cnf.append([-var(v1, p), -var(v2, p)])\n\n# Each value appears exactly twice\nfor v in range(1, n+1):\n    lits = [var(v, p) for p in range(N)]\n    cnf.extend(CardEnc.equals(lits, bound=2, topk=True, encoding='compact'))\n\n# Pair variables\npair_var = {}\npair_idx = n * N + 1\n\nfor v in range(1, n+1):\n    for p in range(N - v - 1):\n        pair_var[(v, p)] = pair_idx\n        pair_idx += 1\n\n# Each value has exactly one pair\nfor v in range(1, n+1):\n    pairs = [pair_var[(v, p)] for p in range(N - v - 1)]\n    cnf.append(pairs)\n    for i in range(len(pairs)):\n        for j in range(i+1, len(pairs)):\n            cnf.append([-pairs[i], -pairs[j]])\n\n# Link pair variables to position variables\nfor v in range(1, n+1):\n    for p in range(N - v - 1):\n        pv = pair_var[(v, p)]\n        cnf.append([-pv, var(v, p)])\n        cnf.append([-pv, var(v, p+v+1)])\n        cnf.append([-var(v, p), -var(v, p+v+1), pv])\n\n# If var(v,p) is true, then some pair must cover it\nfor v in range(1, n+1):\n    for p in range(N):\n        clause = [-var(v, p)]\n        if p < N - v - 1:\n            clause.append(pair_var[(v, p)])\n        if p - v - 1 >= 0:\n            clause.append(pair_var[(v, p - v - 1)])\n        cnf.append(clause)\n\nprint(f\"Variables: {pair_idx-1}\")\nprint(f\"Clauses: {len(cnf.clauses)}\")\n\nsolver = Solver(name='cadical')\nsolver.append_formula(cnf.clauses)\nresult = solver.solve()\n\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    seq = [0] * N\n    for v in range(1, n+1):\n        for p in range(N):\n            if model[var(v, p)-1] > 0:\n                seq[p] = v\n    print(f\"Sequence: {seq}\")\n    \n    # Verify\n    ok = True\n    for v in range(1, n+1):\n        positions = [i for i, val in enumerate(seq) if val == v]\n        if len(positions) != 2:\n            print(f\"Value {v}: found {len(positions)} times!\")\n            ok = False\n        elif positions[1] - positions[0] != v + 1:\n            print(f\"Value {v}: positions {positions}, diff = {positions[1]-positions[0]}, expected {v+1}\")\n            ok = False\n        else:\n            print(f\"Value {v}: positions {positions}, diff = {positions[1]-positions[0]} OK\")\n    if ok:\n        print(\"All verified!\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 455.51
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.card import CardEnc\nhelp(CardEnc.equals)",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 336.86
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\n\nn = 12\nN = 2 * n\n\ndef var(v, p):\n    return (v-1)*N + p + 1\n\ncnf = CNF()\n\n# Each position gets exactly one value\nfor p in range(N):\n    lits = [var(v, p) for v in range(1, n+1)]\n    cnf.append(lits)\n    for v1 in range(1, n+1):\n        for v2 in range(v1+1, n+1):\n            cnf.append([-var(v1, p), -var(v2, p)])\n\n# Each value appears exactly twice\nfor v in range(1, n+1):\n    lits = [var(v, p) for p in range(N)]\n    cnf.extend(CardEnc.equals(lits, bound=2, encoding=1))\n\n# Pair variables\npair_var = {}\npair_idx = n * N + 1\n\nfor v in range(1, n+1):\n    for p in range(N - v - 1):\n        pair_var[(v, p)] = pair_idx\n        pair_idx += 1\n\n# Each value has exactly one pair\nfor v in range(1, n+1):\n    pairs = [pair_var[(v, p)] for p in range(N - v - 1)]\n    cnf.append(pairs)\n    for i in range(len(pairs)):\n        for j in range(i+1, len(pairs)):\n            cnf.append([-pairs[i], -pairs[j]])\n\n# Link pair variables to position variables\nfor v in range(1, n+1):\n    for p in range(N - v - 1):\n        pv = pair_var[(v, p)]\n        cnf.append([-pv, var(v, p)])\n        cnf.append([-pv, var(v, p+v+1)])\n        cnf.append([-var(v, p), -var(v, p+v+1), pv])\n\n# If var(v,p) is true, then some pair must cover it\nfor v in range(1, n+1):\n    for p in range(N):\n        clause = [-var(v, p)]\n        if p < N - v - 1:\n            clause.append(pair_var[(v, p)])\n        if p - v - 1 >= 0:\n            clause.append(pair_var[(v, p - v - 1)])\n        cnf.append(clause)\n\nprint(f\"Variables: {pair_idx-1}\")\nprint(f\"Clauses: {len(cnf.clauses)}\")\n\nsolver = Solver(name='cadical')\nsolver.append_formula(cnf.clauses)\nresult = solver.solve()\n\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    seq = [0] * N\n    for v in range(1, n+1):\n        for p in range(N):\n            if model[var(v, p)-1] > 0:\n                seq[p] = v\n    print(f\"Sequence: {seq}\")\n    \n    # Verify\n    ok = True\n    for v in range(1, n+1):\n        positions = [i for i, val in enumerate(seq) if val == v]\n        if len(positions) != 2:\n            print(f\"Value {v}: found {len(positions)} times!\")\n            ok = False\n        elif positions[1] - positions[0] != v + 1:\n            print(f\"Value {v}: positions {positions}, diff = {positions[1]-positions[0]}, expected {v+1}\")\n            ok = False\n        else:\n            print(f\"Value {v}: positions {positions}, diff = {positions[1]-positions[0]} OK\")\n    if ok:\n        print(\"All verified!\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 625.21
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nprint(Solver.available_solvers())",
+        "timeout_seconds": 10
+      },
+      "ok": false,
+      "latency_ms": 219.04
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "max_rounds",
+  "forced_submit": false
+}

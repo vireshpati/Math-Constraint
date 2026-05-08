@@ -1,0 +1,151 @@
+{
+  "problem_name": "graceful_graph_k3_p5__v2_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1655.4,
+    "search_space": 5097655355238390956032,
+    "num_variables": 42,
+    "num_constraints": 31,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.91,
+    "solve_pct_type": 81.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    21,
+    24,
+    8,
+    16,
+    5,
+    1,
+    26,
+    17,
+    0,
+    2,
+    25,
+    27,
+    23,
+    3,
+    9
+  ],
+  "reasoning": "The graph G_{3,5} was modeled as a constraint satisfaction problem and solved using a SAT solver. The resulting vertex labels were verified to be a valid graceful labeling, as all 15 labels are unique and in the range 0-27, and all 27 edge differences are distinct and in the range 1-27.",
+  "raw_response": null,
+  "cot_trace": "**Defining the Clique Structure**\n\nI'm now focusing on the structure of the graph $G_{3,5}$. I've defined it as having five disjoint $K_3$ cliques, labeled $C_0$ through $C_4$. Each $C_j$ contains vertices $v_{j,0}, v_{j,1}, and v_{j,2}$, and I'm noting the edges within each $C_j$.\n\n\n**Calculating Edge & Vertex Count**\n\nI've clarified the precise number of edges and vertices within the graph. There are fifteen vertices, and a total of twenty-seven edges, which includes the fifteen edges within the five cliques and twelve edges connecting them. I'm now certain of the labeling constraints. My next focus is on applying the graceful labeling concept to the complete graph.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 25457,
+  "completion_tokens": 5762,
+  "reasoning_tokens": 865,
+  "cached_tokens": 4037,
+  "cost_usd": 0.014098925,
+  "cost_source": "openrouter",
+  "latency_ms": 71739.40920829773,
+  "tool_dispatch_ms_total": 44299.49903488159,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nimport itertools\n\n# Graph definition\n# Vertices: (j, i) for j in 0..4, i in 0..2\n# Edges:\n# Within clique j: (j,0)-(j,1), (j,1)-(j,2), (j,2)-(j,0)\n# Between clique j and j+1: (j,0)-(j+1,0), (j,1)-(j+1,1), (j,2)-(j+1,2)\n\nedges = []\nfor j in range(5):\n    edges.append(((j, 0), (j, 1)))\n    edges.append(((j, 1), (j, 2)))\n    edges.append(((j, 2), (j, 0)))\nfor j in range(4):\n    edges.append(((j, 0), (j + 1, 0)))\n    edges.append(((j, 1), (j + 1, 1)))\n    edges.append(((j, 2), (j + 1, 2)))\n\nnum_vertices = 15\nnum_edges = 27\n# Labels are 0..27\n# Variables: x_{j,i} is the label of vertex (j,i)\n# x_{j,i} \\in {0, ..., 27}\n# We can use binary encoding or just use a solver that supports integer variables.\n# Since pysat is for CNF, let's use a simple encoding.\n# x_{j,i,v} = 1 if vertex (j,i) has label v, 0 otherwise.\n\ndef get_var(j, i, v):\n    return j * 3 * 28 + i * 28 + v + 1\n\nsolver = Glucose3()\n\n# Each vertex has exactly one label\nfor j in range(5):\n    for i in range(3):\n        solver.add_clause([get_var(j, i, v) for v in range(28)])\n        for v1 in range(28):\n            for v2 in range(v1 + 1, 28):\n                solver.add_clause([-get_var(j, i, v1), -get_var(j, i, v2)])\n\n# Each label is used at most once\nfor v in range(28):\n    vars_with_label_v = [get_var(j, i, v) for j in range(5) for i in range(3)]\n    for v1_idx in range(len(vars_with_label_v)):\n        for v2_idx in range(v1_idx + 1, len(vars_with_label_v)):\n            solver.add_clause([-vars_with_label_v[v1_idx], -vars_with_label_v[v2_idx]])\n\n# Edge labels must be distinct and in {1, ..., 27}\n# Let e_k be the k-th edge, e_k = (u_k, v_k)\n# Let d_k = |label(u_k) - label(v_k)|\n# d_k \\in {1, ..., 27}\n# d_k are all distinct.\n\n# This is a bit complex for CNF. Let's use a different approach or a more powerful solver.\n# Actually, 15 vertices and 27 edges is small enough for a backtracking search.\n"
+      },
+      "ok": true,
+      "latency_ms": 615.21
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef solve():\n    # Vertices: 0..14\n    # Edges:\n    edges = []\n    for j in range(5):\n        edges.append((3*j + 0, 3*j + 1))\n        edges.append((3*j + 1, 3*j + 2))\n        edges.append((3*j + 2, 3*j + 0))\n    for j in range(4):\n        edges.append((3*j + 0, 3*(j+1) + 0))\n        edges.append((3*j + 1, 3*(j+1) + 1))\n        edges.append((3*j + 2, 3*(j+1) + 2))\n    \n    # Labels: 0..27\n    # We need to assign 15 distinct labels from 0..27 to the 15 vertices\n    # such that the 27 edge differences are distinct and in 1..27.\n    \n    # This is a search problem.\n    # Let's use backtracking with pruning.\n    \n    labels = [-1] * 15\n    used_labels = [False] * 28\n    used_diffs = [False] * 28\n    \n    def backtrack(v_idx):\n        if v_idx == 15:\n            return True\n        \n        for label in range(28):\n            if not used_labels[label]:\n                labels[v_idx] = label\n                \n                # Check if this label assignment violates any edge constraints\n                possible = True\n                # Check edges connected to v_idx that are fully assigned\n                for u, v in edges:\n                    if u == v_idx and labels[v] != -1:\n                        diff = abs(labels[u] - labels[v])\n                        if diff == 0 or used_diffs[diff]:\n                            possible = False\n                            break\n                    elif v == v_idx and labels[u] != -1:\n                        diff = abs(labels[u] - labels[v])\n                        if diff == 0 or used_diffs[diff]:\n                            possible = False\n                            break\n                \n                if possible:\n                    # Mark label and diffs\n                    used_labels[label] = True\n                    new_diffs = []\n                    for u, v in edges:\n                        if (u == v_idx and labels[v] != -1) or (v == v_idx and labels[u] != -1):\n                            diff = abs(labels[u] - labels[v])\n                            used_diffs[diff] = True\n                            new_diffs.append(diff)\n                    \n                    if backtrack(v_idx + 1):\n                        return True\n                    \n                    # Backtrack\n                    for diff in new_diffs:\n                        used_diffs[diff] = False\n                    used_labels[label] = False\n                    labels[v_idx] = -1\n        return False\n\n    if backtrack(0):\n        return labels\n    else:\n        return None\n\nprint(solve())\n"
+      },
+      "ok": false,
+      "latency_ms": 15016.86
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\n\ndef solve():\n    # Vertices: 0..14\n    edges = []\n    for j in range(5):\n        edges.append((3*j + 0, 3*j + 1))\n        edges.append((3*j + 1, 3*j + 2))\n        edges.append((3*j + 2, 3*j + 0))\n    for j in range(4):\n        edges.append((3*j + 0, 3*(j+1) + 0))\n        edges.append((3*j + 1, 3*(j+1) + 1))\n        edges.append((3*j + 2, 3*(j+1) + 2))\n    \n    # Try a randomized approach (hill climbing or local search)\n    # Start with a random permutation of 15 labels from 0..27\n    \n    labels = list(range(28))\n    \n    for _ in range(100000):\n        random.shuffle(labels)\n        current_labels = labels[:15]\n        \n        # Check edge differences\n        diffs = set()\n        possible = True\n        for u, v in edges:\n            diff = abs(current_labels[u] - current_labels[v])\n            if diff == 0 or diff in diffs:\n                possible = False\n                break\n            diffs.add(diff)\n        \n        if possible:\n            return current_labels\n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 1130.11
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\n\ndef solve():\n    # Vertices: 0..14\n    edges = []\n    for j in range(5):\n        edges.append((3*j + 0, 3*j + 1))\n        edges.append((3*j + 1, 3*j + 2))\n        edges.append((3*j + 2, 3*j + 0))\n    for j in range(4):\n        edges.append((3*j + 0, 3*(j+1) + 0))\n        edges.append((3*j + 1, 3*(j+1) + 1))\n        edges.append((3*j + 2, 3*(j+1) + 2))\n    \n    # Hill climbing\n    # State: current_labels (list of 15)\n    # Energy: number of duplicate differences + number of 0 differences\n    \n    current_labels = random.sample(range(28), 15)\n    \n    for iteration in range(1000000):\n        # Calculate energy\n        diffs = []\n        for u, v in edges:\n            diffs.append(abs(current_labels[u] - current_labels[v]))\n        \n        # Energy = number of non-unique diffs + number of 0 diffs\n        # Actually, let's just count how many diffs are in the set of used diffs\n        \n        # To make it faster, let's just count conflicts\n        conflicts = 0\n        used = {}\n        for d in diffs:\n            if d == 0 or d in used:\n                conflicts += 1\n            else:\n                used[d] = True\n        \n        if conflicts == 0:\n            return current_labels\n        \n        # Try to swap two labels\n        idx1 = random.randint(0, 14)\n        idx2 = random.randint(0, 14)\n        \n        # Or try to change one label to an unused one\n        if random.random() < 0.5:\n            # Swap\n            current_labels[idx1], current_labels[idx2] = current_labels[idx2], current_labels[idx1]\n        else:\n            # Change\n            unused = [l for l in range(28) if l not in current_labels]\n            current_labels[idx1] = random.choice(unused)\n            \n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 10115.5
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\n\ndef solve():\n    # Vertices: 0..14\n    edges = []\n    for j in range(5):\n        edges.append((3*j + 0, 3*j + 1))\n        edges.append((3*j + 1, 3*j + 2))\n        edges.append((3*j + 2, 3*j + 0))\n    for j in range(4):\n        edges.append((3*j + 0, 3*(j+1) + 0))\n        edges.append((3*j + 1, 3*(j+1) + 1))\n        edges.append((3*j + 2, 3*(j+1) + 2))\n    \n    # Hill climbing with a better energy function\n    # Energy = number of duplicate differences + number of 0 differences\n    \n    current_labels = random.sample(range(28), 15)\n    \n    def get_conflicts(labels):\n        diffs = []\n        for u, v in edges:\n            diffs.append(abs(labels[u] - labels[v]))\n        \n        conflicts = 0\n        used = {}\n        for d in diffs:\n            if d == 0 or d in used:\n                conflicts += 1\n            else:\n                used[d] = True\n        return conflicts\n\n    best_conflicts = get_conflicts(current_labels)\n    \n    for iteration in range(2000000):\n        idx = random.randint(0, 14)\n        old_label = current_labels[idx]\n        \n        # Try to change one label to an unused one\n        unused = [l for l in range(28) if l not in current_labels]\n        new_label = random.choice(unused)\n        \n        current_labels[idx] = new_label\n        new_conflicts = get_conflicts(current_labels)\n        \n        if new_conflicts < best_conflicts:\n            best_conflicts = new_conflicts\n            if best_conflicts == 0:\n                return current_labels\n        else:\n            # Simulated annealing-like acceptance\n            if random.random() < 0.01: # Small probability to accept worse\n                best_conflicts = new_conflicts\n            else:\n                current_labels[idx] = old_label\n            \n    return None\n\nprint(solve())\n"
+      },
+      "ok": false,
+      "latency_ms": 15017.67
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\n\ndef solve():\n    # Vertices: 0..14\n    # Edges:\n    edges = []\n    for j in range(5):\n        edges.append((3*j + 0, 3*j + 1))\n        edges.append((3*j + 1, 3*j + 2))\n        edges.append((3*j + 2, 3*j + 0))\n    for j in range(4):\n        edges.append((3*j + 0, 3*(j+1) + 0))\n        edges.append((3*j + 1, 3*(j+1) + 1))\n        edges.append((3*j + 2, 3*(j+1) + 2))\n    \n    # Variables:\n    # x_{v, l} = 1 if vertex v has label l\n    # v \\in {0..14}, l \\in {0..27}\n    # Total 15 * 28 = 420 variables\n    \n    def get_var(v, l):\n        return v * 28 + l + 1\n    \n    solver = Glucose3()\n    \n    # Each vertex has exactly one label\n    for v in range(15):\n        solver.add_clause([get_var(v, l) for l in range(28)])\n        for l1 in range(28):\n            for l2 in range(l1 + 1, 28):\n                solver.add_clause([-get_var(v, l1), -get_var(v, l2)])\n                \n    # Each label is used at most once\n    for l in range(28):\n        for v1 in range(15):\n            for v2 in range(v1 + 1, 15):\n                solver.add_clause([-get_var(v1, l), -get_var(v2, l)])\n                \n    # Edge differences must be distinct\n    # Let d_{e, k} = 1 if edge e has difference k, k \\in {1..27}\n    # This is still a lot of variables.\n    # Let's use a simpler approach:\n    # For each edge e=(u, v), and each pair of labels (l1, l2),\n    # if edge e has labels (l1, l2), then the difference is |l1 - l2|.\n    \n    # Actually, let's use the constraint that for each edge e,\n    # the difference is some k \\in {1..27}, and each k is used at most once.\n    \n    # Let y_{e, k} = 1 if edge e has difference k\n    # e \\in {0..26}, k \\in {1..27}\n    # This is 27 * 27 = 729 variables.\n    \n    def get_diff_var(e, k):\n        return 15 * 28 + e * 27 + k\n    \n    # Each edge has exactly one difference\n    for e in range(27):\n        solver.add_clause([get_diff_var(e, k) for k in range(1, 28)])\n        for k1 in range(1, 28):\n            for k2 in range(k1 + 1, 28):\n                solver.add_clause([-get_diff_var(e, k1), -get_diff_var(e, k2)])\n                \n    # Each difference is used at most once\n    for k in range(1, 28):\n        for e1 in range(27):\n            for e2 in range(e1 + 1, 27):\n                solver.add_clause([-get_diff_var(e1, k), -get_diff_var(e2, k)])\n                \n    # Link vertex labels to edge differences\n    # If vertex u has label l1 and vertex v has label l2,\n    # then edge (u, v) must have difference |l1 - l2|\n    for e_idx, (u, v) in enumerate(edges):\n        for l1 in range(28):\n            for l2 in range(28):\n                if l1 == l2: continue\n                diff = abs(l1 - l2)\n                # If u has l1 and v has l2, then edge e_idx must have diff\n                # Clause: -(u has l1) or -(v has l2) or (edge e_idx has diff)\n                solver.add_clause([-get_var(u, l1), -get_var(v, l2), get_diff_var(e_idx, diff)])\n                \n    if solver.solve():\n        model = solver.get_model()\n        labels = [0] * 15\n        for v in range(15):\n            for l in range(28):\n                if model[get_var(v, l) - 1] > 0:\n                    labels[v] = l\n                    break\n        return labels\n    else:\n        return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 2362.01
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check_graceful(labels):\n    edges = []\n    for j in range(5):\n        edges.append((3*j + 0, 3*j + 1))\n        edges.append((3*j + 1, 3*j + 2))\n        edges.append((3*j + 2, 3*j + 0))\n    for j in range(4):\n        edges.append((3*j + 0, 3*(j+1) + 0))\n        edges.append((3*j + 1, 3*(j+1) + 1))\n        edges.append((3*j + 2, 3*(j+1) + 2))\n    \n    diffs = []\n    for u, v in edges:\n        diff = abs(labels[u] - labels[v])\n        diffs.append(diff)\n    \n    print(f\"Labels: {labels}\")\n    print(f\"Diffs: {sorted(diffs)}\")\n    print(f\"Unique diffs: {len(set(diffs))}\")\n    print(f\"All diffs in 1..27: {all(1 <= d <= 27 for d in diffs)}\")\n    print(f\"All labels unique: {len(set(labels)) == 15}\")\n    print(f\"All labels in 0..27: {all(0 <= l <= 27 for l in labels)}\")\n\nlabels = [21, 24, 8, 16, 5, 1, 26, 17, 0, 2, 25, 27, 23, 3, 9]\ncheck_graceful(labels)\n"
+      },
+      "ok": true,
+      "latency_ms": 42.14
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "reasoning": "The graph G_{3,5} was modeled as a constraint satisfaction problem and solved using a SAT solver. The resulting vertex labels were verified to be a valid graceful labeling, as all 15 labels are unique and in the range 0-27, and all 27 edge differences are distinct and in the range 1-27.",
+        "solution": [
+          21,
+          24,
+          8,
+          16,
+          5,
+          1,
+          26,
+          17,
+          0,
+          2,
+          25,
+          27,
+          23,
+          3,
+          9
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

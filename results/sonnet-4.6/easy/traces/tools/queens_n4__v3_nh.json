@@ -1,0 +1,88 @@
+{
+  "problem_name": "queens_n4__v3_nh",
+  "problem_type": "queens",
+  "params": {
+    "n": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1316.1,
+    "search_space": 256,
+    "num_variables": 4,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 82.14,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    1,
+    3,
+    0,
+    2
+  ],
+  "reasoning": "The 4-Queens problem is satisfiable with 2 solutions. Solution [1,3,0,2] places queens at (row0,col1), (row1,col3), (row2,col0), (row3,col2). All four queens are in distinct rows (by construction), distinct columns {1,3,0,2}, and no two share a diagonal (verified: |r_i - r_j| \u2260 |c_i - c_j| for all pairs).",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4611,
+  "completion_tokens": 908,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.027452999999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 16174.521207809448,
+  "tool_dispatch_ms_total": 65.15288352966309,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef solve_n_queens(n):\n    solutions = []\n\n    def is_safe(placement, row, col):\n        for r, c in enumerate(placement):\n            if c == col:                        # same column\n                return False\n            if abs(r - row) == abs(c - col):   # same diagonal\n                return False\n        return True\n\n    def backtrack(placement):\n        row = len(placement)\n        if row == n:\n            solutions.append(placement[:])\n            return\n        for col in range(n):\n            if is_safe(placement, row, col):\n                placement.append(col)\n                backtrack(placement)\n                placement.pop()\n\n    backtrack([])\n    return solutions\n\nsolutions = solve_n_queens(4)\nprint(f\"Number of solutions: {len(solutions)}\")\nfor sol in solutions:\n    print(f\"Solution: {sol}\")\n    # Visualise\n    for row, col in enumerate(sol):\n        print(\"  \" + \". \" * col + \"Q \" + \". \" * (4 - col - 1))\n    print()\n"
+      },
+      "ok": true,
+      "latency_ms": 31.87
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nsolution = [1, 3, 0, 2]\n\nprint(\"Verification for solution:\", solution)\nprint()\nprint(\"Board (Q = queen, . = empty):\")\nprint(\"     Col0 Col1 Col2 Col3\")\nfor row, col in enumerate(solution):\n    line = [\".\", \".\", \".\", \".\"]\n    line[col] = \"Q\"\n    print(f\"Row{row}  \" + \"    \".join(line))\n\nprint()\nprint(\"Checking constraints:\")\nn = len(solution)\nok = True\nfor i in range(n):\n    for j in range(i+1, n):\n        same_col  = solution[i] == solution[j]\n        same_diag = abs(i - j) == abs(solution[i] - solution[j])\n        if same_col or same_diag:\n            print(f\"  CONFLICT between row {i} and row {j}!\")\n            ok = False\nif ok:\n    print(\"  \u2713 No two queens share a row (by construction)\")\n    print(\"  \u2713 No two queens share a column\")\n    print(\"  \u2713 No two queens share a diagonal\")\n    print(\"  \u2192 All constraints satisfied!\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.29
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          1,
+          3,
+          0,
+          2
+        ],
+        "reasoning": "The 4-Queens problem is satisfiable with 2 solutions. Solution [1,3,0,2] places queens at (row0,col1), (row1,col3), (row2,col0), (row3,col2). All four queens are in distinct rows (by construction), distinct columns {1,3,0,2}, and no two share a diagonal (verified: |r_i - r_j| \u2260 |c_i - c_j| for all pairs)."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

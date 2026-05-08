@@ -1,0 +1,71 @@
+{
+  "problem_name": "langford_n12__v6_nh",
+  "problem_type": "langford",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1602.0,
+    "search_space": 620448401733239439360000,
+    "num_variables": 24,
+    "num_constraints": 305,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.16,
+    "solve_pct_type": 43.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[12, 10, 11, 5, 1, 2, 1, 9, 2, 5, 7, 8, 10, 12, 11, 6, 4, 9, 7, 3, 8, 4, 6, 3]",
+  "reasoning": "Used a SAT solver to find a valid Langford sequence L(2,12). The encoding uses variables for each value's starting position, with constraints ensuring each value has exactly one starting position and each sequence position is covered by at most one value. The solver found a valid solution which was verified: each value v from 1 to 12 appears exactly twice, with the two occurrences exactly v+1 positions apart.",
+  "raw_response": null,
+  "cot_trace": "I need to construct a Langford sequence L(2,12). Let me understand the problem:\n\n- We need a sequence of length 24\n- It contains exactly 2 copies of each integer from 1 to 12\n- For each value v, the two occurrences are exactly v+1 positions apart\n- This means if the first occurrence of v is at position i, the second is at position i + v + 1\n\nLet me think about this more carefully. If copies of v are v+1 positions apart, that means there are v positions between them. So if the first v is at index i (0-indexed), the second v is at index i + v + 1.\n\nFor example, in L(2,3) = [2, 3, 1, 2, 1, 3]:\n- 1 appears at positions 2 and 4 (0-indexed), which are 2 apart, so 1+1=2 positions apart. \u2713\n- 2 appears at positions 0 and 3, which are 3 apart, so 2+1=3 positions apart. \u2713\n- 3 appears at positions 1 and 5, which are 4 apart, so 3+1=4 positions apart. \u2713\n\nNow, Langford sequences L(2,n) exist if and only if n \u2261 0 or 3 (mod 4).\n\nLet me check: 12 mod 4 = 0, so L(2,12) should exist.\n\nLet me write a Python script to find this sequence using constraint programming or backtracking.\n---\nThe SAT solver found a valid Langford sequence L(2,12). Let me verify the solution once more and submit it.\n\nThe solution is: [12, 10, 11, 5, 1, 2, 1, 9, 2, 5, 7, 8, 10, 12, 11, 6, 4, 9, 7, 3, 8, 4, 6, 3]\n\nLet me verify a few values:\n- Value 1: positions 4 and 6, difference = 2 = 1+1 \u2713\n- Value 2: positions 5 and 8, difference = 3 = 2+1 \u2713\n- Value 3: positions 19 and 23, difference = 4 = 3+1 \u2713\n- Value 12: positions 0 and 13, difference = 13 = 12+1 \u2713\n\nThe verification passed in the code, so this is correct.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2716,
+  "completion_tokens": 1819,
+  "reasoning_tokens": 575,
+  "cached_tokens": 0,
+  "cost_usd": 0.00442975,
+  "cost_source": "openrouter",
+  "latency_ms": 38712.716817855835,
+  "tool_dispatch_ms_total": 446.50912284851074,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nfrom pysat.card import *\n\n# Langford sequence L(2,12)\n# We need to place pairs of numbers 1-12 in a sequence of length 24\n# For each value v, the two occurrences are v+1 positions apart\n\nn = 12\nlength = 2 * n\n\n# We'll use a SAT solver approach\n# Variables: x[v][i] = True if value v is placed at position i (first occurrence)\n# If v is at position i (first occurrence), then it's also at position i + v + 1\n\n# Let's use a different encoding:\n# For each value v (1 to n), we choose a starting position i such that i + v + 1 < length\n# Each position in the sequence is occupied by exactly one value\n\n# Variables: for each v in 1..n and each valid starting position i, \n# var(v, i) means \"v starts at position i\"\n\n# Constraints:\n# 1. Each v has exactly one starting position\n# 2. Each position is covered by at most one value\n\nfrom pysat.solvers import Glucose3\n\nsolver = Glucose3()\n\n# Create variable mapping\n# var_index[v][i] = variable index for \"value v starts at position i\"\nvar_index = {}\nvar_counter = 1\n\nfor v in range(1, n+1):\n    var_index[v] = {}\n    for i in range(length - v - 1 + 1):  # i can be 0 to length - v - 2\n        if i + v + 1 < length:\n            var_index[v][i] = var_counter\n            var_counter += 1\n\n# Constraint 1: Each value v has exactly one starting position\nfor v in range(1, n+1):\n    vars_for_v = [var_index[v][i] for i in var_index[v]]\n    # Exactly one: at least one and at most one\n    # At least one\n    solver.add_clause(vars_for_v)\n    # At most one (pairwise)\n    for i in range(len(vars_for_v)):\n        for j in range(i+1, len(vars_for_v)):\n            solver.add_clause([-vars_for_v[i], -vars_for_v[j]])\n\n# Constraint 2: Each position is covered by at most one value\n# Position p is covered by value v if v starts at p or v starts at p - v - 1\nfor p in range(length):\n    # Find all (v, i) pairs that cover position p\n    covering_vars = []\n    for v in range(1, n+1):\n        # v covers position p if it starts at p (first occurrence)\n        if p in var_index[v]:\n            covering_vars.append(var_index[v][p])\n        # v covers position p if it starts at p - v - 1 (second occurrence)\n        i = p - v - 1\n        if i >= 0 and i in var_index[v]:\n            covering_vars.append(var_index[v][i])\n    \n    # At most one of these can be true\n    for i in range(len(covering_vars)):\n        for j in range(i+1, len(covering_vars)):\n            solver.add_clause([-covering_vars[i], -covering_vars[j]])\n\n# Solve\nif solver.solve():\n    model = solver.get_model()\n    # Extract solution\n    seq = [0] * length\n    for v in range(1, n+1):\n        for i in var_index[v]:\n            var = var_index[v][i]\n            if var in model:\n                # v starts at position i\n                seq[i] = v\n                seq[i + v + 1] = v\n                break\n    \n    print(\"Solution found:\", seq)\n    print(\"Length:\", len(seq))\n    \n    # Verify\n    for v in range(1, n+1):\n        positions = [i for i, val in enumerate(seq) if val == v]\n        assert len(positions) == 2, f\"Value {v} appears {len(positions)} times\"\n        assert positions[1] - positions[0] == v + 1, f\"Value {v} positions are {positions[1] - positions[0]} apart, expected {v+1}\"\n    \n    print(\"Verification passed!\")\nelse:\n    print(\"UNSATISFIABLE\")\n\nsolver.delete()\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 446.51
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[12, 10, 11, 5, 1, 2, 1, 9, 2, 5, 7, 8, 10, 12, 11, 6, 4, 9, 7, 3, 8, 4, 6, 3]",
+        "reasoning": "Used a SAT solver to find a valid Langford sequence L(2,12). The encoding uses variables for each value's starting position, with constraints ensuring each value has exactly one starting position and each sequence position is covered by at most one value. The solver found a valid solution which was verified: each value v from 1 to 12 appears exactly twice, with the two occurrences exactly v+1 positions apart."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

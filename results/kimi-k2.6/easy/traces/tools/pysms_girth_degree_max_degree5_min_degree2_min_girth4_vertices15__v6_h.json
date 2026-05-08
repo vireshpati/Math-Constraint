@@ -1,0 +1,267 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree5_min_degree2_min_girth4_vertices15__v6_h",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 2,
+    "min_girth": 4,
+    "vertices": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 96.9,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 31,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 38.16,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      0,
+      11
+    ],
+    [
+      0,
+      13
+    ],
+    [
+      0,
+      14
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      1,
+      11
+    ],
+    [
+      1,
+      14
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      9
+    ],
+    [
+      2,
+      12
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      10
+    ],
+    [
+      3,
+      12
+    ],
+    [
+      3,
+      13
+    ],
+    [
+      5,
+      12
+    ],
+    [
+      6,
+      9
+    ]
+  ],
+  "reasoning": "Using CP-SAT, I found a graph on 15 vertices with 21 edges satisfying all constraints: degrees are between 2 and 5 (specifically [5,5,5,4,2,2,2,2,2,2,2,2,3,2,2]), all 6 fixed edges are present, and there are no triangles (girth = 4).",
+  "raw_response": null,
+  "cot_trace": " We need to generate a graph with 15 vertices, girth at least 4 (no triangles), degree constraints: each vertex degree between 2 and 5 inclusive. Fixed edges: (2,12), (3,10), (6,9), (3,13), (3,12), (0,13). Need to return a complete solution as list of edges (u,v) with 0 <= u < v < 15. Or UNSAT if impossible.\n\nWe need to find a graph satisfying constraints. Could be done via SAT solver or backtracking. Let's think.\n\nWe have 15 vertices, edges among 105 possible pairs. Need to choose a subset. No 3-cycles. Degrees 2..5.\n\nGiven fixed edges, let's compute degrees so far.\n\nFixed edges:\n(2,12): deg2+1, deg12+1\n(3,10): deg3+1, deg10+1\n(6,9): deg6+1, deg9+1\n(3,13): deg3+1, deg13+1\n(3,12): deg3+1, deg12+1\n(0,13): deg0+1, deg13+1\n\nSo current degrees:\n0:1\n1:0\n2:1\n3:3\n4:0\n5:0\n6:1\n7:0\n8:0\n9:1\n10:1\n11:0\n12:2\n13:2\n14:0\n\nNeed each degree between 2 and 5. So vertices with degree <2 need more edges: 0 needs >=1, 1 needs >=2, 2 needs >=1, 4 needs >=2, 5 needs >=2, 6 needs >=1, 7 needs >=2, 8 needs >=2, 9 needs >=1, 10 needs >=1, 11 needs >=2, 14 needs >=2. Also vertices currently at degree 3 (vertex 3) can have up to 2 more (max 5). Vertex 12 has degree 2, can have up to 3 more. Vertex 13 has degree 2, can have up to 3 more.\n\nAlso need to avoid triangles. Let's check triangles among fixed edges. Edges among fixed: (2,12), (3,12), (3,10), (3,13), (0,13). Any triple forming triangle? 2-12-3? Edge (2,3) not fixed. 12-3-13? Edge (12,13) not fixed. 3-12-2? same. 3-13-0? Edge (0,3) not fixed. So no triangle yet.\n\nWe need to add edges to satisfy degrees. Could try to construct manually or use Python with OR-Tools or pysat or simple heuristic/backtracking.\n\nGiven 15 vertices, constraints moderate. Let's use Python to search. We can formulate as SAT or use MILP or backtracking. Since we have pysat available, we can encode. But maybe easier: use python's itertools and backtracking with pruning. Or use networkx to check girth.\n\nBut we need a solution quickly. Let's use Python with OR-Tools CP-SAT? Not sure if installed. Could use pulp? Might not be installed. Could use python's `itertools.combinations` and brute force? 105 edges is too many.\n\nBetter: use SAT via pysat. Encode each possible edge as a boolean variable. For each vertex, degree constraints: sum of incident edges >=2 and <=5. For each triple (i,j,k), forbid all three edges (i,j), (j,k), (i,k) simultaneously. That's C(15,3)=455 triangles, each gives clause (~e_ij OR ~e_jk OR ~e_ik). Also fixed edges: unit clauses.\n\nVariables: assign each possible edge an integer id. Let's map (u,v) to id. Use pysat's Glucose3.\n\nLet's do that.\n---\n The solver returned UNSAT with the constraints I encoded. But I need to double-check: did I encode correctly? The constraints are:\n- girth at least 4 means no triangles (3-cycles) and no loops/multiple edges. But also no 2-cycles, which is impossible in simple graph. So just no triangles.\n- degree between 2 and 5 inclusive.\n- fixed edges present.\n\nWait, the solver says UNSAT. Is it possible that the fixed edges themselves force a triangle or violate degree? Let's check manually.\n\nFixed edges:\n(2,12), (3,10), (6,9), (3,13), (3,12), (0,13)\n\nVertex 3 has edges to 10,13,12. So degree of vertex 3 is at least 3. That's fine (<=5).\nVertex 13 has edges to 3,0. Degree at least 2. Fine.\nVertex 12 has edges to 2,3. Degree at least 2. Fine.\nVertex 2 has edge to 12. Degree at least 1, needs at least one more.\nVertex 10 has edge to 3. Degree at least 1, needs at least one more.\nVertex 6 has edge to 9. Degree at least 1, needs at least one more.\nVertex 9 has edge to 6. Degree at least 1, needs at least one more.\nVertex 0 has edge to 13. Degree at least 1, needs at least one more.\n\nNo triangles among fixed edges? Let's see: 3-12-2? no edge (2,3). 3-13-0? no edge (0,3). 3-10-? no. 3-12-2? no. So no triangle among fixed edges.\n\nSo why UNSAT? Maybe my cardinality constraints are wrong? Let's check pysat.card.CardEnc.atleast. The bound parameter: for atleast, bound is the lower bound. For atmost, bound is the upper bound. That seems correct.\n\nWait, pysat.card.CardEnc.atleast returns a CNF object. But does it include the original literals? I think it does. But maybe the encoding type totalizer for atleast with small bound is okay.\n\nAlternatively, maybe the problem is indeed unsatisfiable? But the user asks to generate a graph with 15 vertices, girth >=4, degree between 2 and 5, with those fixed edges. Could it be impossible? Let's think.\n\nWe have 15 vertices. Minimum degree 2 means at least 15 edges. Maximum degree 5 means at most floor(15*5/2)=37 edges.\n\nBut with girth >=4, we are looking for a triangle-free graph. There is a known bound: Tur\u00e1n's theorem says max edges in triangle-free graph on n vertices is floor(n^2/4) = floor(225/4)=56. So edge count is not the issue.\n\nBut maybe the fixed edges create some structural issue? Let's check if vertex 3 is connected to 10,12,13. If we want to avoid triangles, we must ensure that no two neighbors of 3 are connected. So 10,12,13 must form an independent set (no edges among them). That's fine.\n\nSimilarly, vertex 13 is connected to 3 and 0. So 3 and 0 are not connected (no edge (0,3) anyway? Actually (0,3) is not fixed, but we must not add it). That's fine.\n\nWait, maybe the issue is that I used CardEnc.atleast with totalizer encoding, but pysat's totalizer might not support atleast directly? Let's check pysat documentation. CardEnc.atleast returns a CNF formula that encodes sum >= bound. It should work.\n\nBut maybe I need to add the clauses from the CNF object correctly. The CNF object has .clauses attribute. I did that.\n\nAlternatively, maybe the solver ran out of time? No, it returned quickly.\n\nLet me try a different approach: use python to search or use OR-Tools CP-SAT. Or maybe I made a mistake in variable indexing? Let's verify.\n\nActually, pysat's CardEnc.atleast might return a formula that includes auxiliary variables, and the clauses might be correct. But maybe for atleast with bound=2 on 14 variables, totalizer is okay.\n\nWait, I should check if the fixed edges themselves violate the atmost constraint? No, atmost is 5, and fixed edges have max degree 3 at vertex 3.\n\nLet me try to solve with a simpler method: use python's itertools and backtracking? Or use OR-Tools CP-SAT.\n\nBut first, let me double-check by trying to add constraints one by one to see which makes it UNSAT.\n\nActually, maybe the problem is that I used `CardEnc.atleast` but didn't include the original variables in the solver? No, the atleast encoding adds clauses that enforce the bound.\n\nWait, I recall that pysat.card.CardEnc.atleast returns a CNF object where the top variable (or something) represents the bound. But the clauses should be sufficient.\n\nLet me test a simpler case: n=4, degree between 1 and 2, no triangles. Does it work? I'll test my encoding on a known satisfiable case.\n\nActually, maybe the issue is that for atleast, the bound parameter in pysat is the number of literals that must be true, but the encoding might be buggy for small bounds? Let's check by printing the clauses for a small example.\n\nAlternatively, I can use `CardEnc.equals`? No.\n\nAnother thought: maybe the graph is indeed unsatisfiable because of the fixed edges? Let's try to reason.\n\nWe have 15 vertices. Let's consider the subgraph induced by fixed edges. It's a matching plus a star centered at 3? Actually edges: (2,12), (3,10), (6,9), (3,13), (3,12), (0,13). So vertex 3 is connected to 10,13,12. Vertex 13 is connected to 3,0. Vertex 12 is connected to 2,3. Others are in pairs.\n\nNow, to avoid triangles:\n- Since 3 is adjacent to 10,12,13, there can be no edges among {10,12,13}.\n- Since 13 is adjacent to 3 and 0, there can be no edge (0,3). Also, 0 and 3's other neighbors? Actually triangle would be 0-13-3, so no edge (0,3). Also if 0 is adjacent to any neighbor of 13 other than 3, but 13's only neighbors are 3 and 0 so far. Wait, triangle involving 13: if 13 is adjacent to x and y, and x-y is an edge, then triangle. So if we add edge (13,x), then no edge between 3 and x, and no edge between 0 and x. So neighbors of 13 must not be adjacent to each other, and also not adjacent to other neighbors? Actually for triangle 13-x-y-13, x and y must both be neighbors of 13 and adjacent. So the neighbor set of 13 must be independent.\n\nSimilarly for 12: neighbors are 2 and 3. So 2 and 3 cannot be adjacent (no edge (2,3)). Also any new neighbor of 12 cannot be adjacent to 2 or 3.\n\nFor 3: neighbors are 10,12,13. So no edges among {10,12,13}.\n\nNow, degree constraints: each vertex degree >=2 and <=5.\n\nLet's list vertices and their current degrees:\n0: 1 (needs +1 to +4)\n2: 1 (needs +1 to +4)\n3: 3 (needs +0 to +2)\n6: 1 (needs +1 to +4)\n9: 1 (needs +1 to +4)\n10: 1 (needs +1 to +4)\n12: 2 (needs +0 to +3)\n13: 2 (needs +0 to +3)\nOthers: 1,4,5,7,8,11,14 have degree 0 (needs +2 to +5).\n\nSo vertices 1,4,5,7,8,11,14 each need at least 2 edges.\n\nTotal degree sum needed: at least (for vertices with deg<2):\n0:1, 2:1, 6:1, 9:1, 10:1, 1:2, 4:2, 5:2, 7:2, 8:2, 11:2, 14:2. Sum = 1*5 + 2*7 = 5+14=19. But each edge contributes 2 to degree sum, so we need at least ceil(19/2)=10 additional edges. Plus the 6 fixed edges = at least 16 edges total.\n\nMaximum degree sum allowed: each vertex <=5, so max sum = 15*5=75, so at most 37 edges. That's plenty.\n\nSo why UNSAT? Maybe my encoding of atleast is wrong. Let me check pysat.card documentation.\n\nIn pysat.card, `CardEnc.atleast(lits, bound, encoding)` returns a `CardEnc` object with `.clauses` and `.nvars`. The clauses encode the constraint that at least `bound` literals are true. But I think the way totalizer works, it might require that the bound is at most len(lits). That's fine.\n\nWait, I think I know the issue: `CardEnc.atleast` might not add the original literals to the solver? No, the clauses reference the original literals.\n\nLet me test with a very simple SAT problem using my encoding.\n\nActually, maybe the problem is that I used `EncType.totalizer` for both atleast and atmost, and there might be a bug when using the same encoding type with overlapping variables? No, that should be fine.\n\nAlternatively, maybe the solver is correct and it's UNSAT. But I suspect a bug because the problem seems plausible.\n\nLet me try using OR-Tools CP-SAT instead. It's a powerful constraint solver.\n\nI'll model it as a CP problem: binary variables for each edge, constraints:\n- fixed edges = 1\n- for each vertex: sum of incident edges >=2 and <=5\n- for each triangle: sum of its 3 edges <=2\n\nThen solve.\n\nLet's do that.\n---\n I forgot to import combinations. Let me fix that.\n---\n We found a solution with CP-SAT. Let me verify it carefully.\n\nEdges:\n(0,5), (0,10), (0,11), (0,13), (0,14),\n(1,6), (1,7), (1,8), (1,11), (1,14),\n(2,4), (2,7), (2,8), (2,9), (2,12),\n(3,4), (3,10), (3,12), (3,13),\n(5,12),\n(6,9)\n\nWait, that's only 21 edges. Let me count:\n0: 5 edges\n1: 5 edges\n2: 5 edges\n3: 4 edges\n4: 2 edges (2,4), (3,4)\n5: 2 edges (0,5), (5,12)\n6: 2 edges (1,6), (6,9)\n7: 2 edges (1,7), (2,7)\n8: 2 edges (1,8), (2,8)\n9: 2 edges (2,9), (6,9)\n10: 2 edges (0,10), (3,10)\n11: 2 edges (0,11), (1,11)\n12: 3 edges (2,12), (5,12), (3,12)\n13: 2 edges (0,13), (3,13)\n14: 2 edges (0,14), (1,14)\n\nDegrees: [5,5,5,4,2,2,2,2,2,2,2,2,3,2,2] - all between 2 and 5. Good.\n\nFixed edges:\n(2,12) - present\n(3,10) - present\n(6,9) - present\n(3,13) - present\n(3,12) - present\n(0,13) - present\n\nGirth at least 4 means no triangles. The solver says no triangles. Let me double-check manually or with code.\n\nAlso need to check that there are no 3-cycles. Let me verify with code.\n\nAlso, the problem says \"girth (shortest cycle) is at least 4\". This means no 3-cycles, but 4-cycles are allowed. Our constraints only forbid triangles, which is correct.\n\nWait, I should also make sure there are no self-loops or multiple edges, but our encoding naturally prevents that.\n\nLet me verify the solution more thoroughly.\n---\n The solution is valid. Let me format it properly as a list of edges.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 11113,
+  "completion_tokens": 6808,
+  "reasoning_tokens": 3145,
+  "cached_tokens": 1168,
+  "cost_usd": 0.0320176,
+  "cost_source": "openrouter",
+  "latency_ms": 492094.6412086487,
+  "tool_dispatch_ms_total": 7650.107860565186,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nfrom itertools import combinations\n\nn = 15\n# map each edge (u,v) with u<v to a variable index starting from 1\nedge_var = {}\nvar_edge = {}\nvar = 1\nfor u, v in combinations(range(n), 2):\n    edge_var[(u,v)] = var\n    var_edge[var] = (u,v)\n    var += 1\n\nsolver = Glucose3()\n\n# fixed edges\nfixed = [(2,12),(3,10),(6,9),(3,13),(3,12),(0,13)]\nfor u,v in fixed:\n    if u > v:\n        u,v = v,u\n    solver.add_clause([edge_var[(u,v)]])\n\n# degree constraints: each vertex degree between 2 and 5\n# encode using cardinality constraints? pysat has card module? Let's check.\n# We can use pysat.card for atmost/atleast.\nfrom pysat.card import CardEnc, EncType\n\nfor vtx in range(n):\n    incident = []\n    for u in range(n):\n        if u == vtx:\n            continue\n        a,b = (min(u,vtx), max(u,vtx))\n        incident.append(edge_var[(a,b)])\n    # at least 2\n    if len(incident) >= 2:\n        atleast = CardEnc.atleast(lits=incident, bound=2, encoding=EncType.totalizer)\n        for clause in atleast.clauses:\n            solver.add_clause(clause)\n    # at most 5\n    atmost = CardEnc.atmost(lits=incident, bound=5, encoding=EncType.totalizer)\n    for clause in atmost.clauses:\n        solver.add_clause(clause)\n\n# no triangles: for each triple, at most 2 edges among 3\n# clause: not all three present\nfor triple in combinations(range(n), 3):\n    i,j,k = triple\n    e1 = edge_var[(min(i,j), max(i,j))]\n    e2 = edge_var[(min(j,k), max(j,k))]\n    e3 = edge_var[(min(i,k), max(i,k))]\n    solver.add_clause([-e1, -e2, -e3])\n\nprint(\"Solving...\")\nsat = solver.solve()\nprint(\"SAT:\", sat)\nif sat:\n    model = solver.get_model()\n    # get positive literals\n    edges = []\n    for lit in model:\n        if lit > 0:\n            edges.append(var_edge[lit])\n    print(\"Number of edges:\", len(edges))\n    # verify degrees\n    deg = [0]*n\n    for u,v in edges:\n        deg[u]+=1\n        deg[v]+=1\n    print(\"Degrees:\", deg)\n    # verify no triangles\n    # build adjacency set\n    adj = [set() for _ in range(n)]\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    tri = False\n    for i in range(n):\n        for j in adj[i]:\n            if j > i:\n                for k in adj[j]:\n                    if k > j and k in adj[i]:\n                        tri = True\n                        print(\"Triangle:\", i,j,k)\n                        break\n                if tri:\n                    break\n        if tri:\n            break\n    print(\"Has triangle:\", tri)\n    print(\"Edges:\", sorted(edges))\nelse:\n    print(\"UNSAT\")\n"
+      },
+      "ok": true,
+      "latency_ms": 899.84
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\nn = 15\nmodel = cp_model.CpModel()\n\n# edge variables\nedge = {}\nfor u, v in combinations(range(n), 2):\n    edge[(u,v)] = model.NewBoolVar(f\"e_{u}_{v}\")\n\n# fixed edges\nfixed = [(2,12),(3,10),(6,9),(3,13),(3,12),(0,13)]\nfor u,v in fixed:\n    if u > v:\n        u,v = v,u\n    model.Add(edge[(u,v)] == 1)\n\n# degree constraints\nfor vtx in range(n):\n    incident = []\n    for u in range(n):\n        if u == vtx:\n            continue\n        a,b = (min(u,vtx), max(u,vtx))\n        incident.append(edge[(a,b)])\n    model.Add(sum(incident) >= 2)\n    model.Add(sum(incident) <= 5)\n\n# no triangles\nfor i,j,k in combinations(range(n), 3):\n    e1 = edge[(min(i,j), max(i,j))]\n    e2 = edge[(min(j,k), max(j,k))]\n    e3 = edge[(min(i,k), max(i,k))]\n    model.Add(e1 + e2 + e3 <= 2)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30.0\nsolver.parameters.num_search_workers = 8\nprint(\"Solving with CP-SAT...\")\nstatus = solver.Solve(model)\nprint(\"Status:\", status, cp_model.OPTIMAL, cp_model.FEASIBLE, cp_model.INFEASIBLE)\nif status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n    edges = []\n    for u,v in combinations(range(n),2):\n        if solver.Value(edge[(u,v)]) == 1:\n            edges.append((u,v))\n    print(\"Edges:\", len(edges))\n    deg = [0]*n\n    for u,v in edges:\n        deg[u]+=1\n        deg[v]+=1\n    print(\"Degrees:\", deg)\n    # verify no triangles\n    adj = [set() for _ in range(n)]\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    tri = False\n    for i in range(n):\n        for j in adj[i]:\n            if j > i:\n                for k in adj[j]:\n                    if k > j and k in adj[i]:\n                        tri = True\n                        print(\"Triangle:\", i,j,k)\n                        break\n                if tri:\n                    break\n        if tri:\n            break\n    print(\"Has triangle:\", tri)\n    print(sorted(edges))\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": false,
+      "latency_ms": 3026.18
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import combinations\nfrom ortools.sat.python import cp_model\n\nn = 15\nmodel = cp_model.CpModel()\n\n# edge variables\nedge = {}\nfor u, v in combinations(range(n), 2):\n    edge[(u,v)] = model.NewBoolVar(f\"e_{u}_{v}\")\n\n# fixed edges\nfixed = [(2,12),(3,10),(6,9),(3,13),(3,12),(0,13)]\nfor u,v in fixed:\n    if u > v:\n        u,v = v,u\n    model.Add(edge[(u,v)] == 1)\n\n# degree constraints\nfor vtx in range(n):\n    incident = []\n    for u in range(n):\n        if u == vtx:\n            continue\n        a,b = (min(u,vtx), max(u,vtx))\n        incident.append(edge[(a,b)])\n    model.Add(sum(incident) >= 2)\n    model.Add(sum(incident) <= 5)\n\n# no triangles\nfor i,j,k in combinations(range(n), 3):\n    e1 = edge[(min(i,j), max(i,j))]\n    e2 = edge[(min(j,k), max(j,k))]\n    e3 = edge[(min(i,k), max(i,k))]\n    model.Add(e1 + e2 + e3 <= 2)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30.0\nsolver.parameters.num_search_workers = 8\nprint(\"Solving with CP-SAT...\")\nstatus = solver.Solve(model)\nprint(\"Status:\", status, cp_model.OPTIMAL, cp_model.FEASIBLE, cp_model.INFEASIBLE)\nif status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n    edges = []\n    for u,v in combinations(range(n),2):\n        if solver.Value(edge[(u,v)]) == 1:\n            edges.append((u,v))\n    print(\"Edges:\", len(edges))\n    deg = [0]*n\n    for u,v in edges:\n        deg[u]+=1\n        deg[v]+=1\n    print(\"Degrees:\", deg)\n    # verify no triangles\n    adj = [set() for _ in range(n)]\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    tri = False\n    for i in range(n):\n        for j in adj[i]:\n            if j > i:\n                for k in adj[j]:\n                    if k > j and k in adj[i]:\n                        tri = True\n                        print(\"Triangle:\", i,j,k)\n                        break\n                if tri:\n                    break\n        if tri:\n            break\n    print(\"Has triangle:\", tri)\n    print(sorted(edges))\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": true,
+      "latency_ms": 3670.36
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0,5), (0,10), (0,11), (0,13), (0,14), (1,6), (1,7), (1,8), (1,11), (1,14), (2,4), (2,7), (2,8), (2,9), (2,12), (3,4), (3,10), (3,12), (3,13), (5,12), (6,9)]\n\nn = 15\n# verify degrees\ndeg = [0]*n\nfor u,v in edges:\n    deg[u]+=1\n    deg[v]+=1\nprint(\"Degrees:\", deg)\nprint(\"All between 2 and 5:\", all(2 <= d <= 5 for d in deg))\n\n# verify fixed edges\nfixed = [(2,12),(3,10),(6,9),(3,13),(3,12),(0,13)]\nfor u,v in fixed:\n    if (u,v) not in edges and (v,u) not in edges:\n        print(\"Missing fixed edge:\", (u,v))\n    else:\n        print(\"Fixed edge present:\", (u,v))\n\n# verify no triangles\nadj = [set() for _ in range(n)]\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\ntriangles = []\nfor i in range(n):\n    for j in adj[i]:\n        if j > i:\n            for k in adj[j]:\n                if k > j and k in adj[i]:\n                    triangles.append((i,j,k))\nprint(\"Triangles:\", triangles)\n\n# verify girth >= 4 by checking shortest cycle length\nfrom collections import deque\n\ndef shortest_cycle(adj, n):\n    best = float('inf')\n    for start in range(n):\n        dist = [-1]*n\n        parent = [-1]*n\n        dist[start] = 0\n        q = deque([start])\n        while q:\n            u = q.popleft()\n            for v in adj[u]:\n                if dist[v] == -1:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    q.append(v)\n                elif parent[u] != v and parent[v] != u:\n                    # found a back edge\n                    cycle_len = dist[u] + dist[v] + 1\n                    best = min(best, cycle_len)\n    return best\n\ngirth = shortest_cycle(adj, n)\nprint(\"Girth:\", girth)\n\n# Let's also just BFS from each node to find shortest cycle more carefully\ndef bfs_shortest_cycle_from(start, adj, n):\n    dist = {start: 0}\n    parent = {start: None}\n    q = deque([start])\n    while q:\n        u = q.popleft()\n        for v in adj[u]:\n            if v not in dist:\n                dist[v] = dist[u] + 1\n                parent[v] = u\n                q.append(v)\n            elif parent[u] != v:\n                # cycle found\n                return dist[u] + dist[v] + 1\n    return float('inf')\n\nbest = float('inf')\nfor start in range(n):\n    best = min(best, bfs_shortest_cycle_from(start, adj, n))\nprint(\"Girth (BFS):\", best)\n"
+      },
+      "ok": true,
+      "latency_ms": 53.72
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            0,
+            14
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            2,
+            9
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            10
+          ],
+          [
+            3,
+            12
+          ],
+          [
+            3,
+            13
+          ],
+          [
+            5,
+            12
+          ],
+          [
+            6,
+            9
+          ]
+        ],
+        "reasoning": "Using CP-SAT, I found a graph on 15 vertices with 21 edges satisfying all constraints: degrees are between 2 and 5 (specifically [5,5,5,4,2,2,2,2,2,2,2,2,3,2,2]), all 6 fixed edges are present, and there are no triangles (girth = 4)."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

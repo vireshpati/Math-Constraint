@@ -1,0 +1,109 @@
+{
+  "problem_name": "graceful_graph_k2_p5__v1_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1003.9,
+    "search_space": 289254654976,
+    "num_variables": 23,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 70.49,
+    "solve_pct_type": 6.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    13,
+    1,
+    3,
+    12,
+    8,
+    4,
+    5,
+    11
+  ],
+  "reasoning": "Found a valid graceful labeling using backtracking search. The graph G_{2,5} has 10 vertices and 13 edges. The labeling assigns unique labels from {0,...,13} to vertices such that all 13 edge differences |label(u)-label(v)| are distinct and cover {1,...,13}.\n\nVertex labels by clique:\n- Clique 0: [0, 2]\n- Clique 1: [13, 1]  \n- Clique 2: [3, 12]\n- Clique 3: [8, 4]\n- Clique 4: [5, 11]\n\nEdge differences produced: {1,2,3,4,5,6,7,8,9,10,11,12,13} \u2014 all distinct and covering 1 through 13.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 9404,
+  "completion_tokens": 2121,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.060027,
+  "cost_source": "openrouter",
+  "latency_ms": 34844.32363510132,
+  "tool_dispatch_ms_total": 217.40126609802246,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# First, let's understand the graph structure\n# 5 cliques (K_2), each with 2 vertices\n# Clique g has vertices: g*2 and g*2+1\n# Within each clique: edge between vertex g*2 and g*2+1\n# Between consecutive cliques g and g+1: edges (g*2, g*2+2) and (g*2+1, g*2+3)\n\n# Vertices: 0..9\n# Edges within cliques (5 edges):\n# (0,1), (2,3), (4,5), (6,7), (8,9)\n# Edges between consecutive cliques (8 edges):\n# Between clique 0 and 1: (0,2), (1,3)\n# Between clique 1 and 2: (2,4), (3,5)\n# Between clique 2 and 3: (4,6), (5,7)\n# Between clique 3 and 4: (6,8), (7,9)\n\nedges = []\n# Within clique edges\nfor g in range(5):\n    edges.append((g*2, g*2+1))\n\n# Between consecutive cliques\nfor g in range(4):\n    edges.append((g*2, g*2+2))\n    edges.append((g*2+1, g*2+3))\n\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Edges: {edges}\")\nprint(f\"Number of vertices: 10\")\nprint(f\"Labels range: 0 to {len(edges)}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 39.33
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\n# Use constraint programming with python-constraint or brute force with pruning\n# Let's try with pysat or a custom backtracking solver\n\ndef check_graceful(labels, edges):\n    \"\"\"Check if a labeling is graceful\"\"\"\n    n_edges = len(edges)\n    edge_labels = set()\n    for u, v in edges:\n        diff = abs(labels[u] - labels[v])\n        if diff == 0 or diff > n_edges:\n            return False\n        if diff in edge_labels:\n            return False\n        edge_labels.add(diff)\n    return len(edge_labels) == n_edges\n\n# Try with backtracking\ndef solve_graceful():\n    n_vertices = 10\n    n_edges = 13\n    edges = []\n    for g in range(5):\n        edges.append((g*2, g*2+1))\n    for g in range(4):\n        edges.append((g*2, g*2+2))\n        edges.append((g*2+1, g*2+3))\n    \n    labels = [None] * n_vertices\n    used_labels = set()\n    used_edge_labels = set()\n    \n    # Build adjacency for incremental checking\n    adj = [[] for _ in range(n_vertices)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    def backtrack(vertex):\n        if vertex == n_vertices:\n            return True\n        \n        for label in range(n_edges + 1):\n            if label in used_labels:\n                continue\n            \n            # Check edge labels with already-labeled neighbors\n            new_edge_labels = []\n            valid = True\n            for neighbor in adj[vertex]:\n                if labels[neighbor] is not None:\n                    diff = abs(label - labels[neighbor])\n                    if diff == 0 or diff > n_edges or diff in used_edge_labels or diff in new_edge_labels:\n                        valid = False\n                        break\n                    new_edge_labels.append(diff)\n            \n            if valid:\n                labels[vertex] = label\n                used_labels.add(label)\n                for d in new_edge_labels:\n                    used_edge_labels.add(d)\n                \n                if backtrack(vertex + 1):\n                    return True\n                \n                labels[vertex] = None\n                used_labels.remove(label)\n                for d in new_edge_labels:\n                    used_edge_labels.remove(d)\n        \n        return False\n    \n    if backtrack(0):\n        return labels\n    return None\n\nresult = solve_graceful()\nprint(f\"Result: {result}\")\nif result:\n    edges = []\n    for g in range(5):\n        edges.append((g*2, g*2+1))\n    for g in range(4):\n        edges.append((g*2, g*2+2))\n        edges.append((g*2+1, g*2+3))\n    print(f\"Valid: {check_graceful(result, edges)}\")\n    edge_labels = sorted([abs(result[u] - result[v]) for u, v in edges])\n    print(f\"Edge labels: {edge_labels}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 91.9
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution in detail\nresult = [0, 2, 13, 1, 3, 12, 8, 4, 5, 11]\nedges = []\nfor g in range(5):\n    edges.append((g*2, g*2+1))\nfor g in range(4):\n    edges.append((g*2, g*2+2))\n    edges.append((g*2+1, g*2+3))\n\nprint(\"Vertex labels:\")\nfor g in range(5):\n    print(f\"  Clique {g}: vertex {g*2} -> {result[g*2]}, vertex {g*2+1} -> {result[g*2+1]}\")\n\nprint(\"\\nEdge labels:\")\nfor u, v in edges:\n    diff = abs(result[u] - result[v])\n    print(f\"  Edge ({u},{v}): |{result[u]} - {result[v]}| = {diff}\")\n\nall_labels = [result[v] for v in range(10)]\nprint(f\"\\nAll vertex labels: {all_labels}\")\nprint(f\"All unique: {len(set(all_labels)) == 10}\")\nprint(f\"Range 0-13: {min(all_labels) == 0 and max(all_labels) <= 13}\")\n\nedge_diffs = [abs(result[u] - result[v]) for u, v in edges]\nprint(f\"All edge labels: {sorted(edge_diffs)}\")\nprint(f\"All distinct: {len(set(edge_diffs)) == 13}\")\nprint(f\"All in 1-13: {min(edge_diffs) >= 1 and max(edge_diffs) <= 13}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 86.17
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          13,
+          1,
+          3,
+          12,
+          8,
+          4,
+          5,
+          11
+        ],
+        "reasoning": "Found a valid graceful labeling using backtracking search. The graph G_{2,5} has 10 vertices and 13 edges. The labeling assigns unique labels from {0,...,13} to vertices such that all 13 edge differences |label(u)-label(v)| are distinct and cover {1,...,13}.\n\nVertex labels by clique:\n- Clique 0: [0, 2]\n- Clique 1: [13, 1]  \n- Clique 2: [3, 12]\n- Clique 3: [8, 4]\n- Clique 4: [5, 11]\n\nEdge differences produced: {1,2,3,4,5,6,7,8,9,10,11,12,13} \u2014 all distinct and covering 1 through 13."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,360 @@
+{
+  "problem_name": "pysms_mtf_vertices15__v6_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 103.9,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 26,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 42.67,
+    "solve_pct_type": 70.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      0,
+      11
+    ],
+    [
+      0,
+      12
+    ],
+    [
+      0,
+      13
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      1,
+      14
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      14
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      10
+    ],
+    [
+      3,
+      12
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      8
+    ],
+    [
+      4,
+      9
+    ],
+    [
+      4,
+      10
+    ],
+    [
+      4,
+      11
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      5,
+      9
+    ],
+    [
+      5,
+      11
+    ],
+    [
+      6,
+      13
+    ],
+    [
+      6,
+      14
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      13
+    ],
+    [
+      8,
+      12
+    ],
+    [
+      9,
+      14
+    ],
+    [
+      10,
+      13
+    ],
+    [
+      11,
+      14
+    ],
+    [
+      12,
+      14
+    ]
+  ],
+  "reasoning": "Found a valid maximal triangle-free graph on 15 vertices with 33 edges. Verified: (1) triangle-free - no 3-cliques exist, (2) maximal - every non-edge has at least one common neighbor, (3) all 5 fixed edges (2,14), (6,13), (7,13), (10,13), (6,14) are present, (4) the graph is connected.",
+  "raw_response": null,
+  "cot_trace": " We need to generate a maximal triangle-free graph with 15 vertices. A maximal triangle-free graph means a triangle-free graph to which no edge can be added without creating a triangle. In other words, for every non-edge (u,v), adding it creates a triangle. Equivalently, the complement graph has the property that every non-edge is contained in a triangle? Wait, let's think.\n\nA graph G is maximal triangle-free if G is triangle-free and for every pair of non-adjacent vertices u,v, there exists a vertex w such that uw and vw are edges in G (i.e., u and v have a common neighbor). Because adding edge uv would create triangle uvw.\n\nSo we need a graph on 15 vertices, triangle-free, maximal, with some fixed edges: (2,14), (6,13), (7,13), (10,13), (6,14). Also edges are undirected, u<v.\n\nWe need to find a complete solution: list of edges.\n\nWe can try to construct one manually or use a SAT solver. Since we have Python with pysat available, we can encode the constraints.\n\nVariables: for each pair (i,j) with i<j, a boolean x_{i,j} indicating edge present.\n\nConstraints:\n1. Triangle-free: for every triple (i,j,k) with i<j<k, at most two edges among the three pairs. Actually triangle-free means no triangle: not (x_ij and x_jk and x_ik). So for each triple, clause: ~x_ij OR ~x_jk OR ~x_ik. That's a CNF clause.\n2. Maximal: for every non-edge pair (i,j), there must exist a vertex k (distinct from i,j) such that x_{i,k} and x_{j,k} are both true. This is an implication: if x_{i,j} is false, then OR_{k != i,j} (x_{i,k} AND x_{j,k}). But CNF doesn't directly handle AND in the consequent. We can encode via auxiliary variables or expand: For each non-edge (i,j), we need at least one common neighbor. So for each pair (i,j), and for each k, define y_{i,j,k} = x_{i,k} AND x_{j,k}. Then clause: x_{i,j} OR OR_{k} y_{i,j,k}. And for each y, clauses: ~y_{i,j,k} OR x_{i,k}; ~y_{i,j,k} OR x_{j,k}; y_{i,j,k} OR ~x_{i,k} OR ~x_{j,k}. This is standard.\n\nBut the number of variables: n=15, pairs = C(15,2)=105. Triples for triangle-free: C(15,3)=455. For maximal, for each pair (i,j) we have n-2=13 possible k, so 105*13=1365 y variables. Total variables ~1470. Clauses: 455 + 105 + 1365*3 = 455 + 105 + 4095 = 4655. That's small for a SAT solver.\n\nWe also have fixed edges: x_{2,14}=True, x_{6,13}=True, x_{7,13}=True, x_{10,13}=True, x_{6,14}=True.\n\nWe need to find a satisfying assignment. Let's use pysat.\n\nWe need to be careful with pysat API. We can use Glucose3 or similar.\n\nLet's write Python code to encode and solve.\n---\n I have a syntax error in my Python code. Let me fix it. The issue is with `var[tuple(sorted((i,k)))]]` - I have an extra `]`. Let me rewrite the code more carefully.\n---\n We found a SAT solution with 33 edges. Let me verify that this is indeed triangle-free and maximal, and that it contains the required fixed edges.\n\nThe fixed edges are: (2,14), (6,13), (7,13), (10,13), (6,14)\nThese are all present in the solution.\n\nLet me verify triangle-free and maximal properties.\n---\n The solution is valid. Let me verify the number of edges. A maximal triangle-free graph on 15 vertices should have at least a certain number of edges. The complete bipartite graph K_{7,8} has 56 edges and is triangle-free but not maximal in the sense that we can add edges within partitions? No wait, K_{7,8} is maximal triangle-free because adding any edge within a partition would create a triangle? No, adding an edge within a partition would not create a triangle in K_{7,8} because there are no edges within partitions. Actually K_{7,8} is not maximal triangle-free - we can add edges within a partition without creating triangles. Wait, no: if we add edge (u,v) within the same partition, then for any w in the other partition, u-w and v-w are edges, so (u,v,w) would form a triangle. So yes, K_{7,8} is maximal triangle-free.\n\nBut our graph has only 33 edges. Is it really maximal? Let me double-check. The solver found a solution with 33 edges. But wait - is the encoding correct?\n\nLet me re-examine. The maximal constraint says: for every non-edge (i,j), there exists k such that (i,k) and (j,k) are edges. This is exactly the condition for a maximal triangle-free graph.\n\nBut 33 edges seems low. Let me verify by checking a few non-edges manually.\n\nActually, I think the issue might be that the graph is disconnected or has some structure. Let me check connectivity and degrees.\n\nActually, let me think about this more carefully. A maximal triangle-free graph on n vertices has at least n^2/4 edges if it's bipartite and complete bipartite. But there are other maximal triangle-free graphs that are not complete bipartite. For example, a 5-cycle is maximal triangle-free with 5 edges, while K_{2,3} has 6 edges. So non-bipartite maximal triangle-free graphs can have fewer edges.\n\nWait, but by Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph is floor(n^2/4). But we're looking for a MAXIMAL triangle-free graph, not one with maximum edges. A maximal triangle-free graph is one where no edge can be added without creating a triangle. These can have fewer edges.\n\nFor n=15, the complete bipartite graph K_{7,8} has 56 edges and is maximal triangle-free. But there can be other maximal triangle-free graphs with fewer edges.\n\nHowever, 33 edges for n=15 seems quite low. Let me verify the degrees and check if the graph is indeed maximal.\n\nActually, I already checked: all 72 non-edges have a common neighbor. So the graph is indeed maximal triangle-free.\n\nBut wait, I should double-check my SAT encoding. The constraint was:\n- For each pair (i,j): x_{i,j} OR OR_k y_{i,j,k}\n- y_{i,j,k} -> x_{i,k}\n- y_{i,j,k} -> x_{j,k}\n- x_{i,k} AND x_{j,k} -> y_{i,j,k}\n\nThis correctly encodes: either (i,j) is an edge, or there exists k such that both (i,k) and (j,k) are edges.\n\nAnd the triangle-free constraint is: for each triple, NOT(all three edges).\n\nSo the encoding is correct. The solution has 33 edges and is maximal triangle-free.\n\nBut I want to make sure this is indeed a valid solution. Let me also check if there's any issue with the graph being too sparse. Actually, I realize I should check whether the graph is connected.\n\nLet me run a quick check.\n---\n The solution is valid. Let me verify once more:\n\n1. Triangle-free: No triangles found\n2. Maximal: Every non-edge has a common neighbor\n3. Fixed edges: All 5 fixed edges are present\n4. Connected: Yes, the graph is connected\n5. 15 vertices, 33 edges\n\nThe graph is a valid maximal triangle-free graph with 15 vertices containing the required fixed edges.\n\nLet me format the final answer properly.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 11010,
+  "completion_tokens": 4457,
+  "reasoning_tokens": 1698,
+  "cached_tokens": 1136,
+  "cost_usd": 0.026894725,
+  "cost_source": "openrouter",
+  "latency_ms": 376651.42154693604,
+  "tool_dispatch_ms_total": 1258.9306831359863,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom itertools import combinations\n\nn = 15\n# map each pair (u,v) with u<v to a variable index (1-based for pysat)\nvar = {}\ncnt = 0\nfor u in range(n):\n    for v in range(u+1, n):\n        cnt += 1\n        var[(u,v)] = cnt\n\nprint(\"Number of edge variables:\", cnt)\n\nsolver = Solver(name='g3')\n\n# Triangle-free constraints: for each triple, at most two edges => not all three\nfor u,v,w in combinations(range(n), 3):\n    # clause: ~x_uv OR ~x_vw OR ~x_uw\n    solver.add_clause([-var[(u,v)], -var[(v,w)], -var[(u,w)]])\n\n# Maximal constraints: for each pair (i,j), if not edge, then exists k such that edges (i,k) and (j,k)\n# We'll use auxiliary variables y_{i,j,k} for each pair (i,j) and k != i,j\n# Let's define y_var index starting after edge variables\ny_var = {}\nbase = cnt\nfor i,j in combinations(range(n), 2):\n    for k in range(n):\n        if k == i or k == j:\n            continue\n        base += 1\n        y_var[(i,j,k)] = base\n\nprint(\"Number of y variables:\", base - cnt)\n\n# Add constraints for y and maximal\nfor i,j in combinations(range(n), 2):\n    # clause: x_{i,j} OR OR_{k} y_{i,j,k}\n    clause = [var[(i,j)]]\n    for k in range(n):\n        if k == i or k == j:\n            continue\n        clause.append(y_var[(i,j,k)])\n    solver.add_clause(clause)\n    \n    for k in range(n):\n        if k == i or k == j:\n            continue\n        y = y_var[(i,j,k)]\n        # y -> x_{i,k}\n        solver.add_clause([-y, var[tuple(sorted((i,k)))]]])\n        # y -> x_{j,k}\n        solver.add_clause([-y, var[tuple(sorted((j,k)))]]])\n        # x_{i,k} AND x_{j,k} -> y\n        solver.add_clause([-var[tuple(sorted((i,k)))], -var[tuple(sorted((j,k)))], y])\n\n# Fixed edges\nfixed = [(2,14), (6,13), (7,13), (10,13), (6,14)]\nfor u,v in fixed:\n    if u > v:\n        u,v = v,u\n    solver.add_clause([var[(u,v)]])\n\nprint(\"Total variables:\", base)\nprint(\"Solving...\")\nsat = solver.solve()\nprint(\"SAT:\", sat)\nif sat:\n    model = solver.get_model()\n    # extract edges\n    edges = []\n    for (u,v), idx in var.items():\n        if idx in model:\n            edges.append((u,v))\n    print(\"Number of edges:\", len(edges))\n    print(\"Edges:\", edges)\nelse:\n    print(\"UNSAT\")\n"
+      },
+      "ok": false,
+      "latency_ms": 52.09
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Solver\nfrom itertools import combinations\n\nn = 15\n# map each pair (u,v) with u<v to a variable index (1-based for pysat)\nvar = {}\ncnt = 0\nfor u in range(n):\n    for v in range(u+1, n):\n        cnt += 1\n        var[(u,v)] = cnt\n\nprint(\"Number of edge variables:\", cnt)\n\nsolver = Solver(name='g3')\n\n# Triangle-free constraints: for each triple, at most two edges => not all three\nfor u,v,w in combinations(range(n), 3):\n    # clause: ~x_uv OR ~x_vw OR ~x_uw\n    solver.add_clause([-var[(u,v)], -var[(v,w)], -var[(u,w)]])\n\n# Maximal constraints: for each pair (i,j), if not edge, then exists k such that edges (i,k) and (j,k)\n# We'll use auxiliary variables y_{i,j,k} for each pair (i,j) and k != i,j\n# Let's define y_var index starting after edge variables\ny_var = {}\nbase = cnt\nfor i,j in combinations(range(n), 2):\n    for k in range(n):\n        if k == i or k == j:\n            continue\n        base += 1\n        y_var[(i,j,k)] = base\n\nprint(\"Number of y variables:\", base - cnt)\n\n# Add constraints for y and maximal\nfor i,j in combinations(range(n), 2):\n    # clause: x_{i,j} OR OR_{k} y_{i,j,k}\n    clause = [var[(i,j)]]\n    for k in range(n):\n        if k == i or k == j:\n            continue\n        clause.append(y_var[(i,j,k)])\n    solver.add_clause(clause)\n    \n    for k in range(n):\n        if k == i or k == j:\n            continue\n        y = y_var[(i,j,k)]\n        # y -> x_{i,k}\n        ik = tuple(sorted((i,k)))\n        solver.add_clause([-y, var[ik]])\n        # y -> x_{j,k}\n        jk = tuple(sorted((j,k)))\n        solver.add_clause([-y, var[jk]])\n        # x_{i,k} AND x_{j,k} -> y\n        solver.add_clause([-var[ik], -var[jk], y])\n\n# Fixed edges\nfixed = [(2,14), (6,13), (7,13), (10,13), (6,14)]\nfor u,v in fixed:\n    if u > v:\n        u,v = v,u\n    solver.add_clause([var[(u,v)]])\n\nprint(\"Total variables:\", base)\nprint(\"Solving...\")\nsat = solver.solve()\nprint(\"SAT:\", sat)\nif sat:\n    model = solver.get_model()\n    # extract edges\n    edges = []\n    for (u,v), idx in var.items():\n        if idx in model:\n            edges.append((u,v))\n    print(\"Number of edges:\", len(edges))\n    print(\"Edges:\", edges)\nelse:\n    print(\"UNSAT\")\n"
+      },
+      "ok": true,
+      "latency_ms": 1106.87
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0, 1), (0, 2), (0, 9), (0, 11), (0, 12), (0, 13), (1, 7), (1, 10), (1, 14), (2, 3), (2, 8), (2, 14), (3, 5), (3, 10), (3, 12), (4, 6), (4, 8), (4, 9), (4, 10), (4, 11), (5, 6), (5, 7), (5, 9), (5, 11), (6, 13), (6, 14), (7, 8), (7, 13), (8, 12), (9, 14), (10, 13), (11, 14), (12, 14)]\n\n# Check triangle-free\nedge_set = set(edges)\ntriangles = []\nfor u in range(15):\n    for v in range(u+1, 15):\n        for w in range(v+1, 15):\n            if (u,v) in edge_set and (v,w) in edge_set and (u,w) in edge_set:\n                triangles.append((u,v,w))\nprint(\"Triangles found:\", triangles)\n\n# Check maximal: for every non-edge, there exists a common neighbor\nnon_edges = []\nfor u in range(15):\n    for v in range(u+1, 15):\n        if (u,v) not in edge_set:\n            non_edges.append((u,v))\n\nprint(\"Number of non-edges:\", len(non_edges))\n\n# Build adjacency list\nadj = {i: set() for i in range(15)}\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\nmissing = []\nfor u,v in non_edges:\n    common = adj[u] & adj[v]\n    if not common:\n        missing.append((u,v))\n        \nprint(\"Non-edges without common neighbor:\", missing)\n\n# Check fixed edges\nfixed = [(2,14), (6,13), (7,13), (10,13), (6,14)]\nfor e in fixed:\n    print(f\"Fixed edge {e} present:\", e in edge_set)\n"
+      },
+      "ok": true,
+      "latency_ms": 37.05
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from collections import deque\n\nedges = [(0, 1), (0, 2), (0, 9), (0, 11), (0, 12), (0, 13), (1, 7), (1, 10), (1, 14), (2, 3), (2, 8), (2, 14), (3, 5), (3, 10), (3, 12), (4, 6), (4, 8), (4, 9), (4, 10), (4, 11), (5, 6), (5, 7), (5, 9), (5, 11), (6, 13), (6, 14), (7, 8), (7, 13), (8, 12), (9, 14), (10, 13), (11, 14), (12, 14)]\n\nadj = {i: set() for i in range(15)}\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# BFS for connectivity\nvisited = set()\nqueue = deque([0])\nvisited.add(0)\nwhile queue:\n    u = queue.popleft()\n    for v in adj[u]:\n        if v not in visited:\n            visited.add(v)\n            queue.append(v)\n\nprint(\"Connected:\", len(visited) == 15)\nprint(\"Visited:\", visited)\n\n# Degrees\nfor i in range(15):\n    print(f\"Vertex {i}: degree {len(adj[i])}, neighbors {sorted(adj[i])}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 62.92
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            9
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            0,
+            12
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            2,
+            14
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            3,
+            10
+          ],
+          [
+            3,
+            12
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            4,
+            9
+          ],
+          [
+            4,
+            10
+          ],
+          [
+            4,
+            11
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            5,
+            11
+          ],
+          [
+            6,
+            13
+          ],
+          [
+            6,
+            14
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            7,
+            13
+          ],
+          [
+            8,
+            12
+          ],
+          [
+            9,
+            14
+          ],
+          [
+            10,
+            13
+          ],
+          [
+            11,
+            14
+          ],
+          [
+            12,
+            14
+          ]
+        ],
+        "reasoning": "Found a valid maximal triangle-free graph on 15 vertices with 33 edges. Verified: (1) triangle-free - no 3-cliques exist, (2) maximal - every non-edge has at least one common neighbor, (3) all 5 fixed edges (2,14), (6,13), (7,13), (10,13), (6,14) are present, (4) the graph is connected."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,130 @@
+{
+  "problem_name": "knight_tour_n5__v0_h",
+  "problem_type": "knight_tour",
+  "params": {
+    "n": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1816.3,
+    "search_space": 15511210043330985984000000,
+    "num_variables": 25,
+    "num_constraints": 28,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.04,
+    "solve_pct_type": 12.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    7,
+    14,
+    23,
+    16,
+    5,
+    2,
+    9,
+    18,
+    21,
+    10,
+    1,
+    12,
+    3,
+    6,
+    15,
+    22,
+    19,
+    8,
+    11,
+    20,
+    17,
+    24,
+    13,
+    4
+  ],
+  "reasoning": "Backtracking search found a valid open knight's tour starting at 0, respecting all fixed assignments.",
+  "raw_response": null,
+  "cot_trace": " I'm setting up a constraint satisfaction problem for a knight's tour on a 5x5 board, where the knight must visit all 25 squares exactly once starting at position 0, with several moves already fixed at specific positions. Now I need to search for a valid solution that respects these constraints.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6430,
+  "completion_tokens": 1154,
+  "reasoning_tokens": 74,
+  "cached_tokens": 0,
+  "cost_usd": 0.061,
+  "cost_source": "openrouter",
+  "latency_ms": 21774.02114868164,
+  "tool_dispatch_ms_total": 73.71950149536133,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef solve():\n    N=5\n    moves=[(1,2),(2,1),(-1,2),(-2,1),(1,-2),(2,-1),(-1,-2),(-2,-1)]\n    fixed={0:0,3:23,4:16,5:5,15:15,22:24}\n    x=[-1]*25\n    used=[False]*25\n    for k,v in fixed.items():\n        x[k]=v\n        used[v]=True\n    \n    def neighbors(c):\n        r,col=c//5,c%5\n        res=[]\n        for dr,dc in moves:\n            nr,nc=r+dr,col+dc\n            if 0<=nr<5 and 0<=nc<5:\n                res.append(nr*5+nc)\n        return res\n    \n    def bt(step):\n        if step==25:\n            return True\n        if x[step]!=-1:\n            # check move validity from prev\n            if step>0 and x[step-1]!=-1:\n                if x[step] not in neighbors(x[step-1]):\n                    return False\n            return bt(step+1)\n        prev=x[step-1]\n        for nb in neighbors(prev):\n            if not used[nb]:\n                # check if nb conflicts with fixed at step\n                x[step]=nb\n                used[nb]=True\n                if bt(step+1):\n                    return True\n                used[nb]=False\n                x[step]=-1\n        return False\n    \n    if bt(1):\n        return x\n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 37.4
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nsol=[0, 7, 14, 23, 16, 5, 2, 9, 18, 21, 10, 1, 12, 3, 6, 15, 22, 19, 8, 11, 20, 17, 24, 13, 4]\n# verify\nassert len(set(sol))==25\nfor i in range(24):\n    a,b=sol[i],sol[i+1]\n    dr=abs(a//5-b//5); dc=abs(a%5-b%5)\n    assert {dr,dc}=={1,2}\nprint(\"ok\")\nfor k,v in {0:0,3:23,4:16,5:5,15:15,22:24}.items():\n    assert sol[k]==v\nprint(\"fixed ok\")\n"
+      },
+      "ok": true,
+      "latency_ms": 36.32
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Backtracking search found a valid open knight's tour starting at 0, respecting all fixed assignments.",
+        "satisfiable": true,
+        "solution": [
+          0,
+          7,
+          14,
+          23,
+          16,
+          5,
+          2,
+          9,
+          18,
+          21,
+          10,
+          1,
+          12,
+          3,
+          6,
+          15,
+          22,
+          19,
+          8,
+          11,
+          20,
+          17,
+          24,
+          13,
+          4
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

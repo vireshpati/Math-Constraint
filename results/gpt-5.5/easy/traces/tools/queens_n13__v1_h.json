@@ -1,0 +1,99 @@
+{
+  "problem_name": "queens_n13__v1_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 1180.4,
+    "search_space": 302875106592253,
+    "num_variables": 13,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 78.38,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    6,
+    12,
+    7,
+    0,
+    11,
+    5,
+    2,
+    9,
+    3,
+    8,
+    4,
+    1,
+    10
+  ],
+  "reasoning": "The listed columns place exactly one queen in each row and use all distinct columns. The fixed assignments q[1]=12 and q[11]=1 are respected, and checking all row pairs shows no two queens share a diagonal.",
+  "raw_response": null,
+  "cot_trace": "**Planning N-Queens solution**\n\nI need to solve the N-Queens problem for 13 queens with fixed positions q[1]=12 and q[11]=1. I\u2019ll make sure to return the result in JSON format as per the developer's requirements, and I'm considering whether I should attempt to solve it manually or use Python for a search-based solution. I think using Python might be more efficient, so that\u2019s the plan for now!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1418,
+  "completion_tokens": 594,
+  "reasoning_tokens": 56,
+  "cached_tokens": 0,
+  "cost_usd": 0.02491,
+  "cost_source": "openrouter",
+  "latency_ms": 9374.305725097656,
+  "tool_dispatch_ms_total": 36.468505859375,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def solve(n=13, fixed={1:12,11:1}):\n    cols=set(); d1=set(); d2=set(); q=[None]*n\n    # Maybe process rows in order with MRV? fixed first\n    for r,c in fixed.items():\n        if c in cols or (r-c) in d1 or (r+c) in d2:\n            return None\n        cols.add(c); d1.add(r-c); d2.add(r+c); q[r]=c\n    rows=[r for r in range(n) if r not in fixed]\n    # recursive MRV choose row with min avail\n    def bt():\n        if all(x is not None for x in q):\n            return q.copy()\n        # choose unassigned row min options\n        best=None; opts=None\n        for r in range(n):\n            if q[r] is None:\n                av=[c for c in range(n) if c not in cols and (r-c) not in d1 and (r+c) not in d2]\n                if opts is None or len(av)<len(opts):\n                    best=r; opts=av\n                    if len(opts)==0: break\n        if not opts:\n            return None\n        r=best\n        for c in opts:\n            q[r]=c; cols.add(c); d1.add(r-c); d2.add(r+c)\n            res=bt()\n            if res: return res\n            cols.remove(c); d1.remove(r-c); d2.remove(r+c); q[r]=None\n        return None\n    return bt()\nsol=solve()\nprint(sol)\nif sol:\n    n=13\n    print(len(set(sol)), all(abs(sol[i]-sol[j])!=abs(i-j) for i in range(n) for j in range(i+1,n)), sol[1], sol[11])",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 36.47
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          6,
+          12,
+          7,
+          0,
+          11,
+          5,
+          2,
+          9,
+          3,
+          8,
+          4,
+          1,
+          10
+        ],
+        "reasoning": "The listed columns place exactly one queen in each row and use all distinct columns. The fixed assignments q[1]=12 and q[11]=1 are respected, and checking all row pairs shows no two queens share a diagonal."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

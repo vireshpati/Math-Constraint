@@ -1,0 +1,117 @@
+{
+  "problem_name": "graceful_graph_k3_p6__v4_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1860.4,
+    "search_space": 3686553210602841700043063296,
+    "num_variables": 51,
+    "num_constraints": 37,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.41,
+    "solve_pct_type": 93.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "After multiple attempts using randomized backtracking and local search algorithms to find a graceful labeling for the graph G_{3,6} (18 vertices, 33 edges), no valid labeling was found. The constraints on the edge labels (all must be distinct and in the range 1-33) are highly restrictive for this specific graph structure, and it is likely that no such labeling exists.",
+  "raw_response": "{\n    \"satisfiable\": false,\n    \"solution\": null,\n    \"reasoning\": \"After multiple attempts using randomized backtracking and local search algorithms to find a graceful labeling for the graph G_{3,6} (18 vertices, 33 edges), no valid labeling was found. The constraints on the edge labels (all must be distinct and in the range 1-33) are highly restrictive for this specific graph structure, and it is likely that no such labeling exists.\"\n}",
+  "cot_trace": "**Analyzing Graph Structure**\n\nI've been examining the structure of graph G3,6. It's composed of six disjoint K3 cliques, labeled C0 through C5. Each clique has three vertices: v(j,0), v(j,1), and v(j,2). Currently, I'm focusing on the edges within each of these cliques, specifically (v(j,0), v(j,1)), (v(j,1), v(j,2)), and (v(j,2), v(j,0)).\n\n\n**Calculating Edge Distribution**\n\nI've determined the total vertices are 18 and the edge count sums to 33. I'm focusing now on gracefully labeling them, assigning unique labels from 0 to 33 to vertices. The edge labels' absolute differences should match 1 to 33. This has turned into a constraint satisfaction problem.\n\n\n\n---\n**Defining Graph Graceful Labeling**\n\nI'm focusing on defining graceful labeling for graph G3,6, a structure with 6 disjoint K3 cliques connected by 3 edges between consecutive cliques. I've confirmed that the vertex count is 18 and edge count is 33. The core challenge is assigning unique labels from 0 to 33 to vertices, ensuring all edge label differences are distinct. I'm exploring constraints.\n\n\n",
+  "finish_reason": "stop",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "claimed UNSAT, expected SAT",
+  "prompt_tokens": 30914,
+  "completion_tokens": 5913,
+  "reasoning_tokens": 1177,
+  "cached_tokens": 8059,
+  "cost_usd": 0.014784724999999999,
+  "cost_source": "openrouter",
+  "latency_ms": 51539.037466049194,
+  "tool_dispatch_ms_total": 24021.512508392334,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef solve():\n    # Vertices: v_{j,i} for j in 0..5, i in 0..2\n    # Total 18 vertices.\n    # Edges:\n    # Within clique j: (v_{j,0}, v_{j,1}), (v_{j,1}, v_{j,2}), (v_{j,2}, v_{j,0})\n    # Between clique j and j+1: (v_{j,0}, v_{j+1,0}), (v_{j,1}, v_{j+1,1}), (v_{j,2}, v_{j+1,2})\n    \n    edges = []\n    for j in range(6):\n        edges.append((j*3 + 0, j*3 + 1))\n        edges.append((j*3 + 1, j*3 + 2))\n        edges.append((j*3 + 2, j*3 + 0))\n    for j in range(5):\n        edges.append((j*3 + 0, (j+1)*3 + 0))\n        edges.append((j*3 + 1, (j+1)*3 + 1))\n        edges.append((j*3 + 2, (j+1)*3 + 2))\n        \n    # Number of vertices = 18\n    # Number of edges = 33\n    # Labels from 0 to 33\n    \n    # Backtracking search\n    # To optimize, we can use a constraint solver or just a smart search.\n    # Given the constraints, let's try a simple backtracking with some heuristics.\n    \n    import random\n    \n    labels = [-1] * 18\n    used_labels = [False] * 34\n    used_edge_labels = [False] * 34\n    \n    def backtrack(v_idx):\n        if v_idx == 18:\n            return True\n        \n        # Try assigning a label to vertex v_idx\n        # Heuristic: try labels that are likely to work\n        for label in range(34):\n            if not used_labels[label]:\n                # Check if this label is valid with already assigned neighbors\n                possible = True\n                new_edge_labels = []\n                for neighbor_idx in range(v_idx):\n                    # Check if there is an edge between v_idx and neighbor_idx\n                    is_edge = False\n                    for u, v in edges:\n                        if (u == v_idx and v == neighbor_idx) or (u == neighbor_idx and v == v_idx):\n                            is_edge = True\n                            break\n                    \n                    if is_edge:\n                        edge_label = abs(label - labels[neighbor_idx])\n                        if used_edge_labels[edge_label]:\n                            possible = False\n                            break\n                        new_edge_labels.append(edge_label)\n                \n                if possible:\n                    # Assign\n                    labels[v_idx] = label\n                    used_labels[label] = True\n                    for el in new_edge_labels:\n                        used_edge_labels[el] = True\n                    \n                    if backtrack(v_idx + 1):\n                        return True\n                    \n                    # Backtrack\n                    labels[v_idx] = -1\n                    used_labels[label] = False\n                    for el in new_edge_labels:\n                        used_edge_labels[el] = False\n        return False\n\n    if backtrack(0):\n        return labels\n    else:\n        return None\n\nprint(solve())\n"
+      },
+      "ok": false,
+      "latency_ms": 15017.27
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\n\ndef solve():\n    # Vertices: v_{j,i} for j in 0..5, i in 0..2\n    # Total 18 vertices.\n    # Edges:\n    # Within clique j: (v_{j,0}, v_{j,1}), (v_{j,1}, v_{j,2}), (v_{j,2}, v_{j,0})\n    # Between clique j and j+1: (v_{j,0}, v_{j+1,0}), (v_{j,1}, v_{j+1,1}), (v_{j,2}, v_{j+1,2})\n    \n    edges = []\n    for j in range(6):\n        edges.append((j*3 + 0, j*3 + 1))\n        edges.append((j*3 + 1, j*3 + 2))\n        edges.append((j*3 + 2, j*3 + 0))\n    for j in range(5):\n        edges.append((j*3 + 0, (j+1)*3 + 0))\n        edges.append((j*3 + 1, (j+1)*3 + 1))\n        edges.append((j*3 + 2, (j+1)*3 + 2))\n        \n    # Adjacency list\n    adj = [[] for _ in range(18)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n        \n    labels = [-1] * 18\n    used_labels = [False] * 34\n    used_edge_labels = [False] * 34\n    \n    # Try a more constrained search or a randomized approach\n    def backtrack(v_idx):\n        if v_idx == 18:\n            return True\n        \n        # Try labels in a random order to explore more\n        possible_labels = list(range(34))\n        random.shuffle(possible_labels)\n        \n        for label in possible_labels:\n            if not used_labels[label]:\n                # Check if this label is valid with already assigned neighbors\n                possible = True\n                new_edge_labels = []\n                for neighbor in adj[v_idx]:\n                    if neighbor < v_idx:\n                        edge_label = abs(label - labels[neighbor])\n                        if used_edge_labels[edge_label]:\n                            possible = False\n                            break\n                        new_edge_labels.append(edge_label)\n                \n                if possible:\n                    # Assign\n                    labels[v_idx] = label\n                    used_labels[label] = True\n                    for el in new_edge_labels:\n                        used_edge_labels[el] = True\n                    \n                    if backtrack(v_idx + 1):\n                        return True\n                    \n                    # Backtrack\n                    labels[v_idx] = -1\n                    used_labels[label] = False\n                    for el in new_edge_labels:\n                        used_edge_labels[el] = False\n        return False\n\n    # Try a few times\n    for _ in range(10):\n        labels = [-1] * 18\n        used_labels = [False] * 34\n        used_edge_labels = [False] * 34\n        if backtrack(0):\n            return labels\n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 188.27
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check_graceful(labels):\n    edges = []\n    for j in range(6):\n        edges.append((j*3 + 0, j*3 + 1))\n        edges.append((j*3 + 1, j*3 + 2))\n        edges.append((j*3 + 2, j*3 + 0))\n    for j in range(5):\n        edges.append((j*3 + 0, (j+1)*3 + 0))\n        edges.append((j*3 + 1, (j+1)*3 + 1))\n        edges.append((j*3 + 2, (j+1)*3 + 2))\n    \n    edge_labels = set()\n    for u, v in edges:\n        diff = abs(labels[u] - labels[v])\n        if diff in edge_labels or diff == 0 or diff > 33:\n            return False, diff\n        edge_labels.add(diff)\n    \n    if len(edge_labels) != 33:\n        return False, len(edge_labels)\n    \n    return True, edge_labels\n\nlabels = [13, 14, 29, 2, 19, 33, 5, 12, 24, 32, 22, 0, 3, 28, 26, 31, 10, 18]\nprint(check_graceful(labels))\n"
+      },
+      "ok": true,
+      "latency_ms": 36.42
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\n\ndef solve():\n    edges = []\n    for j in range(6):\n        edges.append((j*3 + 0, j*3 + 1))\n        edges.append((j*3 + 1, j*3 + 2))\n        edges.append((j*3 + 2, j*3 + 0))\n    for j in range(5):\n        edges.append((j*3 + 0, (j+1)*3 + 0))\n        edges.append((j*3 + 1, (j+1)*3 + 1))\n        edges.append((j*3 + 2, (j+1)*3 + 2))\n        \n    adj = [[] for _ in range(18)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n        \n    # Use a more efficient solver: constraint programming or just better backtracking\n    # Let's try a simple local search (hill climbing)\n    \n    import random\n    \n    def get_edge_labels(labels):\n        edge_labels = []\n        for u, v in edges:\n            edge_labels.append(abs(labels[u] - labels[v]))\n        return edge_labels\n\n    def count_conflicts(labels):\n        edge_labels = get_edge_labels(labels)\n        # Count how many edge labels are duplicates or out of range\n        # Range is 1 to 33\n        counts = {}\n        conflicts = 0\n        for el in edge_labels:\n            if el < 1 or el > 33:\n                conflicts += 1\n            else:\n                counts[el] = counts.get(el, 0) + 1\n        \n        for el in counts:\n            if counts[el] > 1:\n                conflicts += (counts[el] - 1)\n        return conflicts\n\n    # Initial state\n    labels = list(range(34))\n    random.shuffle(labels)\n    labels = labels[:18]\n    \n    # Hill climbing\n    for _ in range(100000):\n        conflicts = count_conflicts(labels)\n        if conflicts == 0:\n            return labels\n        \n        # Try swapping two labels\n        i, j = random.sample(range(18), 2)\n        labels[i], labels[j] = labels[j], labels[i]\n        \n        new_conflicts = count_conflicts(labels)\n        if new_conflicts > conflicts:\n            # Swap back\n            labels[i], labels[j] = labels[j], labels[i]\n            \n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 2247.97
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\n\ndef solve():\n    edges = []\n    for j in range(6):\n        edges.append((j*3 + 0, j*3 + 1))\n        edges.append((j*3 + 1, j*3 + 2))\n        edges.append((j*3 + 2, j*3 + 0))\n    for j in range(5):\n        edges.append((j*3 + 0, (j+1)*3 + 0))\n        edges.append((j*3 + 1, (j+1)*3 + 1))\n        edges.append((j*3 + 2, (j+1)*3 + 2))\n        \n    adj = [[] for _ in range(18)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n        \n    # Use a more robust backtracking with ordering\n    # Order vertices by degree\n    degrees = [len(adj[i]) for i in range(18)]\n    order = sorted(range(18), key=lambda i: degrees[i], reverse=True)\n    \n    labels = [-1] * 18\n    used_labels = [False] * 34\n    used_edge_labels = [False] * 34\n    \n    def backtrack(idx):\n        if idx == 18:\n            return True\n        \n        v = order[idx]\n        \n        # Try labels\n        for label in range(34):\n            if not used_labels[label]:\n                # Check if this label is valid with already assigned neighbors\n                possible = True\n                new_edge_labels = []\n                for neighbor in adj[v]:\n                    if labels[neighbor] != -1:\n                        edge_label = abs(label - labels[neighbor])\n                        if used_edge_labels[edge_label]:\n                            possible = False\n                            break\n                        new_edge_labels.append(edge_label)\n                \n                if possible:\n                    # Assign\n                    labels[v] = label\n                    used_labels[label] = True\n                    for el in new_edge_labels:\n                        used_edge_labels[el] = True\n                    \n                    if backtrack(idx + 1):\n                        return True\n                    \n                    # Backtrack\n                    labels[v] = -1\n                    used_labels[label] = False\n                    for el in new_edge_labels:\n                        used_edge_labels[el] = False\n        return False\n\n    if backtrack(0):\n        return labels\n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 3374.27
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check_graceful(labels):\n    edges = []\n    for j in range(6):\n        edges.append((j*3 + 0, j*3 + 1))\n        edges.append((j*3 + 1, j*3 + 2))\n        edges.append((j*3 + 2, j*3 + 0))\n    for j in range(5):\n        edges.append((j*3 + 0, (j+1)*3 + 0))\n        edges.append((j*3 + 1, (j+1)*3 + 1))\n        edges.append((j*3 + 2, (j+1)*3 + 2))\n    \n    edge_labels = set()\n    for u, v in edges:\n        diff = abs(labels[u] - labels[v])\n        if diff in edge_labels or diff == 0 or diff > 33:\n            return False, diff\n        edge_labels.add(diff)\n    \n    if len(edge_labels) != 33:\n        return False, len(edge_labels)\n    \n    return True, edge_labels\n\nlabels = [10, 30, 17, 0, 1, 3, 4, 9, 21, 31, 20, 5, 8, 14, 33, 32, 23, 2]\nprint(check_graceful(labels))\n"
+      },
+      "ok": true,
+      "latency_ms": 36.66
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\n\ndef solve():\n    edges = []\n    for j in range(6):\n        edges.append((j*3 + 0, j*3 + 1))\n        edges.append((j*3 + 1, j*3 + 2))\n        edges.append((j*3 + 2, j*3 + 0))\n    for j in range(5):\n        edges.append((j*3 + 0, (j+1)*3 + 0))\n        edges.append((j*3 + 1, (j+1)*3 + 1))\n        edges.append((j*3 + 2, (j+1)*3 + 2))\n        \n    adj = [[] for _ in range(18)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n        \n    # Try a randomized search with restarts\n    for _ in range(1000):\n        labels = [-1] * 18\n        used_labels = [False] * 34\n        used_edge_labels = [False] * 34\n        \n        # Random order of vertices\n        order = list(range(18))\n        random.shuffle(order)\n        \n        def backtrack(idx):\n            if idx == 18:\n                return True\n            \n            v = order[idx]\n            \n            # Try labels in random order\n            possible_labels = list(range(34))\n            random.shuffle(possible_labels)\n            \n            for label in possible_labels:\n                if not used_labels[label]:\n                    # Check if this label is valid with already assigned neighbors\n                    possible = True\n                    new_edge_labels = []\n                    for neighbor in adj[v]:\n                        if labels[neighbor] != -1:\n                            edge_label = abs(label - labels[neighbor])\n                            if used_edge_labels[edge_label]:\n                                possible = False\n                                break\n                            new_edge_labels.append(edge_label)\n                    \n                    if possible:\n                        # Assign\n                        labels[v] = label\n                        used_labels[label] = True\n                        for el in new_edge_labels:\n                            used_edge_labels[el] = True\n                        \n                        if backtrack(idx + 1):\n                            return True\n                        \n                        # Backtrack\n                        labels[v] = -1\n                        used_labels[label] = False\n                        for el in new_edge_labels:\n                            used_edge_labels[el] = False\n            return False\n\n        if backtrack(0):\n            return labels\n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 3076.15
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check_graceful(labels):\n    edges = []\n    for j in range(6):\n        edges.append((j*3 + 0, j*3 + 1))\n        edges.append((j*3 + 1, j*3 + 2))\n        edges.append((j*3 + 2, j*3 + 0))\n    for j in range(5):\n        edges.append((j*3 + 0, (j+1)*3 + 0))\n        edges.append((j*3 + 1, (j+1)*3 + 1))\n        edges.append((j*3 + 2, (j+1)*3 + 2))\n    \n    edge_labels = set()\n    for u, v in edges:\n        diff = abs(labels[u] - labels[v])\n        if diff in edge_labels or diff == 0 or diff > 33:\n            return False, diff\n        edge_labels.add(diff)\n    \n    if len(edge_labels) != 33:\n        return False, len(edge_labels)\n    \n    return True, edge_labels\n\nlabels = [27, 1, 26, 28, 23, 8, 17, 29, 6, 24, 0, 3, 20, 30, 11, 33, 2, 19]\nprint(check_graceful(labels))\n"
+      },
+      "ok": true,
+      "latency_ms": 44.5
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": true
+}

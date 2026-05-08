@@ -1,0 +1,331 @@
+{
+  "problem_name": "pysms_clique_coloring_max_chromatic_number3_max_clique5_min_degree3_vertices12__v8_h",
+  "problem_type": "pysms_clique_coloring",
+  "params": {
+    "max_chromatic_number": 3,
+    "max_clique": 5,
+    "min_degree": 3,
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 88.2,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 29,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 29.89,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      2,
+      9
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      9
+    ],
+    [
+      3,
+      11
+    ],
+    [
+      3,
+      10
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      5,
+      10
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      6,
+      11
+    ],
+    [
+      6,
+      10
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      8,
+      9
+    ],
+    [
+      9,
+      11
+    ]
+  ],
+  "reasoning": "The graph was constructed by ensuring it is 3-partite (which guarantees a chromatic number of at most 3), has 12 vertices, every vertex has a degree of at least 3, and the maximum clique size is at most 5. The fixed edges were included in the construction. The validity of the graph was verified using NetworkX.",
+  "raw_response": null,
+  "cot_trace": "**Analyzing Graph Properties**\n\nI've determined some initial characteristics. The graph has 12 vertices. My analyses indicate the maximum clique size is likely no more than 5, and the chromatic number appears to be at most 3. Furthermore, the minimum degree is at least 3. Edge (1,2), (0,2), (1,4), (2,9), and (2,7) are fixed.\n\n\n**Refining Color Constraints**\n\nI've clarified the implications of 3-colorability; it limits the maximum clique size to at most 3.  Therefore, I've simplified my problem by needing a 3-colorable graph that adheres to the given edge constraints. I'm now assigning colors to vertices, and have a partial assignment. Vertex 2 is 0, vertices 1, 0, 7, and 9 are 1, and vertex 4 is 2. I'll focus now on finding constraints for the remaining vertices (3, 5, 6, 8, and 10).\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 23475,
+  "completion_tokens": 6194,
+  "reasoning_tokens": 620,
+  "cached_tokens": 8101,
+  "cost_usd": 0.013337025,
+  "cost_source": "openrouter",
+  "latency_ms": 24821.619510650635,
+  "tool_dispatch_ms_total": 4405.490875244141,
+  "tool_calls_made": 6,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\nimport itertools\n\ndef is_3_colorable(G):\n    # Check if the graph is 3-colorable\n    # A graph is 3-colorable if its chromatic number is <= 3\n    # For small graphs, we can use nx.coloring.greedy_color or check all partitions\n    # Actually, checking if it's 3-colorable is NP-complete, but for 12 vertices it's easy.\n    # A graph is 3-colorable iff it's a subgraph of a 3-partite graph.\n    # Let's just use a backtracking approach.\n    \n    coloring = {}\n    def solve(node):\n        if node == 12:\n            return True\n        for color in range(3):\n            can_color = True\n            for neighbor in G.neighbors(node):\n                if neighbor in coloring and coloring[neighbor] == color:\n                    can_color = False\n                    break\n            if can_color:\n                coloring[node] = color\n                if solve(node + 1):\n                    return True\n                del coloring[node]\n        return False\n    return solve(0)\n\ndef find_graph():\n    # We need a 3-regular graph with 12 vertices\n    # Fixed edges: (1,2), (0,2), (1,4), (2,9), (2,7)\n    # Let's start with a 3-regular graph and add the fixed edges.\n    # Actually, it's easier to start with a 3-partite graph.\n    # Let the partitions be V0, V1, V2.\n    # |V0| + |V1| + |V2| = 12.\n    # Let's try |V0|=4, |V1|=4, |V2|=4.\n    \n    # Fixed edges:\n    # (1,2), (0,2), (1,4), (2,9), (2,7)\n    # Let's assign partitions:\n    # 2 is in V0\n    # 1 is in V1\n    # 0 is in V1\n    # 4 is in V2\n    # 9 is in V1\n    # 7 is in V1\n    \n    # Partitions:\n    # V0: {2, ...}\n    # V1: {1, 0, 9, 7}\n    # V2: {4, ...}\n    \n    # This is not quite right, 2 is connected to 1, 0, 9, 7.\n    # If 2 is in V0, then 1, 0, 9, 7 must be in V1 or V2.\n    # Let's put 1, 0, 9, 7 in V1.\n    # Then 2 is connected to 1, 0, 9, 7 (all in V1). This is fine.\n    # 1 is connected to 4. 4 must be in V0 or V2. Let's put 4 in V2.\n    \n    # Current partitions:\n    # V0: {2, 3, 5, 6}\n    # V1: {0, 1, 7, 9}\n    # V2: {4, 8, 10, 11}\n    \n    # Let's try to build a 3-regular graph.\n    # Each vertex in V0 must have 3 neighbors in V1 U V2.\n    # Each vertex in V1 must have 3 neighbors in V0 U V2.\n    # Each vertex in V2 must have 3 neighbors in V0 U V1.\n    \n    # This is a 3-partite graph.\n    # Let's try to construct it.\n    \n    import random\n    \n    while True:\n        G = nx.Graph()\n        G.add_nodes_from(range(12))\n        \n        # Fixed edges\n        fixed_edges = [(1,2), (0,2), (1,4), (2,9), (2,7)]\n        G.add_edges_from(fixed_edges)\n        \n        # Try to add edges to make it 3-regular\n        # This is hard to do randomly.\n        # Let's use a different approach.\n        # Create a 3-partite graph and then add edges.\n        \n        # Let's use a known 3-regular 3-partite graph.\n        # A complete 3-partite graph K_{4,4,4} is 3-regular? No, it's 8-regular.\n        # We need a 3-regular subgraph of K_{4,4,4}.\n        \n        # Let's try to build it manually.\n        # V0 = {2, 3, 5, 6}\n        # V1 = {0, 1, 7, 9}\n        # V2 = {4, 8, 10, 11}\n        \n        # Edges:\n        # (2,0), (2,1), (2,7), (2,9) - Wait, 2 is connected to 4 nodes.\n        # That's 4 edges for vertex 2. But we need 3-regular.\n        # Let's remove one edge from 2.\n        # Let's say 2 is connected to 0, 1, 7. (Remove (2,9))\n        # Wait, the problem says (2,9) is a fixed edge.\n        # So 2 must be connected to 9.\n        # Let's re-evaluate the partitions.\n        \n        # If 2 is connected to 0, 1, 7, 9, then 2 must have degree at least 4.\n        # But we want a 3-regular graph.\n        # Oh, the problem says \"every vertex has degree at least 3\".\n        # It doesn't have to be 3-regular.\n        # So degree can be 3 or more.\n        \n        # Let's try to build a graph with degree at least 3.\n        \n        G = nx.Graph()\n        G.add_nodes_from(range(12))\n        G.add_edges_from(fixed_edges)\n        \n        # Add more edges to satisfy degree >= 3\n        # Let's use a random approach\n        nodes = list(range(12))\n        for _ in range(50):\n            u, v = random.sample(nodes, 2)\n            if u != v and not G.has_edge(u, v):\n                # Check if it's still 3-colorable\n                G.add_edge(u, v)\n                if is_3_colorable(G):\n                    pass\n                else:\n                    G.remove_edge(u, v)\n        \n        # Check if all degrees >= 3\n        if all(G.degree(i) >= 3 for i in range(12)):\n            return list(G.edges())\n\nprint(find_graph())\n"
+      },
+      "ok": true,
+      "latency_ms": 885.81
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\n\ndef check_graph(edges):\n    G = nx.Graph()\n    G.add_nodes_from(range(12))\n    G.add_edges_from(edges)\n    \n    # Check fixed edges\n    fixed_edges = [(1,2), (0,2), (1,4), (2,9), (2,7)]\n    for edge in fixed_edges:\n        if not G.has_edge(*edge):\n            return False, \"Missing fixed edge\"\n            \n    # Check degree >= 3\n    for i in range(12):\n        if G.degree(i) < 3:\n            return False, f\"Vertex {i} has degree {G.degree(i)}\"\n            \n    # Check max clique size <= 5\n    clique_size = nx.graph_clique_number(G)\n    if clique_size > 5:\n        return False, f\"Clique size is {clique_size}\"\n        \n    # Check chromatic number <= 3\n    # nx.coloring.greedy_color(G) gives an upper bound.\n    # For exact chromatic number, use nx.coloring.greedy_color with strategy\n    # or just check if it's 3-colorable.\n    # Since it's 12 vertices, we can use nx.coloring.greedy_color\n    # but that's not guaranteed to be the chromatic number.\n    # Let's use a backtracking approach to check 3-colorability.\n    \n    def is_3_colorable(G):\n        coloring = {}\n        def solve(node):\n            if node == 12:\n                return True\n            for color in range(3):\n                can_color = True\n                for neighbor in G.neighbors(node):\n                    if neighbor in coloring and coloring[neighbor] == color:\n                        can_color = False\n                        break\n                if can_color:\n                    coloring[node] = color\n                    if solve(node + 1):\n                        return True\n                    del coloring[node]\n            return False\n        return solve(0)\n        \n    if not is_3_colorable(G):\n        return False, \"Not 3-colorable\"\n        \n    return True, \"Valid\"\n\nedges = [(0, 2), (0, 3), (0, 10), (0, 9), (1, 2), (1, 4), (1, 8), (2, 9), (2, 7), (2, 11), (2, 3), (2, 4), (2, 6), (2, 8), (2, 5), (3, 10), (3, 4), (3, 8), (3, 6), (4, 5), (4, 10), (4, 11), (4, 9), (4, 7), (5, 8), (5, 6), (6, 7), (7, 8), (8, 9), (10, 11)]\nprint(check_graph(edges))\n"
+      },
+      "ok": false,
+      "latency_ms": 892.76
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\nfrom networkx.algorithms.approximation.clique import clique_number\n\ndef check_graph(edges):\n    G = nx.Graph()\n    G.add_nodes_from(range(12))\n    G.add_edges_from(edges)\n    \n    # Check fixed edges\n    fixed_edges = [(1,2), (0,2), (1,4), (2,9), (2,7)]\n    for edge in fixed_edges:\n        if not G.has_edge(*edge):\n            return False, \"Missing fixed edge\"\n            \n    # Check degree >= 3\n    for i in range(12):\n        if G.degree(i) < 3:\n            return False, f\"Vertex {i} has degree {G.degree(i)}\"\n            \n    # Check max clique size <= 5\n    # Since it's small, we can use find_cliques\n    cliques = list(nx.find_cliques(G))\n    max_clique_size = max(len(c) for c in cliques)\n    if max_clique_size > 5:\n        return False, f\"Clique size is {max_clique_size}\"\n        \n    # Check chromatic number <= 3\n    def is_3_colorable(G):\n        coloring = {}\n        def solve(node):\n            if node == 12:\n                return True\n            for color in range(3):\n                can_color = True\n                for neighbor in G.neighbors(node):\n                    if neighbor in coloring and coloring[neighbor] == color:\n                        can_color = False\n                        break\n                if can_color:\n                    coloring[node] = color\n                    if solve(node + 1):\n                        return True\n                    del coloring[node]\n            return False\n        return solve(0)\n        \n    if not is_3_colorable(G):\n        return False, \"Not 3-colorable\"\n        \n    return True, \"Valid\"\n\nedges = [(0, 2), (0, 3), (0, 10), (0, 9), (1, 2), (1, 4), (1, 8), (2, 9), (2, 7), (2, 11), (2, 3), (2, 4), (2, 6), (2, 8), (2, 5), (3, 10), (3, 4), (3, 8), (3, 6), (4, 5), (4, 10), (4, 11), (4, 9), (4, 7), (5, 8), (5, 6), (6, 7), (7, 8), (8, 9), (10, 11)]\nprint(check_graph(edges))\n"
+      },
+      "ok": false,
+      "latency_ms": 951.33
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\n\ndef check_graph(edges):\n    G = nx.Graph()\n    G.add_nodes_from(range(12))\n    G.add_edges_from(edges)\n    \n    # Check fixed edges\n    fixed_edges = [(1,2), (0,2), (1,4), (2,9), (2,7)]\n    for edge in fixed_edges:\n        if not G.has_edge(*edge):\n            return False, \"Missing fixed edge\"\n            \n    # Check degree >= 3\n    for i in range(12):\n        if G.degree(i) < 3:\n            return False, f\"Vertex {i} has degree {G.degree(i)}\"\n            \n    # Check max clique size <= 5\n    # Use nx.find_cliques\n    cliques = list(nx.find_cliques(G))\n    max_clique_size = max(len(c) for c in cliques)\n    if max_clique_size > 5:\n        return False, f\"Clique size is {max_clique_size}\"\n        \n    # Check chromatic number <= 3\n    def is_3_colorable(G):\n        coloring = {}\n        def solve(node):\n            if node == 12:\n                return True\n            for color in range(3):\n                can_color = True\n                for neighbor in G.neighbors(node):\n                    if neighbor in coloring and coloring[neighbor] == color:\n                        can_color = False\n                        break\n                if can_color:\n                    coloring[node] = color\n                    if solve(node + 1):\n                        return True\n                    del coloring[node]\n            return False\n        return solve(0)\n        \n    if not is_3_colorable(G):\n        return False, \"Not 3-colorable\"\n        \n    return True, \"Valid\"\n\n# The previous graph was not 3-colorable. Let's try to construct a 3-partite graph.\n# A 3-partite graph is always 3-colorable.\n# Let's create a 3-partite graph with 12 vertices, 4 in each partition.\n# Partitions: V0={0,1,2,3}, V1={4,5,6,7}, V2={8,9,10,11}\n# Fixed edges: (1,2), (0,2), (1,4), (2,9), (2,7)\n# Let's assign partitions:\n# 2 in V0\n# 1 in V0\n# 0 in V0\n# 4 in V1\n# 9 in V2\n# 7 in V1\n# This works!\n# V0: {0, 1, 2, 3}\n# V1: {4, 5, 6, 7}\n# V2: {8, 9, 10, 11}\n# Fixed edges:\n# (1,2) - V0-V0 (Wait, this is not 3-partite!)\n# The fixed edges must be between different partitions.\n# (1,2) is in V0, so this is not 3-partite.\n# Let's re-assign partitions.\n# (1,2) -> 1 in V0, 2 in V1\n# (0,2) -> 0 in V0, 2 in V1\n# (1,4) -> 1 in V0, 4 in V2\n# (2,9) -> 2 in V1, 9 in V0\n# (2,7) -> 2 in V1, 7 in V0\n# This works!\n# V0: {0, 1, 7, 9}\n# V1: {2, 3, 5, 6}\n# V2: {4, 8, 10, 11}\n# Let's check fixed edges:\n# (1,2): 1 in V0, 2 in V1 (OK)\n# (0,2): 0 in V0, 2 in V1 (OK)\n# (1,4): 1 in V0, 4 in V2 (OK)\n# (2,9): 2 in V1, 9 in V0 (OK)\n# (2,7): 2 in V1, 7 in V0 (OK)\n# All fixed edges are between different partitions.\n\n# Now let's build a 3-partite graph with these partitions.\n# We need degree >= 3 for all vertices.\n# Let's add edges between V0-V1, V1-V2, V2-V0.\n\nimport random\ndef build_3_partite():\n    V0 = [0, 1, 7, 9]\n    V1 = [2, 3, 5, 6]\n    V2 = [4, 8, 10, 11]\n    \n    G = nx.Graph()\n    G.add_nodes_from(range(12))\n    fixed_edges = [(1,2), (0,2), (1,4), (2,9), (2,7)]\n    G.add_edges_from(fixed_edges)\n    \n    # Add edges between V0-V1, V1-V2, V2-V0\n    # To ensure degree >= 3\n    \n    # Possible edges:\n    edges_v0_v1 = [(u, v) for u in V0 for v in V1]\n    edges_v1_v2 = [(u, v) for u in V1 for v in V2]\n    edges_v2_v0 = [(u, v) for u in V2 for v in V0]\n    \n    all_possible_edges = edges_v0_v1 + edges_v1_v2 + edges_v2_v0\n    random.shuffle(all_possible_edges)\n    \n    for u, v in all_possible_edges:\n        if not G.has_edge(u, v):\n            G.add_edge(u, v)\n            if all(G.degree(i) >= 3 for i in range(12)):\n                # Check clique size\n                cliques = list(nx.find_cliques(G))\n                max_clique_size = max(len(c) for c in cliques)\n                if max_clique_size <= 5:\n                    return list(G.edges())\n    return None\n\nprint(build_3_partite())\n"
+      },
+      "ok": true,
+      "latency_ms": 802.49
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\n\ndef check_graph(edges):\n    G = nx.Graph()\n    G.add_nodes_from(range(12))\n    G.add_edges_from(edges)\n    \n    # Check fixed edges\n    fixed_edges = [(1,2), (0,2), (1,4), (2,9), (2,7)]\n    for edge in fixed_edges:\n        if not G.has_edge(*edge):\n            return False, f\"Missing fixed edge {edge}\"\n            \n    # Check degree >= 3\n    for i in range(12):\n        if G.degree(i) < 3:\n            return False, f\"Vertex {i} has degree {G.degree(i)}\"\n            \n    # Check max clique size <= 5\n    cliques = list(nx.find_cliques(G))\n    max_clique_size = max(len(c) for c in cliques)\n    if max_clique_size > 5:\n        return False, f\"Clique size is {max_clique_size}\"\n        \n    # Check chromatic number <= 3\n    # A 3-partite graph is always 3-colorable.\n    # Let's verify if it's 3-colorable.\n    def is_3_colorable(G):\n        coloring = {}\n        def solve(node):\n            if node == 12:\n                return True\n            for color in range(3):\n                can_color = True\n                for neighbor in G.neighbors(node):\n                    if neighbor in coloring and coloring[neighbor] == color:\n                        can_color = False\n                        break\n                if can_color:\n                    coloring[node] = color\n                    if solve(node + 1):\n                        return True\n                    del coloring[node]\n            return False\n        return solve(0)\n        \n    if not is_3_colorable(G):\n        return False, \"Not 3-colorable\"\n        \n    return True, \"Valid\"\n\nedges = [(0, 2), (0, 10), (0, 4), (1, 2), (1, 4), (1, 5), (1, 6), (1, 10), (1, 8), (2, 9), (2, 7), (2, 10), (2, 8), (2, 4), (3, 4), (3, 9), (3, 11), (3, 10), (3, 8), (3, 7), (4, 5), (5, 10), (5, 7), (6, 11), (6, 10), (7, 8), (8, 9), (9, 11)]\nprint(check_graph(edges))\n"
+      },
+      "ok": true,
+      "latency_ms": 873.11
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "reasoning": "The graph was constructed by ensuring it is 3-partite (which guarantees a chromatic number of at most 3), has 12 vertices, every vertex has a degree of at least 3, and the maximum clique size is at most 5. The fixed edges were included in the construction. The validity of the graph was verified using NetworkX.",
+        "solution": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            5
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            2,
+            9
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            10
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            3,
+            11
+          ],
+          [
+            3,
+            10
+          ],
+          [
+            3,
+            8
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            10
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            6,
+            11
+          ],
+          [
+            6,
+            10
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            9,
+            11
+          ]
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.01
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

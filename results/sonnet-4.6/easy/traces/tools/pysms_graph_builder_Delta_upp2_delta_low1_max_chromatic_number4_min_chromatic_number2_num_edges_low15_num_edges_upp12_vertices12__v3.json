@@ -1,0 +1,115 @@
+{
+  "problem_name": "pysms_graph_builder_Delta_upp2_delta_low1_max_chromatic_number4_min_chromatic_number2_num_edges_low15_num_edges_upp12_vertices12__v3",
+  "problem_type": "pysms_graph_builder",
+  "params": {
+    "Delta_upp": 2,
+    "delta_low": 1,
+    "max_chromatic_number": 4,
+    "min_chromatic_number": 2,
+    "num_edges_low": 15,
+    "num_edges_upp": 12,
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 96.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": -1,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 37.22,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      11
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      8,
+      9
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      10,
+      11
+    ]
+  ],
+  "reasoning": "A single 12-cycle (0-1-2-3-4-5-6-7-8-9-10-11-0) satisfies all constraints: every vertex has degree exactly 2 (min degree >= 1, max degree <= 2), there are exactly 12 edges (within [12,15]), and since it's an even cycle it is 2-colorable (chromatic number = 2, satisfying both >= 2 and <= 4).",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0, 1], [0, 11], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11]],\n    \"reasoning\": \"A single 12-cycle (0-1-2-3-4-5-6-7-8-9-10-11-0) satisfies all constraints: every vertex has degree exactly 2 (min degree >= 1, max degree <= 2), there are exactly 12 edges (within [12,15]), and since it's an even cycle it is 2-colorable (chromatic number = 2, satisfying both >= 2 and <= 4).\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "claimed SAT, expected UNSAT",
+  "prompt_tokens": 5578,
+  "completion_tokens": 1849,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.044469,
+  "cost_source": "openrouter",
+  "latency_ms": 25343.50895881653,
+  "tool_dispatch_ms_total": 191.53451919555664,
+  "tool_calls_made": 1,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\nfrom collections import defaultdict\n\n# Constraints:\n# - 12 vertices (0-11)\n# - min degree >= 1 (every vertex has at least 1 edge)\n# - max degree <= 2 (every vertex has at most 2 edges)\n# - number of edges between 12 and 15 (inclusive)\n# - chromatic number <= 4\n# - chromatic number >= 2 (not all independent, i.e., has at least one edge)\n\n# With max degree 2, the graph is a collection of paths and cycles.\n# With 12 vertices, min degree 1, max degree 2:\n#   - Each vertex is in a path or cycle\n#   - Sum of degrees = 2 * |edges|\n#   - Min sum of degrees = 12 * 1 = 12, so min edges = 6\n#   - Max sum of degrees = 12 * 2 = 24, so max edges = 12\n# Wait - edges must be between 12 and 15. But max edges = 12!\n# Let me re-check: edges between 15 and 12 means 12 <= edges <= 15? Or 15 <= edges <= 12?\n\n# \"edges between 15 and 12\" - likely means between 12 and 15 inclusive\n# But with max degree 2 on 12 vertices: max edges = 12*2/2 = 12\n# So edges can be at most 12.\n\n# If the range is [12, 15], then we need exactly 12 edges (the only feasible value).\n# 12 edges with 12 vertices, all degrees exactly 2 => every vertex has degree 2\n# => graph is a union of cycles covering all 12 vertices\n\n# Chromatic number of cycles:\n# - Even cycles: chromatic number = 2\n# - Odd cycles: chromatic number = 3\n# So chromatic number will be 2 or 3, satisfying <= 4 and >= 2.\n\n# Let's construct such a graph: one 12-cycle (even) => chromatic number = 2\n# Edges: (0,1),(1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,8),(8,9),(9,10),(10,11),(0,11)\n\nedges = []\nn = 12\n# Single cycle: 0-1-2-...-11-0\nfor i in range(n):\n    u = i\n    v = (i + 1) % n\n    if u > v:\n        u, v = v, u\n    edges.append((u, v))\n\nedges = sorted(set(edges))\nprint(f\"Edges: {edges}\")\nprint(f\"Number of edges: {len(edges)}\")\n\n# Check degrees\ndegree = defaultdict(int)\nfor u, v in edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(f\"Degrees: {dict(sorted(degree.items()))}\")\nprint(f\"Min degree: {min(degree.values())}\")\nprint(f\"Max degree: {max(degree.values())}\")\n\n# Check chromatic number (2-coloring for even cycle)\n# BFS coloring\ncolor = {}\ncolor[0] = 0\nqueue = [0]\nvisited = set([0])\nadj = defaultdict(list)\nfor u, v in edges:\n    adj[u].append(v)\n    adj[v].append(u)\n\nfrom collections import deque\nq = deque([0])\ncolor[0] = 0\nwhile q:\n    node = q.popleft()\n    for nb in adj[node]:\n        if nb not in color:\n            color[nb] = 1 - color[node]\n            q.append(nb)\n        elif color[nb] == color[node]:\n            print(\"Not 2-colorable!\")\n\nprint(f\"Coloring: {dict(sorted(color.items()))}\")\nnum_colors = len(set(color.values()))\nprint(f\"Chromatic number: {num_colors}\")\nprint(f\"\\nAll constraints satisfied:\")\nprint(f\"  min degree >= 1: {min(degree.values()) >= 1}\")\nprint(f\"  max degree <= 2: {max(degree.values()) <= 2}\")\nprint(f\"  edges in [12,15]: {12 <= len(edges) <= 15}\")\nprint(f\"  chromatic number <= 4: {num_colors <= 4}\")\nprint(f\"  chromatic number >= 2: {num_colors >= 2}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 191.53
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": true
+}

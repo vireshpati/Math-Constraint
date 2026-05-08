@@ -1,0 +1,70 @@
+{
+  "problem_name": "pysms_mtf_vertices9__v2_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 21.4,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 14,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 11.84,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[[0, 1], [0, 2], [0, 3], [0, 7], [1, 4], [1, 5], [1, 6], [1, 8], [2, 4], [2, 5], [2, 6], [2, 8], [3, 4], [3, 5], [3, 6], [3, 8], [4, 7], [5, 7], [6, 7], [7, 8]]",
+  "reasoning": "The complete bipartite graph K(4,5) with parts {1,2,3,7} and {0,4,5,6,8} is a maximal triangle-free graph on 9 vertices. By Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on n vertices is floor(n\u00b2/4) = 20, which this graph achieves. The fixed edges (4,7) and (0,7) are both present since 4,0 are in one part and 7 is in the other. The graph is maximal because every non-edge connects two vertices in the same part, and they share all vertices from the opposite part as common neighbors.",
+  "raw_response": null,
+  "cot_trace": "The problem asks me to generate a maximal triangle-free graph with 9 vertices. Let me understand what this means:\n\n1. Triangle-free: The graph contains no triangles (no 3 vertices that are all connected to each other).\n2. Maximal: Adding any edge to the graph would create a triangle. In other words, for every pair of non-adjacent vertices (u, v), there exists some vertex w such that both (u, w) and (v, w) are edges in the graph.\n3. 9 vertices: The graph has vertices 0, 1, 2, 3, 4, 5, 6, 7, 8.\n4. Fixed edges: (4, 7) and (0, 7) must be present.\n\nLet me think about this more carefully. A maximal triangle-free graph is one where:\n- It's triangle-free\n- Adding any edge would create a triangle\n\nThis is equivalent to saying that for every non-edge (u, v), there exists a vertex w such that (u, w) and (v, w) are both edges.\n\nLet me use a SAT solver or constraint programming approach to find such a graph.\n\nI'll model this as follows:\n- Variables: x_{u,v} for each pair 0 <= u < v < 9, where x_{u,v} = 1 means edge (u, v) is present.\n- Constraints:\n  1. Triangle-free: For every triple (i, j, k), we cannot have all three edges (i,j), (j,k), (i,k) present. So x_{i,j} + x_{j,k} + x_{i,k} <= 2.\n  2. Maximal: For every non-edge (u, v), there must exist some w such that x_{u,w} = 1 and x_{v,w} = 1. This is a bit tricky to encode directly.\n  3. Fixed edges: x_{4,7} = 1, x_{0,7} = 1.\n\nActually, let me think about the maximality constraint more carefully. For each pair (u, v) that is NOT an edge, we need: exists w such that (u, w) and (v, w) are edges.\n\nThis can be encoded as: for each pair (u, v), either x_{u,v} = 1 OR (exists w such that x_{u,w} = 1 AND x_{v,w} = 1).\n\nIn CNF, this would be: for each pair (u, v), we have a clause that says x_{u,v} OR (x_{u,w1} AND x_{v,w1}) OR (x_{u,w2} AND x_{v,w2}) OR ...\n\nThis is not directly in CNF. Let me think of another approach.\n\nActually, I can use a SAT solver with the pysat library. Let me encode this properly.\n\nFor the maximality constraint, for each pair (u, v) with u < v:\n- Either x_{u,v} is true, OR there exists w (w != u, w != v) such that x_{min(u,w), max(u,w)} and x_{min(v,w), max(v,w)} are both true.\n\nLet me write Python code to solve this using pysat.\n\nActually, let me think about this differently. A maximal triangle-free graph on n vertices is related to Tur\u00e1n graphs. The Tur\u00e1n graph T(n, 2) is a complete bipartite graph, which is triangle-free and maximal (adding any edge within a part creates a triangle).\n\nFor n = 9, the complete bipartite graph K(4, 5) has 4*5 = 20 edges and is triangle-free and maximal.\n\nBut we have fixed edges (4, 7) and (0, 7). Let me check if these can be part of a complete bipartite graph.\n\nIn a complete bipartite graph, vertices are partitioned into two sets A and B, and edges exist between every vertex in A and every vertex in B.\n\nIf (4, 7) is an edge, then 4 and 7 must be in different parts.\nIf (0, 7) is an edge, then 0 and 7 must be in different parts.\n\nSo 4 and 0 must be in the same part (since they're both different from 7's part).\n\nLet's say 7 is in part A. Then 0 and 4 are in part B.\n\nWe can partition the 9 vertices into parts of size 4 and 5. Let's say part A has 4 vertices and part B has 5 vertices.\n\nPart A contains 7. Part B contains 0 and 4.\n\nWe need to assign the remaining 6 vertices (1, 2, 3, 5, 6, 8) to either part A or part B.\n\nPart A needs 3 more vertices (to have 4 total).\nPart B needs 3 more vertices (to have 5 total).\n\nSo we choose 3 out of {1, 2, 3, 5, 6, 8} to go to part A, and the rest go to part B.\n\nThis gives us a complete bipartite graph, which is triangle-free and maximal.\n\nLet me verify: In a complete bipartite graph, there are no triangles because any triangle would need 3 vertices, but at least 2 of them would be in the same part, and there are no edges within a part.\n\nAnd it's maximal because adding any edge within a part would create a triangle with any vertex from the other part.\n\nSo the answer is yes, such a graph exists. Let me construct one.\n\nLet me assign:\nPart A: {7, 1, 2, 3}\nPart B: {0, 4, 5, 6, 8}\n\nEdges are all pairs (u, v) where u is in A and v is in B (or vice versa).\n\nLet me list them:\n(0, 1), (0, 2), (0, 3), (0, 7) - 0 is in B, 1,2,3,7 are in A\n(1, 4), (1, 5), (1, 6), (1, 8) - 1 is in A, 4,5,6,8 are in B\n(2, 4), (2, 5), (2, 6), (2, 8) - 2 is in A, 4,5,6,8 are in B\n(3, 4), (3, 5), (3, 6), (3, 8) - 3 is in A, 4,5,6,8 are in B\n(4, 7), (5, 7), (6, 7), (7, 8) - 7 is in A, 4,5,6,8 are in B\n\nWait, let me be more careful. Let me list all edges systematically.\n\nPart A = {1, 2, 3, 7}\nPart B = {0, 4, 5, 6, 8}\n\nEdges (u, v) with u < v:\n- u in A, v in B:\n  - 1 in A, v in B with v > 1: (1, 4), (1, 5), (1, 6), (1, 8)\n  - 2 in A, v in B with v > 2: (2, 4), (2, 5), (2, 6), (2, 8)\n  - 3 in A, v in B with v > 3: (3, 4), (3, 5), (3, 6), (3, 8)\n  - 7 in A, v in B with v > 7: (7, 8)\n- u in B, v in A:\n  - 0 in B, v in A with v > 0: (0, 1), (0, 2), (0, 3), (0, 7)\n  - 4 in B, v in A with v > 4: (4, 7)\n  - 5 in B, v in A with v > 5: (5, 7)\n  - 6 in B, v in A with v > 6: (6, 7)\n  - 8 in B, v in A with v > 8: none\n\nSo the edges are:\n(0, 1), (0, 2), (0, 3), (0, 7), (1, 4), (1, 5), (1, 6), (1, 8), (2, 4), (2, 5), (2, 6), (2, 8), (3, 4), (3, 5), (3, 6), (3, 8), (4, 7), (5, 7), (6, 7), (7, 8)\n\nLet me verify the fixed edges: (4, 7) is present, (0, 7) is present. Good.\n\nLet me verify triangle-free: In a complete bipartite graph, there are no triangles. Good.\n\nLet me verify maximal: Adding any edge within A or within B would create a triangle. For example, adding (1, 2) would create triangle (1, 2, 0) since (1, 0) and (2, 0) are edges. Similarly for any other non-edge. Good.\n\nSo this is a valid solution. Let me format it properly.\n\nActually, wait. Let me double-check by writing a Python script to verify.\n---\nThe complete bipartite graph K(4,5) with parts {1,2,3,7} and {0,4,5,6,8} is a valid maximal triangle-free graph with 9 vertices. It has 20 edges, which is the maximum possible for a triangle-free graph on 9 vertices (by Tur\u00e1n's theorem, the maximum is floor(n\u00b2/4) = floor(81/4) = 20).\n\nThe fixed edges (4,7) and (0,7) are both present:\n- (4,7): 4 is in part_b, 7 is in part_a \u2713\n- (0,7): 0 is in part_b, 7 is in part_a \u2713\n\nThe verification confirms it's valid.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 2219,
+  "completion_tokens": 3232,
+  "reasoning_tokens": 2336,
+  "cached_tokens": 0,
+  "cost_usd": 0.007023575,
+  "cost_source": "openrouter",
+  "latency_ms": 60481.51183128357,
+  "tool_dispatch_ms_total": 34.42740440368652,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def verify_graph(edges, n=9):\n    # Build adjacency set\n    adj = set()\n    for u, v in edges:\n        adj.add((u, v))\n        adj.add((v, u))\n    \n    # Check fixed edges\n    assert (4, 7) in adj or (7, 4) in adj, \"Fixed edge (4,7) missing\"\n    assert (0, 7) in adj or (7, 0) in adj, \"Fixed edge (0,7) missing\"\n    \n    # Check triangle-free\n    for i in range(n):\n        for j in range(i+1, n):\n            if (i, j) in adj:\n                for k in range(j+1, n):\n                    if (i, k) in adj and (j, k) in adj:\n                        return False, f\"Triangle found: ({i}, {j}, {k})\"\n    \n    # Check maximal: for every non-edge, there must be a common neighbor\n    for i in range(n):\n        for j in range(i+1, n):\n            if (i, j) not in adj:\n                # Check if there's a common neighbor\n                has_common = False\n                for k in range(n):\n                    if k != i and k != j:\n                        if (i, k) in adj and (j, k) in adj:\n                            has_common = True\n                            break\n                if not has_common:\n                    return False, f\"Non-edge ({i}, {j}) has no common neighbor - not maximal\"\n    \n    return True, \"Valid maximal triangle-free graph\"\n\n# Construct complete bipartite graph K(4,5)\n# Part A: {1, 2, 3, 7}, Part B: {0, 4, 5, 6, 8}\npart_a = {1, 2, 3, 7}\npart_b = {0, 4, 5, 6, 8}\n\nedges = []\nfor u in range(9):\n    for v in range(u+1, 9):\n        if (u in part_a and v in part_b) or (u in part_b and v in part_a):\n            edges.append((u, v))\n\nprint(f\"Edges: {edges}\")\nprint(f\"Number of edges: {len(edges)}\")\n\nvalid, msg = verify_graph(edges)\nprint(f\"Verification: {msg}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 34.43
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[[0, 1], [0, 2], [0, 3], [0, 7], [1, 4], [1, 5], [1, 6], [1, 8], [2, 4], [2, 5], [2, 6], [2, 8], [3, 4], [3, 5], [3, 6], [3, 8], [4, 7], [5, 7], [6, 7], [7, 8]]",
+        "reasoning": "The complete bipartite graph K(4,5) with parts {1,2,3,7} and {0,4,5,6,8} is a maximal triangle-free graph on 9 vertices. By Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on n vertices is floor(n\u00b2/4) = 20, which this graph achieves. The fixed edges (4,7) and (0,7) are both present since 4,0 are in one part and 7 is in the other. The graph is maximal because every non-edge connects two vertices in the same part, and they share all vertices from the opposite part as common neighbors."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

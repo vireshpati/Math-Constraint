@@ -1,0 +1,158 @@
+{
+  "problem_name": "pysms_min_degree_min_degree3_vertices12__v2_h",
+  "problem_type": "pysms_min_degree",
+  "params": {
+    "min_degree": 3,
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 88.1,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 66,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 29.51,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      3,
+      11
+    ],
+    [
+      4,
+      9
+    ],
+    [
+      4,
+      10
+    ],
+    [
+      4,
+      11
+    ],
+    [
+      5,
+      9
+    ],
+    [
+      5,
+      11
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      6,
+      11
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      10,
+      11
+    ]
+  ],
+  "reasoning": "Starting with the fixed edges, I computed the degree of each vertex. Several vertices had degree below 3: vertex 0 needed 2 more, vertex 2 needed 2 more, vertex 3 needed 1 more, vertex 4 needed 1 more, vertex 5 needed 2 more, vertex 7 needed 2 more, vertex 8 needed 1 more, vertex 9 needed 1 more, and vertex 10 needed 1 more. I added edges (0,2), (0,5), (2,7), (3,8), (4,10), (5,9), (7,8) to satisfy all degree constraints. After adding these edges, every vertex has degree exactly 3 or more (minimum degree = 3), and no duplicate edges were introduced.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,2], [0,5], [0,8], [1,3], [1,6], [1,10], [2,6], [2,7], [3,8], [3,11], [4,9], [4,10], [4,11], [5,9], [5,11], [6,8], [6,11], [7,8], [7,9], [10,11]],\n    \"reasoning\": \"Starting with the fixed edges, I computed the degree of each vertex. Several vertices had degree below 3: vertex 0 needed 2 more, vertex 2 needed 2 more, vertex 3 needed 1 more, vertex 4 needed 1 more, vertex 5 needed 2 more, vertex 7 needed 2 more, vertex 8 needed 1 more, vertex 9 needed 1 more, and vertex 10 needed 1 more. I added edges (0,2), (0,5), (2,7), (3,8), (4,10), (5,9), (7,8) to satisfy all degree constraints. After adding these edges, every vertex has degree exactly 3 or more (minimum degree = 3), and no duplicate edges were introduced.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 9833,
+  "completion_tokens": 1824,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.05685900000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 27284.49320793152,
+  "tool_dispatch_ms_total": 342.9265022277832,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# First, let's analyze the current degree of each vertex with the fixed edges\nfixed_edges = [(7,9), (1,3), (0,8), (6,11), (1,6), (3,11), (4,9), (4,11), (6,8), (10,11), (5,11), (1,10), (2,6)]\n\ndegree = {i: 0 for i in range(12)}\nfor u, v in fixed_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(\"Current degrees:\", degree)\nprint(\"Vertices needing more edges:\", {v: 3 - d for v, d in degree.items() if d < 3})\n"
+      },
+      "ok": true,
+      "latency_ms": 136.67
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's use a greedy approach to add edges to satisfy minimum degree 3\n# Vertices needing edges: 0(+2), 2(+2), 3(+1), 4(+1), 5(+2), 7(+2), 8(+1), 9(+1), 10(+1)\n\n# Let's try to pair them up\n# 0 needs 2 more: connect to 2, 5\n# 2 needs 2 more: connect to 0, 7\n# 3 needs 1 more: connect to 8\n# 4 needs 1 more: connect to 10\n# 5 needs 2 more: connect to 0, 9\n# 7 needs 2 more: connect to 2, 8 (wait, let's check)\n# 8 needs 1 more: connect to 3\n# 9 needs 1 more: connect to 5\n# 10 needs 1 more: connect to 4\n\nadditional_edges = [(0,2), (0,5), (2,7), (3,8), (4,10), (5,9), (7,8)]\n\n# Check degrees after adding these\ndegree2 = degree.copy()\nfor u, v in additional_edges:\n    degree2[u] += 1\n    degree2[v] += 1\n\nprint(\"Degrees after additions:\", degree2)\nprint(\"All >= 3?\", all(d >= 3 for d in degree2.values()))\n\n# Verify no duplicate edges\nall_edges = fixed_edges + additional_edges\nedge_set = set()\nfor u, v in all_edges:\n    e = (min(u,v), max(u,v))\n    if e in edge_set:\n        print(f\"Duplicate: {e}\")\n    edge_set.add(e)\nprint(\"Total edges:\", len(all_edges))\nprint(\"All edges:\", sorted(edge_set))\n"
+      },
+      "ok": false,
+      "latency_ms": 147.72
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfixed_edges = [(7,9), (1,3), (0,8), (6,11), (1,6), (3,11), (4,9), (4,11), (6,8), (10,11), (5,11), (1,10), (2,6)]\n\ndegree = {i: 0 for i in range(12)}\nfor u, v in fixed_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nadditional_edges = [(0,2), (0,5), (2,7), (3,8), (4,10), (5,9), (7,8)]\n\ndegree2 = degree.copy()\nfor u, v in additional_edges:\n    degree2[u] += 1\n    degree2[v] += 1\n\nprint(\"Degrees after additions:\", degree2)\nprint(\"All >= 3?\", all(d >= 3 for d in degree2.values()))\n\nall_edges = fixed_edges + additional_edges\nedge_set = set()\nfor u, v in all_edges:\n    e = (min(u,v), max(u,v))\n    if e in edge_set:\n        print(f\"Duplicate: {e}\")\n    edge_set.add(e)\nprint(\"Total edges:\", len(all_edges))\nprint(\"All edges:\", sorted(edge_set))\n"
+      },
+      "ok": true,
+      "latency_ms": 58.54
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

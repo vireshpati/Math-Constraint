@@ -1,0 +1,122 @@
+{
+  "problem_name": "low_autocorrelation_n21__v1_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 21
+  },
+  "difficulty": {
+    "solve_time_ms": 1603.4,
+    "search_space": 2097152,
+    "num_variables": 41,
+    "num_constraints": 27,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.53,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    -1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1,
+    1
+  ],
+  "reasoning": "Brute-force search over 2^16 possibilities with early pruning and constraint checking. Found sequence [-1, 1, 1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 1, -1, -1, 1] of length 21 over {-1,+1} that respects all fixed assignments. Its aperiodic autocorrelation values satisfy C_1=2, C_2=-1, C_9=2, C_20=-1 and sum_{k=1}^{20} C_k^2 = 50 <= 52.",
+  "raw_response": null,
+  "cot_trace": "We need to find a binary sequence of length 21 over alphabet {-1,+1} with low aperiodic autocorrelation: specifically sum_{k=1}^{20} C_k^2 <= 52, where C_k = sum_{i=0}^{n-k-1} seq[i]*seq[i+k], n=21. So C_k is the aperiodic autocorrelation at lag k. The sum of squares of C_k for k=1..20 must be at most 52. We have partial assignments:\n\nseq[5] = -1\nseq[12] = -1\nseq[17] = 1\nseq[20] = 1\n\nWait, what are c[0], c[1], c[8], c[19] = 2, -1, 2, -1? Maybe c[k] refers to C_k? The problem says c[0]=2, c[1]=-1, c[8]=2, c[19]=-1. But C_0 is sum_{i=0}^{20} seq[i]^2 = 21, because each seq[i]^2 = 1. But c[0]=2 contradicts that. Unless c is something else? Let's re-read: \"Partial assignment (fixed values that must be respected): - seq[5]=-1, seq[12]=-1, seq[17]=1, seq[20]=1 - c[0]=2, c[1]=-1, c[8]=2, c[19]=-1 Return a complete solution consistent with these fixed assignments.\"\n\nWait, c[0]=2? Could c be something else? Maybe c[k] = sum_{i=0}^{n-k-1} seq[i]*seq[i+k] but with n=3? No. Actually, if the sequence is of length 21, then C_0 = 21 always. So c[0]=2 is impossible if c[k]=C_k. Perhaps c refers to something else, like a different correlation? Or maybe the sequence length is not 21? Let's re-express: The problem says \"Find a binary sequence of length 21 over the alphabet {-1, +1} with low aperiodic autocorrelation: specifically, the sum over k=1..20 of C_k^2, where C_k = sum_{i=0}^{n-k-1} seq[i]*seq[i+k], must be at most 52.\"\n\nSo n=21. C_k for k=1..20.\n\nBut c[0]=2? Could it be that the partial assignment is for a different variable set? Or maybe c[k] denotes something like the sum of seq[i]*seq[i+k] for a shorter segment? Or maybe it's a mistake and they meant something else? Or maybe the indexing of c is shifted: c[0] corresponds to C_1? Then c[0]=2 means C_1=2? But c[1]=-1 would mean C_2=-1? c[8]=2 means C_9=2? c[19]=-1 means C_20=-1? That could be plausible if c is 0-indexed and corresponds to C_{k+1}. But the problem says c[0]=2, c[1]=-1, c[8]=2, c[19]=-1. If c[i] = C_{i+1}, then c[19] = C_20. That is consistent with c having length 20. But c[0] would be C_1. Then C_1=2, C_2=-1, C_9=2, C_20=-1. But is C_1=2 possible? C_1 = sum_{i=0}^{19} seq[i]*seq[i+1]. For a length-21 sequence of +/-1, C_1 can range from -21 to 21 with same parity as 21? Actually each term is +/-1, so C_1 is sum of 20 terms, each +/-1, so C_1 is an integer between -20 and 20 with same parity as 20? Wait, sum of 20 independent +/-1 variables gives values from -20 to 20 with step 2. So C_1=2 is possible. c[0]=2 could be C_1=2. But the problem explicitly writes \"c[0]=2\". However, earlier they defined C_k for k=1..20. So c might be just a variable name for C, but with 0-indexing: c[k] = C_{k+1}? Or maybe they indexed C from 0 to 19? The problem statement is ambiguous.\n\nAlternatively, maybe the problem originally used n=3? No, \"length 21\". Let's consider the possibility that c[k] = sum_{i=0}^{n-k-1} seq[i]*seq[i+k] but with n=3? That makes no sense.\n\nAnother possibility: The partial assignment c[0]=2, c[1]=-1, c[8]=2, c[19]=-1 refers to the *cumulative* sum or something else. But the instruction says \"Return a complete solution consistent with these fixed assignments.\" So the solution must be a sequence seq that satisfies these constraints. We need to find a sequence of length 21 with sum of squares of C_k <= 52, and also the given fixed seq values, and the given c values.\n\nLet's try to interpret c[0]=2 as C_0? But C_0=21. So no. Could c[0] be the sum over k=1..20 of C_k^2? That would be c[0]? No, that is a single number, not indexed by 0.\n\nMaybe the problem has a typo: c[0] might be C_0? But then C_0=2 is impossible for length 21. Unless the alphabet is {0,1} or something? But alphabet is {-1,+1}. If alphabet were {0,1}, then C_0 = sum seq[i]^2 = sum seq[i] which could be 2 if only two 1's. But the problem says alphabet {-1,+1}. So that doesn't fit.\n\nWait, maybe c[k] is the *periodic* autocorrelation? For periodic autocorrelation with shift k, P_k = sum_{i=0}^{n-1} seq[i]*seq[(i+k) mod n]. Then P_0 = n = 21. Still 21.\n\nMaybe c[k] is the *cyclic* autocorrelation of a shorter sequence? Or maybe c[k] is something like the *autocorrelation of the binary representation* where 0->-1, 1->+1? But then C_0 = n.\n\nLet's examine c[1]=-1, c[8]=2, c[19]=-1. If c[k] = C_{k+1} (i.e., c[0]=C_1, c[1]=C_2, ... c[19]=C_20), then constraints are:\nC_1 = 2\nC_2 = -1\nC_9 = 2\nC_20 = -1\n\nIs that plausible? Let's see if there exists a sequence with these autocorrelation values. C_20 = sum_{i=0}^{0} seq[i]*seq[i+20] = seq[0]*seq[20]. Since seq[20]=1, C_20 = seq[0]*1 = seq[0]. So C_20 = seq[0]. If C_20 = -1, then seq[0] = -1. That's a fixed value! Good.\n\nC_1 = sum_{i=0}^{19} seq[i]*seq[i+1] = 2. That is plausible.\n\nC_2 = sum_{i=0}^{18} seq[i]*seq[i+2] = -1. Plausible.\n\nC_9 = sum_{i=0}^{11} seq[i]*seq[i+9] = 2. Plausible.\n\nSo this interpretation seems consistent. Let's check if c[0]=2 could also be interpreted as something else. If c[k] = C_k (1-indexed), then c[0] is not defined in the sum k=1..20. But they might be using 0-indexing for C: C_0..C_19? But the problem says sum over k=1..20 of C_k^2. If they then refer to c[0]..c[19], it's likely c[k] = C_{k+1}. In many programming contexts, arrays are 0-indexed. So c[0] corresponds to C_1, c[1] to C_2, ..., c[19] to C_20. That is a very natural assumption. So I'll proceed with that.\n\nThus we need to find seq[0..20] in {-1,+1} such that:\n\n- seq[5] = -1\n- seq[12] = -1\n- seq[17] = 1\n- seq[20] = 1\n- C_1 = sum_{i=0}^{19} seq[i]*seq[i+1] = 2\n- C_2 = sum_{i=0}^{18} seq[i]*seq[i+2] = -1\n- C_9 = sum_{i=0}^{11} seq[i]*seq[i+9] = 2\n- C_20 = sum_{i=0}^{0} seq[i]*seq[i+20] = seq[0]*seq[20] = -1 => seq[0] = -1 (since seq[20]=1)\n- sum_{k=1}^{20} C_k^2 <= 52\n\nWe need to find a complete solution.\n\nThis is a combinatorial search problem. We can try to solve it using Python with a SAT solver or brute force with pruning.\n\nThe sequence length is 21, but 5 values are fixed (seq[0], seq[5], seq[12], seq[17], seq[20]). So 16 free variables. 2^16 = 65536, which is very manageable to brute force. However, we also have constraints on C_1, C_2, C_9, and sum of squares. We can just enumerate all 65536 possibilities and check constraints.\n\nBut wait, C_k depends on all pairs. We can compute quickly using convolution or direct loops. 65536 * 20 * 21 ~ 27 million operations, which is fine in Python if optimized with numpy or bit operations. But we can also do it with Python loops; 27 million might be a bit slow but okay within 15 seconds? Probably okay with numpy.\n\nAlternatively, we can use Python's itertools.product and compute. But better to use numpy for speed.\n\nLet's do a brute force search over the 16 free bits. We'll represent -1 as 0 or -1? Let's use numpy arrays of shape (65536, 21) with values +/-1. We can generate the free variables as a meshgrid. Or we can use bit manipulation: iterate over integers from 0 to 2^16-1, set bits, compute seq, compute C_k. But computing for each individually in pure Python might be okay if we break early when constraints are violated. But we can also vectorize with numpy.\n\nHowever, there is a catch: We need to ensure sum_{k=1}^{20} C_k^2 <= 52. That's a relatively loose bound? For random sequence, the expected value of C_k is 0, variance is (n-k). So expected sum of squares is sum_{k=1}^{20} (n-k) = sum_{j=0}^{19} j = 190. Wait, C_k is sum of (n-k) independent +/-1 terms (if sequence is random). The variance of each term is 1, so E[C_k^2] = n-k. So expected sum_{k=1}^{20} (n-k) = sum_{m=1}^{20} m = 210? Wait, n=21. For lag k, number of terms is n-k = 21-k. So sum_{k=1}^{20} (21-k) = 20+19+...+1 = 210. So the expected sum of squares for a random sequence is 210. We need sum <= 52, which is quite low. That means the sequence must have very low autocorrelation, like a Barker code or something. Barker codes of length 21 do not exist. But there are sequences with low autocorrelation, like the optimal binary sequences. The minimal possible sum of squares for length 21 is known? Let's check. For aperiodic autocorrelation, the merit factor is defined as (n^2) / (2 * sum_{k=1}^{n-1} C_k^2). For length 21, the best known merit factor might be around 8 or 9? Then sum of squares = n^2 / (2*MF) = 441 / (2*MF). For MF=8, sum=441/16\u224827.5. For MF=6, sum\u224836.75. For MF=4, sum\u224855. So sum <= 52 corresponds to merit factor > 441/(2*52) \u2248 4.24. That's not extremely high. Actually, many sequences have sum around 50-100? Let's check known values. For length 21, the best known aperiodic autocorrelation sum might be around 20-30? I'm not sure. But 52 is plausible.\n\nWait, but we also have constraints on C_1=2, C_2=-1, C_9=2, C_20=-1. These might be quite restrictive. Let's see if such a sequence exists.\n\nBut brute force over 2^16 = 65536 is trivial. Let's do it. We'll compute C_k for each candidate and check.\n\nActually, we can compute C_k using convolution. For each candidate sequence, C_k = sum_{i=0}^{n-k-1} seq[i]*seq[i+k]. We can compute all C_k via:\n\nimport numpy as np\n\nfree_indices = [1,2,3,4,6,7,8,9,10,11,13,14,15,16,18,19]\nfixed = {0:-1, 5:-1, 12:-1, 17:1, 20:1}\n\nLet's just iterate over all 65536 candidates and compute C_k quickly.\n\nBut maybe we can prune: For each candidate, we compute C_1, C_2, C_9 first (they involve many terms but can be computed incrementally). However, brute force is fine.\n\nLet's write Python code to iterate and check.\n\nWe can precompute which free indices affect each C_k. But even direct computation per candidate is okay: for each candidate (65536), compute 20 C_k values, each requiring up to 20 multiplications. That's about 65536 * 20 * 10 (average terms) \u2248 13 million multiplications. In Python loops, this might take a few seconds but should be okay within 15 seconds. We can optimize by using numpy arrays: generate all candidates as a (65536, 21) array and compute C via matrix multiplication or FFT? Actually, we can compute all C_k for all candidates simultaneously.\n\nBut maybe simpler: use Python's integer bitwise operations? Let's just write a loop with early exit. Since we need sum of squares <= 52, and C_1=2, C_2=-1, C_9=2, C_20=-1, we can compute these first and then compute the rest.\n\nWait, the sum of squares of all C_k must be <=52. C_1^2 = 4, C_2^2 = 1, C_9^2 = 4, C_20^2 = 1. Sum of these four is 10. So the remaining 16 C_k values must have sum of squares <= 42.\n\nLet's just brute force. I'll write the code in a tool call.\n\nBut before that, consider the possibility that c[0]=2 means something else. If c[0]=C_0=2, that is impossible. So c[0] must be C_1 (or some other shift). I think c[k]=C_{k+1} is the right interpretation. I'll proceed.\n\nLet's code.\n---\nWe found a solution: [-1, 1, 1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 1, -1, -1, 1]\nSum of squares = 50 \u2264 52.\n\nLet's verify the fixed assignments:\n- seq[5] = -1 \u2713\n- seq[12] = -1 \u2713\n- seq[17] = 1 \u2713\n- seq[20] = 1 \u2713\n\nNow verify the C constraints:\n- C_1 = 2 \u2713\n- C_2 = -1 \u2713\n- C_9 = 2 \u2713\n- C_20 = seq[0]*seq[20] = -1 * 1 = -1 \u2713\n\nLet's do a full verification before submitting.\n---\nThe solution is verified:\n- seq[5]=-1, seq[12]=-1, seq[17]=1, seq[20]=1\n- C_1 = 2, C_2 = -1, C_9 = 2, C_20 = -1\n- Sum of C_k^2 = 50 \u2264 52\n\nThe sequence is: [-1, 1, 1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 1, -1, -1, 1]",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 4262,
+  "completion_tokens": 5213,
+  "reasoning_tokens": 2914,
+  "cached_tokens": 1536,
+  "cost_usd": 0.02368746,
+  "cost_source": "openrouter",
+  "latency_ms": 147652.19497680664,
+  "tool_dispatch_ms_total": 1785.942554473877,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport numpy as np\n\nn = 21\nfixed = {\n    0: -1,   # derived from c[19]=-1 and seq[20]=1 -> C_20 = seq[0]*seq[20] = -1 => seq[0]=-1\n    5: -1,\n    12: -1,\n    17: 1,\n    20: 1,\n}\n\n# free indices\nfree_idx = [i for i in range(n) if i not in fixed]\nprint(\"free indices:\", free_idx)\nprint(\"num free:\", len(free_idx))\n\n# constraints on C_k (1-indexed)\n# c[0]=2 => C_1=2\n# c[1]=-1 => C_2=-1\n# c[8]=2 => C_9=2\n# c[19]=-1 => C_20=-1\nC_constraints = {\n    1: 2,\n    2: -1,\n    9: 2,\n    20: -1,\n}\n\ndef compute_C(seq):\n    # seq is list/array of length n\n    C = [0] * (n)  # C[0] unused? we'll fill 1..20\n    for k in range(1, n):\n        s = 0\n        for i in range(n - k):\n            s += seq[i] * seq[i+k]\n        C[k] = s\n    return C\n\nsolutions = []\n\n# brute force over 2^16 candidates\nfor bits in range(1 << len(free_idx)):\n    seq = [0] * n\n    for idx, val in fixed.items():\n        seq[idx] = val\n    for j, i in enumerate(free_idx):\n        seq[i] = 1 if (bits >> j) & 1 else -1\n    \n    # check C constraints first\n    # C_1\n    c1 = sum(seq[i] * seq[i+1] for i in range(n-1))\n    if c1 != 2:\n        continue\n    # C_2\n    c2 = sum(seq[i] * seq[i+2] for i in range(n-2))\n    if c2 != -1:\n        continue\n    # C_9\n    c9 = sum(seq[i] * seq[i+9] for i in range(n-9))\n    if c9 != 2:\n        continue\n    # C_20\n    c20 = seq[0] * seq[20]\n    if c20 != -1:\n        continue\n    \n    # compute full C_k and sum of squares\n    total = 0\n    ok = True\n    for k in range(1, n):\n        s = 0\n        for i in range(n - k):\n            s += seq[i] * seq[i+k]\n        total += s * s\n        # early prune: if total > 52, break\n        if total > 52:\n            ok = False\n            break\n    \n    if ok and total <= 52:\n        solutions.append((seq[:], total))\n        print(\"Found solution! sum of squares:\", total)\n        print(seq)\n        # we only need one solution\n        break\n\nprint(\"Number of solutions found:\", len(solutions))\n"
+      },
+      "ok": true,
+      "latency_ms": 1674.98
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = [-1, 1, 1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 1, -1, -1, 1]\nn = len(seq)\n\n# Verify fixed values\nassert seq[5] == -1\nassert seq[12] == -1\nassert seq[17] == 1\nassert seq[20] == 1\n\n# Compute all C_k\nC = []\nfor k in range(1, n):\n    s = sum(seq[i] * seq[i+k] for i in range(n - k))\n    C.append(s)\n\nprint(\"C_k values:\")\nfor k, c in enumerate(C, 1):\n    print(f\"C_{k} = {c}\")\n\n# Verify constraints\nassert C[0] == 2, f\"C_1 = {C[0]}\"\nassert C[1] == -1, f\"C_2 = {C[1]}\"\nassert C[8] == 2, f\"C_9 = {C[8]}\"\nassert C[19] == -1, f\"C_20 = {C[19]}\"\n\n# Sum of squares\ntotal = sum(c*c for c in C)\nprint(\"\\nSum of C_k^2:\", total)\nassert total <= 52\n\nprint(\"\\nAll checks passed!\")\nprint(seq)\n"
+      },
+      "ok": true,
+      "latency_ms": 110.96
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          -1,
+          1,
+          1,
+          -1,
+          -1,
+          -1,
+          1,
+          1,
+          1,
+          -1,
+          1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          -1,
+          1
+        ],
+        "reasoning": "Brute-force search over 2^16 possibilities with early pruning and constraint checking. Found sequence [-1, 1, 1, -1, -1, -1, 1, 1, 1, -1, 1, -1, -1, -1, -1, -1, -1, 1, -1, -1, 1] of length 21 over {-1,+1} that respects all fixed assignments. Its aperiodic autocorrelation values satisfy C_1=2, C_2=-1, C_9=2, C_20=-1 and sum_{k=1}^{20} C_k^2 = 50 <= 52."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

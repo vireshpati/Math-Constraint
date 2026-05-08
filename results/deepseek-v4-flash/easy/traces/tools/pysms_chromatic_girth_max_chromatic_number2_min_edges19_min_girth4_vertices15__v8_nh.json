@@ -1,0 +1,235 @@
+{
+  "problem_name": "pysms_chromatic_girth_max_chromatic_number2_min_edges19_min_girth4_vertices15__v8_nh",
+  "problem_type": "pysms_chromatic_girth",
+  "params": {
+    "max_chromatic_number": 2,
+    "min_edges": 19,
+    "min_girth": 4,
+    "vertices": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 99.4,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 26,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 41.17,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      7
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      0,
+      11
+    ],
+    [
+      0,
+      12
+    ],
+    [
+      0,
+      13
+    ],
+    [
+      0,
+      14
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      1,
+      9
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      1,
+      11
+    ],
+    [
+      1,
+      12
+    ],
+    [
+      1,
+      13
+    ],
+    [
+      1,
+      14
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      9
+    ]
+  ],
+  "reasoning": "The graph has 15 vertices (0-14), is bipartite (2-colorable) with partition A={0,1,2,3,4,5,6} and B={7,8,9,10,11,12,13,14}, has exactly 19 edges (\u226519), and has girth 4 (\u22654). The graph contains no triangles (automatic for bipartite graphs), and the shortest cycle found has length 4.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 5265,
+  "completion_tokens": 2002,
+  "reasoning_tokens": 0,
+  "cached_tokens": 2816,
+  "cost_usd": 0.0009822680000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 107941.25008583069,
+  "tool_dispatch_ms_total": 87.67366409301758,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's construct a bipartite graph with 15 vertices, girth >= 4 (no triangles), at least 19 edges\n\n# Split into two parts\nA = list(range(0, 7))  # 7 vertices\nB = list(range(7, 15))  # 8 vertices\n\nedges = []\n\n# Add edges to get at least 19 edges\n# Connect vertex 0 to all 8 vertices in B\nfor b in B:\n    edges.append((0, b))\n\n# Connect vertex 1 to all 8 vertices in B\nfor b in B:\n    edges.append((1, b))\n\n# That's 16 edges so far. Need 3 more.\n# Connect vertex 2 to 3 vertices in B\nfor b in B[:3]:\n    edges.append((2, b))\n\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Edges: {edges}\")\n\n# Verify bipartiteness: no edges within A or within B\n# Verify no triangles (automatic for bipartite)\n# Verify girth >= 4 - need to check no 3-cycles (none in bipartite)\n# But also need to check... actually girth >= 4 just means no triangles.\n\n# Let's verify with code\ndef has_triangle(edges):\n    adj = {i: set() for i in range(15)}\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    for u in range(15):\n        for v in adj[u]:\n            for w in adj[v]:\n                if w != u and w in adj[u]:\n                    return True\n    return False\n\nprint(f\"Has triangle: {has_triangle(edges)}\")\n\n# Check bipartite\ndef is_bipartite(edges, n=15):\n    adj = {i: [] for i in range(n)}\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    color = {}\n    for start in range(n):\n        if start not in color:\n            color[start] = 0\n            stack = [start]\n            while stack:\n                u = stack.pop()\n                for v in adj[u]:\n                    if v not in color:\n                        color[v] = 1 - color[u]\n                        stack.append(v)\n                    elif color[v] == color[u]:\n                        return False\n    return True\n\nprint(f\"Is bipartite: {is_bipartite(edges)}\")"
+      },
+      "ok": true,
+      "latency_ms": 33.71
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Check if there are any cycles\nedges = [(0, 7), (0, 8), (0, 9), (0, 10), (0, 11), (0, 12), (0, 13), (0, 14), \n         (1, 7), (1, 8), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 14), \n         (2, 7), (2, 8), (2, 9)]\n\n# Build adjacency\nadj = {i: [] for i in range(15)}\nfor u, v in edges:\n    adj[u].append(v)\n    adj[v].append(u)\n\n# Find shortest cycle using BFS\nfrom collections import deque\n\ndef shortest_cycle(adj, n):\n    min_cycle = float('inf')\n    for start in range(n):\n        dist = {start: 0}\n        parent = {start: -1}\n        q = deque([start])\n        while q:\n            u = q.popleft()\n            for v in adj[u]:\n                if v not in dist:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    q.append(v)\n                elif v != parent[u]:\n                    # Found a cycle\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    return min_cycle\n\nsc = shortest_cycle(adj, 15)\nprint(f\"Shortest cycle length: {sc}\")\nprint(f\"Girth >= 4: {sc >= 4 or sc == float('inf')}\")"
+      },
+      "ok": true,
+      "latency_ms": 53.96
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            9
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            11
+          ],
+          [
+            0,
+            12
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            0,
+            14
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            9
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            1,
+            11
+          ],
+          [
+            1,
+            12
+          ],
+          [
+            1,
+            13
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            2,
+            9
+          ]
+        ],
+        "reasoning": "The graph has 15 vertices (0-14), is bipartite (2-colorable) with partition A={0,1,2,3,4,5,6} and B={7,8,9,10,11,12,13,14}, has exactly 19 edges (\u226519), and has girth 4 (\u22654). The graph contains no triangles (automatic for bipartite graphs), and the shortest cycle found has length 4."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

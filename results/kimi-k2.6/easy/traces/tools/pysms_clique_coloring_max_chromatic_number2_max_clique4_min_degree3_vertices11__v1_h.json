@@ -1,0 +1,291 @@
+{
+  "problem_name": "pysms_clique_coloring_max_chromatic_number2_max_clique4_min_degree3_vertices11__v1_h",
+  "problem_type": "pysms_clique_coloring",
+  "params": {
+    "max_chromatic_number": 2,
+    "max_clique": 4,
+    "min_degree": 3,
+    "vertices": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 85.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 24,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 28.01,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      4
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      9
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      9
+    ],
+    [
+      3,
+      10
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      5,
+      9
+    ],
+    [
+      5,
+      10
+    ],
+    [
+      6,
+      9
+    ],
+    [
+      6,
+      10
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      10
+    ]
+  ],
+  "reasoning": "The graph is bipartite with partitions {0,1,2,3,5,6,7} and {4,8,9,10}, so chromatic number is 2. As a bipartite graph, it contains no odd cycles and the maximum clique size is 2 (\u22644). Every vertex has degree at least 3: deg(0)=4, deg(1)=3, deg(2)=3, deg(3)=3, deg(4)=6, deg(5)=3, deg(6)=3, deg(7)=3, deg(8)=4, deg(9)=5, deg(10)=5. All four fixed edges are included.",
+  "raw_response": null,
+  "cot_trace": " We need to generate a graph with 11 vertices satisfying constraints:\n- max clique size <= 4 (i.e., no K5)\n- chromatic number <= 2 (i.e., graph is bipartite)\n- every vertex has degree at least 3\n- fixed edges: (1,10), (0,4), (0,8), (2,9)\n\nWe need to return graph as list of edges (u,v) with 0 <= u < v < 11.\n\nFirst, note that chromatic number <= 2 means graph is bipartite (or has no odd cycles). Actually a graph with chromatic number <=2 means it's bipartite (or empty). So graph must be bipartite. In a bipartite graph, maximum clique size is at most 2 (since any clique in a bipartite graph can have at most 2 vertices, one from each part). Wait, is that true? In a bipartite graph, there are no odd cycles, but can there be a triangle? No, because a triangle is an odd cycle of length 3. So any bipartite graph has no odd cycles, thus no cliques of size >2. Actually a clique of size 3 is a triangle, which is an odd cycle. So max clique size <=2 automatically. But the constraint says max clique size <=4, which is weaker. So bipartite satisfies that.\n\nBut we need every vertex degree at least 3. In a bipartite graph with 11 vertices, minimum degree >=3. Is that possible? Yes, e.g., a bipartite graph with parts of sizes maybe 5 and 6. Each vertex in part A connects to at least 3 vertices in part B, etc.\n\nWe also have fixed edges: (1,10), (0,4), (0,8), (2,9). Let's see if these are consistent with bipartiteness. We need to assign each vertex a color (0 or 1) such that every edge connects opposite colors. Let's try to find a 2-coloring that includes these edges.\n\nEdges:\n(1,10): color(1) != color(10)\n(0,4): color(0) != color(4)\n(0,8): color(0) != color(8)\n(2,9): color(2) != color(9)\n\nWe can choose arbitrary colors. Let's set color(0)=0. Then color(4)=1, color(8)=1. Vertex 1 and 10 opposite; 2 and 9 opposite. We can set color(1)=0, color(10)=1. color(2)=0, color(9)=1. So far no conflict.\n\nNow we need to add edges to ensure each vertex has degree >=3. Let's compute current degrees:\n0: edges to 4,8 => degree 2\n1: edge to 10 => degree 1\n2: edge to 9 => degree 1\n3: none => degree 0\n4: edge to 0 => degree 1\n5: none => degree 0\n6: none => degree 0\n7: none => degree 0\n8: edge to 0 => degree 1\n9: edge to 2 => degree 1\n10: edge to 1 => degree 1\n\nWe need to add edges (within bipartite constraints) to raise all degrees to >=3.\n\nWe need to decide bipartition. Let's fix a partition based on colors: Part A = {0,1,2,3,5,6,7?} Wait we haven't assigned colors for 3,5,6,7. Let's assign them. We have flexibility. Let's try to make parts balanced-ish. Let's set:\ncolor(0)=0\ncolor(1)=0\ncolor(2)=0\ncolor(3)=0\ncolor(4)=1\ncolor(5)=1\ncolor(6)=1\ncolor(7)=1\ncolor(8)=1\ncolor(9)=1\ncolor(10)=1\n\nCheck edges:\n(1,10): 0-1 OK\n(0,4): 0-1 OK\n(0,8): 0-1 OK\n(2,9): 0-1 OK\n\nSo Part A = {0,1,2,3}, Part B = {4,5,6,7,8,9,10}. That's 4 and 7. But edges can only go between parts. Each vertex in Part A (size 4) can connect to at most 7 vertices in Part B. We need degree >=3 for each vertex in Part A, that's fine. Each vertex in Part B (size 7) needs degree >=3, but can only connect to vertices in Part A (size 4). So each vertex in Part B can have degree at most 4. So degree >=3 is possible (degree 3 or 4). But we need to ensure that each of the 7 vertices in Part B has at least 3 neighbors in Part A. Since Part A has only 4 vertices, the total number of edges from Part B to Part A is at most 4*7 = 28, but each vertex in Part B needs at least 3 edges, so total edges >= 7*3 = 21. That's possible. However, each vertex in Part A must also have degree >=3. There are 4 vertices in Part A, each needs degree >=3, so total edges >= 4*3 = 12 as well. So total edges at least max(21,12) = 21. Since max possible edges between parts is 4*7=28, it's possible.\n\nBut we need to ensure that each vertex in Part B has at least 3 neighbors among {0,1,2,3}. Since there are only 4 vertices in Part A, each vertex in Part B must be missing at most one of them. So each vertex in Part B must be connected to at least 3 of the 4 Part A vertices.\n\nSimilarly, each vertex in Part A must be connected to at least 3 of the 7 Part B vertices.\n\nWe already have some edges:\n0 connected to 4,8. Needs at least one more neighbor in Part B.\n1 connected to 10. Needs at least two more.\n2 connected to 9. Needs at least two more.\n3 connected to none. Needs at least three.\n\nPart B vertices:\n4 connected to 0. Needs at least two more from {1,2,3}.\n5 connected to none. Needs at least three from {0,1,2,3}.\n6 connected to none. Needs at least three.\n7 connected to none. Needs at least three.\n8 connected to 0. Needs at least two more.\n9 connected to 2. Needs at least two more.\n10 connected to 1. Needs at least two more.\n\nSo we need to add edges to satisfy all.\n\nLet's try to construct manually or use Python to find a bipartite graph with min degree >=3 and given fixed edges.\n\nWe can formulate as a SAT or use networkx/simple search. Since it's small, we can brute force or use Python's ILP (pulp maybe not installed). We can use python to search.\n\nWe have possible edges: all pairs (u,v) where u in A, v in B. That's 4*7=28 possible edges. We already have 4 fixed edges. So 24 variables.\n\nWe need each vertex degree >=3. Let's use Python to find a solution.\n\nWe also need max clique size <=4. But bipartite ensures max clique <=2, so that's fine. However, we must ensure the graph is bipartite with the partition we choose. But we could also choose a different partition. The problem doesn't require us to specify partition, just edges. As long as graph is bipartite, it's fine. But we need to make sure that the graph we output is indeed bipartite. If we construct it as bipartite, it's fine.\n\nBut wait: is it possible that the graph is not bipartite but still has chromatic number <=2? Chromatic number <=2 means graph is bipartite (no odd cycles). So yes, must be bipartite.\n\nThus we just need a bipartite graph with min degree >=3 and those fixed edges.\n\nLet's use Python to find edges.\n---\n We have 1024 possible bipartitions, but some are invalid because fixed edges connect same color. Let's see how many valid partitions. Then for each valid partition, we need to add edges (possibly many) such that:\n- graph is bipartite with that partition (so no edges within same part)\n- every vertex degree >= 3\n- max clique size <= 4 (but since bipartite, max clique size is at most 2, actually! Wait: bipartite graphs have no odd cycles, but cliques? A clique in a bipartite graph can have at most 2 vertices (since K_3 is not bipartite). So max clique size <= 2 automatically, which is <= 4. So that constraint is automatically satisfied if chromatic number <= 2 (i.e., graph is bipartite). Actually chromatic number at most 2 means graph is bipartite (or has no edges). So we just need bipartite graph with min degree >= 3, containing fixed edges.\n\nBut wait: chromatic number at most 2 means the graph is 2-colorable. However, if the graph has no edges, chromatic number is 1. But we need min degree >= 3, so there are edges. So chromatic number will be exactly 2 (since there is at least one edge). So we need a bipartite graph with parts given by a 2-coloring, containing fixed edges, min degree >= 3.\n\nIs it possible? Let's check. For a bipartite graph with parts A and B, each vertex in A can only connect to vertices in B. So degree of a vertex is at most size of the opposite part. So we need |opposite part| >= 3 for all vertices. That means both parts must have size at least 3? Actually if a vertex is in A, its degree <= |B|. So we need |B| >= 3. Similarly, |A| >= 3. So both parts must have size at least 3. Since n=11, possible part sizes: (3,8), (4,7), (5,6). Also (2,9) would fail because vertices in part of size 2 can have degree at most 2 < 3. So parts must be at least 3 each.\n\nNow, fixed edges: (1,10), (0,4), (0,8), (2,9). These force that 1 and 10 are in opposite parts, 0 and 4 opposite, 0 and 8 opposite, 2 and 9 opposite.\n\nLet's see if we can find a partition with both parts >=3 satisfying these constraints.\n\nLet's use Python to search for a partition and then add edges.\n---\n The previous code cell lost variables because it ran in a new process. I need to redefine n and fixed.\n---\n We need to find a graph on 11 vertices with:\n- max clique size \u2264 4\n- chromatic number \u2264 2 (so bipartite)\n- min degree \u2265 3\n- fixed edges: (1,10), (0,4), (0,8), (2,9)\n\nSince chromatic number \u2264 2, the graph must be bipartite. So we need a bipartite graph with no odd cycles, min degree \u2265 3, max clique \u2264 4 (in bipartite graph, cliques are at most size 2, so that's automatically satisfied), and the fixed edges must be respected.\n\nWait, max clique size in a bipartite graph is at most 2, unless there are isolated vertices? Actually a clique in a bipartite graph can have at most 2 vertices because any 3 vertices would contain an odd cycle? No, a clique means every pair is adjacent. In a bipartite graph, you cannot have a triangle (3-clique). So max clique size \u2264 2 automatically. So the constraint \"at most 4\" is trivially satisfied.\n\nSo we just need a bipartite graph on 11 vertices with min degree \u2265 3, containing the fixed edges.\n\nSince it's bipartite, we need to partition vertices into two independent sets (color classes), and all edges go between the two sets. The fixed edges tell us that:\n- 1 and 10 must be in different parts\n- 0 and 4 must be in different parts\n- 0 and 8 must be in different parts\n- 2 and 9 must be in different parts\n\nSo we need a valid 2-coloring of the graph. Let's find one.\n\nFrom fixed edges:\n- 0 opposite to 4\n- 0 opposite to 8\n- So 4 and 8 are on the same side (both opposite to 0)\n- 1 opposite to 10\n- 2 opposite to 9\n\nSo we have constraints:\n- color(0) \u2260 color(4)\n- color(0) \u2260 color(8)\n- color(1) \u2260 color(10)\n- color(2) \u2260 color(9)\n\nNo other constraints. So we can choose colors freely subject to these.\n\nLet's say color(0) = 0. Then color(4) = 1, color(8) = 1.\nLet's say color(1) = 0. Then color(10) = 1.\nLet's say color(2) = 0. Then color(9) = 1.\n\nRemaining vertices: 3, 5, 6, 7. We can assign them to either side.\n\nWe need min degree \u2265 3. Let's count degrees from fixed edges:\n- deg(0) = 2 (edges to 4, 8)\n- deg(1) = 1 (edge to 10)\n- deg(2) = 1 (edge to 9)\n- deg(4) = 1 (edge to 0)\n- deg(8) = 1 (edge to 0)\n- deg(9) = 1 (edge to 2)\n- deg(10) = 1 (edge to 1)\n- deg(3) = 0\n- deg(5) = 0\n- deg(6) = 0\n- deg(7) = 0\n\nSo we need to add many more edges.\n\nSince it's bipartite with parts A and B, each vertex in A can only connect to vertices in B.\n\nLet's choose a partition. We want both parts to have enough vertices so that each vertex can have degree at least 3.\n\nIf we put all remaining vertices in one part, say part 0: {0,1,2,3,5,6,7} and part 1: {4,8,9,10}. Then vertices in part 1 can have max degree 7, vertices in part 0 can have max degree 4. That's fine.\n\nBut we need each vertex in part 0 to have degree at least 3, so each must connect to at least 3 vertices in part 1. Since part 1 has only 4 vertices, that's possible.\n\nLet's try:\nPart A (color 0): {0,1,2,3,5,6,7} (7 vertices)\nPart B (color 1): {4,8,9,10} (4 vertices)\n\nEach vertex in A needs \u22653 neighbors in B. Each vertex in B needs \u22653 neighbors in A.\n\nCan we make a bipartite graph between a 7-set and a 4-set where every vertex has degree at least 3?\n\nSum of degrees on A side = sum of degrees on B side.\n\nMin sum on A side = 7*3 = 21.\nMin sum on B side = 4*3 = 12.\nSo total edges \u2265 21.\n\nMax edges = 7*4 = 28.\n\nSo we need at least 21 edges. That's possible.\n\nLet's try to construct explicitly.\n\nVertices in B: 4,8,9,10. Each needs degree \u2265 3 in A.\n\nLet's assign neighbors:\n\nFor 4: connect to 0,1,2,3 (degree 4)\nFor 8: connect to 0,1,2,5 (degree 4) - but 0 already connected to 8 (fixed). So 8's neighbors: 0, plus need 2 more. Let's do 0,1,2,5? Wait 0-8 is fixed. So 8 already has neighbor 0. Add 1,2,5. Degree 4.\nFor 9: connect to 2,3,5,6 (degree 4) - 2-9 is fixed. So 9 already has 2. Add 3,5,6. Degree 4.\nFor 10: connect to 1,3,6,7 (degree 4) - 1-10 is fixed. So 10 already has 1. Add 3,6,7. Degree 4.\n\nNow check degrees in A:\n- 0: neighbors in B: 4,8 (fixed). Degree 2. Need at least 1 more. Add 9 or 10. Let's add 9 and 10? Actually we can add edges. Let's add 0-9 and 0-10. Then degree 4.\n- 1: neighbors: 10 (fixed), 4,8. Degree 3. Good.\n- 2: neighbors: 9 (fixed), 4,8. Degree 3. Good.\n- 3: neighbors: 4,9,10. Degree 3. Good.\n- 5: neighbors: 8,9. Degree 2. Need 1 more. Add 5-10. Then degree 3.\n- 6: neighbors: 9,10. Degree 2. Need 1 more. Add 6-4. Then degree 3.\n- 7: neighbors: 10. Degree 1. Need 2 more. Add 7-4, 7-8. Then degree 3.\n\nNow check B degrees:\n- 4: neighbors 0,1,2,3,6,7. Degree 6. Good.\n- 8: neighbors 0,1,2,5,7. Degree 5. Good.\n- 9: neighbors 0,2,3,5,6. Degree 5. Good.\n- 10: neighbors 0,1,3,5,6,7. Degree 6. Good.\n\nWait, did we add 0-9 and 0-10? Yes. Let's list all edges:\n\nFixed:\n(0,4), (0,8), (1,10), (2,9)\n\nAdded:\nFrom initial assignment:\n(1,4), (2,4), (3,4)\n(1,8), (2,8), (5,8)\n(3,9), (5,9), (6,9)\n(3,10), (6,10), (7,10)\n\nThen additional:\n(0,9), (0,10)\n(5,10)\n(6,4)\n(7,4), (7,8)\n\nLet's verify all edges are between parts:\nPart A: {0,1,2,3,5,6,7}\nPart B: {4,8,9,10}\n\nCheck:\n(0,4): A-B ok\n(0,8): A-B ok\n(1,10): A-B ok\n(2,9): A-B ok\n(1,4): A-B ok\n(2,4): A-B ok\n(3,4): A-B ok\n(1,8): A-B ok\n(2,8): A-B ok\n(5,8): A-B ok\n(3,9): A-B ok\n(5,9): A-B ok\n(6,9): A-B ok\n(3,10): A-B ok\n(6,10): A-B ok\n(7,10): A-B ok\n(0,9): A-B ok\n(0,10): A-B ok\n(5,10): A-B ok\n(6,4): A-B ok\n(7,4): A-B ok\n(7,8): A-B ok\n\nAll good. Now check degrees:\n\nA side:\n0: 4,8,9,10 -> degree 4\n1: 10,4,8 -> degree 3\n2: 9,4,8 -> degree 3\n3: 4,9,10 -> degree 3\n5: 8,9,10 -> degree 3\n6: 9,10,4 -> degree 3\n7: 10,4,8 -> degree 3\n\nB side:\n4: 0,1,2,3,6,7 -> degree 6\n8: 0,1,2,5,7 -> degree 5\n9: 2,3,5,6,0 -> degree 5\n10: 1,3,6,7,0,5 -> degree 6\n\nAll degrees \u2265 3. Chromatic number is 2 (bipartite). Max clique size is 2 (bipartite). \n\nSo this is a valid solution. Let's format as sorted list of edges (u,v) with u<v.\n\nEdges:\n(0,4)\n(0,8)\n(0,9)\n(0,10)\n(1,4)\n(1,8)\n(1,10)\n(2,4)\n(2,8)\n(2,9)\n(3,4)\n(3,9)\n(3,10)\n(4,6)\n(4,7)\n(5,8)\n(5,9)\n(5,10)\n(6,9)\n(6,10)\n(7,8)\n(7,10)\n\nWait, I need to check (6,4) -> (4,6) and (7,4) -> (4,7), (7,8) -> (7,8).\n\nLet me list systematically:\nFixed: (0,4), (0,8), (1,10), (2,9)\nAdded: (1,4), (2,4), (3,4), (1,8), (2,8), (5,8), (3,9), (5,9), (6,9), (3,10), (6,10), (7,10), (0,9), (0,10), (5,10), (4,6), (4,7), (7,8)\n\nTotal edges: 4 + 18 = 22 edges.\n\nLet me sort them:\n(0,4)\n(0,8)\n(0,9)\n(0,10)\n(1,4)\n(1,8)\n(1,10)\n(2,4)\n(2,8)\n(2,9)\n(3,4)\n(3,9)\n(3,10)\n(4,6)\n(4,7)\n(5,8)\n(5,9)\n(5,10)\n(6,9)\n(6,10)\n(7,8)\n(7,10)\n\nCount: 22 edges.\n\nDouble-check degrees from this list:\n0: 4,8,9,10 -> 4\n1: 4,8,10 -> 3\n2: 4,8,9 -> 3\n3: 4,9,10 -> 3\n4: 0,1,2,3,6,7 -> 6\n5: 8,9,10 -> 3\n6: 4,9,10 -> 3\n7: 4,8,10 -> 3\n8: 0,1,2,5,7 -> 5\n9: 0,2,3,5,6 -> 5\n10: 0,1,3,5,6,7 -> 6\n\nAll good. Min degree = 3. Bipartite, so \u03c7=2, \u03c9=2\u22644.\n\nThis is SAT.\n---\n The graph is bipartite with min degree 3, and fixed edges are present. I just need to check max clique size. Let me import itertools and check.\n---\n The variables got lost. Let me rerun everything in one cell.\n---\n The graph I constructed satisfies all constraints:\n- 11 vertices\n- min degree 3\n- bipartite (chromatic number <= 2)\n- max clique size 2 (which is <= 4)\n- contains all fixed edges\n\nLet me double-check the fixed edges:\n- (1,10): yes\n- (0,4): yes\n- (0,8): yes\n- (2,9): yes\n\nAll good. Let me submit.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 10911,
+  "completion_tokens": 7574,
+  "reasoning_tokens": 4115,
+  "cached_tokens": 5184,
+  "cost_usd": 0.034389763000000004,
+  "cost_source": "openrouter",
+  "latency_ms": 321670.2950000763,
+  "tool_dispatch_ms_total": 260.1640224456787,
+  "tool_calls_made": 7,
+  "tool_rounds": 7,
+  "n_execute_python": 6,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# vertices 0..10\nn = 11\n\n# fixed edges\nfixed = {(1,10), (0,4), (0,8), (2,9)}\n\n# try all possible bipartitions that respect fixed edges (i.e., no edge within same part)\n# We can assign colors 0/1.\n\ndef check_partition(colors):\n    # colors: dict vertex->0/1\n    for u,v in fixed:\n        if colors[u] == colors[v]:\n            return False\n    return True\n\n# generate all bipartitions (2^11 / 2 = 1024 essentially)\nvalid_partitions = []\nfor mask in range(1 << n):\n    colors = {}\n    for v in range(n):\n        colors[v] = (mask >> v) & 1\n    # avoid complement duplicates? just check\n    if check_partition(colors):\n        valid_partitions.append(colors)\n\nlen(valid_partitions)\n"
+      },
+      "ok": true,
+      "latency_ms": 50.36
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "valid_partitions = []\nfor mask in range(1 << n):\n    colors = [(mask >> v) & 1 for v in range(n)]\n    ok = True\n    for u,v in fixed:\n        if colors[u] == colors[v]:\n            ok = False\n            break\n    if ok:\n        # count sizes\n        c0 = sum(1 for c in colors if c == 0)\n        c1 = n - c0\n        if c0 >= 3 and c1 >= 3:\n            valid_partitions.append((colors, c0, c1))\nlen(valid_partitions)\n"
+      },
+      "ok": false,
+      "latency_ms": 32.91
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "n = 11\nfixed = {(1,10), (0,4), (0,8), (2,9)}\n\nvalid_partitions = []\nfor mask in range(1 << n):\n    colors = [(mask >> v) & 1 for v in range(n)]\n    ok = True\n    for u,v in fixed:\n        if colors[u] == colors[v]:\n            ok = False\n            break\n    if ok:\n        c0 = sum(1 for c in colors if c == 0)\n        c1 = n - c0\n        if c0 >= 3 and c1 >= 3:\n            valid_partitions.append((colors, c0, c1))\nlen(valid_partitions)\n"
+      },
+      "ok": true,
+      "latency_ms": 36.45
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [\n    (0,4), (0,8), (0,9), (0,10),\n    (1,4), (1,8), (1,10),\n    (2,4), (2,8), (2,9),\n    (3,4), (3,9), (3,10),\n    (4,6), (4,7),\n    (5,8), (5,9), (5,10),\n    (6,9), (6,10),\n    (7,8), (7,10)\n]\n\n# verify properties\nn = 11\nfixed = {(1,10), (0,4), (0,8), (2,9)}\n\n# check fixed edges present\nfor e in fixed:\n    assert e in edges, f\"missing fixed edge {e}\"\n\n# check all edges valid\nfor u,v in edges:\n    assert 0 <= u < v < 11\n\n# build adjacency\nadj = [set() for _ in range(n)]\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# check degrees\nmin_deg = min(len(adj[v]) for v in range(n))\nprint(\"min degree:\", min_deg)\n\n# check bipartite (chromatic number <= 2)\nfrom collections import deque\ncolor = [-1]*n\nbipartite = True\nfor start in range(n):\n    if color[start] == -1:\n        color[start] = 0\n        q = deque([start])\n        while q:\n            u = q.popleft()\n            for v in adj[u]:\n                if color[v] == -1:\n                    color[v] = 1 - color[u]\n                    q.append(v)\n                elif color[v] == color[u]:\n                    bipartite = False\n                    break\n            if not bipartite:\n                break\n    if not bipartite:\n        break\n\nprint(\"bipartite:\", bipartite)\nprint(\"color classes:\", [sum(1 for c in color if c==0), sum(1 for c in color if c==1)])\n\n# check max clique size (in bipartite graph should be 2)\n# brute force check all subsets up to size 5\nmax_clique = 1\nfor k in range(2, 6):\n    for subset in itertools.combinations(range(n), k):\n        ok = True\n        for i in range(k):\n            for j in range(i+1, k):\n                u, v = subset[i], subset[j]\n                if v not in adj[u]:\n                    ok = False\n                    break\n            if not ok:\n                break\n        if ok:\n            max_clique = k\n\nprint(\"max clique:\", max_clique)\nprint(\"num edges:\", len(edges))\n"
+      },
+      "ok": false,
+      "latency_ms": 54.05
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# check max clique size\nmax_clique = 1\nfor k in range(2, 6):\n    for subset in itertools.combinations(range(n), k):\n        ok = True\n        for i in range(k):\n            for j in range(i+1, k):\n                u, v = subset[i], subset[j]\n                if v not in adj[u]:\n                    ok = False\n                    break\n            if not ok:\n                break\n        if ok:\n            max_clique = k\n\nprint(\"max clique:\", max_clique)\n"
+      },
+      "ok": false,
+      "latency_ms": 31.48
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom collections import deque\n\nn = 11\nedges = [\n    (0,4), (0,8), (0,9), (0,10),\n    (1,4), (1,8), (1,10),\n    (2,4), (2,8), (2,9),\n    (3,4), (3,9), (3,10),\n    (4,6), (4,7),\n    (5,8), (5,9), (5,10),\n    (6,9), (6,10),\n    (7,8), (7,10)\n]\n\nfixed = {(1,10), (0,4), (0,8), (2,9)}\n\n# check fixed edges present\nfor e in fixed:\n    assert e in edges, f\"missing fixed edge {e}\"\n\n# build adjacency\nadj = [set() for _ in range(n)]\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# check degrees\nmin_deg = min(len(adj[v]) for v in range(n))\nprint(\"min degree:\", min_deg)\n\n# check bipartite\ncolor = [-1]*n\nbipartite = True\nfor start in range(n):\n    if color[start] == -1:\n        color[start] = 0\n        q = deque([start])\n        while q:\n            u = q.popleft()\n            for v in adj[u]:\n                if color[v] == -1:\n                    color[v] = 1 - color[u]\n                    q.append(v)\n                elif color[v] == color[u]:\n                    bipartite = False\n                    break\n            if not bipartite:\n                break\n    if not bipartite:\n        break\n\nprint(\"bipartite:\", bipartite)\nprint(\"color classes:\", [sum(1 for c in color if c==0), sum(1 for c in color if c==1)])\n\n# check max clique size\nmax_clique = 1\nfor k in range(2, 6):\n    for subset in itertools.combinations(range(n), k):\n        ok = True\n        for i in range(k):\n            for j in range(i+1, k):\n                u, v = subset[i], subset[j]\n                if v not in adj[u]:\n                    ok = False\n                    break\n            if not ok:\n                break\n        if ok:\n            max_clique = k\n\nprint(\"max clique:\", max_clique)\nprint(\"num edges:\", len(edges))\nprint(\"edges:\", edges)\n"
+      },
+      "ok": true,
+      "latency_ms": 54.91
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            9
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            8
+          ],
+          [
+            2,
+            9
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            3,
+            10
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            5,
+            10
+          ],
+          [
+            6,
+            9
+          ],
+          [
+            6,
+            10
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            7,
+            10
+          ]
+        ],
+        "reasoning": "The graph is bipartite with partitions {0,1,2,3,5,6,7} and {4,8,9,10}, so chromatic number is 2. As a bipartite graph, it contains no odd cycles and the maximum clique size is 2 (\u22644). Every vertex has degree at least 3: deg(0)=4, deg(1)=3, deg(2)=3, deg(3)=3, deg(4)=6, deg(5)=3, deg(6)=3, deg(7)=3, deg(8)=4, deg(9)=5, deg(10)=5. All four fixed edges are included."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,116 @@
+{
+  "problem_name": "pysms_clique_coloring_max_chromatic_number4_max_clique2_min_degree1_vertices15__v7_h",
+  "problem_type": "pysms_clique_coloring",
+  "params": {
+    "max_chromatic_number": 4,
+    "max_clique": 2,
+    "min_degree": 1,
+    "vertices": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 94.8,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 26,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 36.28,
+    "solve_pct_type": 70.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      1,
+      9
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      11,
+      12
+    ],
+    [
+      13,
+      14
+    ]
+  ],
+  "reasoning": "The graph satisfies all constraints: (1) Maximum clique size \u2264 2 (triangle-free): the graph consists of a star centered at vertex 0 (connected to 5,6,10), a star centered at vertex 1 (connected to 8,9), and four independent edges (2-3, 4-7, 11-12, 13-14). No three vertices form a triangle since no two neighbors of any vertex are connected to each other. (2) Chromatic number \u2264 4: the graph is actually bipartite (chromatic number = 2), easily 2-colorable. (3) Every vertex has degree \u2265 1: vertex 0 has degree 3, vertex 1 has degree 2, and all other vertices have degree 1. All 15 vertices are covered. The fixed edges (1,8), (1,9), (0,10), (0,6), (0,5) are all included.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,5],[0,6],[0,10],[1,8],[1,9],[2,3],[4,7],[11,12],[13,14]],\n    \"reasoning\": \"The graph satisfies all constraints: (1) Maximum clique size \u2264 2 (triangle-free): the graph consists of a star centered at vertex 0 (connected to 5,6,10), a star centered at vertex 1 (connected to 8,9), and four independent edges (2-3, 4-7, 11-12, 13-14). No three vertices form a triangle since no two neighbors of any vertex are connected to each other. (2) Chromatic number \u2264 4: the graph is actually bipartite (chromatic number = 2), easily 2-colorable. (3) Every vertex has degree \u2265 1: vertex 0 has degree 3, vertex 1 has degree 2, and all other vertices have degree 1. All 15 vertices are covered. The fixed edges (1,8), (1,9), (0,10), (0,6), (0,5) are all included.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 11271,
+  "completion_tokens": 2323,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.068658,
+  "cost_source": "openrouter",
+  "latency_ms": 33475.10623931885,
+  "tool_dispatch_ms_total": 146.651029586792,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's think about this carefully\n# Max clique size \u2264 2 means the graph is triangle-free (no K3)\n# Chromatic number \u2264 4 means we can color with 4 colors\n# Every vertex degree \u2265 1 means no isolated vertices\n\n# Fixed edges: (1,8), (1,9), (0,10), (0,6), (0,5)\n# Vertices covered by fixed edges: 0,1,5,6,8,9,10\n# Vertices NOT yet covered (degree 0): 2,3,4,7,11,12,13,14\n\n# Strategy: \n# - Keep fixed edges\n# - Add edges to cover uncovered vertices\n# - Ensure no triangles form\n# - Ensure chromatic number \u2264 4\n\n# Let's check which vertices have degree \u2265 1 from fixed edges:\nfixed_edges = [(1,8), (1,9), (0,10), (0,6), (0,5)]\ndegree = {i: 0 for i in range(15)}\nfor u, v in fixed_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(\"Degrees from fixed edges:\", degree)\nuncovered = [v for v in range(15) if degree[v] == 0]\nprint(\"Uncovered vertices:\", uncovered)\n"
+      },
+      "ok": true,
+      "latency_ms": 50.97
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# I need to cover vertices: 2, 3, 4, 7, 11, 12, 13, 14\n# I can pair them up or connect them to existing vertices\n# Must avoid triangles\n\n# Let's try a simple approach: pair up uncovered vertices\n# (2,3), (4,7), (11,12), (13,14)\n# These are simple edges with no triangle risk among themselves\n\n# Also need to verify no triangles with fixed edges\n# Fixed edges form: 0-5, 0-6, 0-10, 1-8, 1-9\n# Neighbors of 0: {5,6,10} - no edges among them = no triangle\n# Neighbors of 1: {8,9} - no edge between 8 and 9 = no triangle\n\n# Adding (2,3), (4,7), (11,12), (13,14) - these are isolated pairs, no triangles\n\nadditional_edges = [(2,3), (4,7), (11,12), (13,14)]\nall_edges = fixed_edges + additional_edges\n\n# Verify degrees\ndegree = {i: 0 for i in range(15)}\nfor u, v in all_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(\"All degrees:\", degree)\nprint(\"All vertices covered:\", all(degree[v] >= 1 for v in range(15)))\n\n# Check for triangles\nadj = {i: set() for i in range(15)}\nfor u, v in all_edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\ntriangle_found = False\nfor u in range(15):\n    for v in adj[u]:\n        for w in adj[v]:\n            if w != u and w in adj[u]:\n                triangle_found = True\n                print(f\"Triangle: {u},{v},{w}\")\n                break\n\nprint(\"Triangle-free:\", not triangle_found)\n\n# Check chromatic number - since it's triangle-free and we have simple structure\n# The graph is a collection of stars and edges - easily 2-colorable (bipartite)\n# Star centered at 0: color 0 with color A, neighbors 5,6,10 with color B\n# Star centered at 1: color 1 with color A, neighbors 8,9 with color B\n# Pairs: each pair gets colors A and B\n# So chromatic number = 2 \u2264 4 \u2713\n\nprint(\"\\nAll edges:\", sorted(all_edges))\n"
+      },
+      "ok": false,
+      "latency_ms": 38.07
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfixed_edges = [(1,8), (1,9), (0,10), (0,6), (0,5)]\nadditional_edges = [(2,3), (4,7), (11,12), (13,14)]\nall_edges = fixed_edges + additional_edges\n\n# Verify degrees\ndegree = {i: 0 for i in range(15)}\nfor u, v in all_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(\"All degrees:\", degree)\nprint(\"All vertices covered:\", all(degree[v] >= 1 for v in range(15)))\n\n# Check for triangles\nadj = {i: set() for i in range(15)}\nfor u, v in all_edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\ntriangle_found = False\nfor u in range(15):\n    for v in adj[u]:\n        for w in adj[v]:\n            if w != u and w in adj[u]:\n                triangle_found = True\n                print(f\"Triangle: {u},{v},{w}\")\n\nprint(\"Triangle-free:\", not triangle_found)\n\n# Verify chromatic number (bipartite check)\nfrom collections import deque\ncolor = [-1] * 15\nis_bipartite = True\nfor start in range(15):\n    if color[start] == -1:\n        color[start] = 0\n        q = deque([start])\n        while q:\n            node = q.popleft()\n            for nb in adj[node]:\n                if color[nb] == -1:\n                    color[nb] = 1 - color[node]\n                    q.append(nb)\n                elif color[nb] == color[node]:\n                    is_bipartite = False\n\nprint(\"Bipartite (chromatic number \u2264 2):\", is_bipartite)\nprint(\"\\nFinal edges:\", sorted(all_edges))\n"
+      },
+      "ok": true,
+      "latency_ms": 57.61
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

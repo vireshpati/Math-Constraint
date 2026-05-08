@@ -1,0 +1,103 @@
+{
+  "problem_name": "all_interval_n11__v8_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 1020.3,
+    "search_space": 39916800,
+    "num_variables": 21,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 71.62,
+    "solve_pct_type": 70.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    10,
+    1,
+    9,
+    2,
+    8,
+    3,
+    7,
+    4,
+    6,
+    5
+  ],
+  "reasoning": "The all-interval series exists and has a beautiful structure. The solution [0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5] is a permutation of 0\u201310 where consecutive absolute differences are [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] \u2014 a permutation of 1\u201310. The pattern alternates between low values (0,1,2,3,4,5) and high values (10,9,8,7,6), producing decreasing differences from 10 down to 1.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4983,
+  "completion_tokens": 1073,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.031044,
+  "cost_source": "openrouter",
+  "latency_ms": 42967.64874458313,
+  "tool_dispatch_ms_total": 155.35593032836914,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\ndef find_all_interval_series(n):\n    \"\"\"Find a permutation of 0..n-1 where consecutive differences are a permutation of 1..n-1\"\"\"\n    \n    # Use backtracking search\n    series = []\n    used_vals = set()\n    used_diffs = set()\n    \n    def backtrack():\n        if len(series) == n:\n            return True\n        \n        for val in range(n):\n            if val in used_vals:\n                continue\n            \n            if len(series) == 0:\n                series.append(val)\n                used_vals.add(val)\n                if backtrack():\n                    return True\n                series.pop()\n                used_vals.remove(val)\n            else:\n                diff = abs(series[-1] - val)\n                if diff == 0 or diff in used_diffs:\n                    continue\n                series.append(val)\n                used_vals.add(val)\n                used_diffs.add(diff)\n                if backtrack():\n                    return True\n                series.pop()\n                used_vals.remove(val)\n                used_diffs.remove(diff)\n        \n        return False\n    \n    if backtrack():\n        return series\n    return None\n\nresult = find_all_interval_series(11)\nprint(\"Result:\", result)\n\nif result:\n    # Verify\n    diffs = [abs(result[i+1] - result[i]) for i in range(len(result)-1)]\n    print(\"Differences:\", diffs)\n    print(\"Values are permutation of 0-10:\", sorted(result) == list(range(11)))\n    print(\"Diffs are permutation of 1-10:\", sorted(diffs) == list(range(1, 11)))\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 122.45
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nresult = [0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5]\ndiffs = [abs(result[i+1] - result[i]) for i in range(len(result)-1)]\n\nprint(\"All-Interval Series of size 11:\")\nprint(\"Series:      \", result)\nprint(\"Differences: \", diffs)\nprint()\nprint(\"Step-by-step:\")\nfor i in range(len(result)-1):\n    print(f\"  |{result[i+1]} - {result[i]}| = {diffs[i]}\")\nprint()\nprint(f\"\u2713 Values {{0..10}}: {sorted(result) == list(range(11))}\")\nprint(f\"\u2713 Diffs  {{1..10}}: {sorted(diffs) == list(range(1, 11))}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 32.91
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          10,
+          1,
+          9,
+          2,
+          8,
+          3,
+          7,
+          4,
+          6,
+          5
+        ],
+        "reasoning": "The all-interval series exists and has a beautiful structure. The solution [0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5] is a permutation of 0\u201310 where consecutive absolute differences are [10, 9, 8, 7, 6, 5, 4, 3, 2, 1] \u2014 a permutation of 1\u201310. The pattern alternates between low values (0,1,2,3,4,5) and high values (10,9,8,7,6), producing decreasing differences from 10 down to 1."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

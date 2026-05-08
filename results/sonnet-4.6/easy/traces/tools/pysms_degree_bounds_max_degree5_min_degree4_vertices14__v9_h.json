@@ -1,0 +1,195 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree5_min_degree4_vertices14__v9_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 4,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 16.2,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 33,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 8.08,
+    "solve_pct_type": 12.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      9
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      0,
+      11
+    ],
+    [
+      0,
+      12
+    ],
+    [
+      0,
+      13
+    ],
+    [
+      1,
+      9
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      1,
+      11
+    ],
+    [
+      1,
+      12
+    ],
+    [
+      1,
+      13
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      2,
+      11
+    ],
+    [
+      2,
+      12
+    ],
+    [
+      2,
+      13
+    ],
+    [
+      3,
+      9
+    ],
+    [
+      3,
+      10
+    ],
+    [
+      3,
+      11
+    ],
+    [
+      3,
+      12
+    ],
+    [
+      3,
+      13
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      8
+    ],
+    [
+      4,
+      11
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      6,
+      9
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ]
+  ],
+  "reasoning": "Used SAT solving with cardinality constraints to find a graph on 14 vertices where every vertex has degree between 4 and 5. All fixed edges are included: (1,11), (0,13), (7,9), (1,13), (4,11), (6,9). The solution has 31 edges with degree sequence [5,5,5,5,4,4,4,4,4,5,4,5,4,4], all within the required range.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,9],[0,10],[0,11],[0,12],[0,13],[1,9],[1,10],[1,11],[1,12],[1,13],[2,4],[2,10],[2,11],[2,12],[2,13],[3,9],[3,10],[3,11],[3,12],[3,13],[4,5],[4,8],[4,11],[5,6],[5,7],[5,8],[6,7],[6,8],[6,9],[7,8],[7,9]],\n    \"reasoning\": \"Used SAT solving with cardinality constraints to find a graph on 14 vertices where every vertex has degree between 4 and 5. All fixed edges are included: (1,11), (0,13), (7,9), (1,13), (4,11), (6,9). The solution has 31 edges with degree sequence [5,5,5,5,4,4,4,4,4,5,4,5,4,4], all within the required range.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 8668,
+  "completion_tokens": 2020,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.056304,
+  "cost_source": "openrouter",
+  "latency_ms": 25882.298707962036,
+  "tool_dispatch_ms_total": 956.7453861236572,
+  "tool_calls_made": 2,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom pysat.pb import PBEnc\nfrom pysat.formula import CNF\nfrom pysat.solvers import Solver\n\n# Vertices: 0..13\n# Edges: all possible (u,v) with 0 <= u < v < 14\n# Variables: one per edge\n\nn = 14\nedges = [(u, v) for u in range(n) for v in range(u+1, n)]\nedge_idx = {e: i+1 for i, e in enumerate(edges)}  # 1-indexed SAT vars\n\n# Fixed present edges\nfixed_present = [(1,11), (0,13), (7,9), (1,13), (4,11), (6,9)]\n\ncnf = CNF()\n\n# Fix present edges\nfor e in fixed_present:\n    cnf.append([edge_idx[e]])\n\n# For each vertex, degree must be between 4 and 5\nfor v in range(n):\n    # edges incident to v\n    inc = []\n    for e in edges:\n        if e[0] == v or e[1] == v:\n            inc.append(edge_idx[e])\n    \n    # degree >= 4\n    atmost_enc = PBEnc.atmost(lits=inc, bound=5, top_id=cnf.nv)\n    cnf.extend(atmost_enc.clauses)\n    cnf.nv = max(cnf.nv, atmost_enc.nv)\n    \n    atleast_enc = PBEnc.atleast(lits=inc, bound=4, top_id=cnf.nv)\n    cnf.extend(atleast_enc.clauses)\n    cnf.nv = max(cnf.nv, atleast_enc.nv)\n\nwith Solver(name='g4', bootstrap_with=cnf) as solver:\n    sat = solver.solve()\n    if sat:\n        model = solver.get_model()\n        print(\"SAT\")\n        sol_edges = []\n        for e, idx in edge_idx.items():\n            if model[idx-1] > 0:\n                sol_edges.append(e)\n        print(f\"Number of edges: {len(sol_edges)}\")\n        print(\"Edges:\", sol_edges)\n        \n        # Verify degrees\n        deg = [0]*n\n        for u,v in sol_edges:\n            deg[u] += 1\n            deg[v] += 1\n        print(\"Degrees:\", deg)\n        \n        # Check fixed edges present\n        for e in fixed_present:\n            print(f\"Fixed edge {e} present: {e in sol_edges}\")\n    else:\n        print(\"UNSAT\")\n"
+      },
+      "ok": false,
+      "latency_ms": 340.24
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\nfrom pysat.formula import CNF\nfrom pysat.card import CardEnc, EncType\nfrom pysat.solvers import Solver\n\nn = 14\nedges = [(u, v) for u in range(n) for v in range(u+1, n)]\nedge_idx = {e: i+1 for i, e in enumerate(edges)}\n\nfixed_present = [(1,11), (0,13), (7,9), (1,13), (4,11), (6,9)]\n\ncnf = CNF()\ntop = len(edges) + 1\n\n# Fix present edges\nfor e in fixed_present:\n    cnf.append([edge_idx[e]])\n\n# For each vertex, degree between 4 and 5\nfor v in range(n):\n    inc = []\n    for e in edges:\n        if e[0] == v or e[1] == v:\n            inc.append(edge_idx[e])\n    \n    # atmost 5\n    am = CardEnc.atmost(lits=inc, bound=5, top_id=top, encoding=EncType.seqcounter)\n    cnf.extend(am.clauses)\n    top = am.nv + 1\n    \n    # atleast 4\n    al = CardEnc.atleast(lits=inc, bound=4, top_id=top, encoding=EncType.seqcounter)\n    cnf.extend(al.clauses)\n    top = al.nv + 1\n\nwith Solver(name='g4', bootstrap_with=cnf) as solver:\n    sat = solver.solve()\n    if sat:\n        model = solver.get_model()\n        print(\"SAT\")\n        sol_edges = []\n        for e, idx in edge_idx.items():\n            if model[idx-1] > 0:\n                sol_edges.append(e)\n        print(f\"Number of edges: {len(sol_edges)}\")\n        print(\"Edges:\", sol_edges)\n        \n        deg = [0]*n\n        for u,v in sol_edges:\n            deg[u] += 1\n            deg[v] += 1\n        print(\"Degrees:\", deg)\n        \n        for e in fixed_present:\n            print(f\"Fixed edge {e} present: {e in sol_edges}\")\n    else:\n        print(\"UNSAT\")\n"
+      },
+      "ok": true,
+      "latency_ms": 616.51
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

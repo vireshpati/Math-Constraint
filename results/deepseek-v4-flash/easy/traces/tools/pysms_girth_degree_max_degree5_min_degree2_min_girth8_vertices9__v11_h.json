@@ -1,0 +1,155 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree5_min_degree2_min_girth8_vertices9__v11_h",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 2,
+    "min_girth": 8,
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 32.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 9,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 16.35,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      7,
+      8
+    ]
+  ],
+  "reasoning": "A 9-cycle (Hamiltonian cycle) has girth 9 (\u22658) and every vertex degree 2 (between 2 and 5). The permutation (0,1,2,5,3,4,6,7,8) yields edges that include the required edge (2,5). All constraints are satisfied.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 5320,
+  "completion_tokens": 1778,
+  "reasoning_tokens": 0,
+  "cached_tokens": 3072,
+  "cost_usd": 0.000898576,
+  "cost_source": "openrouter",
+  "latency_ms": 83337.8746509552,
+  "tool_dispatch_ms_total": 92.66543388366699,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# We need a graph with 9 vertices, girth >= 8, degrees between 2 and 5.\n# Let's try to find a 9-cycle (which has girth 9) that includes edge (2,5)\n\n# A 9-cycle is a permutation of vertices 0..8 where consecutive vertices are connected,\n# and the first and last are connected.\n\nvertices = list(range(9))\nfixed_edge = (2, 5)\n\n# Try all permutations where 2 and 5 are adjacent\nfor perm in itertools.permutations(vertices):\n    # Check if 2 and 5 are adjacent in this cycle\n    n = len(perm)\n    for i in range(n):\n        if (perm[i] == 2 and perm[(i+1)%n] == 5) or (perm[i] == 5 and perm[(i+1)%n] == 2):\n            # Found a valid cycle\n            edges = set()\n            for i in range(n):\n                u, v = perm[i], perm[(i+1)%n]\n                if u < v:\n                    edges.add((u, v))\n                else:\n                    edges.add((v, u))\n            print(\"Permutation:\", perm)\n            print(\"Edges:\", sorted(edges))\n            print(\"Has (2,5):\", (2,5) in edges or (5,2) in edges)\n            # Check degrees\n            deg = {v: 0 for v in range(9)}\n            for u, v in edges:\n                deg[u] += 1\n                deg[v] += 1\n            print(\"Degrees:\", deg)\n            print(\"All degrees between 2 and 5:\", all(2 <= d <= 5 for d in deg.values()))\n            break\n    else:\n        continue\n    break"
+      },
+      "ok": true,
+      "latency_ms": 34.71
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0, 1), (0, 8), (1, 2), (2, 5), (3, 5), (3, 4), (4, 6), (6, 7), (7, 8)]\n\n# Build adjacency\nadj = {v: set() for v in range(9)}\nfor u, v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# Find shortest cycle using BFS\nfrom collections import deque\n\ndef shortest_cycle(start):\n    # BFS to find shortest cycle through start\n    dist = {v: -1 for v in range(9)}\n    parent = {v: -1 for v in range(9)}\n    dist[start] = 0\n    q = deque([start])\n    while q:\n        v = q.popleft()\n        for nb in adj[v]:\n            if dist[nb] == -1:\n                dist[nb] = dist[v] + 1\n                parent[nb] = v\n                q.append(nb)\n            elif nb != parent[v]:\n                # Found a cycle\n                return dist[v] + dist[nb] + 1\n    return float('inf')\n\ngirth = min(shortest_cycle(v) for v in range(9))\nprint(\"Girth:\", girth)\n\n# Also verify degrees\ndeg = {v: 0 for v in range(9)}\nfor u, v in edges:\n    deg[u] += 1\n    deg[v] += 1\nprint(\"Degrees:\", deg)\nprint(\"All degrees 2-5:\", all(2 <= d <= 5 for d in deg.values()))\nprint(\"Has (2,5):\", (2,5) in edges)"
+      },
+      "ok": true,
+      "latency_ms": 57.96
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            8
+          ]
+        ],
+        "reasoning": "A 9-cycle (Hamiltonian cycle) has girth 9 (\u22658) and every vertex degree 2 (between 2 and 5). The permutation (0,1,2,5,3,4,6,7,8) yields edges that include the required edge (2,5). All constraints are satisfied."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

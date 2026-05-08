@@ -1,0 +1,93 @@
+{
+  "problem_name": "costas_array_n10__v0_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 1070.6,
+    "search_space": 3628800,
+    "num_variables": 10,
+    "num_constraints": 11,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 75.75,
+    "solve_pct_type": 72.22
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    3,
+    7,
+    4,
+    9,
+    8,
+    6,
+    2,
+    5
+  ],
+  "reasoning": "The listed permutation has one mark in each row and column. Checking all column pairs gives 45 displacement vectors with dc>0, and they are pairwise distinct.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1301,
+  "completion_tokens": 630,
+  "reasoning_tokens": 216,
+  "cached_tokens": 0,
+  "cost_usd": 0.025405,
+  "cost_source": "openrouter",
+  "latency_ms": 10517.657041549683,
+  "tool_dispatch_ms_total": 33.50114822387695,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nn=10\n# Backtracking with pruning differences\nused=[False]*n\nperm=[]\n# diffs[d] set of row diffs for col difference d\nsets=[set() for _ in range(n)]\n\ndef bt(c):\n    if c==n:\n        return perm.copy()\n    # try values maybe\n    for r in range(n):\n        if used[r]: continue\n        ok=True\n        new=[]\n        for i,ri in enumerate(perm):\n            d=c-i\n            diff=r-ri\n            if diff in sets[d]:\n                ok=False; break\n            new.append((d,diff))\n        if not ok: continue\n        perm.append(r); used[r]=True\n        for d,diff in new: sets[d].add(diff)\n        res=bt(c+1)\n        if res: return res\n        for d,diff in new: sets[d].remove(diff)\n        used[r]=False; perm.pop()\n    return None\nres=bt(0)\nprint(res)\n# verify\nif res:\n    seen=set()\n    for i in range(n):\n        for j in range(i+1,n):\n            v=(res[j]-res[i], j-i)\n            if v in seen: print('dup', v)\n            seen.add(v)\n    print(len(seen))",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 33.5
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          3,
+          7,
+          4,
+          9,
+          8,
+          6,
+          2,
+          5
+        ],
+        "reasoning": "The listed permutation has one mark in each row and column. Checking all column pairs gives 45 displacement vectors with dc>0, and they are pairwise distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

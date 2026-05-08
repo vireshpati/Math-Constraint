@@ -1,0 +1,106 @@
+{
+  "problem_name": "pysms_graph_builder_Delta_upp3_delta_low2_max_chromatic_number4_min_chromatic_number2_num_edges_low9_num_edges_upp18_vertices9__v10_h",
+  "problem_type": "pysms_graph_builder",
+  "params": {
+    "Delta_upp": 3,
+    "delta_low": 2,
+    "max_chromatic_number": 4,
+    "min_chromatic_number": 2,
+    "num_edges_low": 9,
+    "num_edges_upp": 18,
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 16.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 13,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 8.83,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      4,
+      1
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      5,
+      1
+    ],
+    [
+      5,
+      3
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      8,
+      3
+    ],
+    [
+      8,
+      7
+    ]
+  ],
+  "reasoning": "A bipartite graph with partitions X={0,2,4,5,8} and Y={1,3,6,7} satisfies all constraints. All vertices have degree 2 or 3, yielding 12 edges (between 9 and 18). The fixed edges (2,3) and (5,6) are included. The graph is bipartite, so chromatic number is exactly 2, meeting the bounds.",
+  "raw_response": "{\n  \"satisfiable\": true,\n  \"solution\": [[0,1],[0,7],[2,3],[2,6],[2,7],[4,1],[4,6],[5,1],[5,3],[5,6],[8,3],[8,7]],\n  \"reasoning\": \"A bipartite graph with partitions X={0,2,4,5,8} and Y={1,3,6,7} satisfies all constraints. All vertices have degree 2 or 3, yielding 12 edges (between 9 and 18). The fixed edges (2,3) and (5,6) are included. The graph is bipartite, so chromatic number is exactly 2, meeting the bounds.\"\n}",
+  "cot_trace": "We need to generate a graph with 9 vertices satisfying:\n- minimum degree >= 2: each vertex has degree at least 2.\n- maximum degree <= 3: each vertex has degree at most 3.\n- edges between 9 and 18: total edges m, 9 <= m <= 18.\n- chromatic number <= 4 and >= 2: chi(G) in {2,3,4} (and since min degree >=2, chi>=2 automatically, but we can ensure it's not 1, i.e., not empty graph, but edges already guarantee non-empty? Actually min degree >=2 implies edges >0, so chi>=2 always. So chi in {2,3,4}).\n\nFixed edges: (5,6) and (2,3).\n\nWe need to output a complete list of edges consistent with these constraints, as a JSON with satisfiable true and solution list of edges? The problem statement says: \"Return the graph as a list of edges (u, v) with 0 <= u < v < 9, or state 'UNSATISFIABLE' if no graph exists.\" And then response format: {\"satisfiable\": true/false, \"solution\": [list of values] or null if unsatisfiable, \"reasoning\": \"...\"}. The solution should be a list of edges? But the example says \"list of values\" - likely list of edges as pairs. We can provide list of edges, e.g., [[0,1], [0,2], ...] with u<v. The problem says \"Partial assignment (fixed values that must be respected): - Known present edges: (5,6), (2,3)\". So we must include these edges.\n\nLet's analyze constraints.\n\nn=9. Let sum of degrees = 2m. Each degree d_i in {2,3}. So sum of degrees is between 2*9=18 and 3*9=27. So 18 <= 2m <= 27 => 9 <= m <= 13.5 => m <= 13 (since m integer). Wait, edges between 9 and 18, but max degree 3 gives max m = floor(3*9/2) = floor(27/2)=13. So m can be from 9 to 13 inclusive. 18 is not reachable with max degree 3. The constraint says \"edges between 9 and 18\", meaning m in 9..18? But derived m <=13. So the allowed m is actually 9..13. That is a subset of 9..18, so it's fine. But if the problem statement says edges between 9 and 18, it might be inclusive 9 and 18? But 18 is impossible, but that doesn't make it unsatisfiable; we just need m in [9,18] and m must be an integer, and from degree constraints m is limited to 9..13. So we just need m in [9,13].\n\nNow we need a graph on 9 vertices with degrees in {2,3}, m in [9,13], and chromatic number in {2,3,4}. Since min degree >=2 and max degree <=3, possible graphs are union of cycles and paths? Actually degree constraints 2,3 means graph is a collection of cycles and paths with some degree-3 vertices (branches). Chi number: bipartite (2) if no odd cycles. With degree up to 3, odd cycles possible. Could be 3 or 4. But with max degree 3, there's Brooks' theorem: chi <= max degree =3 unless it's a complete graph or odd cycle. Max degree 3, K4 has degree 3, but K4 has chi=4. So chi=4 possible if it contains K4 as a subgraph that needs 4 colors, but the whole graph would have chi=4. But K4 with 4 vertices each degree 3. To have K4, we need 4 vertices all connected among themselves. In a graph with max degree 3, a vertex in K4 has degree 3, so it has no other edges. So if we embed K4, those 4 vertices have degree exactly 3 and are fully connected (6 edges). Then the remaining 5 vertices must have degree at least 2, but they can only connect to each other and maybe to K4? If K4 vertices have degree 3 already saturated, they cannot connect to outside. So K4 is an isolated component. Then remaining 5 vertices need degrees in {2,3}. Max m for 5 vertices with degree <=3 is floor(15/2)=7 edges. Total edges: 6 (K4) + up to 7 =13. So that's possible. But we need chi >=2, and K4 gives chi=4. So satisfiable.\n\nBut we must also incorporate fixed edges (5,6) and (2,3). So we need to build a graph satisfying all constraints that includes edges (2,3) and (5,6). We can choose any valid graph. Let's design a simple one.\n\nWe need 9 vertices, min degree 2, max degree 3, m between 9 and 13, chi in {2,3,4}.\n\nOne easy solution: a graph that is bipartite (chi=2) with degrees 2 or 3? But bipartite with min degree >=2 means it's a bipartite graph with all degrees >=2. Since max degree <=3, it could be a collection of even cycles, maybe with some vertices degree 3 (adding edges across bipartition while keeping bipartite). Bipartite graph chi=2, which is allowed (>=2). Must have no odd cycles. Degrees 2,3 allowed.\n\nAlternatively, make chi=3 by including an odd cycle, e.g., a 3-cycle or 5-cycle. Still need degrees 2/3.\n\nWe need to include edge (2,3) and (5,6). Those are two specific edges. So we can build a graph.\n\nLet's just construct a valid graph manually.\n\nWe can have a 3-regular graph on some vertices? But sum of degrees 2m, all degrees 3 gives 27, m=13.5 impossible, so we must have some degree 2 vertices. Number of degree 3 vertices must be even because sum of degrees is even.\n\nLet's aim for m=12 (which is between 9 and 13). Let degrees: six vertices degree 3, three vertices degree 2. Sum degrees = 6*3+3*2 = 18+6=24, m=12.\n\nWe need to include edges (2,3) and (5,6). Let's assign degrees to vertices 0-8.\n\nWe can make a graph that is bipartite for simplicity? But if bipartite, we can color with 2 colors, chi=2, satisfying <=4 and >=2.\n\nLet's design a bipartite graph. Partition vertices into two sets, say A = {0,1,2,4,6,8}? Need bipartite edges only between sets. To keep degrees 2/3, we can do.\n\nBut we have edge (2,3): both 2 and 3 must be in opposite partitions. Edge (5,6): 5 and 6 opposite partitions. So let's define:\nSet X: 0, 2, 4, 6, 8? Then 3 and 5 and 1 and 7 in Y? We have 9 vertices. Bipartite partition sizes can be anything. Let's assign:\nX = {0, 2, 4, 5, 7}? Wait edge (5,6) has 5 and 6, so they must be opposite. Edge (2,3): 2 and 3 opposite. So 2 and 3 opposite; 5 and 6 opposite.\nLet's put:\nX: 0, 2, 4, 5, 8? \nY: 1, 3, 6, 7\nCheck (2,3): 2 in X, 3 in Y -> ok. (5,6): 5 in X, 6 in Y -> ok. So that works.\n\nNow we need all edges between X and Y. Degrees: each vertex degree in {2,3}. Total 12 edges.\n\nX has 5 vertices, Y has 4 vertices. Sum of degrees in X = sum of degrees in Y = 2m = 24? Actually sum degrees in each part must be equal because bipartite graph sum of degrees on left equals number of edges, which equals sum of degrees on right. So total edges m = sum(deg_X) = sum(deg_Y). So sum deg_X = sum deg_Y = m.\n\nWe have m=12. X has 5 vertices, degrees in {2,3}, sum to 12. So possible combinations: 3*3 + 2*2 = 9+4=13 (too high), 3*2 + 2*3 = 6+6=12. So exactly two vertices degree 3 and three vertices degree 2 in X. Y has 4 vertices, sum degrees =12. Possible: 4*3=12 (all degree 3) or 3*3+1*2=11 (no), 2*3+2*2=6+4=10, etc. 12 requires all four vertices in Y to have degree 3. So Y = {1,3,6,7} all degree 3. X = {0,2,4,5,8} has two degree 3 and three degree 2.\n\nWe need to assign degrees. Let's pick: make 2,5 degree 3? (Since they are in X). Also maybe 0? We need exactly two degree 3 in X. Let's choose 2 and 5 to be degree 3. Then 0,4,8 degree 2. In Y, 1,3,6,7 all degree 3.\n\nNow we need to add edges such that degrees match, and graph is simple, bipartite. We already have edges (2,3) and (5,6). Since 2 is degree 3, it needs 2 more edges to Y vertices (not 3 because already (2,3)). 3 is degree 3, needs 2 more edges to X. 5 is degree 3, has (5,6), needs 2 more edges to Y. 6 is degree 3, has (5,6), needs 2 more edges to X.\n\nOther vertices: 0,4,8 degree 2 need 2 edges each to Y. 1,7 degree 3 need 3 edges each to X. (3 and 6 already have 1 edge each).\n\nLet's list required additional degrees:\nX:\n0: 2 edges to Y\n2: 2 more edges to Y (total 3)\n4: 2 edges to Y\n5: 2 more edges to Y (total 3)\n8: 2 edges to Y\nTotal additional edges from X = 2+2+2+2+2 = 10 edges. Wait 0 (2) +2 (2) +4 (2) +5 (2) +8 (2) = 10 edges. But total edges m=12, we already have 2 edges given, so require 10 more edges. That matches.\n\nY:\n1: 3 edges to X\n3: 2 more edges to X (total 3)\n6: 2 more edges to X (total 3)\n7: 3 edges to X\nTotal additional edges from Y = 3+2+2+3 = 10, matches.\n\nNow we need to assign edges between these sets such that no multiple edges, and all degrees satisfied.\n\nLet's create a bipartite adjacency.\n\nWe can just connect sequentially.\n\nWe need to give 0 two edges. Let's connect 0 to 1 and 7. (0,1), (0,7).\n\n4 needs two edges: connect 4 to 1 and 7? But 1 needs 3 edges, 7 needs 3. Let's track degrees.\n\nLet's set up a matrix or simple allocation.\n\nY vertices and their required additional edges:\n1: 3 edges to X\n3: 2 edges to X (must not include 2? It can include 2 again? Only one edge allowed between a pair. Already has (2,3). So 3 can connect to X except 2? Actually 3 can connect to any X vertex, including 2? No, it already has edge to 2, so it cannot have another edge to 2. So 3's remaining edges must be to X \\ {2}. So available X for 3: 0,4,5,8.)\n6: 2 edges to X \\ {5} because already (5,6). So 6 available: 0,2,4,8.\n7: 3 edges to X (any).\n\nX vertices additional edges:\n0: 2 edges to Y (any)\n2: 2 edges to Y \\ {3} (since already 3). Available Y: 1,6,7.\n4: 2 edges to Y (any)\n5: 2 edges to Y \\ {6}. Available Y: 1,3,7.\n8: 2 edges to Y (any).\n\nWe need to assign all.\n\nLet's try:\n0 connects to 1 and 7. (0,1), (0,7). 0 done.\n4 connects to 1 and 7? Then 1 would have 0,4,... needs one more. 7 would have 0,4,... needs one more.\n8 connects to 3 and 6? Then 3 gets one (8), needs one more. 6 gets one (8), needs one more.\n2 connects to 1 and 7? 2 available: 1,6,7. So (2,1), (2,7). 2 done.\n5 connects to 3 and 7? 5 available: 1,3,7. (5,3), (5,7). 5 done.\n\nNow check degrees:\n1: edges from 0,4,2. That's 3 edges (0,1), (4,1), (2,1). 1 degree 3? Wait 1 needs total 3. It has 3, good.\n3: edges from (2,3) already, plus (8,3), (5,3). That's 3 edges, good.\n6: edges from (5,6) already, plus (8,6)? That's 2 edges, but 6 needs total 3. We gave only (8,6) as additional? Wait we said 6 needs 2 more edges, so total 3. We assigned 8 to 6 (one edge). 6 still needs one more. We haven't used 6 for others. 2 available to 6, but we didn't use 2-6. 5 cannot connect to 6. 0,4,8,? We have 0,4,8 already assigned? Let's recount.\n\nOur assignments:\n0: (0,1), (0,7)\n4: (4,1), (4,7)\n8: (8,3), (8,6) -> 8 done? 8 has degree 2, so yes done.\n2: (2,3) given, (2,1), (2,7) -> 2 done, degree 3.\n5: (5,6) given, (5,3), (5,7) -> 5 done, degree 3.\nNow check 6: has (5,6) given, (8,6) -> only 2 edges. Needs one more. Also check 7: has (0,7), (4,7), (2,7), (5,7) -> that's 4 edges! But 7 needs only 3. So 7 is over degree. And 6 is under degree.\n\nWe need to adjust.\n\nWe have 7 getting too many edges. Let's avoid using 7 for some, and use 6 instead.\n\nWe need:\n0: 2 edges\n4: 2 edges\n8: 2 edges\n2: 2 additional to Y\\{3}\n5: 2 additional to Y\\{6}\nY requirements:\n1: 3\n3: 2 additional (to X\\{2})\n6: 2 additional (to X\\{5})\n7: 3\n\nTotal edges from X to Y: sum X degrees = 2+2+2+2+2 =10. Sum Y additional = 3+2+2+3 =10.\n\nLet's assign systematically. Let the edges be a bipartite graph. We can think of it as a 5x4 bipartite graph with given edges (2,3) and (5,6) already.\n\nWe need adjacency matrix (X vs Y). Let X order: 0,2,4,5,8. Y order: 1,3,6,7.\n\nInitial edges:\n(2,3): 2-3\n(5,6): 5-6\n\nDegree targets for X: d0=2, d2=3 (including 3), d4=2, d5=3 (including 6), d8=2.\nDegree targets for Y: d1=3, d3=3 (including 2), d6=3 (including 5), d7=3.\n\nRemaining required degrees (additional edges):\nX0:2, X2:2, X4:2, X5:2, X8:2\nY1:3, Y3:2, Y6:2, Y7:3\n\nNow we need to fill 10 ones in a 5x4 matrix (excluding the two already present). We can just fill to satisfy row and column sums.\n\nWe can set:\nX0: connect to Y1, Y7 (row sum 2)\nX4: connect to Y1, Y6 (row sum 2)\nX8: connect to Y3, Y7 (row sum 2)\nX2: needs 2 more, available Y1, Y6, Y7. Let's connect X2 to Y6, Y7.\nX5: needs 2 more, available Y1, Y3, Y7. Connect X5 to Y3, Y1? Or Y3, Y7.\n\nNow check column sums:\nY1: X0, X4, X? X5 if we connect X5-Y1. So far: X0, X4, (X5?) = 2 or 3. Need 3.\nY3: X8, (X5?) = 1 or 2. Need 2 total (including existing X2? Wait existing X2-Y3 is given. So Y3 already has X2. Additional need 2 from other X's. So Y3 needs 2 more. So if we connect X8-Y3 and X5-Y3, that gives 2. That would satisfy Y3.\nY6: existing X5-Y6 given. Additional need 2 from X0,X2,X4,X8. So far X4-Y6, X2-Y6 gives 2. So Y6 gets X4, X2 -> total 3 (with X5). Good.\nY7: need 3 additional (no existing). Connected so far: X0, X8, X2? That's 3. And maybe X5-Y7 if we don't connect X5-Y1. Let's see.\nCheck Y1: need 3. So far we have X0, X4. If we connect X5-Y1 and maybe X2-Y1? But we used X2 for Y6,Y7. If we need Y1 to get 3, we need one more from X2 or X8. X8 already used Y3,Y7 (row sum 2). X2 row sum needs 2, we gave Y6,Y7. So Y1 only has X0,X4. Needs one more. We have X5 remaining connections. X5 needs 2 more. If we give X5 to Y3 and Y1, then Y1 gets X5 -> total 3 (X0,X4,X5). Y3 gets X8,X5 -> total 2 additional + existing X2 =3. Y6 gets X4,X2 -> total 2 additional + existing X5 =3. Y7 gets X0,X8,X2 -> total 3. Check X5 row: connections: existing Y6, plus Y3, Y1. That's 3 edges, degree 3. But X5 available Y\\{6} = {1,3,7}. We used Y1,Y3. That's valid.\nNow check all rows:\nX0: Y1, Y7 -> degree 2 (needs 2) ok.\nX2: Y3 (existing), Y6, Y7 -> degree 3 (needs 3) ok. (Y6,Y7 added)\nX4: Y1, Y6 -> degree 2 (needs 2) ok.\nX5: Y6 (existing), Y3, Y1 -> degree 3 (needs 3) ok.\nX8: Y3, Y7 -> degree 2 (needs 2) ok.\n\nCheck all columns:\nY1: X0, X4, X5 -> degree 3 (needs 3) ok.\nY3: X2 (existing), X8, X5 -> degree 3 (needs 3) ok.\nY6: X5 (existing), X4, X2 -> degree 3 (needs 3) ok.\nY7: X0, X8, X2 -> degree 3 (needs 3) ok.\n\nAll degrees satisfied. So edges are:\n(0,1), (0,7)\n(2,3) given\n(2,6), (2,7)\n(4,1), (4,6)\n(5,6) given, (5,3), (5,1)\n(8,3), (8,7)\n\nLet's list all edges with u<v:\n0-1, 0-7\n2-3, 2-6, 2-7\n4-1, 4-6\n5-1, 5-3, 5-6\n8-3, 8-7\n\nAlso check we didn't miss any: vertices 0..8. \nDegrees:\n0: 1,7 -> deg2\n1: 0,4,5 -> deg3\n2: 3,6,7 -> deg3\n3: 2,5,8 -> deg3\n4: 1,6 -> deg2\n5: 1,3,6 -> deg3\n6: 2,4,5 -> deg3\n7: 0,2,8 -> deg3\n8: 3,7 -> deg2\n\nAll degrees in {2,3}, min 2, max 3. Total edges = 12? Count: (0,1),(0,7),(2,3),(2,6),(2,7),(4,1),(4,6),(5,1),(5,3),(5,6),(8,3),(8,7) = 12 edges. 12 between 9 and 18. Chromatic number: bipartite? Let's check if graph is bipartite. We defined partitions: X={0,2,4,5,8}, Y={1,3,6,7}. All edges are between X and Y. Check: 0-1 (X-Y), 0-7 (X-Y), 2-3 (X-Y), 2-6 (X-Y), 2-7 (X-Y), 4-1 (X-Y), 4-6 (X-Y), 5-1 (X-Y), 5-3 (X-Y), 5-6 (X-Y), 8-3 (X-Y), 8-7 (X-Y). Yes, bipartite. So chi = 2. Satisfies chromatic number <=4 and >=2. So this is a valid solution.\n\nBut wait: we must check that the graph is simple (no multi-edges). We listed distinct edges, no duplicates. Vertex count 9, edges 12. All good.\n\nThus satisfiable is true.\n\nSolution list of edges: [[0,1],[0,7],[2,3],[2,6],[2,7],[4,1],[4,6],[5,1],[5,3],[5,6],[8,3],[8,7]].\n\nEnsure fixed edges (5,6) and (2,3) are present, they are.\n\nAlso check min degree >=2: all have at least 2. max degree <=3: all at most 3. Edge count 12 (>=9, <=18). Chromatic number 2 (>=2, <=4). So all constraints satisfied.\n\nNow output JSON.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 254,
+  "completion_tokens": 5553,
+  "reasoning_tokens": 5393,
+  "cached_tokens": 128,
+  "cost_usd": 0.01956224,
+  "cost_source": "openrouter",
+  "latency_ms": 162055.9778213501,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,489 @@
+{
+  "problem_name": "pysms_min_degree_min_degree5_vertices18__v7_h",
+  "problem_type": "pysms_min_degree",
+  "params": {
+    "min_degree": 5,
+    "vertices": 18
+  },
+  "difficulty": {
+    "solve_time_ms": 108.8,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 153,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 44.92,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      0,
+      16
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      14
+    ],
+    [
+      1,
+      15
+    ],
+    [
+      1,
+      17
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      2,
+      11
+    ],
+    [
+      2,
+      12
+    ],
+    [
+      2,
+      15
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      11
+    ],
+    [
+      3,
+      15
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      8
+    ],
+    [
+      4,
+      16
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      5,
+      15
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      6,
+      11
+    ],
+    [
+      6,
+      13
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      7,
+      17
+    ],
+    [
+      8,
+      9
+    ],
+    [
+      8,
+      13
+    ],
+    [
+      9,
+      12
+    ],
+    [
+      9,
+      17
+    ],
+    [
+      10,
+      12
+    ],
+    [
+      10,
+      14
+    ],
+    [
+      10,
+      16
+    ],
+    [
+      11,
+      13
+    ],
+    [
+      11,
+      17
+    ],
+    [
+      12,
+      14
+    ],
+    [
+      12,
+      16
+    ],
+    [
+      13,
+      14
+    ],
+    [
+      13,
+      17
+    ],
+    [
+      14,
+      16
+    ],
+    [
+      15,
+      17
+    ]
+  ],
+  "reasoning": "The problem is satisfiable. Starting with 30 fixed edges, I used a greedy algorithm to add 16 additional edges, ensuring all 18 vertices have degree at least 5. The final graph has minimum degree exactly 5, with all fixed edges preserved.",
+  "raw_response": null,
+  "cot_trace": " We need to generate a graph with 18 vertices (0..17) where minimum degree >= 5. There are known present edges that must be included. We need to return a graph as a list of edges (u,v) with 0 <= u < v < 18. The graph must satisfy min degree >=5. We can add any additional edges (subject to no multi-edges, simple graph). We need to produce a complete solution consistent with fixed assignments. So we need to find a set of edges containing all the given edges, such that each vertex has degree at least 5.\n\nWe need to check if it's possible. Since there are 18 vertices, min degree >=5 means each vertex must have at least 5 incident edges. The given edges already give some degrees. We can add edges arbitrarily. Since the complete graph on 18 vertices has degree 17 for each vertex, it's certainly possible unless some vertex is already constrained to have degree less than 5? But we can always add edges. However, there might be constraints that some edges are forbidden? The problem says \"known present edges\" but doesn't mention forbidden edges. So we can add any edges. So it's definitely satisfiable: just add edges to make each vertex degree >=5. But we need to be careful: we need to produce a simple graph (no duplicate edges). So we need to compute current degrees from given edges, then add edges to bring each vertex up to at least 5.\n\nBut wait: is there any hidden constraint? The problem says \"Generate a graph with 18 vertices where the minimum degree is at least 5.\" Return graph as list of edges. Partial assignment: known present edges. So yes, we just need to output a graph containing those edges. Since we can add edges, it's SAT.\n\nBut we need to ensure we don't accidentally create duplicate edges. Let's compute degrees of given edges.\n\nList of known present edges:\n(3,15)\n(11,13)\n(13,17)\n(2,11)\n(11,17)\n(2,12)\n(7,17)\n(9,17)\n(3,5)\n(0,16)\n(1,14)\n(7,9)\n(0,9)\n(6,11)\n(3,11)\n(0,2)\n(1,17)\n(4,8)\n(5,15)\n(1,15)\n(2,15)\n(15,17)\n(4,16)\n(0,8)\n(4,6)\n(8,13)\n(13,14)\n(2,10)\n(6,13)\n(9,12)\n\nLet's count degrees. We'll write a quick Python script.\n---\n We need to add edges to bring all degrees to at least 5. Let's see how many edges we need to add. Each edge adds 1 to two vertices. The total deficit is sum(max(0, 5 - deg[i])).\n\nLet's compute the deficit.\n---\n I need to re-run the code with the variables defined.\n---\n We need to add edges to fix the deficit. We have 13 vertices that need more edges. The total deficit is 31, so we need at least 31/2 = 15.5, so at least 16 more edges. But we also need to make sure we don't exceed degree 17 for any vertex.\n\nLet me think about this more carefully. We need to add edges between the low-degree vertices, but we also need to make sure we don't create duplicate edges.\n\nLet me use a SAT solver or just try to greedily add edges.\n\nActually, let me just try to solve this with a greedy approach or using Python's networkx or just brute force.\n\nLet me first check what edges already exist and what edges can be added.\n---\n The Python environment seems to reset between calls. Let me put everything in one call.\n---\n The greedy approach worked! Let me verify the solution and make sure all edges are valid (u < v and within range).\n---\n The variables were lost again. Let me run everything in one cell.\n---\n The solution is valid. Let me format it properly and submit.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 17926,
+  "completion_tokens": 3676,
+  "reasoning_tokens": 862,
+  "cached_tokens": 8112,
+  "cost_usd": 0.025608032800000003,
+  "cost_source": "openrouter",
+  "latency_ms": 303298.38013648987,
+  "tool_dispatch_ms_total": 312.7484321594238,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [\n    (3,15), (11,13), (13,17), (2,11), (11,17), (2,12), (7,17), (9,17),\n    (3,5), (0,16), (1,14), (7,9), (0,9), (6,11), (3,11), (0,2), (1,17),\n    (4,8), (5,15), (1,15), (2,15), (15,17), (4,16), (0,8), (4,6), (8,13),\n    (13,14), (2,10), (6,13), (9,12)\n]\n\nn = 18\ndeg = [0]*n\nfor u,v in edges:\n    deg[u] += 1\n    deg[v] += 1\n\nprint(\"Degrees from known edges:\")\nfor i in range(n):\n    print(i, deg[i])\nprint(\"Vertices with degree < 5:\", [i for i in range(n) if deg[i] < 5])\n"
+      },
+      "ok": true,
+      "latency_ms": 59.62
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "deficit = sum(max(0, 5 - d) for d in deg)\nprint(\"Total deficit:\", deficit)\nfor i in range(n):\n    if deg[i] < 5:\n        print(f\"Vertex {i}: deg {deg[i]}, needs {5-deg[i]} more\")\n"
+      },
+      "ok": false,
+      "latency_ms": 33.52
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [\n    (3,15), (11,13), (13,17), (2,11), (11,17), (2,12), (7,17), (9,17),\n    (3,5), (0,16), (1,14), (7,9), (0,9), (6,11), (3,11), (0,2), (1,17),\n    (4,8), (5,15), (1,15), (2,15), (15,17), (4,16), (0,8), (4,6), (8,13),\n    (13,14), (2,10), (6,13), (9,12)\n]\n\nn = 18\ndeg = [0]*n\nfor u,v in edges:\n    deg[u] += 1\n    deg[v] += 1\n\ndeficit = sum(max(0, 5 - d) for d in deg)\nprint(\"Total deficit:\", deficit)\nfor i in range(n):\n    if deg[i] < 5:\n        print(f\"Vertex {i}: deg {deg[i]}, needs {5-deg[i]} more\")\n"
+      },
+      "ok": true,
+      "latency_ms": 34.16
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "existing = set(edges)\n\n# Check all possible edges\npossible = []\nfor u in range(n):\n    for v in range(u+1, n):\n        if (u,v) not in existing:\n            possible.append((u,v))\n\nprint(f\"Existing edges: {len(existing)}\")\nprint(f\"Possible new edges: {len(possible)}\")\n\n# Let's try a greedy approach: repeatedly add edge that helps most\nimport copy\n\ndeg2 = copy.copy(deg)\nnew_edges = []\n\n# We need to be careful - let's try to pair up low-degree vertices\nlow_deg = [i for i in range(n) if deg2[i] < 5]\nprint(\"Low degree vertices:\", low_deg)\n\n# Try adding edges greedily\nfor _ in range(100):  # max iterations\n    best = None\n    best_score = -1\n    for u,v in possible:\n        if (u,v) in existing:\n            continue\n        # Score: how much deficit does this reduce?\n        score = 0\n        if deg2[u] < 5:\n            score += 1\n        if deg2[v] < 5:\n            score += 1\n        if score > best_score:\n            best_score = score\n            best = (u,v)\n    \n    if best is None or best_score == 0:\n        break\n    \n    u,v = best\n    existing.add((u,v))\n    new_edges.append((u,v))\n    deg2[u] += 1\n    deg2[v] += 1\n\nprint(\"New edges added:\", len(new_edges))\nprint(\"New edges:\", new_edges)\nprint(\"Final degrees:\", deg2)\nprint(\"Min degree:\", min(deg2))\nprint(\"Vertices with degree < 5:\", [i for i in range(n) if deg2[i] < 5])\n"
+      },
+      "ok": false,
+      "latency_ms": 41.19
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [\n    (3,15), (11,13), (13,17), (2,11), (11,17), (2,12), (7,17), (9,17),\n    (3,5), (0,16), (1,14), (7,9), (0,9), (6,11), (3,11), (0,2), (1,17),\n    (4,8), (5,15), (1,15), (2,15), (15,17), (4,16), (0,8), (4,6), (8,13),\n    (13,14), (2,10), (6,13), (9,12)\n]\n\nn = 18\ndeg = [0]*n\nfor u,v in edges:\n    deg[u] += 1\n    deg[v] += 1\n\nexisting = set(edges)\n\n# Check all possible edges\npossible = []\nfor u in range(n):\n    for v in range(u+1, n):\n        if (u,v) not in existing:\n            possible.append((u,v))\n\nprint(f\"Existing edges: {len(existing)}\")\nprint(f\"Possible new edges: {len(possible)}\")\n\n# Let's try a greedy approach: repeatedly add edge that helps most\nimport copy\n\ndeg2 = copy.copy(deg)\nnew_edges = []\n\n# Try adding edges greedily\nfor _ in range(100):  # max iterations\n    best = None\n    best_score = -1\n    for u,v in possible:\n        if (u,v) in existing:\n            continue\n        # Score: how much deficit does this reduce?\n        score = 0\n        if deg2[u] < 5:\n            score += 1\n        if deg2[v] < 5:\n            score += 1\n        if score > best_score:\n            best_score = score\n            best = (u,v)\n    \n    if best is None or best_score == 0:\n        break\n    \n    u,v = best\n    existing.add((u,v))\n    new_edges.append((u,v))\n    deg2[u] += 1\n    deg2[v] += 1\n\nprint(\"New edges added:\", len(new_edges))\nprint(\"New edges:\", new_edges)\nprint(\"Final degrees:\", deg2)\nprint(\"Min degree:\", min(deg2))\nprint(\"Vertices with degree < 5:\", [i for i in range(n) if deg2[i] < 5])\n"
+      },
+      "ok": true,
+      "latency_ms": 51.71
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "all_edges = edges + new_edges\nprint(\"Total edges:\", len(all_edges))\nprint(\"All edges:\")\nfor e in sorted(all_edges):\n    print(e)\n\n# Verify\nprint(\"\\nVerification:\")\nprint(\"All u < v:\", all(e[0] < e[1] for e in all_edges))\nprint(\"All in range:\", all(0 <= e[0] < 18 and 0 <= e[1] < 18 for e in all_edges))\n\ndeg_final = [0]*18\nfor u,v in all_edges:\n    deg_final[u] += 1\n    deg_final[v] += 1\nprint(\"Degrees:\", deg_final)\nprint(\"Min degree:\", min(deg_final))\nprint(\"All >= 5:\", all(d >= 5 for d in deg_final))\n"
+      },
+      "ok": false,
+      "latency_ms": 41.9
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [\n    (3,15), (11,13), (13,17), (2,11), (11,17), (2,12), (7,17), (9,17),\n    (3,5), (0,16), (1,14), (7,9), (0,9), (6,11), (3,11), (0,2), (1,17),\n    (4,8), (5,15), (1,15), (2,15), (15,17), (4,16), (0,8), (4,6), (8,13),\n    (13,14), (2,10), (6,13), (9,12)\n]\n\nn = 18\ndeg = [0]*n\nfor u,v in edges:\n    deg[u] += 1\n    deg[v] += 1\n\nexisting = set(edges)\n\n# Check all possible edges\npossible = []\nfor u in range(n):\n    for v in range(u+1, n):\n        if (u,v) not in existing:\n            possible.append((u,v))\n\nimport copy\n\ndeg2 = copy.copy(deg)\nnew_edges = []\n\n# Try adding edges greedily\nfor _ in range(100):  # max iterations\n    best = None\n    best_score = -1\n    for u,v in possible:\n        if (u,v) in existing:\n            continue\n        # Score: how much deficit does this reduce?\n        score = 0\n        if deg2[u] < 5:\n            score += 1\n        if deg2[v] < 5:\n            score += 1\n        if score > best_score:\n            best_score = score\n            best = (u,v)\n    \n    if best is None or best_score == 0:\n        break\n    \n    u,v = best\n    existing.add((u,v))\n    new_edges.append((u,v))\n    deg2[u] += 1\n    deg2[v] += 1\n\nall_edges = edges + new_edges\nprint(\"Total edges:\", len(all_edges))\nprint(\"All edges:\")\nfor e in sorted(all_edges):\n    print(e)\n\n# Verify\nprint(\"\\nVerification:\")\nprint(\"All u < v:\", all(e[0] < e[1] for e in all_edges))\nprint(\"All in range:\", all(0 <= e[0] < 18 and 0 <= e[1] < 18 for e in all_edges))\n\ndeg_final = [0]*18\nfor u,v in all_edges:\n    deg_final[u] += 1\n    deg_final[v] += 1\nprint(\"Degrees:\", deg_final)\nprint(\"Min degree:\", min(deg_final))\nprint(\"All >= 5:\", all(d >= 5 for d in deg_final))\n"
+      },
+      "ok": true,
+      "latency_ms": 50.63
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            9
+          ],
+          [
+            0,
+            10
+          ],
+          [
+            0,
+            16
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            1,
+            15
+          ],
+          [
+            1,
+            17
+          ],
+          [
+            2,
+            10
+          ],
+          [
+            2,
+            11
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            2,
+            15
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            5
+          ],
+          [
+            3,
+            11
+          ],
+          [
+            3,
+            15
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            4,
+            16
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            15
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            6,
+            11
+          ],
+          [
+            6,
+            13
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            7,
+            17
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            8,
+            13
+          ],
+          [
+            9,
+            12
+          ],
+          [
+            9,
+            17
+          ],
+          [
+            10,
+            12
+          ],
+          [
+            10,
+            14
+          ],
+          [
+            10,
+            16
+          ],
+          [
+            11,
+            13
+          ],
+          [
+            11,
+            17
+          ],
+          [
+            12,
+            14
+          ],
+          [
+            12,
+            16
+          ],
+          [
+            13,
+            14
+          ],
+          [
+            13,
+            17
+          ],
+          [
+            14,
+            16
+          ],
+          [
+            15,
+            17
+          ]
+        ],
+        "reasoning": "The problem is satisfiable. Starting with 30 fixed edges, I used a greedy algorithm to add 16 additional edges, ensuring all 18 vertices have degree at least 5. The final graph has minimum degree exactly 5, with all fixed edges preserved."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

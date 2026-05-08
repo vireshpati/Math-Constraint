@@ -1,0 +1,98 @@
+{
+  "problem_name": "queens_n9__v6_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 1089.7,
+    "search_space": 387420489,
+    "num_variables": 9,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 76.13,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    6,
+    1,
+    7,
+    4,
+    8,
+    3,
+    5
+  ],
+  "reasoning": "Found a valid 9-queens solution via backtracking that satisfies the fixed assignment q[3]=1. Verified no two queens share a row, column, or diagonal.",
+  "raw_response": null,
+  "cot_trace": "We need to solve the 9-queens problem with a partial assignment: queen in row 3 (0-indexed) must be in column 1. So we need to place 9 queens on a 9x9 board such that no two attack each other, with the constraint that row 3, column 1 is occupied.\n\nWe need to return a list of 9 integers (columns for rows 0..8). Let's solve using Python with backtracking or SAT.\n\nLet's write a quick script to find a solution.\n---\nThe solution found is [0, 2, 6, 1, 7, 4, 8, 3, 5]. Let me verify it satisfies the constraints: row 3 (0-indexed) has queen at column 1, which matches the fixed assignment. Let me also verify no two queens attack each other.\n\nLet me double-check with a quick verification.\n---\nThe solution is valid: [0, 2, 6, 1, 7, 4, 8, 3, 5] with q[3]=1. Let me verify it's correct.\n\nRow 0: col 0\nRow 1: col 2\nRow 2: col 6\nRow 3: col 1 (fixed)\nRow 4: col 7\nRow 5: col 4\nRow 6: col 8\nRow 7: col 3\nRow 8: col 5\n\nCheck: no two share column? Columns: 0,2,6,1,7,4,8,3,5 - all distinct.\nDiagonals: \n- Row-col: 0, -1, -4, 2, -3, 1, -2, 4, 3 - all distinct.\n- Row+col: 0, 3, 8, 4, 11, 9, 14, 10, 13 - all distinct.\n\nValid.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3593,
+  "completion_tokens": 1115,
+  "reasoning_tokens": 295,
+  "cached_tokens": 1024,
+  "cost_usd": 0.0105057,
+  "cost_source": "openrouter",
+  "latency_ms": 240899.87444877625,
+  "tool_dispatch_ms_total": 67.42119789123535,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef solve_n_queens(n=9, fixed=None):\n    # backtracking with pruning\n    # fixed: dict row->col\n    if fixed is None:\n        fixed = {}\n    # columns, diag1 (row-col), diag2 (row+col)\n    cols = set()\n    diag1 = set()\n    diag2 = set()\n    board = [None] * n\n    \n    # place fixed queens\n    for r, c in fixed.items():\n        if c in cols or (r - c) in diag1 or (r + c) in diag2:\n            return None  # conflict\n        cols.add(c)\n        diag1.add(r - c)\n        diag2.add(r + c)\n        board[r] = c\n    \n    def backtrack(row):\n        if row == n:\n            return board[:]\n        if board[row] is not None:\n            return backtrack(row + 1)\n        for col in range(n):\n            if col not in cols and (row - col) not in diag1 and (row + col) not in diag2:\n                # place\n                cols.add(col)\n                diag1.add(row - col)\n                diag2.add(row + col)\n                board[row] = col\n                res = backtrack(row + 1)\n                if res:\n                    return res\n                # remove\n                cols.remove(col)\n                diag1.remove(row - col)\n                diag2.remove(row + col)\n                board[row] = None\n        return None\n    \n    return backtrack(0)\n\nfixed = {3: 1}\nsol = solve_n_queens(9, fixed)\nprint(sol)"
+      },
+      "ok": true,
+      "latency_ms": 34.35
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def verify(board):\n    n = len(board)\n    for i in range(n):\n        for j in range(i+1, n):\n            if board[i] == board[j] or abs(board[i] - board[j]) == abs(i - j):\n                return False, (i, j)\n    return True, None\n\nboard = [0, 2, 6, 1, 7, 4, 8, 3, 5]\nprint(verify(board))\nprint(\"Row 3 col:\", board[3])"
+      },
+      "ok": true,
+      "latency_ms": 33.07
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          6,
+          1,
+          7,
+          4,
+          8,
+          3,
+          5
+        ],
+        "reasoning": "Found a valid 9-queens solution via backtracking that satisfies the fixed assignment q[3]=1. Verified no two queens share a row, column, or diagonal."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

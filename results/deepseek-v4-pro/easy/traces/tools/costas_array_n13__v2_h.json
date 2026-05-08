@@ -1,0 +1,147 @@
+{
+  "problem_name": "costas_array_n13__v2_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 1330.0,
+    "search_space": 6227020800,
+    "num_variables": 13,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 82.52,
+    "solve_pct_type": 94.44
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    11,
+    6,
+    3,
+    8,
+    9,
+    7,
+    10,
+    1,
+    5,
+    4,
+    12
+  ],
+  "reasoning": "Found a Costas array of order 13 via backtracking search with the given fixed assignments x[4]=3, x[9]=1. Verified that all 78 displacement vectors are distinct and the array is a permutation of 0..12.",
+  "raw_response": null,
+  "cot_trace": "We need to find a Costas array of order 13. A Costas array is a permutation of {0,...,12} such that all displacement vectors between pairs of points are distinct. Specifically, for any two pairs (i, x[i]) and (j, x[j]) with i<j, the vector (j-i, x[j]-x[i]) must be unique. Actually the condition is that for any two pairs of marks, the vectors (delta column, delta row) are all distinct. Since columns are distinct (one per column), we consider pairs with dc > 0. The displacement vectors (dr, dc) where dc = j-i > 0, dr = x[j] - x[i] (could be negative). All such vectors must be distinct.\n\nWe have partial assignment: x[4]=3, x[9]=1. So column 4 row 3, column 9 row 1.\n\nWe need to find a complete permutation of 0..12 satisfying Costas property.\n\nLet's try to solve using SAT or backtracking. We can use Python with constraint solving or use known Costas arrays. Costas arrays exist for orders n=1..? Actually Costas arrays are known to exist for many orders, but not all. Order 13: I think Costas arrays exist for all orders? Let's recall: Costas arrays exist for n=1,2,3,4,5,6,7,8,9,10,11,12,13? I know that Costas arrays exist for all n up to some limit, but there are some orders for which none exist? Actually Costas arrays are known to exist for many orders, but there are some orders where none exist (e.g., n=32? Wait, I'm not sure). For n=13, I think there are Costas arrays. Let's check: known results: Costas arrays exist for all n \u2264 300? Actually the existence of Costas arrays is an open problem for some orders; but for small orders, they exist for all n except possibly n=32, 33? Wait, I recall that Costas arrays are known to exist for all orders up to 300 except for some? Let's check: According to Wikipedia, Costas arrays are known for many orders, but there are orders for which no Costas array exists: n=32 and n=33 were open for a while? Actually I think Costas arrays exist for all n? Let's recall: The existence of Costas arrays of order n is known for n=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,... I think they exist for all n? Wait, there's a known result: Costas arrays exist for infinitely many n (e.g., using Welch construction for primes minus one, Lempel for powers of primes minus one, etc.). But for some n, no Costas array exists? Actually I recall that for n=32 and n=33, it was unknown for a long time, but later it was found that Costas arrays do exist for n=32? Let me check memory: According to OEIS A008404: number of Costas arrays of order n. For n=13, there are many. So they exist.\n\nBut we have fixed positions: x[4]=3, x[9]=1. We need to find one consistent.\n\nLet's try to use Python with a SAT solver or backtracking. We can use the `pysat` library if available. Let's try to write a script.\n\nWe need to encode the Costas property: For any two distinct pairs (c1, r1) and (c2, r2) with c1 < c2, the vector (c2-c1, r2-r1) must be unique. Equivalent: For any two pairs (i,j) and (k,l) with i<j, k<l, (i,j) \u2260 (k,l), we require that (j-i, x[j]-x[i]) \u2260 (l-k, x[l]-x[k]). This is a set of constraints: for each possible displacement vector (dc, dr) with dc in 1..12, dr in -12..12, there can be at most one pair (i,j) with that vector.\n\nAlternatively, we can use the \"difference triangle\" property: For each distance d (1..12), the differences x[i+d] - x[i] for i=0..12-d must all be distinct. That is the standard definition: For each row of the difference triangle (i.e., for each distance d), the values x[i+d] - x[i] must be all distinct. Actually the Costas property is exactly that the difference vectors are distinct, which is equivalent to: for each d>0, the multiset of differences {x[i+d] - x[i] : i=0..n-1-d} has no repeats. But also across different d, vectors could coincide? Wait, if two vectors have different dc, they are automatically distinct because dc differs. So the condition only requires that for each fixed dc, the differences dr are all distinct. Because if dc differs, vectors are distinct regardless of dr. So indeed the condition reduces to: for each distance d (1..12), the values x[i+d] - x[i] for i=0..12-d must be all distinct (no two pairs with same column difference have same row difference). That's the standard definition of a Costas array: the permutation is such that for each d, the differences between elements at distance d are all distinct. That's exactly the condition.\n\nSo we just need a permutation where for each d, the differences x[i+d] - x[i] are all distinct.\n\nLet's write a SAT model or use backtracking with constraint propagation.\n\nWe can use Python's `itertools.permutations` but 13! is huge. We need smarter search.\n\nWe can use a SAT solver via `python-sat` if installed. Let's check.\n---\nWe need to find a Costas array of order 13. A Costas array is a permutation matrix such that the displacement vectors between any pair of marks are distinct. More formally, for a permutation f: {0,...,n-1} -> {0,...,n-1}, we require that for any i<j, k<l, if f(j)-f(i) = f(l)-f(k) and j-i = l-k, then i=k and j=l. Equivalently, the difference triangle has no repeated entries.\n\nWe have fixed values: x[4]=3, x[9]=1.\n\nWe need to find a permutation of 0..12 satisfying these constraints.\n\nLet's try to use a SAT solver or search algorithm. We can use Python with constraint solving or backtracking.\n\nLet's first try to use known Costas arrays. Costas arrays exist for many orders, but not all. Order 13: I recall that Costas arrays exist for all orders up to some limit? Actually, Costas arrays are known to exist for infinitely many orders (e.g., Welch construction using primitive roots), but not all orders. For n=13, I think there are Costas arrays. Let's check.\n\nWe can try to use the Welch construction: if p is prime, and g is a primitive root modulo p, then the permutation f(i) = g^i mod p (with some mapping) gives a Costas array of order p-1. For p=13, p-1=12, not 13. For p=14 not prime. Lempel construction: if q is a prime power, then there is a Costas array of order q-2. For q=16, q-2=14. For q=13? 13 is prime, q-2=11. So not 13.\n\nBut there might be Costas arrays of order 13 found by exhaustive search. Let's try to search using Python with backtracking and constraint propagation.\n\nWe can use the difference triangle constraints. Let's implement a backtracking search with pruning.\n\nBut maybe we can use known results: Costas arrays of order 13 exist? Let's search online memory: I think Costas arrays exist for all n <= 300? Actually, it's known that Costas arrays exist for infinitely many n, but there are some n for which none exist. For n=13, I'm not sure. Let's try to find one.\n\nWe can also use the known database: I recall that Costas arrays have been enumerated up to order 29 or so. For n=13, there are many.\n\nLet's implement a search.\n---\nWe need to find a Costas array of order 13. A Costas array is a permutation of {0,...,12} such that all displacement vectors between pairs of marks are distinct. Specifically, for any two pairs (c1, r1) and (c2, r2) with c1 < c2, the vector (c2 - c1, r2 - r1) must be unique. Since columns are distinct (one per column), we only need to ensure that for any two pairs with the same column difference, the row differences are distinct. Actually the condition is: for any two distinct pairs (i, j) and (k, l) with i < j and k < l, we cannot have (j - i, x[j] - x[i]) = (l - k, x[l] - x[k]). This is equivalent to the permutation having the property that the difference triangle has no repeated entries in any row.\n\nWe have fixed values: x[4] = 3, x[9] = 1.\n\nWe need to find a permutation of 0..12 satisfying these constraints.\n\nLet's write a Python script to search for a Costas array of order 13 with these fixed values. We can use backtracking with pruning, or use a SAT solver, or use known constructions. Costas arrays exist for all orders up to 300? Actually Costas arrays are known for many orders but not all. Order 13 is known to exist. There are known constructions like Welch, Lempel, Golomb. But we need to satisfy fixed positions.\n\nLet's try to use a SAT solver or backtracking.\n\nWe can use Python with constraint propagation. Let's try using python-constraint or just backtracking with pruning.\n\nBut first, let's check if there are known Costas arrays of order 13. We can generate using Welch construction: for prime p, x[i] = g^i mod p where g is a primitive root modulo p. For p=13, primitive roots include 2,6,7,11. Let's test.\n\nActually Welch construction: For prime p, let \u03b1 be a primitive root mod p. Then the permutation is defined by: for i = 0,...,p-2, x[i] = \u03b1^i mod p. This gives a Costas array of order p-1. For p=13, order = 12. But we need order 13. There is also Lempel construction for q=p^m, order q-2. For q=13? 13 is prime, so Lempel gives order 11? Actually Lempel: for prime power q, let \u03b1 be primitive root, then x[i] = log_\u03b1(1 - \u03b1^i) mod (q-1) for i=0..q-3, giving order q-2. For q=13, order 11.\n\nGolomb construction: for prime p, order p-2? Actually there are several.\n\nBut order 13 Costas arrays exist. Let's search.\n\nWe can use a backtracking algorithm with early pruning: maintain a set of difference vectors already used. For each column, try rows, check that all differences with previous columns are new.\n\nLet's implement in Python.\n---\nThe error is because when adding differences, I might add the same difference twice if there are multiple pairs? Actually each pair is unique, but I'm adding differences for all assigned columns, including those that were already assigned earlier. But I'm adding differences for all pairs each time I place a new column, which includes pairs among previously assigned columns that were already added. That's causing duplicates. I need to only add differences involving the new column.\n\nLet me fix: only add differences between the new column and previously assigned columns. But I also need to ensure that when I check, I check against all assigned columns. The adding part should only add new pairs involving the new column.\n\nAlso, I need to ensure that the initial fixed differences are added correctly.\n\nLet me rewrite more carefully.\n---\nThe error is that when backtracking, we might try to remove a pair that was already in used_diffs before we added it (i.e., from fixed pairs). The issue is that we add new_diffs but some of those might already be in used_diffs from fixed pairs? Actually we check that they are not in used_diffs before adding, so they should be new. But the error says (2, -5) is not in used_diffs when trying to remove. That means we added it but then something else removed it? Or maybe we added it twice? Let's debug.\n\nActually, the problem might be that when we check differences with already assigned columns, we include both directions? Wait, we only consider dc > 0. The definition: displacement vectors (dr, dc) between pairs of marks (with dc > 0) are pairwise distinct. So for each pair of columns c1 < c2, we consider d = c2 - c1 > 0, and delta = row[c2] - row[c1] (could be negative). So we only store (d, delta) for c1 < c2.\n\nIn my code, I'm adding both directions? Let's see: for c2 < c, I compute d = c - c2, delta = r - solution[c2]; for c2 > c, I compute d = c2 - c, delta = solution[c2] - r. That's correct: always d positive, delta = row[larger column] - row[smaller column].\n\nBut the error KeyError: (2, -5) when removing. Let's trace: maybe we added the same pair twice because we loop over all c2 and for each we add a pair; but if there are two different c2 that produce the same (d, delta)? That shouldn't happen because we check before adding. But maybe the check is flawed: we check against used_diffs but we also need to check against new_diffs that we are about to add. Actually we check each pair individually against used_diffs, but we don't check for duplicates among the new_diffs themselves. If two different c2 produce the same (d, delta), we would add it twice, and then removing once would leave it in used_diffs, and the second remove would fail.\n\nSo we need to ensure that among the new differences, there are no duplicates. Let's fix that.\n\nAlso, we should check that the new differences are distinct among themselves.\n\nLet me rewrite more carefully.\n---\nThe search found a solution: [0, 2, 11, 6, 3, 8, 9, 7, 10, 1, 5, 4, 12]\n\nLet me verify this is indeed a Costas array of order 13 with the fixed assignments x[4]=3, x[9]=1.\n\nLet me verify the Costas property: all displacement vectors (dr, dc) with dc > 0 are distinct.\n\nLet me also check that the fixed assignments are respected: x[4]=3, x[9]=1. Yes, index 4 is 3, index 9 is 1.\n\nLet me verify the Costas property programmatically.\n---\nThe solution works. Let me verify it's a valid Costas array: all displacement vectors are distinct. The fixed assignments are satisfied: x[4]=3, x[9]=1.\n\nLet me also double-check that the permutation is indeed a permutation of 0..12.\n\nThe solution is [0, 2, 11, 6, 3, 8, 9, 7, 10, 1, 5, 4, 12]. Let's verify all numbers 0-12 appear exactly once.\n---\nThe solution is valid: a permutation of 0..12, with x[4]=3, x[9]=1, and all displacement vectors distinct. Let's submit.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 21239,
+  "completion_tokens": 10644,
+  "reasoning_tokens": 3334,
+  "cached_tokens": 1024,
+  "cost_usd": 0.0894899,
+  "cost_source": "openrouter",
+  "latency_ms": 1303288.1581783295,
+  "tool_dispatch_ms_total": 1508.4469318389893,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 648.42
+    },
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 33.3
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys\nsys.setrecursionlimit(10000)\n\ndef search_costas(n, fixed):\n    # fixed is dict col->row\n    # We'll fill columns 0..n-1\n    used_rows = [False]*n\n    # For each column difference d (1..n-1), we need to track row differences used\n    # We'll use a set of (d, delta) tuples\n    used_diffs = set()\n    \n    # Pre-assign fixed\n    for c, r in fixed.items():\n        used_rows[r] = True\n    \n    # We'll also need to check differences between fixed columns\n    fixed_cols = sorted(fixed.keys())\n    for i in range(len(fixed_cols)):\n        ci = fixed_cols[i]\n        ri = fixed[ci]\n        for j in range(i+1, len(fixed_cols)):\n            cj = fixed_cols[j]\n            rj = fixed[cj]\n            d = cj - ci\n            delta = rj - ri\n            used_diffs.add((d, delta))\n    \n    # Check if fixed assignments already violate\n    # Actually we need to ensure no duplicate differences among fixed pairs\n    # Already added; if duplicates exist, they'd be caught but we just added them; if two pairs produce same (d, delta), then it's invalid.\n    # Let's verify:\n    pairs = []\n    for i in range(len(fixed_cols)):\n        for j in range(i+1, len(fixed_cols)):\n            ci, cj = fixed_cols[i], fixed_cols[j]\n            d = cj - ci\n            delta = fixed[cj] - fixed[ci]\n            pairs.append((d, delta))\n    if len(pairs) != len(set(pairs)):\n        return None  # fixed assignments already invalid\n    \n    # Order of filling: we can fill columns in some order; maybe start with columns adjacent to fixed ones?\n    # Let's just fill left to right, but we can skip fixed columns.\n    cols_to_fill = [c for c in range(n) if c not in fixed]\n    \n    # For pruning, we can compute for each unfilled column the set of available rows\n    # We'll use recursion with forward checking\n    \n    solution = [None]*n\n    for c, r in fixed.items():\n        solution[c] = r\n    \n    # Precompute for each column the list of possible rows (initially all unused)\n    # We'll update dynamically\n    \n    def backtrack(idx):\n        if idx == len(cols_to_fill):\n            return True\n        c = cols_to_fill[idx]\n        # Try rows that are not used\n        for r in range(n):\n            if used_rows[r]:\n                continue\n            # Check differences with all already assigned columns\n            ok = True\n            for c2 in range(n):\n                if solution[c2] is not None:\n                    if c2 < c:\n                        d = c - c2\n                        delta = r - solution[c2]\n                    else:\n                        d = c2 - c\n                        delta = solution[c2] - r\n                    if (d, delta) in used_diffs:\n                        ok = False\n                        break\n            if not ok:\n                continue\n            # Place\n            solution[c] = r\n            used_rows[r] = True\n            # Add differences\n            added = []\n            for c2 in range(n):\n                if solution[c2] is not None and c2 != c:\n                    if c2 < c:\n                        d = c - c2\n                        delta = r - solution[c2]\n                    else:\n                        d = c2 - c\n                        delta = solution[c2] - r\n                    used_diffs.add((d, delta))\n                    added.append((d, delta))\n            # Recurse\n            if backtrack(idx+1):\n                return True\n            # Backtrack\n            for d, delta in added:\n                used_diffs.remove((d, delta))\n            used_rows[r] = False\n            solution[c] = None\n        return False\n    \n    if backtrack(0):\n        return solution\n    return None\n\nn = 13\nfixed = {4: 3, 9: 1}\nsol = search_costas(n, fixed)\nprint(sol)",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 35.64
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys\nsys.setrecursionlimit(10000)\n\ndef search_costas(n, fixed):\n    used_rows = [False]*n\n    used_diffs = set()\n    \n    # Pre-assign fixed\n    for c, r in fixed.items():\n        used_rows[r] = True\n    \n    # Add differences between fixed columns\n    fixed_cols = sorted(fixed.keys())\n    for i in range(len(fixed_cols)):\n        ci = fixed_cols[i]\n        ri = fixed[ci]\n        for j in range(i+1, len(fixed_cols)):\n            cj = fixed_cols[j]\n            rj = fixed[cj]\n            d = cj - ci\n            delta = rj - ri\n            used_diffs.add((d, delta))\n    \n    # Check for duplicates among fixed pairs\n    pairs = []\n    for i in range(len(fixed_cols)):\n        for j in range(i+1, len(fixed_cols)):\n            ci, cj = fixed_cols[i], fixed_cols[j]\n            d = cj - ci\n            delta = fixed[cj] - fixed[ci]\n            pairs.append((d, delta))\n    if len(pairs) != len(set(pairs)):\n        return None\n    \n    solution = [None]*n\n    for c, r in fixed.items():\n        solution[c] = r\n    \n    cols_to_fill = [c for c in range(n) if c not in fixed]\n    \n    def backtrack(idx):\n        if idx == len(cols_to_fill):\n            return True\n        c = cols_to_fill[idx]\n        for r in range(n):\n            if used_rows[r]:\n                continue\n            # Check differences with all already assigned columns\n            ok = True\n            new_diffs = []\n            for c2 in range(n):\n                if solution[c2] is not None:\n                    if c2 < c:\n                        d = c - c2\n                        delta = r - solution[c2]\n                    else:\n                        d = c2 - c\n                        delta = solution[c2] - r\n                    if (d, delta) in used_diffs:\n                        ok = False\n                        break\n                    new_diffs.append((d, delta))\n            if not ok:\n                continue\n            # Place\n            solution[c] = r\n            used_rows[r] = True\n            for pair in new_diffs:\n                used_diffs.add(pair)\n            if backtrack(idx+1):\n                return True\n            # Backtrack\n            for pair in new_diffs:\n                used_diffs.remove(pair)\n            used_rows[r] = False\n            solution[c] = None\n        return False\n    \n    if backtrack(0):\n        return solution\n    return None\n\nn = 13\nfixed = {4: 3, 9: 1}\nsol = search_costas(n, fixed)\nprint(sol)",
+        "timeout_seconds": 120
+      },
+      "ok": false,
+      "latency_ms": 35.87
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys\nsys.setrecursionlimit(10000)\n\ndef search_costas(n, fixed):\n    used_rows = [False]*n\n    used_diffs = set()\n    \n    # Pre-assign fixed\n    for c, r in fixed.items():\n        used_rows[r] = True\n    \n    # Add differences between fixed columns\n    fixed_cols = sorted(fixed.keys())\n    for i in range(len(fixed_cols)):\n        ci = fixed_cols[i]\n        ri = fixed[ci]\n        for j in range(i+1, len(fixed_cols)):\n            cj = fixed_cols[j]\n            rj = fixed[cj]\n            d = cj - ci\n            delta = rj - ri\n            used_diffs.add((d, delta))\n    \n    # Check for duplicates among fixed pairs\n    pairs = []\n    for i in range(len(fixed_cols)):\n        for j in range(i+1, len(fixed_cols)):\n            ci, cj = fixed_cols[i], fixed_cols[j]\n            d = cj - ci\n            delta = fixed[cj] - fixed[ci]\n            pairs.append((d, delta))\n    if len(pairs) != len(set(pairs)):\n        return None\n    \n    solution = [None]*n\n    for c, r in fixed.items():\n        solution[c] = r\n    \n    cols_to_fill = [c for c in range(n) if c not in fixed]\n    \n    def backtrack(idx):\n        if idx == len(cols_to_fill):\n            return True\n        c = cols_to_fill[idx]\n        for r in range(n):\n            if used_rows[r]:\n                continue\n            # Compute all differences with already assigned columns\n            new_diffs = []\n            ok = True\n            for c2 in range(n):\n                if solution[c2] is not None:\n                    if c2 < c:\n                        d = c - c2\n                        delta = r - solution[c2]\n                    else:\n                        d = c2 - c\n                        delta = solution[c2] - r\n                    # Check against global set and also against already collected new_diffs\n                    if (d, delta) in used_diffs or (d, delta) in new_diffs:\n                        ok = False\n                        break\n                    new_diffs.append((d, delta))\n            if not ok:\n                continue\n            # Place\n            solution[c] = r\n            used_rows[r] = True\n            for pair in new_diffs:\n                used_diffs.add(pair)\n            if backtrack(idx+1):\n                return True\n            # Backtrack\n            for pair in new_diffs:\n                used_diffs.remove(pair)\n            used_rows[r] = False\n            solution[c] = None\n        return False\n    \n    if backtrack(0):\n        return solution\n    return None\n\nn = 13\nfixed = {4: 3, 9: 1}\nsol = search_costas(n, fixed)\nprint(sol)",
+        "timeout_seconds": 120
+      },
+      "ok": true,
+      "latency_ms": 54.17
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def verify_costas(perm):\n    n = len(perm)\n    diffs = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dc = j - i\n            dr = perm[j] - perm[i]\n            if (dc, dr) in diffs:\n                return False, (dc, dr)\n            diffs.add((dc, dr))\n    return True, None\n\nperm = [0, 2, 11, 6, 3, 8, 9, 7, 10, 1, 5, 4, 12]\nprint(\"Fixed check: x[4]=\", perm[4], \"x[9]=\", perm[9])\nok, dup = verify_costas(perm)\nprint(\"Costas property:\", ok)\nif not ok:\n    print(\"Duplicate:\", dup)\nprint(\"Number of diffs:\", len(perm)*(len(perm)-1)//2)",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 246.03
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "perm = [0, 2, 11, 6, 3, 8, 9, 7, 10, 1, 5, 4, 12]\nprint(sorted(perm))\nprint(\"All 0-12:\", sorted(perm) == list(range(13)))",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 455.0
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          11,
+          6,
+          3,
+          8,
+          9,
+          7,
+          10,
+          1,
+          5,
+          4,
+          12
+        ],
+        "reasoning": "Found a Costas array of order 13 via backtracking search with the given fixed assignments x[4]=3, x[9]=1. Verified that all 78 displacement vectors are distinct and the array is a permutation of 0..12."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,94 @@
+{
+  "problem_name": "graceful_graph_k2_p3__v0_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 1025.2,
+    "search_space": 262144,
+    "num_variables": 13,
+    "num_constraints": 11,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 72.37,
+    "solve_pct_type": 18.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    7,
+    3,
+    1,
+    6
+  ],
+  "reasoning": "The graph G_{2,3} has 6 vertices (3 K_2 cliques) and 7 edges. A graceful labeling assigns distinct vertex labels from 0..7 such that edge labels (absolute differences) are 1..7 distinct. Fixed: vertex 2 (first vertex of clique 1) has label 7, and edge 6 (between vertex 3 and 5, i.e., second vertices of cliques 1 and 2) has difference 3. The solution [0,2,7,3,1,6] satisfies all constraints: vertex labels are unique 0..7, edge labels are {2,4,5,7,1,6,3} = {1..7}, x[2]=7, and d[6]=|3-6|=3.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 5962,
+  "completion_tokens": 1785,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.00158178,
+  "cost_source": "openrouter",
+  "latency_ms": 179154.2661190033,
+  "tool_dispatch_ms_total": 164.6125316619873,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Vertices: 0=(0,0), 1=(0,1), 2=(1,0), 3=(1,1), 4=(2,0), 5=(2,1)\n# Edges:\nedges = [\n    (0, 1),  # 0: within clique 0\n    (2, 3),  # 1: within clique 1\n    (4, 5),  # 2: within clique 2\n    (0, 2),  # 3: between clique 0 and 1, vertex 0\n    (1, 3),  # 4: between clique 0 and 1, vertex 1\n    (2, 4),  # 5: between clique 1 and 2, vertex 0\n    (3, 5),  # 6: between clique 1 and 2, vertex 1\n]\n\n# Fixed: x[2]=7, d[6]=3\n# x[2] is label of vertex 2 = 7\n# d[6] is edge label of edge 6 = |label(3)-label(5)| = 3\n\nsolutions = []\n# All possible label assignments to vertices 0,1,3,4,5 (vertex 2 is fixed to 7)\n# Labels available: 0..7, but 7 is used, so remaining: 0,1,2,3,4,5,6\nfor perm in itertools.permutations(range(8), 6):\n    # perm[i] is label of vertex i\n    labels = list(perm)\n    # Check fixed: vertex 2 = 7\n    if labels[2] != 7:\n        continue\n    # Check all labels distinct (already true from permutation)\n    # Check edge labels are all distinct\n    edge_labels = [abs(labels[u] - labels[v]) for u, v in edges]\n    if len(set(edge_labels)) != 7:\n        continue\n    # Check edge labels are 1..7\n    if sorted(edge_labels) != [1,2,3,4,5,6,7]:\n        continue\n    # Check fixed: d[6]=3\n    if edge_labels[6] != 3:\n        continue\n    solutions.append(labels)\n    print(\"Found:\", labels)\n    print(\"Edge labels:\", edge_labels)\n\nprint(f\"Total solutions: {len(solutions)}\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 63.93
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "labels = [0, 2, 7, 3, 1, 6]\nedges = [(0,1),(2,3),(4,5),(0,2),(1,3),(2,4),(3,5)]\nedge_labels = [abs(labels[u]-labels[v]) for u,v in edges]\nprint(\"Vertex labels:\", labels)\nprint(\"Edge labels:\", edge_labels)\nprint(\"Distinct:\", len(set(edge_labels))==7)\nprint(\"Range 1-7:\", sorted(edge_labels)==[1,2,3,4,5,6,7])\nprint(\"x[2]=7:\", labels[2]==7)\nprint(\"d[6]=3:\", edge_labels[6]==3)\n# Also check all labels are 0..7 and distinct\nprint(\"All labels 0..7:\", all(0<=l<=7 for l in labels))\nprint(\"Distinct labels:\", len(set(labels))==6)"
+      },
+      "ok": true,
+      "latency_ms": 100.68
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          7,
+          3,
+          1,
+          6
+        ],
+        "reasoning": "The graph G_{2,3} has 6 vertices (3 K_2 cliques) and 7 edges. A graceful labeling assigns distinct vertex labels from 0..7 such that edge labels (absolute differences) are 1..7 distinct. Fixed: vertex 2 (first vertex of clique 1) has label 7, and edge 6 (between vertex 3 and 5, i.e., second vertices of cliques 1 and 2) has difference 3. The solution [0,2,7,3,1,6] satisfies all constraints: vertex labels are unique 0..7, edge labels are {2,4,5,7,1,6,3} = {1..7}, x[2]=7, and d[6]=|3-6|=3."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

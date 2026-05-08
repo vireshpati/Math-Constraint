@@ -1,0 +1,103 @@
+{
+  "problem_name": "graceful_graph_k2_p5__v1_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1003.9,
+    "search_space": 289254654976,
+    "num_variables": 23,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 70.49,
+    "solve_pct_type": 6.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    12,
+    2,
+    0,
+    13,
+    1,
+    10,
+    9,
+    4,
+    7,
+    11
+  ],
+  "reasoning": "The proposed labels are unique integers in 0..13. The 13 edge differences are 10,13,9,5,4,12,11,1,3,8,6,2,7, which are exactly the distinct values 1 through 13.",
+  "raw_response": null,
+  "cot_trace": "**Preparing to submit answer**\n\nIt seems like I need to submit an answer, so I should think about that. I\u2019ll get everything ready and make sure it\u2019s correct before hitting that submit button. Let's run the solver and check if I have all the necessary information. I want to ensure that my answer is accurate and ready for whatever follows. I'll take my time with this process and be thorough.\n---\n**Considering bug fix for new diffs**\n\nI'm looking into the bug where I need to remove duplicate new diffs. The valid checks confirm new diffs against used_diffs, but if multiple assigned neighbors produce the same new diff, it doesn't get checked. I think it\u2019s important to require distinct new diffs. Also, it seems edge labels should be distinct too. I\u2019ll plan to rerun the checks to see if that resolves the issue.\n---\n**Preparing JSON response**\n\nI've found a solution for the user\u2019s request for a list of unsatisfactory results. The developer has specified that I need to respond in JSON format. I need to ensure that I finish by calling the submit_answer function. This involves making a commentary call followed by the final JSON response. I should include \"satisfiable true\" and the solution list while keeping my reasoning brief. Time to get to work!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5682,
+  "completion_tokens": 2376,
+  "reasoning_tokens": 386,
+  "cached_tokens": 0,
+  "cost_usd": 0.09968999999999999,
+  "cost_source": "openrouter",
+  "latency_ms": 42493.88074874878,
+  "tool_dispatch_ms_total": 86.08293533325195,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import permutations, combinations\n# vertices index = 2*g+i\nn=10; q=13\nedges=[]\nfor g in range(5):\n    edges.append((2*g,2*g+1))\nfor g in range(4):\n    for i in range(2):\n        edges.append((2*g+i,2*(g+1)+i))\nprint(edges,len(edges))\n# Try use python-constraint? no. Let's use z3? maybe unavailable. pysat? use CP-SAT custom backtracking.\n\n# Let's formulate MILP? no.\n\n# brute force with recursive assign vertices, edge diffs uniqueness and require possibly all.\n# exploit graceful: edge diff 13 must connect labels 0 and 13, on some edge. Graph automorphisms: reflect path, swap rails. We can set vertex 0 label 0? Maybe not any edge. Label 0 and 13 adjacent somewhere; by automorphism choose? Edge types: rung endpoint positions maybe can choose representative among edge orbits (end rung, middle rung, rail end, rail middle). Need search.\n\nadj=[set() for _ in range(n)]\nfor e,(u,v) in enumerate(edges):\n    adj[u].add(v); adj[v].add(u)\n\n# We'll use graceful labeling library maybe networkx? no graceful.\n\n# Let's implement DFS assigning edge diffs from largest to smallest: choose edge for diff d and orient labels x,x+d. Need consistent vertices. This is exact cover.\n# Labels 0..13, 10 vertices used.\n\nedge_indices=list(range(len(edges)))\n# edge incidence\ninc_edges=[[] for _ in range(n)]\nfor idx,(u,v) in enumerate(edges): inc_edges[u].append(idx); inc_edges[v].append(idx)\n\n# Edge automorphisms maybe networkx later. Let's direct search.\n\ndef search():\n    labels=[None]*n\n    used_labels=set()\n    edge_diff=[None]*len(edges)\n    used_diffs=set()\n    # set diff 13 edge maybe try all orbits; loop.\n\n    # recursive assign vertex labels variable order with propagation? Maybe use python backtracking by vertex order.\n    # Since 14P10 = huge but constraints help.\n    order=sorted(range(n), key=lambda v:-len(adj[v]))\n    print('order', order, [len(adj[v]) for v in order])\n\n    # Try fix label[0]=0? Not valid under complement if any solution can complement, but label 0 can be anywhere, automorphism not necessarily v0. Could fix endpoint of diff13 edge by automorphism? Let's not.\n\n    # Use recursion selecting unassigned vertex with many assigned nbrs, assign possible labels. Track edge diff uniqueness. Prune with possible missing diffs.\n\n    def valid_assign(v,l):\n        if l in used_labels: return False\n        new=[]\n        for nb in adj[v]:\n            if labels[nb] is not None:\n                d=abs(l-labels[nb])\n                if d==0 or d in used_diffs: return False\n                new.append(d)\n        return True\n\n    nodes=0\n    def rec(count):\n        nonlocal nodes\n        nodes+=1\n        if nodes%1000000==0: print('nodes',nodes,'count',count,'labels',labels,'used_diffs',len(used_diffs))\n        if count==n:\n            if len(used_diffs)==len(edges) and used_diffs==set(range(1,14)):\n                return labels.copy()\n            return None\n        # Select unassigned vertex. Prefer with assigned neighbors >0, constrained. tie degree.\n        best=None; best_key=None; best_cands=None\n        for v in range(n):\n            if labels[v] is None:\n                ass=sum(labels[nb] is not None for nb in adj[v])\n                # generate candidates maybe if ass=0 all unused\n                cands=[]\n                for l in range(q+1):\n                    if valid_assign(v,l): cands.append(l)\n                if not cands: return None\n                key=(len(cands), -ass, -len(adj[v]))\n                if best is None or key<best_key:\n                    best=v; best_key=key; best_cands=cands\n        v=best\n        # order candidates: extremes first maybe\n        for l in sorted(best_cands, key=lambda x:min(x, q-x)):\n            # symmetry: complement labels, can fix first assigned maybe smaller? hard\n            labels[v]=l; used_labels.add(l)\n            newdiffs=[]\n            ok=True\n            for nb in adj[v]:\n                if labels[nb] is not None:\n                    d=abs(l-labels[nb]); used_diffs.add(d); newdiffs.append(d)\n            # Prune: used diffs size equals assigned edges; possible missing diffs can still be made by unassigned edges? Maybe skip.\n            res=rec(count+1)\n            if res: return res\n            for d in newdiffs: used_diffs.remove(d)\n            used_labels.remove(l); labels[v]=None\n        return None\n    return rec(0),nodes\n\nsol,nodes=search()\nprint('sol',sol,'nodes',nodes)\nif sol:\n    diffs=[abs(sol[u]-sol[v]) for u,v in edges]\n    print(diffs, sorted(diffs), len(set(diffs)))\n",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 43.26
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "n=10; q=13\nedges=[]\nfor g in range(5): edges.append((2*g,2*g+1))\nfor g in range(4):\n    for i in range(2): edges.append((2*g+i,2*(g+1)+i))\nadj=[set() for _ in range(n)]\nfor u,v in edges: adj[u].add(v); adj[v].add(u)\n\ndef solve():\n    labels=[None]*n; used_labels=set(); used_diffs=set(); nodes=0\n    def newdiffs_for(v,l):\n        if l in used_labels: return None\n        nd=[]; s=set()\n        for nb in adj[v]:\n            if labels[nb] is not None:\n                d=abs(l-labels[nb])\n                if d==0 or d in used_diffs or d in s: return None\n                s.add(d); nd.append(d)\n        return nd\n    def rec(count):\n        nonlocal nodes\n        nodes+=1\n        if count==n:\n            if used_diffs==set(range(1,14)):\n                return labels.copy()\n            return None\n        # all assigned edges count: len used_diffs, at final 13. Need diff 13? eventually.\n        best=None; best_cands=None; best_key=None\n        for v in range(n):\n            if labels[v] is None:\n                c=[]\n                for l in range(q+1):\n                    nd=newdiffs_for(v,l)\n                    if nd is not None: c.append((l,nd))\n                if not c: return None\n                ass=sum(labels[nb] is not None for nb in adj[v])\n                key=(len(c), -ass, -len(adj[v]))\n                if best is None or key<best_key:\n                    best=v; best_cands=c; best_key=key\n        v=best\n        for l,nd in sorted(best_cands, key=lambda x:(min(x[0],q-x[0]), x[0])):\n            labels[v]=l; used_labels.add(l)\n            for d in nd: used_diffs.add(d)\n            res=rec(count+1)\n            if res: return res\n            for d in nd: used_diffs.remove(d)\n            used_labels.remove(l); labels[v]=None\n        return None\n    res=rec(0)\n    return res,nodes\nsol,nodes=solve()\nprint('sol',sol,'nodes',nodes)\nif sol:\n    diffs=[abs(sol[u]-sol[v]) for u,v in edges]\n    print(diffs, sorted(diffs), len(set(diffs)))\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 42.82
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          12,
+          2,
+          0,
+          13,
+          1,
+          10,
+          9,
+          4,
+          7,
+          11
+        ],
+        "reasoning": "The proposed labels are unique integers in 0..13. The 13 edge differences are 10,13,9,5,4,12,11,1,3,8,6,2,7, which are exactly the distinct values 1 through 13."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

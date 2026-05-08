@@ -1,0 +1,71 @@
+{
+  "problem_name": "all_interval_n11__v8_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 1020.3,
+    "search_space": 39916800,
+    "num_variables": 21,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 71.62,
+    "solve_pct_type": 70.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5]",
+  "reasoning": "Found a valid all-interval series of size 11. The permutation [0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5] contains all numbers 0-10, and the consecutive absolute differences are [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1-10.",
+  "raw_response": null,
+  "cot_trace": "The problem asks for an \"all-interval series\" of size 11. This is a permutation of the numbers 0 to 10 such that the absolute differences between consecutive elements form a permutation of 1 to 10.\n\nLet me think about this more carefully:\n- We need a permutation P = [p_0, p_1, ..., p_10] of {0, 1, 2, ..., 10}\n- The absolute differences |p_1 - p_0|, |p_2 - p_1|, ..., |p_10 - p_9| must be a permutation of {1, 2, ..., 10}\n\nThis is a well-known problem in combinatorics. An all-interval series of size n is a permutation of {0, 1, ..., n-1} such that the consecutive differences are a permutation of {1, 2, ..., n-1}.\n\nLet me try to solve this using a constraint solver or backtracking search.\n\nI'll write a Python script to find such a permutation.\n---\nThe backtracking found a solution: [0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5]\n\nLet me verify this:\n- It's a permutation of 0-10: {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10} \u2713\n- Consecutive differences:\n  - |10-0| = 10\n  - |1-10| = 9\n  - |9-1| = 8\n  - |2-9| = 7\n  - |8-2| = 6\n  - |3-8| = 5\n  - |7-3| = 4\n  - |4-7| = 3\n  - |6-4| = 2\n  - |5-6| = 1\n- Differences: {10, 9, 8, 7, 6, 5, 4, 3, 2, 1} - this is a permutation of 1-10 \u2713\n\nThis is correct!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1867,
+  "completion_tokens": 1054,
+  "reasoning_tokens": 498,
+  "cached_tokens": 0,
+  "cost_usd": 0.002662075,
+  "cost_source": "openrouter",
+  "latency_ms": 27588.47451210022,
+  "tool_dispatch_ms_total": 128.83782386779785,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import permutations\n\ndef find_all_interval_series(n):\n    \"\"\"Find an all-interval series of size n.\"\"\"\n    # We need a permutation of 0 to n-1\n    # such that consecutive absolute differences are a permutation of 1 to n-1\n    \n    # Use backtracking\n    def backtrack(perm, used_diffs, used_nums):\n        if len(perm) == n:\n            return perm\n        \n        for num in range(n):\n            if num not in used_nums:\n                if len(perm) == 0:\n                    # First element, no diff constraint\n                    perm.append(num)\n                    used_nums.add(num)\n                    result = backtrack(perm, used_diffs, used_nums)\n                    if result:\n                        return result\n                    perm.pop()\n                    used_nums.remove(num)\n                else:\n                    diff = abs(num - perm[-1])\n                    if diff not in used_diffs and 1 <= diff <= n-1:\n                        perm.append(num)\n                        used_nums.add(num)\n                        used_diffs.add(diff)\n                        result = backtrack(perm, used_diffs, used_nums)\n                        if result:\n                            return result\n                        perm.pop()\n                        used_nums.remove(num)\n                        used_diffs.remove(diff)\n        return None\n    \n    return backtrack([], set(), set())\n\n# Try for n=11\nresult = find_all_interval_series(11)\nprint(f\"Result: {result}\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 128.84
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5]",
+        "reasoning": "Found a valid all-interval series of size 11. The permutation [0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5] contains all numbers 0-10, and the consecutive absolute differences are [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1-10."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

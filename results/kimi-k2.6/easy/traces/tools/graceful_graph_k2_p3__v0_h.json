@@ -1,0 +1,108 @@
+{
+  "problem_name": "graceful_graph_k2_p3__v0_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 1025.2,
+    "search_space": 262144,
+    "num_variables": 13,
+    "num_constraints": 11,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 72.37,
+    "solve_pct_type": 18.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    7,
+    3,
+    1,
+    6
+  ],
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": " We need to find a graceful labeling for a specific graph G_{2,3}. Let's parse the graph description carefully.\n\n\"3 disjoint K_2 cliques (numbered 0 through 2), where each pair of consecutive cliques (g, g+1) is connected by 2 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..1.\"\n\nSo we have 3 cliques, each is K_2, meaning each clique has 2 vertices. Let's denote clique g has vertices (g,0) and (g,1). Within each clique, there is an edge between (g,0) and (g,1). That's 3 edges.\n\nThen between clique g and g+1, for each i in {0,1}, there is an edge from (g,i) to (g+1,i). So between clique 0 and 1, edges: (0,0)-(1,0) and (0,1)-(1,1). Between clique 1 and 2, edges: (1,0)-(2,0) and (1,1)-(2,1). That's 4 more edges. Total edges = 3 + 4 = 7. Total vertices = 3*2 = 6.\n\nWe need to assign each vertex a unique label from 0 to 7 (since there are 7 edges, graceful labeling uses labels 0..m where m=7, so 8 possible labels for 6 vertices, meaning 2 labels are unused). The edge labels (absolute differences) must be distinct and cover 1..7 (since there are 7 edges).\n\nThe vertices are ordered by clique then vertex within clique. So the list is:\nx0 = label of (0,0)\nx1 = label of (0,1)\nx2 = label of (1,0)\nx3 = label of (1,1)\nx4 = label of (2,0)\nx5 = label of (2,1)\n\nWait, the problem says \"x[2]=7\". That is the third element (0-indexed). So x[2] = label of (1,0) = 7.\n\nAlso \"d[6]=3\". What is d? Probably edge labels. There are 7 edges, so d[0]..d[6] are the edge labels. d[6]=3 means the 7th edge (index 6) has label 3.\n\nWe need to figure out the ordering of edges for d. The problem doesn't explicitly state the edge ordering, but we can infer from typical conventions. Let's think: edges are usually listed in some order. The problem says \"d[6]=3\". We need to know which edge corresponds to d[6].\n\nLet's try to deduce the edge ordering. The graph has 7 edges. Let's list them:\n1. Within clique 0: (0,0)-(0,1)\n2. Within clique 1: (1,0)-(1,1)\n3. Within clique 2: (2,0)-(2,1)\n4. Between clique 0 and 1, i=0: (0,0)-(1,0)\n5. Between clique 0 and 1, i=1: (0,1)-(1,1)\n6. Between clique 1 and 2, i=0: (1,0)-(2,0)\n7. Between clique 1 and 2, i=1: (1,1)-(2,1)\n\nAlternatively, the edges might be ordered differently. Let's see if there's a standard for G_{s,t} or something. The notation G_{2,3} might be a ladder-like graph? Actually, it's like a 2x3 grid graph but with vertical edges? Wait, K_2 cliques with connections... Let's draw:\n\nClique 0: vertices a0, a1, edge between them.\nClique 1: vertices b0, b1, edge between them.\nClique 2: vertices c0, c1, edge between them.\n\nEdges:\na0-b0\na1-b1\nb0-c0\nb1-c1\n\nSo it's like a \"ladder\" with 3 rungs (the intra-clique edges) and 2 rails (the inter-clique edges for each i). Actually, the intra-clique edges are the rungs, and the inter-clique edges are the rails. So it's a 2x3 grid graph? Let's see: a grid graph P_3 \u25a1 P_2 (Cartesian product of path on 3 vertices and path on 2 vertices). That has vertices arranged in 2 rows and 3 columns. The edges are horizontal (along rows) and vertical (along columns). In our description:\n- Within each clique (column), there is a vertical edge connecting the two rows.\n- Between consecutive cliques (columns), there are horizontal edges connecting same rows.\n\nSo yes, it's exactly the 2x3 grid graph (also called a ladder with 3 rungs? Actually a ladder graph P_3 \u25a1 K_2 has 2 rows and 3 columns, with 3 rungs and 4 rails? Wait, standard ladder graph L_n is P_n \u25a1 K_2, which has n rungs (vertical edges) and 2*(n-1) horizontal edges? Let's check: P_n has n vertices. P_n \u25a1 K_2 has 2n vertices. Edges: n vertical edges (within each copy of K_2) and 2*(n-1) horizontal edges (connecting copies). For n=3, that's 3 vertical + 4 horizontal = 7 edges. Yes. So G_{2,3} is P_3 \u25a1 K_2.\n\nNow, the edge ordering for d. The problem mentions \"d[6]=3\". There are 7 edges, indices 0..6. We need to know which edge is d[6]. Let's think about how the problem might have been generated. It could be from a constraint satisfaction problem where variables x[0..5] are vertex labels and d[0..6] are edge labels. The edges might be listed in the order:\n- d[0]: clique 0 internal: |x0 - x1|\n- d[1]: clique 1 internal: |x2 - x3|\n- d[2]: clique 2 internal: |x4 - x5|\n- d[3]: between clique 0 and 1, i=0: |x0 - x2|\n- d[4]: between clique 0 and 1, i=1: |x1 - x3|\n- d[5]: between clique 1 and 2, i=0: |x2 - x4|\n- d[6]: between clique 1 and 2, i=1: |x1 - x5|? Wait, no. Between clique 1 and 2, i=1: |x3 - x5|.\n\nBut the problem says \"each pair of consecutive cliques (g, g+1) is connected by 2 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..1\". So for g=1, g+1=2, i=0: (1,0)-(2,0) which is x2-x4. i=1: (1,1)-(2,1) which is x3-x5.\n\nSo d[6] could be |x3 - x5| = 3. Or maybe the edges are ordered differently.\n\nAlternatively, maybe edges are ordered by g then i then internal? Let's see: for each pair of consecutive cliques (g,g+1), there are 2 edges. Maybe all inter-clique edges first, then intra-clique? Or maybe d is just a list of edge labels sorted? No, d[6]=3 is a specific edge.\n\nLet's try to infer from the partial assignment. x[2]=7. That is vertex (1,0) = 7. d[6]=3.\n\nIf d[6] is the last edge in some ordering, and it's 3. Let's try to find a graceful labeling by brute force, and see which edge orderings make sense with the given constraints. But we don't know the edge ordering. However, the problem likely expects a specific solution that satisfies the constraints with the intended edge ordering. We need to figure out the intended ordering.\n\nLet's search for graceful labeling of P_3 \u25a1 K_2 (the 2x3 grid). This is a known graph. Does it have a graceful labeling? The ladder graph P_n \u25a1 K_2 is known to be graceful for all n. For n=3, there should be many.\n\nLet's write a Python script to enumerate all graceful labelings of this graph, and then check which ones satisfy x[2]=7 and have some edge equal to 3 at index 6 (depending on ordering). But we need to know the edge ordering. Let's assume the ordering I guessed above and see if there are solutions. If not, try other orderings.\n\nActually, the problem statement might have been generated by a specific code. Let's re-read: \"Find a graceful labeling for the graph G_{2,3}: 3 disjoint K_2 cliques (numbered 0 through 2), where each pair of consecutive cliques (g, g+1) is connected by 2 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..1. The graph has 6 vertices and 7 edges in total.\"\n\nThen \"Partial assignment (fixed values that must be respected):\n- x[2]=7\n- d[6]=3\"\n\nThe variable names x and d suggest a standard encoding: x for vertex labels, d for edge labels. The edge index 6 is likely the 7th edge in some natural ordering. What is natural? Perhaps edges are listed in the order they appear in the description: first the 3 intra-clique edges (clique 0,1,2), then the inter-clique edges for pair (0,1) (i=0, i=1), then for pair (1,2) (i=0, i=1). That gives:\nd[0] = |x0-x1|\nd[1] = |x2-x3|\nd[2] = |x4-x5|\nd[3] = |x0-x2|\nd[4] = |x1-x3|\nd[5] = |x2-x4|\nd[6] = |x3-x5|\n\nSo d[6] = |x3 - x5| = 3.\n\nAlternatively, maybe inter-clique edges are listed before intra-clique? Or maybe by g then i then internal? Let's think: \"3 disjoint K_2 cliques ... where each pair of consecutive cliques ... is connected by 2 edges\". The description mentions cliques first, then connections. So intra-clique edges might be first. But it's ambiguous.\n\nAnother possibility: edges are ordered as:\nFor g=0: intra edge of clique 0\nFor g=0: inter edges to clique 1 (i=0, i=1)\nFor g=1: intra edge of clique 1\nFor g=1: inter edges to clique 2 (i=0, i=1)\nFor g=2: intra edge of clique 2\n\nThat would be: d[0]=|x0-x1|, d[1]=|x0-x2|, d[2]=|x1-x3|, d[3]=|x2-x3|, d[4]=|x2-x4|, d[5]=|x3-x5|, d[6]=|x4-x5|. Then d[6]=|x4-x5|=3.\n\nAnother possibility: edges are ordered by some lexicographic order of endpoints. But likely it's one of these systematic orderings.\n\nWe need to find a solution that matches the intended interpretation. Since the problem is from a benchmark or generator, there might be a unique solution (or few) that satisfy the partial assignments. Let's brute force all graceful labelings and see which ones have x[2]=7 and some edge equal to 3. Then we can see if only one of them has the edge with label 3 at a position that could be index 6 under a reasonable ordering.\n\nLet's write a Python script to enumerate all injective labelings from {0..7} to 6 vertices (choose 6 distinct labels from 0..7) and check if the 7 edge differences are exactly {1,2,3,4,5,6,7}. Then filter those with x[2]=7. Then examine the edge labels for each candidate.\n\nThere are C(8,6)*6! = 28*720 = 20160 possibilities. That's small enough to brute force.\n\nLet's do that.\n---\n We found 22 solutions with x[2]=7. Now we need to check which of these also satisfy d[6]=3. The problem says \"d[6]=3\". I need to understand what d[6] means. In graceful labeling, d typically denotes the edge labels. But there are only 7 edges (e0 through e6), so d[6] would be the label of edge e6.\n\nEdge e6 is (3,5) -> |x3-x5|.\n\nLet me check which solutions have |x3-x5| = 3.\n\nLooking at the solutions:\n1. (0, 2, 7, 1, 3, 6): |1-6|=5 \u2260 3\n2. (0, 2, 7, 3, 1, 6): |3-6|=3 \u2713\n3. (0, 4, 7, 1, 2, 3): |1-3|=2 \u2260 3\n4. (0, 4, 7, 1, 5, 6): |1-6|=5 \u2260 3\n5. (0, 5, 7, 1, 4, 2): |1-2|=1 \u2260 3\n6. (0, 5, 7, 1, 4, 3): |1-3|=2 \u2260 3\n7. (0, 5, 7, 1, 6, 3): |1-3|=2 \u2260 3\n8. (0, 5, 7, 1, 6, 4): |1-4|=3 \u2713\n9. (0, 5, 7, 3, 1, 4): |3-4|=1 \u2260 3\n10. (0, 6, 7, 3, 2, 1): |3-1|=2 \u2260 3\n11. (0, 6, 7, 3, 2, 4): |3-4|=1 \u2260 3\n12. (1, 4, 7, 3, 0, 5): |3-5|=2 \u2260 3\n13. (1, 6, 7, 3, 0, 2): |3-2|=1 \u2260 3\n14. (2, 1, 7, 3, 0, 6): |3-6|=3 \u2713\n15. (2, 3, 7, 1, 0, 4): |1-4|=3 \u2713\n16. (2, 4, 7, 3, 0, 6): |3-6|=3 \u2713\n17. (3, 6, 7, 1, 0, 2): |1-2|=1 \u2260 3\n18. (4, 2, 7, 1, 0, 5): |1-5|=4 \u2260 3\n19. (4, 3, 7, 1, 0, 5): |1-5|=4 \u2260 3\n20. (5, 6, 7, 1, 0, 4): |1-4|=3 \u2713\n21. (6, 3, 7, 1, 0, 5): |1-5|=4 \u2260 3\n22. (6, 4, 7, 1, 0, 5): |1-5|=4 \u2260 3\n\nSo solutions with d[6]=3 are:\n- (0, 2, 7, 3, 1, 6): diffs [2, 4, 5, 7, 1, 6, 3]\n- (0, 5, 7, 1, 6, 4): diffs [5, 6, 2, 7, 4, 1, 3]\n- (2, 1, 7, 3, 0, 6): diffs [1, 4, 6, 5, 2, 7, 3]\n- (2, 3, 7, 1, 0, 4): diffs [1, 6, 4, 5, 2, 7, 3]\n- (2, 4, 7, 3, 0, 6): diffs [2, 4, 6, 5, 1, 7, 3]\n- (5, 6, 7, 1, 0, 4): diffs [1, 6, 4, 2, 5, 7, 3]\n\nWait, I need to be more careful. The problem says \"d[6]=3\". Let me verify my understanding of edge numbering. The problem says \"7 edges in total\". Let me recount:\n- 3 intra-clique edges (one per K_2)\n- 2 edges between clique 0 and 1\n- 2 edges between clique 1 and 2\nTotal: 3 + 2 + 2 = 7 edges.\n\nIf d[6]=3 means the 6th edge (0-indexed) has label 3, then I need to know the edge ordering. The problem doesn't explicitly define the edge ordering, but typically in these problems, edges are numbered in some systematic way.\n\nActually, looking at the problem again: \"d[6]=3\". If there are 7 edges, they might be numbered 0 through 6. But which is edge 6?\n\nLet me think about this differently. In many graceful labeling formulations, d[i] represents the edge label for edge i. But without explicit edge numbering, I need to infer it.\n\nActually, let me re-read: \"Partial assignment (fixed values that must be respected): - x[2]=7 - d[6]=3\"\n\nIf x[2]=7 refers to vertex 2 (which is (1,0) in my numbering), then d[6] likely refers to edge 6. But which edge is edge 6?\n\nOne common convention is:\n- Intra-clique edges first: e0, e1, e2\n- Then inter-clique edges: e3, e4, e5, e6\n\nBut there are only 4 inter-clique edges, so e3, e4, e5, e6 would be the 4 inter-clique edges.\n\nOr maybe:\n- e0: (0,0)-(0,1)\n- e1: (1,0)-(1,1)\n- e2: (2,0)-(2,1)\n- e3: (0,0)-(1,0)\n- e4: (0,1)-(1,1)\n- e5: (1,0)-(2,0)\n- e6: (1,1)-(2,1)\n\nIn this case, e6 = (3,5) in my vertex numbering, which is |x3-x5|.\n\nBut wait, I should verify this interpretation. Let me check if there's another common convention.\n\nActually, another possibility: the edges might be numbered differently. Let me just check all possibilities.\n\nIf d[6]=3 means some edge has label 3, and there are 22 solutions with x[2]=7, I need to figure out which edge is \"edge 6\".\n\nActually, looking at the problem statement more carefully: it says \"Return a list of 6 integers giving the vertex labels, ordered by clique then vertex within clique\". So the vertices are ordered as:\n- x[0] = vertex 0 of clique 0\n- x[1] = vertex 1 of clique 0\n- x[2] = vertex 0 of clique 1\n- x[3] = vertex 1 of clique 1\n- x[4] = vertex 0 of clique 2\n- x[5] = vertex 1 of clique 2\n\nAnd x[2]=7 is given.\n\nFor edges, a natural ordering would be:\n- d[0] = |x[0]-x[1]| (intra-clique 0)\n- d[1] = |x[2]-x[3]| (intra-clique 1)\n- d[2] = |x[4]-x[5]| (intra-clique 2)\n- d[3] = |x[0]-x[2]| (inter-clique 0-1, vertex 0)\n- d[4] = |x[1]-x[3]| (inter-clique 0-1, vertex 1)\n- d[5] = |x[2]-x[4]| (inter-clique 1-2, vertex 0)\n- d[6] = |x[3]-x[5]| (inter-clique 1-2, vertex 1)\n\nSo d[6] = |x[3]-x[5]| = 3.\n\nLet me verify my solutions above with this interpretation. I already computed |x3-x5| for each solution, and found these 6 solutions where |x3-x5|=3.\n\nLet me double-check by running code.\n---\n I forgot to import itertools again. Let me fix that.\n---\n We found 6 solutions with x[2]=7 and d[6]=3. Let me verify one of them manually to make sure.\n\nTake [0, 2, 7, 3, 1, 6]:\n- x[0]=0, x[1]=2, x[2]=7, x[3]=3, x[4]=1, x[5]=6\n- d[0] = |0-2| = 2\n- d[1] = |7-3| = 4\n- d[2] = |1-6| = 5\n- d[3] = |0-7| = 7\n- d[4] = |2-3| = 1\n- d[5] = |7-1| = 6\n- d[6] = |3-6| = 3\n\nAll distinct: {1,2,3,4,5,6,7} \u2713\nx[2]=7 \u2713\nd[6]=3 \u2713\n\nThis is a valid solution. Let me verify another one too.\n\nTake [0, 5, 7, 1, 6, 4]:\n- x[0]=0, x[1]=5, x[2]=7, x[3]=1, x[4]=6, x[5]=4\n- d[0] = |0-5| = 5\n- d[1] = |7-1| = 6\n- d[2] = |6-4| = 2\n- d[3] = |0-7| = 7\n- d[4] = |5-1| = 4\n- d[5] = |7-6| = 1\n- d[6] = |1-4| = 3\n\nAll distinct: {1,2,3,4,5,6,7} \u2713\nx[2]=7 \u2713\nd[6]=3 \u2713\n\nBoth are valid. I'll submit one of them. Let me pick [0, 2, 7, 3, 1, 6].\n---\n The solution [0, 2, 7, 3, 1, 6] satisfies all constraints:\n- x[2] = 7 \u2713\n- d[6] = 3 \u2713\n- All 6 labels are distinct and from 0..7 \u2713\n- All 7 edge differences are distinct and cover 1..7 \u2713\n\nLet me submit this answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 13045,
+  "completion_tokens": 7232,
+  "reasoning_tokens": 3727,
+  "cached_tokens": 1040,
+  "cost_usd": 0.04284422400000001,
+  "cost_source": "openrouter",
+  "latency_ms": 403054.1458129883,
+  "tool_dispatch_ms_total": 163.9876365661621,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Vertices: 0=(0,0), 1=(0,1), 2=(1,0), 3=(1,1), 4=(2,0), 5=(2,1)\n# Edges (intra-clique):\n# e0: (0,0)-(0,1) -> |x0-x1|\n# e1: (1,0)-(1,1) -> |x2-x3|\n# e2: (2,0)-(2,1) -> |x4-x5|\n# Edges (inter-clique):\n# e3: (0,0)-(1,0) -> |x0-x2|\n# e4: (0,1)-(1,1) -> |x1-x3|\n# e5: (1,0)-(2,0) -> |x2-x4|\n# e6: (1,1)-(2,1) -> |x3-x5|\n\nedges = [\n    (0,1), # e0\n    (2,3), # e1\n    (4,5), # e2\n    (0,2), # e3\n    (1,3), # e4\n    (2,4), # e5\n    (3,5), # e6\n]\n\nsolutions = []\n\n# Choose 6 distinct labels from 0..7\nfor labels in itertools.permutations(range(8), 6):\n    # x[2] must be 7\n    if labels[2] != 7:\n        continue\n    diffs = []\n    for u,v in edges:\n        diffs.append(abs(labels[u] - labels[v]))\n    if len(set(diffs)) == 7 and set(diffs) == set(range(1,8)):\n        solutions.append((labels, diffs))\n\nprint(f\"Found {len(solutions)} solutions with x[2]=7\")\nfor sol, diffs in solutions:\n    print(\"labels:\", sol, \"diffs:\", diffs)\n"
+      },
+      "ok": true,
+      "latency_ms": 42.02
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's verify more carefully\n# Vertices: x[0]=(0,0), x[1]=(0,1), x[2]=(1,0), x[3]=(1,1), x[4]=(2,0), x[5]=(2,1)\n# Edges:\n# d[0] = |x0-x1| (intra K2_0)\n# d[1] = |x2-x3| (intra K2_1)\n# d[2] = |x4-x5| (intra K2_2)\n# d[3] = |x0-x2| (inter 0-1, vertex 0)\n# d[4] = |x1-x3| (inter 0-1, vertex 1)\n# d[5] = |x2-x4| (inter 1-2, vertex 0)\n# d[6] = |x3-x5| (inter 1-2, vertex 1)\n\nsolutions_with_d6_3 = []\n\nfor labels in itertools.permutations(range(8), 6):\n    if labels[2] != 7:  # x[2]=7\n        continue\n    \n    d0 = abs(labels[0] - labels[1])\n    d1 = abs(labels[2] - labels[3])\n    d2 = abs(labels[4] - labels[5])\n    d3 = abs(labels[0] - labels[2])\n    d4 = abs(labels[1] - labels[3])\n    d5 = abs(labels[2] - labels[4])\n    d6 = abs(labels[3] - labels[5])\n    \n    diffs = [d0, d1, d2, d3, d4, d5, d6]\n    \n    if len(set(diffs)) == 7 and set(diffs) == set(range(1,8)) and d6 == 3:\n        solutions_with_d6_3.append((labels, diffs))\n\nprint(f\"Found {len(solutions_with_d6_3)} solutions with x[2]=7 and d[6]=3\")\nfor sol, diffs in solutions_with_d6_3:\n    print(\"labels:\", list(sol), \"diffs:\", diffs)\n"
+      },
+      "ok": false,
+      "latency_ms": 32.63
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Vertices: x[0]=(0,0), x[1]=(0,1), x[2]=(1,0), x[3]=(1,1), x[4]=(2,0), x[5]=(2,1)\n# Edges:\n# d[0] = |x0-x1| (intra K2_0)\n# d[1] = |x2-x3| (intra K2_1)\n# d[2] = |x4-x5| (intra K2_2)\n# d[3] = |x0-x2| (inter 0-1, vertex 0)\n# d[4] = |x1-x3| (inter 0-1, vertex 1)\n# d[5] = |x2-x4| (inter 1-2, vertex 0)\n# d[6] = |x3-x5| (inter 1-2, vertex 1)\n\nsolutions_with_d6_3 = []\n\nfor labels in itertools.permutations(range(8), 6):\n    if labels[2] != 7:  # x[2]=7\n        continue\n    \n    d0 = abs(labels[0] - labels[1])\n    d1 = abs(labels[2] - labels[3])\n    d2 = abs(labels[4] - labels[5])\n    d3 = abs(labels[0] - labels[2])\n    d4 = abs(labels[1] - labels[3])\n    d5 = abs(labels[2] - labels[4])\n    d6 = abs(labels[3] - labels[5])\n    \n    diffs = [d0, d1, d2, d3, d4, d5, d6]\n    \n    if len(set(diffs)) == 7 and set(diffs) == set(range(1,8)) and d6 == 3:\n        solutions_with_d6_3.append((labels, diffs))\n\nprint(f\"Found {len(solutions_with_d6_3)} solutions with x[2]=7 and d[6]=3\")\nfor sol, diffs in solutions_with_d6_3:\n    print(\"labels:\", list(sol), \"diffs:\", diffs)\n"
+      },
+      "ok": true,
+      "latency_ms": 40.98
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's verify the first solution [0, 2, 7, 3, 1, 6] in detail\nlabels = [0, 2, 7, 3, 1, 6]\nprint(\"Labels:\", labels)\nprint(\"x[2] =\", labels[2], \"(should be 7)\")\n\n# Edge differences\nd0 = abs(labels[0] - labels[1])\nd1 = abs(labels[2] - labels[3])\nd2 = abs(labels[4] - labels[5])\nd3 = abs(labels[0] - labels[2])\nd4 = abs(labels[1] - labels[3])\nd5 = abs(labels[2] - labels[4])\nd6 = abs(labels[3] - labels[5])\n\ndiffs = [d0, d1, d2, d3, d4, d5, d6]\nprint(\"Edge differences:\", diffs)\nprint(\"d[6] =\", d6, \"(should be 3)\")\nprint(\"All distinct?\", len(set(diffs)) == 7)\nprint(\"Set of diffs:\", set(diffs))\nprint(\"Expected: {1,2,3,4,5,6,7}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 48.36
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          7,
+          3,
+          1,
+          6
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

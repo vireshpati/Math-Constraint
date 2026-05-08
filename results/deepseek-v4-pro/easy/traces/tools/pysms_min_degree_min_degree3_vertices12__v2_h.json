@@ -1,0 +1,241 @@
+{
+  "problem_name": "pysms_min_degree_min_degree3_vertices12__v2_h",
+  "problem_type": "pysms_min_degree",
+  "params": {
+    "min_degree": 3,
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 88.1,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 66,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 29.51,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      3,
+      10
+    ],
+    [
+      3,
+      11
+    ],
+    [
+      4,
+      9
+    ],
+    [
+      4,
+      11
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      5,
+      9
+    ],
+    [
+      5,
+      11
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      6,
+      11
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      10,
+      11
+    ]
+  ],
+  "reasoning": "The problem is satisfiable. Starting from the 13 given edges, we computed initial degrees: [1,3,1,2,2,1,4,1,2,2,2,5]. Vertices 0,2,5,7 needed additional edges to reach degree 3. By adding 7 more edges: (0,2), (0,7), (2,4), (3,10), (5,8), (5,9), (6,7), we achieved minimum degree 3 for all vertices. The final graph has 20 edges with degrees [3,3,3,3,3,3,5,3,3,3,3,5], satisfying all constraints.",
+  "raw_response": null,
+  "cot_trace": "We need to generate a graph with 12 vertices (0..11) where the minimum degree is at least 3. We have a list of known present edges (13 edges). We need to add edges (or possibly keep as is) such that every vertex has degree >= 3. The graph is simple undirected (no loops, no multiple edges). We need to output a list of edges (u,v) with u<v.\n\nWe can try to find a solution by adding edges to satisfy degree constraints. Let's first compute current degrees from the given edges.\n\nGiven edges:\n(7,9)\n(1,3)\n(0,8)\n(6,11)\n(1,6)\n(3,11)\n(4,9)\n(4,11)\n(6,8)\n(10,11)\n(5,11)\n(1,10)\n(2,6)\n\nLet's compute degrees:\n\nVertices 0..11.\n\nInitialize degrees to 0.\n\nEdge list:\n0: (0,8) -> deg0=1, deg8=1\n1: (1,3), (1,6), (1,10) -> deg1=3\n2: (2,6) -> deg2=1\n3: (1,3), (3,11) -> deg3=2\n4: (4,9), (4,11) -> deg4=2\n5: (5,11) -> deg5=1\n6: (6,11), (1,6), (6,8), (2,6) -> deg6=4\n7: (7,9) -> deg7=1\n8: (0,8), (6,8) -> deg8=2\n9: (7,9), (4,9) -> deg9=2\n10: (10,11), (1,10) -> deg10=2\n11: (6,11), (3,11), (4,11), (10,11), (5,11) -> deg11=5\n\nSo current degrees:\n0:1\n1:3\n2:1\n3:2\n4:2\n5:1\n6:4\n7:1\n8:2\n9:2\n10:2\n11:5\n\nWe need each vertex degree >=3. So vertices with degree <3: 0(1), 2(1), 3(2), 4(2), 5(1), 7(1), 8(2), 9(2), 10(2). That's 9 vertices need at least some edges.\n\nWe can add edges between any pair not already connected. Let's list existing edges as set for quick lookup.\n\nWe need to add edges to satisfy min degree 3. Also we must not exceed the complete graph limit (each vertex can have at most 11 edges). But that's fine.\n\nWe can try to solve via Python using SAT or simple greedy.\n\nLet's write Python to find a solution.\n---\nThe random solver found a solution. But I need to verify that all given edges are included. Let me check:\n\nGiven edges: (7,9), (1,3), (0,8), (6,11), (1,6), (3,11), (4,9), (4,11), (6,8), (10,11), (5,11), (1,10), (2,6)\n\nSolution edges: (0,2), (0,7), (0,8), (1,3), (1,6), (1,10), (2,4), (2,6), (3,10), (3,11), (4,9), (4,11), (5,8), (5,9), (5,11), (6,7), (6,8), (6,11), (7,9), (10,11)\n\nCheck:\n- (7,9): yes\n- (1,3): yes\n- (0,8): yes\n- (6,11): yes\n- (1,6): yes\n- (3,11): yes\n- (4,9): yes\n- (4,11): yes\n- (6,8): yes\n- (10,11): yes\n- (5,11): yes\n- (1,10): yes\n- (2,6): yes\n\nAll present. Degrees: [3,3,3,3,3,3,5,3,3,3,3,5] all >=3.\n\nBut wait, the problem says \"Return the graph as a list of edges (u, v) with 0 <= u < v < 12\". So I need to output the list of edges.\n\nBut I should double-check that the solution is valid: no duplicate edges, no self-loops, all vertices 0-11.\n\nLet me also verify that the solution is consistent with the partial assignment. The partial assignment only specifies \"known present edges\" - there are no \"known absent edges\". So any graph containing those edges and satisfying min degree >=3 is acceptable.\n\nThe random solver found one. But I should ensure it's correct. Let me also try to use a more systematic approach to confirm satisfiability.\n\nActually, I can just submit this solution. But let me double-check the edge list format: they want list of edges (u,v) with u<v.\n\nLet me sort and output.\n\nBut wait: the problem might be from a specific benchmark. Let me ensure the solution is correct.\n\nLet me also check if there are any constraints I missed: \"minimum degree is at least 3\" means every vertex has degree >=3. The solution satisfies that.\n\nI'll submit.\n---\nThe solution is valid. Let me present it properly.\n\nThe graph has 12 vertices (0-11), minimum degree 3, and includes all given edges.\n\nLet me format the solution as a list of edges.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 5404,
+  "completion_tokens": 2906,
+  "reasoning_tokens": 946,
+  "cached_tokens": 1792,
+  "cost_usd": 0.020730000000000002,
+  "cost_source": "openrouter",
+  "latency_ms": 165747.05839157104,
+  "tool_dispatch_ms_total": 216.47238731384277,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's try to find a solution using a simple approach: add edges to satisfy degree constraints.\n# We'll use a SAT solver (pysat) if available, or just brute force search.\n\nimport itertools\n\n# Given edges\nedges = [(7,9), (1,3), (0,8), (6,11), (1,6), (3,11), (4,9), (4,11), (6,8), (10,11), (5,11), (1,10), (2,6)]\n\nn = 12\n# compute current degrees\ndeg = [0]*n\nadj = [[False]*n for _ in range(n)]\nfor u,v in edges:\n    if u>v: u,v = v,u\n    adj[u][v] = adj[v][u] = True\n    deg[u] += 1\n    deg[v] += 1\n\nprint(\"Initial degrees:\", deg)\n\n# We need to add edges to make all deg >= 3.\n# Let's try using a simple greedy: iterate vertices with deg<3, try to connect to other vertices with deg<3 or any vertex not already connected.\n# But we must ensure we don't exceed max degree 11.\n\n# Let's try to use a SAT solver.\ntry:\n    from pysat import SATSolver\nexcept:\n    # maybe python-sat?\n    pass\n\n# Let's try to use python's itertools to search? Too many possibilities.\n# We'll formulate as integer linear programming? Or use networkx?\n\n# Let's try a simple heuristic: repeatedly pick a vertex with smallest degree <3, and connect it to another vertex with smallest degree (or any) that is not already connected.\n# We'll do random trials.\n\nimport random\n\ndef solve_random():\n    for trial in range(10000):\n        # copy\n        d = deg[:]\n        adj2 = [row[:] for row in adj]\n        # list of vertices needing more edges\n        need = [i for i in range(n) if d[i] < 3]\n        # We'll try to add edges between need vertices, but also can connect to vertices already >=3.\n        # We'll just randomly pick pairs.\n        ok = True\n        for _ in range(100):  # max attempts to add edges\n            if not need:\n                break\n            # pick a vertex with min degree\n            # Actually we need to ensure we can satisfy all.\n            # Let's sort need by degree ascending\n            need.sort(key=lambda x: d[x])\n            v = need[0]\n            # find candidates: vertices not adjacent to v, and not v itself.\n            candidates = [u for u in range(n) if u != v and not adj2[v][u]]\n            if not candidates:\n                ok = False\n                break\n            # prefer candidates that also need edges\n            need_candidates = [u for u in candidates if d[u] < 3]\n            if need_candidates:\n                u = random.choice(need_candidates)\n            else:\n                u = random.choice(candidates)\n            # add edge\n            adj2[v][u] = adj2[u][v] = True\n            d[v] += 1\n            d[u] += 1\n            # update need\n            need = [i for i in range(n) if d[i] < 3]\n        if not need and ok:\n            # success\n            # collect all edges\n            sol = []\n            for i in range(n):\n                for j in range(i+1, n):\n                    if adj2[i][j]:\n                        sol.append((i,j))\n            return sol\n    return None\n\nsol = solve_random()\nif sol:\n    print(\"Found solution with edges:\", len(sol))\n    # verify\n    deg_check = [0]*n\n    for u,v in sol:\n        deg_check[u] += 1\n        deg_check[v] += 1\n    print(\"Degrees:\", deg_check)\n    print(\"Min degree:\", min(deg_check))\n    # print edges\n    print(sol)\nelse:\n    print(\"No solution found by random\")"
+      },
+      "ok": true,
+      "latency_ms": 62.73
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify solution thoroughly\ngiven = [(7,9), (1,3), (0,8), (6,11), (1,6), (3,11), (4,9), (4,11), (6,8), (10,11), (5,11), (1,10), (2,6)]\nsol = [(0,2), (0,7), (0,8), (1,3), (1,6), (1,10), (2,4), (2,6), (3,10), (3,11), (4,9), (4,11), (5,8), (5,9), (5,11), (6,7), (6,8), (6,11), (7,9), (10,11)]\n\n# Check all given edges are in sol\nfor e in given:\n    assert e in sol or (e[1], e[0]) in sol, f\"Missing {e}\"\n\n# Check degrees\ndeg = [0]*12\nfor u,v in sol:\n    deg[u] += 1\n    deg[v] += 1\nprint(\"Degrees:\", deg)\nprint(\"Min degree:\", min(deg))\nassert min(deg) >= 3\n\n# Check no duplicates\nassert len(sol) == len(set(sol))\n# Check u<v\nfor u,v in sol:\n    assert u < v, f\"Order wrong: {u},{v}\"\n\nprint(\"All checks passed\")\nprint(\"Number of edges:\", len(sol))"
+      },
+      "ok": true,
+      "latency_ms": 153.74
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            10
+          ],
+          [
+            3,
+            11
+          ],
+          [
+            4,
+            9
+          ],
+          [
+            4,
+            11
+          ],
+          [
+            5,
+            8
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            5,
+            11
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            6,
+            8
+          ],
+          [
+            6,
+            11
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            10,
+            11
+          ]
+        ],
+        "reasoning": "The problem is satisfiable. Starting from the 13 given edges, we computed initial degrees: [1,3,1,2,2,1,4,1,2,2,2,5]. Vertices 0,2,5,7 needed additional edges to reach degree 3. By adding 7 more edges: (0,2), (0,7), (2,4), (3,10), (5,8), (5,9), (6,7), we achieved minimum degree 3 for all vertices. The final graph has 20 edges with degrees [3,3,3,3,3,3,5,3,3,3,3,5], satisfying all constraints."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

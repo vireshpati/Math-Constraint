@@ -1,0 +1,105 @@
+{
+  "problem_name": "costas_array_n12__v4_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1129.3,
+    "search_space": 479001600,
+    "num_variables": 12,
+    "num_constraints": 13,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 77.63,
+    "solve_pct_type": 83.33
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    6,
+    10,
+    8,
+    9,
+    4,
+    1,
+    11,
+    2,
+    5,
+    7,
+    3
+  ],
+  "reasoning": "Found a valid Costas array of order 12 using backtracking search. The solution [0, 6, 10, 8, 9, 4, 1, 11, 2, 5, 7, 3] is a permutation of 0..11, satisfies x[3]=8 and x[8]=2, and all 66 displacement vectors between pairs of marks are pairwise distinct.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5596,
+  "completion_tokens": 1355,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.037113,
+  "cost_source": "openrouter",
+  "latency_ms": 20844.86484527588,
+  "tool_dispatch_ms_total": 114.96281623840332,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i, j in combinations(range(n), 2):\n        if j > i:\n            dc = j - i\n            dr = perm[j] - perm[i]\n            v = (dr, dc)\n            if v in vectors:\n                return False\n            vectors.add(v)\n    return True\n\n# Try backtracking search with constraints\ndef solve_costas(n, fixed={}):\n    perm = [None] * n\n    for col, row in fixed.items():\n        perm[col] = row\n    \n    used_rows = set(v for v in perm if v is not None)\n    \n    def get_vectors(perm, col):\n        \"\"\"Get all displacement vectors involving column col\"\"\"\n        vecs = []\n        for c in range(col):\n            if perm[c] is not None:\n                dc = col - c\n                dr = perm[col] - perm[c]\n                vecs.append((dr, dc))\n        return vecs\n    \n    def backtrack(col, used_rows, vectors):\n        if col == n:\n            return perm[:]\n        \n        # Skip fixed columns\n        if perm[col] is not None:\n            # Check if this fixed value is consistent\n            new_vecs = get_vectors(perm, col)\n            for v in new_vecs:\n                if v in vectors:\n                    return None\n            new_vectors = vectors | set(new_vecs)\n            result = backtrack(col + 1, used_rows, new_vectors)\n            return result\n        \n        for row in range(n):\n            if row in used_rows:\n                continue\n            perm[col] = row\n            new_vecs = get_vectors(perm, col)\n            conflict = False\n            for v in new_vecs:\n                if v in vectors:\n                    conflict = True\n                    break\n            if not conflict:\n                new_vectors = vectors | set(new_vecs)\n                used_rows.add(row)\n                result = backtrack(col + 1, used_rows, new_vectors)\n                if result is not None:\n                    return result\n                used_rows.remove(row)\n            perm[col] = None\n        \n        return None\n    \n    return backtrack(0, used_rows, set())\n\n# Fixed: x[3]=8, x[8]=2\nfixed = {3: 8, 8: 2}\nresult = solve_costas(12, fixed)\nprint(\"Result:\", result)\nif result:\n    print(\"Is Costas:\", is_costas(result))\n    print(\"x[3] =\", result[3], \"(should be 8)\")\n    print(\"x[8] =\", result[8], \"(should be 2)\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 81.51
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\nresult = [0, 6, 10, 8, 9, 4, 1, 11, 2, 5, 7, 3]\n\n# Verify it's a permutation\nprint(\"Is permutation:\", sorted(result) == list(range(12)))\n\n# Verify all displacement vectors are distinct\nn = len(result)\nvectors = []\nfor i, j in combinations(range(n), 2):\n    dc = j - i\n    dr = result[j] - result[i]\n    vectors.append((dr, dc))\n\nprint(\"Total vectors:\", len(vectors), \"(expected\", 12*11//2, \")\")\nprint(\"Unique vectors:\", len(set(vectors)))\nprint(\"All distinct:\", len(vectors) == len(set(vectors)))\nprint(\"Fixed x[3]=8:\", result[3] == 8)\nprint(\"Fixed x[8]=2:\", result[8] == 2)\nprint(\"\\nSolution:\", result)\n"
+      },
+      "ok": true,
+      "latency_ms": 33.46
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          6,
+          10,
+          8,
+          9,
+          4,
+          1,
+          11,
+          2,
+          5,
+          7,
+          3
+        ],
+        "reasoning": "Found a valid Costas array of order 12 using backtracking search. The solution [0, 6, 10, 8, 9, 4, 1, 11, 2, 5, 7, 3] is a permutation of 0..11, satisfies x[3]=8 and x[8]=2, and all 66 displacement vectors between pairs of marks are pairwise distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

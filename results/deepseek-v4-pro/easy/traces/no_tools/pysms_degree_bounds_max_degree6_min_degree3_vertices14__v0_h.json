@@ -1,0 +1,138 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree6_min_degree3_vertices14__v0_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 6,
+    "min_degree": 3,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 56.8,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 42,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 23.87,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      3,
+      11
+    ],
+    [
+      3,
+      12
+    ],
+    [
+      3,
+      13
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      11,
+      12
+    ],
+    [
+      11,
+      13
+    ],
+    [
+      12,
+      13
+    ]
+  ],
+  "reasoning": "A 3-regular graph on 14 vertices satisfies the degree bounds [3,6]. The fixed edges give partial degrees; the remaining needed degrees form a sequence that can be realized by adding a K4 on {3,11,12,13}, edges (0,2) and (5,6), and a 5-cycle (1-4-7-9-10-1), avoiding all fixed edges. All vertices end up with degree exactly 3.",
+  "raw_response": "{\n  \"satisfiable\": true,\n  \"solution\": [\n    [0, 2], [0, 9], [0, 10],\n    [1, 4], [1, 6], [1, 10],\n    [2, 7], [2, 8],\n    [3, 11], [3, 12], [3, 13],\n    [4, 5], [4, 7],\n    [5, 6], [5, 8],\n    [6, 8],\n    [7, 9],\n    [9, 10],\n    [11, 12], [11, 13], [12, 13]\n  ],\n  \"reasoning\": \"A 3-regular graph on 14 vertices satisfies the degree bounds [3,6]. The fixed edges give partial degrees; the remaining needed degrees form a sequence that can be realized by adding a K4 on {3,11,12,13}, edges (0,2) and (5,6), and a 5-cycle (1-4-7-9-10-1), avoiding all fixed edges. All vertices end up with degree exactly 3.\"\n}",
+  "cot_trace": "We need to generate a graph with 14 vertices (0..13) where every vertex has degree between 3 and 6 inclusive. There are some fixed edges given: (4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8). We must output all edges (u,v) with u<v that satisfy the degree constraints and include these fixed edges. Or state UNSATISFIABLE if impossible.\n\nWe need to determine if such a graph exists, and if so, provide a full list of edges. The output should be a JSON with satisfiable, solution (list of edges, each edge as a pair [u,v] maybe?), but the instruction says: \"Return the graph as a list of edges (u, v) with 0 <= u < v < 14, or state 'UNSATISFIABLE'\". In the JSON format, solution is a list of values; I'll interpret solution as a list of edge pairs, e.g., [[0,9],[0,10],...]. So I'll output a list of lists.\n\nFirst, analyze the constraints.\n\nVertices: 0 to 13. Degree range [3,6].\n\nFixed edges (8 edges):\n(4,5)\n(0,10)\n(2,7)\n(6,8)\n(2,8)\n(1,6)\n(0,9)\n(5,8)\n\nWe need to add additional edges (possibly none) such that every vertex degree is between 3 and 6 inclusive. The total number of edges is sum(degrees)/2. Since degrees are between 3 and 6, total sum of degrees between 42 and 84. So total edges between 21 and 42. Fixed edges are 8, so we need to add between 13 and 34 edges from the remaining possible edges (out of C(14,2)=91 total possible minus these 8 = 83 possible additional edges). We need to ensure degrees.\n\nLet's compute current degrees from fixed edges:\n\nList fixed edges:\n0: (0,10), (0,9) -> deg 2\n1: (1,6) -> deg 1\n2: (2,7), (2,8) -> deg 2\n3: none -> deg 0\n4: (4,5) -> deg 1\n5: (4,5), (5,8) -> deg 2\n6: (6,8), (1,6) -> deg 2\n7: (2,7) -> deg 1\n8: (6,8), (2,8), (5,8) -> deg 3\n9: (0,9) -> deg 1\n10: (0,10) -> deg 1\n11: none -> deg 0\n12: none -> deg 0\n13: none -> deg 0\n\nCurrent degrees:\n0:2\n1:1\n2:2\n3:0\n4:1\n5:2\n6:2\n7:1\n8:3\n9:1\n10:1\n11:0\n12:0\n13:0\n\nGoal: each degree between 3 and 6 inclusive.\nSo we need to add edges to increase degrees. Each added edge increases degree of two vertices by 1.\n\nWe need to satisfy degree bounds: min 3, max 6.\n\nLet required additional degrees: target_deg = 3, so each vertex needs at least (3 - current). Maximum allowed addition: max_add = 6 - current.\n\nVertex: current, min_add, max_add\n0: 2, need at least 1, can add up to 4 (since 2+4=6)\n1: 1, need at least 2, max_add 5\n2: 2, need 1, max_add 4\n3: 0, need 3, max_add 6\n4: 1, need 2, max_add 5\n5: 2, need 1, max_add 4\n6: 2, need 1, max_add 4\n7: 1, need 2, max_add 5\n8: 3, need 0, max_add 3 (can't exceed 6)\n9: 1, need 2, max_add 5\n10: 1, need 2, max_add 5\n11: 0, need 3, max_add 6\n12: 0, need 3, max_add 6\n13: 0, need 3, max_add 6\n\nTotal additional degree sum needed: at least sum(min_add) = 1+2+1+3+2+1+1+2+0+2+2+3+3+3 = let's compute: \n0:1\n1:2\n2:1\n3:3\n4:2\n5:1\n6:1\n7:2\n8:0\n9:2\n10:2\n11:3\n12:3\n13:3\nSum = 1+2=3, +1=4, +3=7, +2=9, +1=10, +1=11, +2=13, +0=13, +2=15, +2=17, +3=20, +3=23, +3=26. Minimum additional degree sum is 26. So minimum additional edges = 13 (since each edge adds 2 to sum). Maximum allowed additional degree sum: sum(max_add):\n0:4\n1:5\n2:4\n3:6\n4:5\n5:4\n6:4\n7:5\n8:3\n9:5\n10:5\n11:6\n12:6\n13:6\nSum = 4+5=9, +4=13, +6=19, +5=24, +4=28, +4=32, +5=37, +3=40, +5=45, +5=50, +6=56, +6=62, +6=68. Max sum = 68. So max additional edges = 34. So it's a wide range, seems satisfiable. We need to find a set of additional edges (pairing vertices) such that each vertex v gets between min_add and max_add additional incident edges, and the graph is simple (no multiple edges, no self-loops). So we need to construct a graph on these 14 vertices with given degrees, respecting existing edges and non-edges (cannot duplicate existing edges). The existing edges are given, so we cannot add them again. We need to add edges that are not among the fixed ones and not self-loops.\n\nWe can try to find a solution manually or systematically. Since it's a small problem, we can try to construct a regular-ish graph. Let's list all vertices and their allowed additional degree range (i.e., number of new edges incident to them):\n\nv: min_add, max_add\n0: [1,4]\n1: [2,5]\n2: [1,4]\n3: [3,6]\n4: [2,5]\n5: [1,4]\n6: [1,4]\n7: [2,5]\n8: [0,3]\n9: [2,5]\n10: [2,5]\n11: [3,6]\n12: [3,6]\n13: [3,6]\n\nAlso, note that 8 already has degree 3, meets minimum, but can accept up to 3 more edges, but careful: degree 3 is already within [3,6], so 8 doesn't need any more, but can take up to 3. So we might or might not add edges to 8.\n\nWe need to ensure all vertices get at least min_add. So 0 needs at least 1 more edge; 2 at least 1; 3 at least 3; etc. Let's start by satisfying the minimum requirements. We can pair vertices that need many edges with those that need many or few. Let's try to assign edges.\n\nFirst, list vertices that need many: 3,11,12,13 each need at least 3 edges. Also 1,4,7,9,10 need at least 2. 0,2,5,6 need 1. 8 needs 0.\n\nWe want to add edges efficiently. We can think of this as a graph realization problem with lower and upper bounds on degrees. Since sum of lower bounds is 26 (even), and sum of upper bounds is 68, there is likely a solution. We need to construct one.\n\nOne approach: start by creating a graph among vertices that ignores the fixed edges, then incorporate them. But we must include fixed edges. So we can think of the missing edges as a graph on the same vertices that doesn't use the fixed edges. We can try to systematically add edges.\n\nLet's denote existing edges as E_fixed. Non-edges: all other pairs.\n\nWe need to select a set of additional edges E_new such that degrees fall within ranges.\n\nI'll attempt to construct a solution.\n\nGoal: total additional degree sum at least 26. If we sum min_add we get 26, meaning we need exactly the minimum possible degree sum? Wait: sum min_add = 26, which is exactly 2*13. So if we exactly meet the lower bounds for all vertices, we need 13 additional edges. But some vertices have min_add = 0 (8), so we could also add more edges as long as we don't exceed max. But to keep it simple, we might aim for exactly the lower bounds plus perhaps some extra to make symmetric. However, we can just add edges until all degrees are within [3,6] and no vertex exceeds 6. Since the maximum allowed total degree sum is 68, we have plenty of room. But we must ensure simplicity.\n\nI'll try to find a solution that adds the minimum required extra degree exactly: 13 edges. Let's check if that's possible. If we add exactly the minimum, then vertices 0,2,5,6 get exactly 1 more edge; 1,4,7,9,10 get exactly 2; 3,11,12,13 get exactly 3; and 8 gets 0. So degrees would be: 0:3, 1:3, 2:3, 3:3, 4:3, 5:3, 6:3, 7:3, 8:3, 9:3, 10:3, 11:3, 12:3, 13:3. That would be a 3-regular graph on 14 vertices, but we already have fixed edges that are part of the graph. The fixed edges are 8 edges. A 3-regular graph on 14 vertices has total edges = 14*3/2 = 21 edges. We already have 8 edges, so we need exactly 13 additional edges to reach 21. And all degrees would be exactly 3. That would satisfy the constraints perfectly (degrees between 3 and 6). So the question reduces to: can we add 13 edges to the given 8 edges to form a 3-regular graph on 14 vertices? The fixed edges are given; we need to find a 3-regular graph that contains these 8 edges as a subgraph, and no other edges from them. So we need to complete the graph to a 3-regular graph.\n\nIf such a 3-regular completion exists, then the problem is satisfiable. If not, maybe we can add more than minimum to satisfy, but a 3-regular solution would be nice and clean. Let's test if a 3-regular completion exists.\n\nWe have vertices and their current degrees (from fixed edges): \n0:2, needs 1\n1:1, needs 2\n2:2, needs 1\n3:0, needs 3\n4:1, needs 2\n5:2, needs 1\n6:2, needs 1\n7:1, needs 2\n8:3, needs 0\n9:1, needs 2\n10:1, needs 2\n11:0, needs 3\n12:0, needs 3\n13:0, needs 3\n\nWe need to add edges such that final degree = 3 for all. This is equivalent to finding a perfect matching-like structure? Actually, we need to add a 1-regular graph on the set of \"missing degree\" points? More precisely, we can think of the required additional edges as a graph where each vertex v needs to be incident to exactly r(v) = 3 - current_deg(v) additional edges. So r(v): \n0:1\n1:2\n2:1\n3:3\n4:2\n5:1\n6:1\n7:2\n8:0\n9:2\n10:2\n11:3\n12:3\n13:3\n\nWe need to pair these \"half-edges\" into edges, avoiding fixed edges and self-loops. This is a realization problem for a graph with given degree sequence (the r(v) values). The sum of r(v) = 26, even. The maximum possible r is 3, minimum 0. We need to check if there exists a simple graph with this degree sequence (r) that avoids the already present edges (so we cannot use pairs that are in E_fixed). Also, we cannot use pairs that are already edges because that would create multiple edges. So we need a graph on 14 vertices with degree sequence r, and with the restriction that certain pairs (the fixed edges) cannot be used. Additionally, pairs that are not fixed are allowed. Note: the fixed edges themselves are already present, so we cannot add them again. So the allowable edge set for the new edges is all pairs except the 8 fixed edges. Is there a simple graph with these r(v) that uses only allowed edges?\n\nThis is like: given a degree sequence, and a set of forbidden edges, does a realization exist? This can be solved by a reduction to perfect matching or using the Gale-Shapley? Not exactly. But we can attempt to construct one manually.\n\nWe have vertices with r=3: 3,11,12,13. They need 3 edges each. Vertices with r=2: 1,4,7,9,10 (five vertices). r=1: 0,2,5,6 (four vertices). r=0: 8 (one vertex).\n\nTotal number of new edges: 13. The r=3 vertices (4 of them) need 12 half-edges, but each edge involves two half-edges, so edges among them: they can connect to each other and to others. Since there are 4 vertices needing 3 each, they can form a K4? But K4 has 6 edges, each degree 3 within the group. That would perfectly satisfy the four r=3 vertices, using 6 edges among them. Then the remaining r=2 and r=1 vertices need edges among themselves and possibly with the r=3 group? If the four r=3 vertices are fully connected among themselves, they are done. Then we have 5 vertices needing 2 (total 10 half-edges) and 4 vertices needing 1 (4 half-edges). That sums to 14 half-edges, which would be 7 edges. Total new edges = 6 + 7 = 13. Perfect. So one simple construction: make 3,11,12,13 a clique (all edges among them). That uses edges (3,11), (3,12), (3,13), (11,12), (11,13), (12,13). None of these are in the fixed edges (fixed edges are (4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8) - no vertex 3,11,12,13 appear except in edges? Check: fixed edges have vertices: 0,10,4,5,2,7,6,8,1,9. So 3,11,12,13 are completely isolated so far. So a K4 among them is allowed.\n\nNow remaining vertices: 0,1,2,4,5,6,7,9,10 plus 8? 8 has r=0, ignore. So we need to assign edges among {0,1,2,4,5,6,7,9,10} to satisfy r: 1:2, 4:2, 7:2, 9:2, 10:2 (five vertices need 2 each, total 10 half-edges), and 0:1, 2:1, 5:1, 6:1 (four vertices need 1 each, total 4 half-edges). So total half-edges = 14. We need 7 edges connecting these vertices. But we must avoid using any of the fixed edges that are among these vertices. Fixed edges among these: (0,10), (0,9), (1,6), (2,7), (2,8) - 8 not in set, (4,5), (5,8), (6,8). So among {0,1,2,4,5,6,7,9,10}, the fixed edges are: (0,10), (0,9), (1,6), (2,7), (4,5). Also (2,8) involves 8 which is not in this set, (5,8) same, (6,8) same. So forbidden edges within this subset: (0,10), (0,9), (1,6), (2,7), (4,5). We cannot add these edges again (they are already present). Also we must not create multiple edges, but these are exactly the existing edges. So we must find a set of 7 edges on these 9 vertices with the given degree requirements, avoiding those 5 edges.\n\nLet's list the required additional degrees for these vertices:\n0: needs 1 more (currently deg 2, target 3)\n1: needs 2 (currently 1)\n2: needs 1 (currently 2)\n4: needs 2 (currently 1)\n5: needs 1 (currently 2)\n6: needs 1 (currently 2)\n7: needs 2 (currently 1)\n9: needs 2 (currently 1)\n10: needs 2 (currently 1)\n\nWe need to add edges among them such that each gets the required number. Let's try to construct.\n\nWe have five vertices needing 2: 1,4,7,9,10. Four needing 1: 0,2,5,6. \nTotal half-edges: 5*2 + 4*1 = 14. Perfect for 7 edges.\n\nWe can think of pairing: we need to pair the half-edges. Let's try to match the need-1 vertices with need-2 vertices to use up their extra degree. For example, each need-2 vertex can take two connections. We can connect need-1 vertices to need-2 vertices. There are 4 need-1 vertices, so they can each connect to one need-2 vertex, using 4 half-edges from the need-2 pool. That would leave 5 need-2 vertices with (10-4)=6 half-edges, which could be paired among themselves (3 edges among need-2 vertices). Alternatively, need-1 vertices could connect to each other? But need-1 vertices need exactly 1, so if two need-1 connect, each gets its 1, using 1 edge. But we have 4 need-1 vertices, they could form two disjoint edges among themselves, using 2 edges and satisfying all four. Then need-2 vertices (5 of them) need to form a graph with total degree sum 10, which could be a 2-regular graph? A 2-regular graph on 5 vertices would be a cycle of length 5, which uses 5 edges. But then total edges would be 2 (among need-1) + 5 = 7 edges. That works. So we can try: pair (0,2) and (5,6)? But careful: (0,2) is not a fixed edge, allowed? Fixed edges among these: (0,10), (0,9), (1,6), (2,7), (4,5). (0,2) is not fixed, so allowed. (5,6) is not fixed, allowed. But we must check that these edges don't duplicate fixed edges: (5,6) is not fixed. So that would satisfy 0,2,5,6 all with 1 each. Then we have need-2 vertices: 1,4,7,9,10. They need a 2-regular graph on 5 vertices, which is a 5-cycle. Let's try to form a cycle among them. We need to avoid fixed edges: (1,6) is fixed but 6 is not in this set; (4,5) fixed, 5 not in set; (0,9) fixed, 0 not in set; (0,10) fixed, 0 not; (2,7) fixed, 2 not. So among {1,4,7,9,10}, are there any fixed edges? Check fixed edges list: (4,5) has 5 not in set; (0,10) has 0 not; (2,7) has 2 not; (1,6) has 6 not; (0,9) has 0 not; (5,8) no; (6,8) no; (2,8) no. So the induced subgraph on {1,4,7,9,10} has no fixed edges. So any cycle is allowed. Let's choose a 5-cycle: 1-4-7-9-10-1. Edges: (1,4), (4,7), (7,9), (9,10), (10,1). Check if any of these are fixed: none. So that works.\n\nNow check all edges we've added:\nK4 on {3,11,12,13}: (3,11),(3,12),(3,13),(11,12),(11,13),(12,13) = 6 edges\nNeed-1 pairs: (0,2), (5,6) = 2 edges\n5-cycle: (1,4), (4,7), (7,9), (9,10), (10,1) = 5 edges\nTotal additional edges = 13.\n\nNow let's verify all fixed edges are present (they are) and no duplicates. Fixed edges: (4,5), (0,10), (2,7), (6,8), (2,8), (1,6), (0,9), (5,8). Are any of these duplicated in our new edges? Check: (4,5) is fixed; we added (5,6) and (1,4) etc, not (4,5). (0,10) fixed; we added (9,10) and (10,1), not (0,10). (2,7) fixed; we added (0,2), (7,9), etc. not (2,7). (6,8) fixed; we added (5,6), not (6,8). (2,8) fixed; no. (1,6) fixed; we added (5,6), (10,1), not (1,6). (0,9) fixed; we added (7,9), (9,10), not (0,9). (5,8) fixed; not duplicated. Also check K4 edges: no overlaps. So no duplicate edges.\n\nNow compute final degrees:\n0: fixed edges (0,10),(0,9) -> 2; new (0,2) -> 1; total 3.\n1: fixed (1,6) -> 1; new (1,4), (10,1) -> 2; total 3.\n2: fixed (2,7),(2,8) -> 2; new (0,2) -> 1; total 3.\n3: fixed 0; new K4: (3,11),(3,12),(3,13) -> 3; total 3.\n4: fixed (4,5) -> 1; new (1,4),(4,7) -> 2; total 3.\n5: fixed (4,5),(5,8) -> 2; new (5,6) -> 1; total 3.\n6: fixed (6,8),(1,6) -> 2; new (5,6) -> 1; total 3.\n7: fixed (2,7) -> 1; new (4,7),(7,9) -> 2; total 3.\n8: fixed (6,8),(2,8),(5,8) -> 3; new 0; total 3.\n9: fixed (0,9) -> 1; new (7,9),(9,10) -> 2; total 3.\n10: fixed (0,10) -> 1; new (9,10),(10,1) -> 2; total 3.\n11: fixed 0; new (3,11),(11,12),(11,13) -> 3; total 3.\n12: fixed 0; new (3,12),(11,12),(12,13) -> 3; total 3.\n13: fixed 0; new (3,13),(11,13),(12,13) -> 3; total 3.\n\nAll degrees are exactly 3, which is within [3,6]. So the graph satisfies all constraints.\n\nThus, satisfiable. The solution is the full set of edges: fixed edges (8) plus the 13 new edges. Let's list all edges sorted, with u<v.\n\nFixed edges:\n(0,9), (0,10)\n(1,6)\n(2,7), (2,8)\n(4,5)\n(5,8)\n(6,8)\n\nNew edges:\n(0,2)\n(1,4)\n(1,10)\n(3,11), (3,12), (3,13)\n(4,7)\n(5,6)\n(7,9)\n(9,10)\n(11,12), (11,13), (12,13)\n\nAlso need to check if any edge is missing: we added (10,1) which is (1,10). All good.\n\nNow combine all edges:\nList all unique edges (u,v) with u<v:\n\n0: (0,2), (0,9), (0,10)\n1: (1,4), (1,6), (1,10)\n2: (0,2), (2,7), (2,8)\n3: (3,11), (3,12), (3,13)\n4: (1,4), (4,5), (4,7)\n5: (4,5), (5,6), (5,8)\n6: (1,6), (5,6), (6,8)\n7: (2,7), (4,7), (7,9)\n8: (2,8), (5,8), (6,8)\n9: (0,9), (7,9), (9,10)\n10: (0,10), (1,10), (9,10)\n11: (3,11), (11,12), (11,13)\n12: (3,12), (11,12), (12,13)\n13: (3,13), (11,13), (12,13)\n\nCount edges: 0:3, 1:3, 2:3, 3:3, 4:3, 5:3, 6:3, 7:3, 8:3, 9:3, 10:3, 11:3, 12:3, 13:3. Total edges = 14*3/2 = 21. Fixed 8 + new 13 = 21.\n\nCheck if any missing fixed edge? (4,5) present; (0,10) present; (2,7) present; (6,8) present; (2,8) present; (1,6) present; (0,9) present; (5,8) present. Yes.\n\nThus this is a valid complete graph.\n\nSo the answer is satisfiable: true, solution: list of edges.\n\nNow format as JSON. The instruction: \"Return the graph as a list of edges (u, v) with 0 <= u < v < 14, or state 'UNSATISFIABLE' if no graph exists.\" In the JSON, we need to provide a solution list. I'll make solution an array of pairs.\n\nLet's generate the sorted list of edges:\n\nSorted edges:\n(0,2)\n(0,9)\n(0,10)\n(1,4)\n(1,6)\n(1,10)\n(2,7)\n(2,8)\n(3,11)\n(3,12)\n(3,13)\n(4,5)\n(4,7)\n(5,6)\n(5,8)\n(6,8)\n(7,9)\n(9,10)\n(11,12)\n(11,13)\n(12,13)\n\nTotal 21 edges.\n\nI'll present them as a list of [u,v] pairs.\n\nNow reasoning: explain that a 3-regular completion exists, and provide the construction.\n\nThus final JSON.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 261,
+  "completion_tokens": 6723,
+  "reasoning_tokens": 6466,
+  "cached_tokens": 128,
+  "cost_usd": 0.02364602,
+  "cost_source": "openrouter",
+  "latency_ms": 190354.6667098999,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

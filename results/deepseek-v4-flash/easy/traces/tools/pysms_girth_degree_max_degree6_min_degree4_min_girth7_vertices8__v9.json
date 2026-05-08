@@ -1,0 +1,127 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree6_min_degree4_min_girth7_vertices8__v9",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 6,
+    "min_degree": 4,
+    "min_girth": 7,
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 11.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": -1,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 6.58,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "UNSATISFIABLE: With 8 vertices and minimum degree 4, Dirac's theorem guarantees a Hamiltonian cycle (length 8). Each vertex has degree 2 from this cycle, requiring at least 2 more incident edges per vertex. However, any chord added to an 8-cycle creates a cycle of length at most 5 (since the shorter path between any two vertices on an 8-cycle has at most 4 edges, and adding the chord creates a cycle of length at most 5). This violates the girth \u2265 7 constraint. A SAT solver confirms unsatisfiability.",
+  "raw_response": "The SAT solver confirms the problem is unsatisfiable. Let me provide the reasoning.\n\nThe key insight is that with 8 vertices and minimum degree 4, by Dirac's theorem (minimum degree \u2265 n/2), the graph must be Hamiltonian - it contains a cycle of length 8. Any chord added to this 8-cycle creates a shorter cycle. Specifically, for any two vertices at distance d along the cycle (where d \u2264 4), adding the chord creates a cycle of length d+1 \u2264 5. Since the Hamiltonian cycle gives each vertex degree 2, we need at least 2 more edges per vertex to reach degree 4, but every possible additional edge creates a cycle of length at most 5, violating the girth \u2265 7 requirement.\n\n```json\n{\n    \"satisfiable\": false,\n    \"solution\": null,\n    \"reasoning\": \"UNSATISFIABLE: With 8 vertices and minimum degree 4, Dirac's theorem guarantees a Hamiltonian cycle (length 8). Each vertex has degree 2 from this cycle, requiring at least 2 more incident edges per vertex. However, any chord added to an 8-cycle creates a cycle of length at most 5 (since the shorter path between any two vertices on an 8-cycle has at most 4 edges, and adding the chord creates a cycle of length at most 5). This violates the girth \u2265 7 constraint. A SAT solver confirms unsatisfiability.\"\n}\n```",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Correct UNSAT",
+  "prompt_tokens": 51228,
+  "completion_tokens": 7110,
+  "reasoning_tokens": 0,
+  "cached_tokens": 34560,
+  "cost_usd": 0.005292,
+  "cost_source": "openrouter",
+  "latency_ms": 414185.23812294006,
+  "tool_dispatch_ms_total": 1490.9577369689941,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport math\n\n# Let's try to find a graph with 8 vertices, girth >= 7, degrees between 4 and 6\n\nvertices = list(range(8))\n\n# We need to find a set of edges such that:\n# 1. No cycles of length < 7\n# 2. Each vertex degree between 4 and 6\n\n# Let's think about this more carefully.\n# With girth >= 7, the graph is essentially a tree-like structure with no short cycles.\n# But with minimum degree 4 on 8 vertices, we have at least 16 edges.\n# The maximum edges in a graph with girth >= 7 on 8 vertices...\n\n# Let's try a brute force search with some pruning.\n\n# First, let's think about the Moore bound for girth 7.\n# For a graph with minimum degree d and girth g, the Moore bound gives an upper bound on the number of vertices.\n# For d=4, g=7:\n# n <= 1 + d + d(d-1) + d(d-1)^2 + ... + d(d-1)^((g-3)/2) for odd g\n# g=7 is odd, so (g-3)/2 = 2\n# n <= 1 + 4 + 4*3 + 4*3^2 = 1 + 4 + 12 + 36 = 53\n# So 8 vertices is well within the bound.\n\n# Let's try to construct one.\n\n# Approach: Start with a cycle of length 8 (girth 8), then add edges while maintaining girth >= 7.\n\n# Actually, let's think about this differently.\n# If we have a cycle of length 8, that's a Hamiltonian cycle. Girth = 8.\n# Now we need to add more edges to increase degrees to at least 4.\n# Each vertex currently has degree 2 from the cycle.\n# We need to add at least 2 more edges per vertex (to reach degree 4).\n# That's at least 8 more edges (16/2 = 8 more edges).\n# Total edges: 8 (from cycle) + 8 = 16 edges minimum.\n\n# But adding edges might create shorter cycles. We need to avoid cycles of length < 7.\n\n# Let's try to construct systematically.\n\ndef has_cycle_of_length_at_most(edges, max_len, n):\n    \"\"\"Check if graph has a cycle of length <= max_len\"\"\"\n    adj = [[] for _ in range(n)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    # BFS/DFS to find cycles\n    for start in range(n):\n        # DFS from start, looking for cycles\n        stack = [(start, [start])]\n        visited_states = set()\n        while stack:\n            node, path = stack.pop()\n            if len(path) > max_len + 1:\n                continue\n            for nb in adj[node]:\n                if len(path) >= 2 and nb == path[-2]:\n                    continue\n                if nb == start and len(path) >= 3:\n                    # Found a cycle\n                    if len(path) <= max_len:\n                        return True\n                    continue\n                if nb not in path:\n                    stack.append((nb, path + [nb]))\n    return False\n\ndef check_degrees(edges, n):\n    deg = [0]*n\n    for u,v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    return all(4 <= d <= 6 for d in deg)\n\n# Let's try a different approach: use SAT solver\n# We have 8 vertices, so C(8,2) = 28 possible edges.\n# Variables: x_ij for each possible edge (i<j)\n# Constraints: degree constraints, and no cycles of length 3,4,5,6\n\n# Let's use python to formulate and solve with brute force or SAT\n\n# Actually, let me try to construct manually first.\n\n# Start with a cycle 0-1-2-3-4-5-6-7-0 (length 8)\ncycle = [(0,1),(1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,0)]\n\n# Now we need to add edges. Let's think about what edges we can add without creating short cycles.\n\n# If we add edge (0,2), we get cycle 0-1-2-0 (length 3) - too short.\n# If we add edge (0,3), we get cycle 0-1-2-3-0 (length 4) - too short.\n# If we add edge (0,4), we get cycle 0-1-2-3-4-0 (length 5) - too short.\n# If we add edge (0,5), we get cycle 0-1-2-3-4-5-0 (length 6) - too short.\n# If we add edge (0,6), we get cycle 0-1-2-3-4-5-6-0 (length 7) - OK! (girth >= 7)\n# If we add edge (0,7), already exists.\n\n# So from vertex 0, we can add edges to vertices at distance >= 4 along the cycle.\n# On an 8-cycle, distance 4 is the antipodal point.\n# So (0,4) gives distance 4 along the cycle, creating a 5-cycle (0-1-2-3-4-0) - wait, that's length 5. Too short.\n# (0,5) gives distance 3 along one path (0-7-6-5) and distance 5 along the other (0-1-2-3-4-5). The shorter path is 3 edges, so cycle 0-7-6-5-0 is length 4. Too short.\n# Actually wait, let me recount.\n\n# Cycle: 0-1-2-3-4-5-6-7-0\n# Distance from 0 to 2: 0-1-2 (2 edges) or 0-7-6-5-4-3-2 (6 edges). Shortest path = 2. Adding edge (0,2) creates cycle 0-1-2-0 (length 3).\n# Distance from 0 to 3: 0-1-2-3 (3 edges) or 0-7-6-5-4-3 (5 edges). Shortest path = 3. Adding edge (0,3) creates cycle 0-1-2-3-0 (length 4).\n# Distance from 0 to 4: 0-1-2-3-4 (4 edges) or 0-7-6-5-4 (4 edges). Shortest path = 4. Adding edge (0,4) creates cycle 0-1-2-3-4-0 (length 5).\n# Distance from 0 to 5: 0-1-2-3-4-5 (5 edges) or 0-7-6-5 (3 edges). Shortest path = 3. Adding edge (0,5) creates cycle 0-7-6-5-0 (length 4).\n# Distance from 0 to 6: 0-1-2-3-4-5-6 (6 edges) or 0-7-6 (2 edges). Shortest path = 2. Adding edge (0,6) creates cycle 0-7-6-0 (length 3).\n\n# Hmm, so from vertex 0, we can only add edges to vertices that are at distance >= 7 along the cycle? But the maximum distance on an 8-cycle is 4 (the antipodal point).\n# So we can't add any chord to an 8-cycle without creating a cycle of length <= 5.\n\n# Wait, that's not right. Let me reconsider.\n# If we add edge (0,4), the two paths from 0 to 4 are both length 4, so the cycle is 0-1-2-3-4-0 (length 5). That's < 7.\n# So indeed, any chord in an 8-cycle creates a cycle of length at most 5.\n\n# So we can't just start with an 8-cycle and add chords.\n\n# Let me think differently. Maybe the graph doesn't have a Hamiltonian cycle.\n\n# With 8 vertices and min degree 4, by Dirac's theorem, the graph is Hamiltonian (since min degree >= n/2 = 4).\n# So there IS a Hamiltonian cycle. But we need girth >= 7, meaning the shortest cycle is at least 7.\n# The Hamiltonian cycle itself is length 8, which is fine.\n# But any chord of this Hamiltonian cycle creates a shorter cycle.\n\n# So the graph must be exactly the 8-cycle plus some edges that don't create short cycles.\n# But we showed any chord creates a cycle of length <= 5.\n\n# Wait, maybe the Hamiltonian cycle is not the 8-cycle in order 0-1-2-3-4-5-6-7.\n# The Hamiltonian cycle could be in a different order.\n\n# Let me think about this more carefully.\n\n# We have 8 vertices. There's a Hamiltonian cycle (some ordering of vertices).\n# Let's say the cycle is v0-v1-v2-v3-v4-v5-v6-v7-v0.\n# If we add a chord between vi and vj, the two paths along the cycle have lengths d and 8-d where d = |i-j| (mod 8).\n# The shorter path has length min(d, 8-d).\n# The cycle formed by the chord plus the shorter path has length min(d, 8-d) + 1.\n# For this to be >= 7, we need min(d, 8-d) + 1 >= 7, i.e., min(d, 8-d) >= 6.\n# So d >= 6 or 8-d >= 6, meaning d >= 6 or d <= 2.\n# But d is between 1 and 7. d >= 6 means d = 6 or 7. d <= 2 means d = 1 or 2.\n# d=1 means adjacent vertices (already connected by cycle).\n# d=2 means vertices with one vertex between them - chord creates cycle of length 3.\n# d=6 means vertices with 5 vertices between them on one side - chord creates cycle of length 7? Let me check.\n# If d=6, the shorter path has length min(6, 2) = 2. So cycle length = 2+1 = 3. That's wrong.\n# Wait, min(d, 8-d) = min(6, 2) = 2. So cycle length = 2+1 = 3.\n\n# Hmm, I made an error. Let me redo.\n# The two paths between vi and vj along the cycle have lengths d and 8-d (number of edges).\n# The shorter path has min(d, 8-d) edges.\n# Adding the chord creates a cycle of length min(d, 8-d) + 1.\n# For this to be >= 7, we need min(d, 8-d) + 1 >= 7, so min(d, 8-d) >= 6.\n# But min(d, 8-d) <= 4 for 8 vertices (since max of min(d, 8-d) is 4 when d=4).\n# So min(d, 8-d) >= 6 is impossible!\n\n# This means ANY chord in an 8-cycle creates a cycle of length at most 4+1=5.\n# So we cannot add any chord to a Hamiltonian cycle without creating a cycle of length <= 5.\n\n# But we need degree at least 4 for each vertex. The Hamiltonian cycle gives degree 2.\n# We need at least 2 more edges per vertex, but any edge we add creates a short cycle.\n\n# This seems impossible. Let me verify with a SAT solver.\n\nprint(\"Let me check with a SAT solver...\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 47.57
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's use pysat to solve this problem\nfrom pysat import CNF, Solver\nfrom pysat.card import CardEnc\n\nn = 8\n# Possible edges: 0-1, 0-2, ..., 6-7 (28 edges)\nedges = [(i, j) for i in range(n) for j in range(i+1, n)]\nm = len(edges)\n\n# Variable for each edge: x_k where k is index in edges list\n# x_k = True means edge is present\n\ncnf = CNF()\n\n# Degree constraints: each vertex must have degree between 4 and 6\nfor v in range(n):\n    # Variables for edges incident to v\n    incident = [k for k, (i, j) in enumerate(edges) if i == v or j == v]\n    # At least 4, at most 6\n    cnf.extend(CardEnc.atleast(lits=[k+1 for k in incident], bound=4, topk=m+1))\n    cnf.extend(CardEnc.atmost(lits=[k+1 for k in incident], bound=6, topk=m+1))\n\n# Girth constraint: no cycles of length 3, 4, 5, or 6\n# We need to forbid any set of edges that forms a cycle of length <= 6\n\n# Let's enumerate all possible cycles of length 3, 4, 5, 6\n# and add clauses forbidding all edges of that cycle to be simultaneously present\n\ndef enumerate_cycles(max_len):\n    cycles = []\n    # Use DFS to find all cycles up to max_len\n    for start in range(n):\n        stack = [(start, [start], set([start]))]\n        while stack:\n            node, path, visited = stack.pop()\n            if len(path) > max_len:\n                continue\n            for nb in range(n):\n                if nb == start and len(path) >= 3:\n                    # Found a cycle\n                    cycle = path[:]\n                    # Normalize: rotate so min vertex is first\n                    min_idx = cycle.index(min(cycle))\n                    cycle = cycle[min_idx:] + cycle[:min_idx]\n                    # Also ensure the second vertex is smaller than the last\n                    if cycle[1] > cycle[-1]:\n                        cycle = [cycle[0]] + cycle[:0:-1]\n                    cycles.append(tuple(cycle))\n                    continue\n                if nb not in visited and nb > start:  # Only consider nb > start to avoid duplicates? No, let's just collect all and dedup\n                    pass\n                if nb not in visited:\n                    stack.append((nb, path + [nb], visited | {nb}))\n    return cycles\n\n# Actually, let me use a simpler approach: enumerate all subsets of edges that form cycles\n# But that's complex. Let me use a different method.\n\n# For each possible cycle of length L (3 <= L <= 6), we add a clause:\n# NOT (all edges of the cycle are present)\n# i.e., at least one edge of the cycle is absent\n\n# Let me enumerate all simple cycles of length up to 6\n\ndef find_all_cycles(max_len):\n    cycles = []\n    adj = [[j for j in range(n) if j != i] for i in range(n)]  # complete graph\n    \n    for start in range(n):\n        # DFS\n        stack = [(start, [start])]\n        while stack:\n            node, path = stack.pop()\n            if len(path) > max_len + 1:\n                continue\n            for nb in adj[node]:\n                if nb == start and len(path) >= 3:\n                    # Found a cycle\n                    cycle = path[:]\n                    # Normalize\n                    min_idx = cycle.index(min(cycle))\n                    cycle = cycle[min_idx:] + cycle[:min_idx]\n                    if cycle[1] > cycle[-1]:\n                        cycle = [cycle[0]] + cycle[:0:-1]\n                    cycles.append(tuple(cycle))\n                    continue\n                if nb not in path and nb > start:  # Only go forward to avoid duplicates\n                    stack.append((nb, path + [nb]))\n    \n    # Deduplicate\n    return list(set(cycles))\n\ncycles = find_all_cycles(6)\nprint(f\"Found {len(cycles)} cycles of length <= 6\")\n\n# For each cycle, add clause: at least one edge of the cycle is NOT present\nfor cycle in cycles:\n    L = len(cycle)\n    # Get edge indices for consecutive vertices in the cycle\n    edge_vars = []\n    for k in range(L):\n        u, v = cycle[k], cycle[(k+1) % L]\n        if u > v:\n            u, v = v, u\n        idx = edges.index((u, v))\n        edge_vars.append(idx + 1)  # +1 because pysat uses 1-indexed\n    # At least one of these edges is false: clause (-x1 or -x2 or ... or -xL)\n    cnf.append([-v for v in edge_vars])\n\nprint(f\"CNF has {len(cnf.clauses)} clauses\")\n\n# Solve\nsolver = Solver(name='cadical153')\nsolver.append_formula(cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = [edges[i] for i in range(m) if model[i] > 0]\n    print(f\"Solution has {len(solution_edges)} edges\")\n    print(f\"Edges: {solution_edges}\")\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(f\"Degrees: {deg}\")\n    \n    # Verify girth\n    # Build adjacency\n    adj = [[] for _ in range(n)]\n    for u,v in solution_edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    # Find shortest cycle using BFS from each vertex\n    min_cycle = n + 1\n    for s in range(n):\n        dist = [-1]*n\n        parent = [-1]*n\n        dist[s] = 0\n        queue = [s]\n        for u in queue:\n            for v in adj[u]:\n                if dist[v] == -1:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    queue.append(v)\n                elif v != parent[u]:\n                    # Found a cycle\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    print(f\"Girth: {min_cycle}\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 35.19
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's check what's available in pysat\nimport pysat\nprint(dir(pysat))\nprint(pysat.__version__ if hasattr(pysat, '__version__') else 'no version')",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 33.19
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's check the correct import\nfrom pysat import formula\nprint(dir(formula))\nfrom pysat.formula import CNF\nprint(\"CNF imported successfully\")\n\nfrom pysat import solvers\nprint(dir(solvers))\nfrom pysat.solvers import Solver\nprint(\"Solver imported successfully\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 223.73
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat import card\nprint(dir(card))",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 133.77
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\n\nn = 8\nedges = [(i, j) for i in range(n) for j in range(i+1, n)]\nm = len(edges)\n\ncnf = CNF()\n\n# Degree constraints\nfor v in range(n):\n    incident = [k for k, (i, j) in enumerate(edges) if i == v or j == v]\n    cnf.extend(CardEnc.atleast(lits=[k+1 for k in incident], bound=4, topk=m+1))\n    cnf.extend(CardEnc.atmost(lits=[k+1 for k in incident], bound=6, topk=m+1))\n\n# Find all cycles of length 3, 4, 5, 6\ndef find_all_cycles(max_len):\n    cycles_set = set()\n    \n    for start in range(n):\n        # DFS\n        stack = [(start, [start])]\n        while stack:\n            node, path = stack.pop()\n            if len(path) > max_len + 1:\n                continue\n            for nb in range(n):\n                if nb == start and len(path) >= 3:\n                    # Found a cycle\n                    cycle = path[:]\n                    # Normalize: rotate so min vertex is first\n                    min_idx = cycle.index(min(cycle))\n                    cycle = cycle[min_idx:] + cycle[:min_idx]\n                    # Ensure second < last for unique representation\n                    if cycle[1] > cycle[-1]:\n                        cycle = [cycle[0]] + cycle[:0:-1]\n                    cycles_set.add(tuple(cycle))\n                    continue\n                if nb not in path:\n                    stack.append((nb, path + [nb]))\n    \n    return list(cycles_set)\n\ncycles = find_all_cycles(6)\nprint(f\"Found {len(cycles)} cycles of length <= 6\")\n\n# For each cycle, forbid all edges being present simultaneously\nfor cycle in cycles:\n    L = len(cycle)\n    edge_vars = []\n    for k in range(L):\n        u, v = cycle[k], cycle[(k+1) % L]\n        if u > v:\n            u, v = v, u\n        idx = edges.index((u, v))\n        edge_vars.append(idx + 1)\n    cnf.append([-v for v in edge_vars])\n\nprint(f\"CNF has {len(cnf.clauses)} clauses\")\n\n# Solve\nsolver = Solver(name='cadical153')\nsolver.append_formula(cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = [edges[i] for i in range(m) if model[i] > 0]\n    print(f\"Solution has {len(solution_edges)} edges\")\n    print(f\"Edges: {solution_edges}\")\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(f\"Degrees: {deg}\")\n    \n    # Verify girth\n    adj = [[] for _ in range(n)]\n    for u,v in solution_edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    min_cycle = n + 1\n    for s in range(n):\n        dist = [-1]*n\n        parent = [-1]*n\n        dist[s] = 0\n        queue = [s]\n        for u in queue:\n            for v in adj[u]:\n                if dist[v] == -1:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    queue.append(v)\n                elif v != parent[u]:\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    print(f\"Girth: {min_cycle}\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 120
+      },
+      "ok": false,
+      "latency_ms": 232.02
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\nimport inspect\n\n# Check the signature\nsig = inspect.signature(CardEnc.atleast)\nprint(f\"atleast signature: {sig}\")\n\nsig2 = inspect.signature(CardEnc.atmost)\nprint(f\"atmost signature: {sig2}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 288.5
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\n\nn = 8\nedges = [(i, j) for i in range(n) for j in range(i+1, n)]\nm = len(edges)\n\ncnf = CNF()\n\n# Degree constraints\nfor v in range(n):\n    incident = [k for k, (i, j) in enumerate(edges) if i == v or j == v]\n    cnf.extend(CardEnc.atleast(lits=[k+1 for k in incident], bound=4))\n    cnf.extend(CardEnc.atmost(lits=[k+1 for k in incident], bound=6))\n\n# Find all cycles of length 3, 4, 5, 6\ndef find_all_cycles(max_len):\n    cycles_set = set()\n    \n    for start in range(n):\n        stack = [(start, [start])]\n        while stack:\n            node, path = stack.pop()\n            if len(path) > max_len + 1:\n                continue\n            for nb in range(n):\n                if nb == start and len(path) >= 3:\n                    cycle = path[:]\n                    min_idx = cycle.index(min(cycle))\n                    cycle = cycle[min_idx:] + cycle[:min_idx]\n                    if cycle[1] > cycle[-1]:\n                        cycle = [cycle[0]] + cycle[:0:-1]\n                    cycles_set.add(tuple(cycle))\n                    continue\n                if nb not in path:\n                    stack.append((nb, path + [nb]))\n    \n    return list(cycles_set)\n\ncycles = find_all_cycles(6)\nprint(f\"Found {len(cycles)} cycles of length <= 6\")\n\n# For each cycle, forbid all edges being present simultaneously\nfor cycle in cycles:\n    L = len(cycle)\n    edge_vars = []\n    for k in range(L):\n        u, v = cycle[k], cycle[(k+1) % L]\n        if u > v:\n            u, v = v, u\n        idx = edges.index((u, v))\n        edge_vars.append(idx + 1)\n    cnf.append([-v for v in edge_vars])\n\nprint(f\"CNF has {len(cnf.clauses)} clauses\")\n\n# Solve\nsolver = Solver(name='cadical153')\nsolver.append_formula(cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = [edges[i] for i in range(m) if model[i] > 0]\n    print(f\"Solution has {len(solution_edges)} edges\")\n    print(f\"Edges: {solution_edges}\")\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(f\"Degrees: {deg}\")\n    \n    # Verify girth\n    adj = [[] for _ in range(n)]\n    for u,v in solution_edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    min_cycle = n + 1\n    for s in range(n):\n        dist = [-1]*n\n        parent = [-1]*n\n        dist[s] = 0\n        queue = [s]\n        for u in queue:\n            for v in adj[u]:\n                if dist[v] == -1:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    queue.append(v)\n                elif v != parent[u]:\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    print(f\"Girth: {min_cycle}\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 120
+      },
+      "ok": true,
+      "latency_ms": 496.98
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "none",
+  "forced_submit": true
+}

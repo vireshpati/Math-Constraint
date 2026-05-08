@@ -1,0 +1,77 @@
+{
+  "problem_name": "sudoku_n2__v1_h",
+  "problem_type": "sudoku",
+  "params": {
+    "n": 2
+  },
+  "difficulty": {
+    "solve_time_ms": 1036.2,
+    "search_space": 4294967296,
+    "num_variables": 16,
+    "num_constraints": 18,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 73.5,
+    "solve_pct_type": 50.0
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    1,
+    2,
+    3,
+    4,
+    3,
+    4,
+    1,
+    2,
+    2,
+    1,
+    4,
+    3,
+    4,
+    3,
+    2,
+    1
+  ],
+  "reasoning": "The 4x4 Sudoku with block size 2 is satisfiable. The solution respects all fixed assignments: x[7]=2 (row 1, col 3), x[9]=1 (row 2, col 1), x[12]=4 (row 3, col 0). Each row, column, and 2x2 block contains the numbers 1-4 exactly once.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [1, 2, 3, 4, 3, 4, 1, 2, 2, 1, 4, 3, 4, 3, 2, 1],\n    \"reasoning\": \"The 4x4 Sudoku with block size 2 is satisfiable. The solution respects all fixed assignments: x[7]=2 (row 1, col 3), x[9]=1 (row 2, col 1), x[12]=4 (row 3, col 0). Each row, column, and 2x2 block contains the numbers 1-4 exactly once.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4643,
+  "completion_tokens": 2340,
+  "reasoning_tokens": 0,
+  "cached_tokens": 1280,
+  "cost_usd": 0.00116186,
+  "cost_source": "openrouter",
+  "latency_ms": 147366.4448261261,
+  "tool_dispatch_ms_total": 232.01227188110352,
+  "tool_calls_made": 1,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nfrom pysat.card import CardEnc\n\n# 4x4 Sudoku with block size 2\n# Variables: x[i][v] where i is cell index (0-15), v is value (1-4)\n# Cell i is at row r = i//4, col c = i%4\n\nn = 4\ncells = 16\n\n# Create SAT solver\nsolver = Glucose3()\n\n# Map: (cell, value) -> variable id\nvar = {}\nvid = 1\nfor i in range(cells):\n    for v in range(1, n+1):\n        var[(i, v)] = vid\n        vid += 1\n\n# Each cell gets exactly one value\nfor i in range(cells):\n    clause = [var[(i, v)] for v in range(1, n+1)]\n    solver.add_clause(clause)\n    # At most one: pairwise negative\n    for v1 in range(1, n+1):\n        for v2 in range(v1+1, n+1):\n            solver.add_clause([-var[(i, v1)], -var[(i, v2)]])\n\n# Each row has each value exactly once\nfor r in range(n):\n    for v in range(1, n+1):\n        clause = [var[(r*n + c, v)] for c in range(n)]\n        solver.add_clause(clause)\n        # At most one\n        for c1 in range(n):\n            for c2 in range(c1+1, n):\n                solver.add_clause([-var[(r*n + c1, v)], -var[(r*n + c2, v)]])\n\n# Each column has each value exactly once\nfor c in range(n):\n    for v in range(1, n+1):\n        clause = [var[(r*n + c, v)] for r in range(n)]\n        solver.add_clause(clause)\n        for r1 in range(n):\n            for r2 in range(r1+1, n):\n                solver.add_clause([-var[(r1*n + c, v)], -var[(r2*n + c, v)]])\n\n# Each 2x2 block has each value exactly once\n# Blocks: top-left corners at (0,0), (0,2), (2,0), (2,2)\nblocks = [(0,0), (0,2), (2,0), (2,2)]\nfor br, bc in blocks:\n    for v in range(1, n+1):\n        cells_in_block = []\n        for dr in range(2):\n            for dc in range(2):\n                r = br + dr\n                c = bc + dc\n                cells_in_block.append(r*n + c)\n        clause = [var[(i, v)] for i in cells_in_block]\n        solver.add_clause(clause)\n        for idx1, i1 in enumerate(cells_in_block):\n            for idx2, i2 in enumerate(cells_in_block):\n                if idx1 < idx2:\n                    solver.add_clause([-var[(i1, v)], -var[(i2, v)]])\n\n# Fixed assignments\n# x[7]=2, x[9]=1, x[12]=4\n# Cell indices: 0-based\nfixed = {7: 2, 9: 1, 12: 4}\nfor i, v in fixed.items():\n    solver.add_clause([var[(i, v)]])\n\n# Solve\nresult = solver.solve()\nprint(\"Satisfiable:\", result)\n\nif result:\n    model = solver.get_model()\n    # Extract solution\n    solution = [0] * cells\n    for i in range(cells):\n        for v in range(1, n+1):\n            if model[var[(i, v)] - 1] > 0:\n                solution[i] = v\n                break\n    print(\"Solution:\", solution)\n    \n    # Verify\n    # Print grid\n    for r in range(n):\n        row = solution[r*n:(r+1)*n]\n        print(row)\n    \n    # Check constraints\n    # Rows\n    for r in range(n):\n        vals = [solution[r*n + c] for c in range(n)]\n        assert sorted(vals) == [1,2,3,4], f\"Row {r} invalid: {vals}\"\n    # Columns\n    for c in range(n):\n        vals = [solution[r*n + c] for r in range(n)]\n        assert sorted(vals) == [1,2,3,4], f\"Col {c} invalid: {vals}\"\n    # Blocks\n    for br, bc in blocks:\n        vals = []\n        for dr in range(2):\n            for dc in range(2):\n                vals.append(solution[(br+dr)*n + (bc+dc)])\n        assert sorted(vals) == [1,2,3,4], f\"Block ({br},{bc}) invalid: {vals}\"\n    \n    print(\"All constraints satisfied!\")\nelse:\n    print(\"UNSATISFIABLE\")"
+      },
+      "ok": true,
+      "latency_ms": 232.01
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

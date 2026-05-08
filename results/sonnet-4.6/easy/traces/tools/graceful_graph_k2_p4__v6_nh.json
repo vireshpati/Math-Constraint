@@ -1,0 +1,105 @@
+{
+  "problem_name": "graceful_graph_k2_p4__v6_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1359.6,
+    "search_space": 214358881,
+    "num_variables": 18,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 83.65,
+    "solve_pct_type": 56.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    5,
+    10,
+    2,
+    1,
+    8,
+    3,
+    4
+  ],
+  "reasoning": "Found a valid graceful labeling for G_{2,4} by exhaustive search. The 8 vertices get labels [0, 5, 10, 2, 1, 8, 3, 4] (clique 0: {0,5}, clique 1: {10,2}, clique 2: {1,8}, clique 3: {3,4}). All 10 edge differences are distinct and equal {1,2,3,4,5,6,7,8,9,10}: within-clique edges give differences 5,8,7,1 and inter-clique edges give 10,3,9,6,2,4.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 8615,
+  "completion_tokens": 1721,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.05166,
+  "cost_source": "openrouter",
+  "latency_ms": 28242.903232574463,
+  "tool_dispatch_ms_total": 526.2551307678223,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\n# Graph G_{2,4}: 4 disjoint K_2 cliques, each clique has 2 vertices\n# Vertices: clique 0: (0,1), clique 1: (2,3), clique 2: (4,5), clique 3: (6,7)\n# \n# Edges within cliques (K_2 means complete graph on 2 vertices = 1 edge per clique):\n# Clique 0: (0,1)\n# Clique 1: (2,3)\n# Clique 2: (4,5)\n# Clique 3: (6,7)\n#\n# Edges between consecutive cliques (vertex i of clique g to vertex i of clique g+1):\n# Between clique 0 and 1: (0,2), (1,3)\n# Between clique 1 and 2: (2,4), (3,5)\n# Between clique 2 and 3: (4,6), (5,7)\n#\n# Total edges: 4 (within) + 6 (between) = 10 edges \u2713\n\nedges = []\n# Within clique edges\nfor g in range(4):\n    v0 = g * 2\n    v1 = g * 2 + 1\n    edges.append((v0, v1))\n\n# Between consecutive cliques\nfor g in range(3):\n    for i in range(2):\n        v_g = g * 2 + i\n        v_g1 = (g + 1) * 2 + i\n        edges.append((v_g, v_g1))\n\nprint(\"Edges:\", edges)\nprint(\"Number of edges:\", len(edges))\nprint(\"Number of vertices:\", 8)\n"
+      },
+      "ok": true,
+      "latency_ms": 34.97
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\nedges = [(0, 1), (2, 3), (4, 5), (6, 7), (0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7)]\nn_vertices = 8\nn_edges = 10\nmax_label = n_edges  # labels 0..10\n\n# Brute force: try all permutations of 8 labels chosen from 0..10\n# That's C(11,8) * 8! which is too large, use smarter approach\n\n# Use constraint propagation / backtracking\ndef check_labeling(labels):\n    edge_labels = set()\n    for u, v in edges:\n        diff = abs(labels[u] - labels[v])\n        if diff in edge_labels:\n            return False\n        edge_labels.add(diff)\n    return True\n\n# Try with pysat or just smart backtracking\n# Since 8 vertices, labels 0..10 (11 choices), we need all vertex labels distinct\n# and all edge differences distinct\n\nfrom itertools import combinations\n\nfound = None\n# Choose 8 labels from 0..10, then try permutations\nfor chosen in combinations(range(11), 8):\n    for perm in permutations(chosen):\n        labels = list(perm)\n        if check_labeling(labels):\n            found = labels\n            break\n    if found:\n        break\n\nif found:\n    print(\"Found graceful labeling:\", found)\n    # Verify\n    edge_diffs = []\n    for u, v in edges:\n        edge_diffs.append(abs(found[u] - found[v]))\n    print(\"Edge differences:\", sorted(edge_diffs))\n    print(\"All distinct:\", len(set(edge_diffs)) == len(edge_diffs))\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": true,
+      "latency_ms": 452.18
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution thoroughly\nlabels = [0, 5, 10, 2, 1, 8, 3, 4]\nedges = [(0, 1), (2, 3), (4, 5), (6, 7), (0, 2), (1, 3), (2, 4), (3, 5), (4, 6), (5, 7)]\n\nprint(\"Vertex labels:\")\nfor g in range(4):\n    v0, v1 = g*2, g*2+1\n    print(f\"  Clique {g}: vertex {v0} -> label {labels[v0]}, vertex {v1} -> label {labels[v1]}\")\n\nprint(\"\\nAll vertex labels:\", labels)\nprint(\"All distinct:\", len(set(labels)) == len(labels))\nprint(\"Labels in range [0,10]:\", all(0 <= l <= 10 for l in labels))\n\nprint(\"\\nEdge differences:\")\ndiffs = []\nfor u, v in edges:\n    d = abs(labels[u] - labels[v])\n    diffs.append(d)\n    print(f\"  Edge ({u},{v}): |{labels[u]} - {labels[v]}| = {d}\")\n\nprint(\"\\nAll edge differences:\", sorted(diffs))\nprint(\"All distinct:\", len(set(diffs)) == len(diffs))\nprint(\"Cover {1..10}:\", set(diffs) == set(range(1, 11)))\n"
+      },
+      "ok": true,
+      "latency_ms": 39.11
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          5,
+          10,
+          2,
+          1,
+          8,
+          3,
+          4
+        ],
+        "reasoning": "Found a valid graceful labeling for G_{2,4} by exhaustive search. The 8 vertices get labels [0, 5, 10, 2, 1, 8, 3, 4] (clique 0: {0,5}, clique 1: {10,2}, clique 2: {1,8}, clique 3: {3,4}). All 10 edge differences are distinct and equal {1,2,3,4,5,6,7,8,9,10}: within-clique edges give differences 5,8,7,1 and inter-clique edges give 10,3,9,6,2,4."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

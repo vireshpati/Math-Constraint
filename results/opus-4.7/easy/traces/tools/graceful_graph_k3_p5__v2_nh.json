@@ -1,0 +1,127 @@
+{
+  "problem_name": "graceful_graph_k3_p5__v2_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1655.4,
+    "search_space": 5097655355238390956032,
+    "num_variables": 42,
+    "num_constraints": 31,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.91,
+    "solve_pct_type": 81.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    27,
+    2,
+    26,
+    8,
+    6,
+    3,
+    18,
+    17,
+    25,
+    4,
+    12,
+    5,
+    21
+  ],
+  "reasoning": "Used CP-SAT to find graceful labeling. Verified: all 15 labels distinct in [0,27], all 27 edge labels are exactly {1,2,...,27}.",
+  "raw_response": null,
+  "cot_trace": " I'm realizing this is a graceful labeling problem\u2014I need to assign distinct labels to 15 vertices and ensure all 27 edges get unique labels from 1 to 27. Since I have exactly 27 edges and need 27 distinct labels, the edge labels must form a permutation. A SAT or constraint programming solver would be the right approach here.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 14780,
+  "completion_tokens": 2481,
+  "reasoning_tokens": 83,
+  "cached_tokens": 0,
+  "cost_usd": 0.135925,
+  "cost_source": "openrouter",
+  "latency_ms": 55407.963514328,
+  "tool_dispatch_ms_total": 33002.8293132782,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\nimport random\n\n# Build edges\nedges = []\n# K_3 within each clique\nfor g in range(5):\n    for i,j in combinations(range(3),2):\n        edges.append((g*3+i, g*3+j))\n# Connections between consecutive cliques\nfor g in range(4):\n    for i in range(3):\n        edges.append((g*3+i, (g+1)*3+i))\n\nprint(len(edges))\nV = 15\nN = 28  # labels 0..27\n\n# Use CP-SAT\nfrom ortools.sat.python import cp_model\nmodel = cp_model.CpModel()\nlabel = [model.NewIntVar(0, 27, f'l{v}') for v in range(V)]\nmodel.AddAllDifferent(label)\n\nedge_labels = []\nfor (u,v) in edges:\n    d = model.NewIntVar(1, 27, f'd_{u}_{v}')\n    diff = model.NewIntVar(-27, 27, f'diff_{u}_{v}')\n    model.Add(diff == label[u] - label[v])\n    model.AddAbsEquality(d, diff)\n    edge_labels.append(d)\nmodel.AddAllDifferent(edge_labels)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.num_search_workers = 8\nstatus = solver.Solve(model)\nprint(solver.StatusName(status))\nif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):\n    sol = [solver.Value(l) for l in label]\n    print(sol)\n    # verify\n    elab = sorted([abs(sol[u]-sol[v]) for u,v in edges])\n    print(elab)\n    print(len(set(elab)))\n"
+      },
+      "ok": false,
+      "latency_ms": 15039.26
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\nedges = []\nfor g in range(5):\n    for i,j in combinations(range(3),2):\n        edges.append((g*3+i, g*3+j))\nfor g in range(4):\n    for i in range(3):\n        edges.append((g*3+i, (g+1)*3+i))\n\nfrom ortools.sat.python import cp_model\nmodel = cp_model.CpModel()\nV=15\nlabel = [model.NewIntVar(0, 27, f'l{v}') for v in range(V)]\nmodel.AddAllDifferent(label)\n\nedge_labels = []\nfor (u,v) in edges:\n    d = model.NewIntVar(1, 27, f'd_{u}_{v}')\n    diff = model.NewIntVar(-27, 27, f'diff_{u}_{v}')\n    model.Add(diff == label[u] - label[v])\n    model.AddAbsEquality(d, diff)\n    edge_labels.append(d)\nmodel.AddAllDifferent(edge_labels)\n\n# Break symmetry: label[0] < label[1] < label[2] within first clique? Actually the graph has automorphisms\nmodel.Add(label[0] < label[14])  # reverse ordering symmetry\n\nsolver = cp_model.CpSolver()\nsolver.parameters.num_search_workers = 8\nsolver.parameters.max_time_in_seconds = 50\nstatus = solver.Solve(model)\nprint(solver.StatusName(status))\nif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):\n    sol = [solver.Value(l) for l in label]\n    print(sol)\n    elab = sorted([abs(sol[u]-sol[v]) for u,v in edges])\n    print(elab)\n    print(len(set(elab)))\n"
+      },
+      "ok": false,
+      "latency_ms": 15026.3
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\nedges = []\nfor g in range(5):\n    for i,j in combinations(range(3),2):\n        edges.append((g*3+i, g*3+j))\nfor g in range(4):\n    for i in range(3):\n        edges.append((g*3+i, (g+1)*3+i))\n\nfrom ortools.sat.python import cp_model\nmodel = cp_model.CpModel()\nV=15\nlabel = [model.NewIntVar(0, 27, f'l{v}') for v in range(V)]\nmodel.AddAllDifferent(label)\n\nedge_labels = []\nfor (u,v) in edges:\n    d = model.NewIntVar(1, 27, f'd_{u}_{v}')\n    diff = model.NewIntVar(-27, 27, f'diff_{u}_{v}')\n    model.Add(diff == label[u] - label[v])\n    model.AddAbsEquality(d, diff)\n    edge_labels.append(d)\nmodel.AddAllDifferent(edge_labels)\n\nmodel.Add(label[0] < label[14])\n\nsolver = cp_model.CpSolver()\nsolver.parameters.num_search_workers = 8\nsolver.parameters.max_time_in_seconds = 55\nstatus = solver.Solve(model)\nprint(solver.StatusName(status))\nif status in (cp_model.OPTIMAL, cp_model.FEASIBLE):\n    sol = [solver.Value(l) for l in label]\n    print(sol)\n    elab = sorted([abs(sol[u]-sol[v]) for u,v in edges])\n    print(elab)\n    print(len(set(elab)))\n"
+      },
+      "ok": true,
+      "latency_ms": 2900.07
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nsol = [0, 1, 27, 2, 26, 8, 6, 3, 18, 17, 25, 4, 12, 5, 21]\nfrom itertools import combinations\nedges = []\nfor g in range(5):\n    for i,j in combinations(range(3),2):\n        edges.append((g*3+i, g*3+j))\nfor g in range(4):\n    for i in range(3):\n        edges.append((g*3+i, (g+1)*3+i))\nelab = [abs(sol[u]-sol[v]) for u,v in edges]\nprint(sorted(elab))\nprint(len(set(elab)), len(edges))\nprint(len(set(sol)), min(sol), max(sol))\n"
+      },
+      "ok": true,
+      "latency_ms": 37.2
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Used CP-SAT to find graceful labeling. Verified: all 15 labels distinct in [0,27], all 27 edge labels are exactly {1,2,...,27}.",
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          27,
+          2,
+          26,
+          8,
+          6,
+          3,
+          18,
+          17,
+          25,
+          4,
+          12,
+          5,
+          21
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

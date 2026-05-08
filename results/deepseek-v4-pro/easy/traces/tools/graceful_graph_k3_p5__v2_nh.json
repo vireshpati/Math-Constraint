@@ -1,0 +1,118 @@
+{
+  "problem_name": "graceful_graph_k3_p5__v2_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1655.4,
+    "search_space": 5097655355238390956032,
+    "num_variables": 42,
+    "num_constraints": 31,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.91,
+    "solve_pct_type": 81.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": "<\uff5cDSML\uff5ctool_calls>\n<\uff5cDSML\uff5cinvoke name=\"execute_python\">\n<\uff5cDSML\uff5cparameter name=\"code\" string=\"true\">import importlib, sys, pkgutil, subprocess, os, itertools, math, random, time, collections, functools, heapq</\uff5cDSML\uff5cparameter>\n<\uff5cDSML\uff5cparameter name=\"timeout_seconds\" string=\"false\">5</\uff5cDSML\uff5cparameter>\n</\uff5cDSML\uff5cinvoke>\n</\uff5cDSML\uff5ctool_calls>",
+  "cot_trace": "We need to find a graceful labeling of a specific graph G_{3,5}. Let's understand the graph:\n\n- 5 disjoint K_3 cliques (triangles), numbered 0 through 4.\n- Each clique has 3 vertices, indexed 0,1,2.\n- Between consecutive cliques (g, g+1), there are 3 edges connecting vertex i of clique g to vertex i of clique g+1 for i=0,1,2.\n\nSo total vertices: 5 * 3 = 15.\nEdges:\n- Within each clique: 3 edges per K_3 (complete graph on 3 vertices). 5 cliques => 5*3 = 15 edges.\n- Between consecutive cliques: 3 edges per pair, 4 pairs (0-1,1-2,2-3,3-4) => 4*3 = 12 edges.\nTotal edges = 27.\n\nGraceful labeling: vertices get distinct labels from 0 to 27 (since there are 28 possible labels? Wait: graceful labeling of a graph with m edges assigns labels to vertices from {0,1,...,m} such that all edge labels (absolute differences) are distinct and cover {1,...,m}. Here m=27, so vertex labels are from 0 to 27 inclusive (28 labels). But we have only 15 vertices, so we use a subset of {0,...,27} of size 15. The edge labels must be all distinct and must be exactly the set {1,2,...,27}? Actually graceful labeling definition: injective function f: V -> {0,1,...,m} such that the induced edge labels |f(u)-f(v)| are all distinct. Since there are m edges, the edge labels must be exactly {1,...,m} (they are m distinct integers between 1 and m). So yes, edge labels must be a permutation of 1..27.\n\nWe need to find such labeling or prove unsatisfiable.\n\nLet's try to model as SAT or use constraint solving. We can use Python with SAT solver (pysat) or write a custom search.\n\nGiven the structure, maybe we can find a pattern. The graph is like a \"prism\" of triangles? Actually it's a series of triangles connected by matching edges. This is like a \"triangular ladder\" or something.\n\nLet's think about known results: Graceful labeling of graphs. The graph G_{3,5} might be a known graph: it's the Cartesian product of K_3 and P_5? Actually Cartesian product of K_3 and P_5 (path of length 5) would have edges between corresponding vertices in consecutive \"layers\" and within each layer a K_3. That's exactly our graph: vertices (i, g) where i in {0,1,2}, g in {0,...,4}. Edges: (i,g)-(j,g) for i\u2260j (K_3), and (i,g)-(i,g+1) (matching between layers). So it's K_3 \u25a1 P_5 (Cartesian product). Graceful labeling of Cartesian products? There's a known conjecture (Graceful Tree Conjecture) but for graphs with cycles, not all are graceful.\n\nWe need to find one specific labeling. Let's try to solve via SAT.\n\nWe have 15 vertices, labels from 0..27. Variables: for each vertex v, its label L_v \u2208 {0..27}, all distinct. Edge differences must be all distinct and cover 1..27.\n\nWe can encode as SAT with variables for each vertex-label assignment (15*28 = 420 boolean variables) but that's large. Better to use constraint programming or integer programming.\n\nAlternatively, we can use a SAT solver with cardinality constraints. Let's try using pysat.\n\nI'll write a Python script to encode the problem and solve with SAT.\n---\nLet me check the correct import for pysat.\n---\nLet's check what's available in the environment.\n---\nWe have z3-solver, python-constraint, python-sat (pysat). Let's use z3 for this problem.\n---\nZ3 timed out. Let's try a different approach. Maybe we can use a SAT solver with a more efficient encoding, or try to find a pattern manually.\n\nLet's think about the structure. The graph is essentially the Cartesian product of K_3 and P_5 (path of length 5). Actually, it's K_3 \u25a1 P_5 (Cartesian product of K_3 and path P_5). The Cartesian product G \u25a1 H has vertices (u,v) and edges between (u,v) and (u',v) if uu' in E(G), and between (u,v) and (u,v') if vv' in E(H). Here, K_3 has 3 vertices all connected, and P_5 has 5 vertices in a path. So K_3 \u25a1 P_5 has 15 vertices and edges: within each copy of K_3 (3 edges per clique, 5 cliques = 15 edges) plus between consecutive cliques matching vertices (3 edges per consecutive pair, 4 pairs = 12 edges). Total 27 edges.\n\nGraceful labeling of Cartesian products is a known topic. There's a conjecture that all trees are graceful (Graceful Tree Conjecture), but for Cartesian products, there are results. For example, K_m \u25a1 P_n is graceful for certain m,n.\n\nLet me try to search for known graceful labelings of K_3 \u00d7 P_n. Actually, I recall that C_3 \u00d7 P_n (where C_3 is cycle of length 3, which is same as K_3) might have known graceful labelings.\n\nAlternatively, let's try to use a more efficient SAT encoding or use a constraint solver like python-constraint with backtracking.\n\nLet me try to write a custom backtracking search with heuristics. Since the graph has 15 vertices and 27 edges, the search space is 28! / 13! which is huge, but with constraints we might prune heavily.\n\nMaybe we can use the fact that the graph is bipartite? No, K_3 has odd cycles, so not bipartite.\n\nLet's try to use a MILP solver? We have pulp? Let's check.\n\nActually, let's try to use the python-constraint library which is a CSP solver.\n\nOr maybe we can use the SAT solver from python-sat (which is installed as 'python-sat'). Let's check its API.\n---\nLet me try a different approach. Maybe I can use a SAT solver from python-sat (which is installed as `python-sat` but the import might be `satispy` or something). Let me check.\n\nActually, the package `python-sat` might be imported as `pysat` but earlier it didn't have SATSolver. Let me check the correct import.\n---\nLet me try a different approach. Maybe I can use a custom backtracking search with heuristics, or try to find a pattern analytically.\n\nThe graph is essentially the Cartesian product of K_3 and P_5 (path of length 5). Actually, it's K_3 \u25a1 P_5 (Cartesian product of K_3 and path P_5). The Cartesian product G \u25a1 H has vertices (u,v) and edges between (u,v) and (u',v) if uu' in E(G), and between (u,v) and (u,v') if vv' in E(H). Here, K_3 has 3 vertices all connected, and P_5 has 5 vertices in a path. So K_3 \u25a1 P_5 has 15 vertices and edges: within each copy of K_3 (3 edges per clique, 5 cliques = 15 edges) plus between consecutive cliques (3 edges per consecutive pair, 4 pairs = 12 edges). Total 27 edges.\n\nGraceful labeling of Cartesian products is a known topic. There's a conjecture that all trees are graceful (Graceful Tree Conjecture), but for graphs with cycles, it's not always possible.\n\nLet me try to use a SAT solver with a more efficient encoding. I can use the \"python-sat\" library (pysat) with cardinality constraints.\n\nActually, let me try to use the constraint library (python-constraint) which is available.\n---\nThe previous attempts to use Z3 timed out. Let me think about this problem more carefully.\n\nThe graph G_{3,5} is essentially the Cartesian product of K_3 and a path P_5? Actually, it's 5 disjoint K_3 cliques, with edges between consecutive cliques linking corresponding vertices. This is exactly the Cartesian product of K_3 and P_5 (or sometimes called a \"prism\" graph? Actually K_3 \u25a1 P_5, where vertices are (i, g) with g=0..4, i=0..2, and edges are between (i,g)-(i,g+1) and (i,g)-(j,g) for i\u2260j).\n\nThe graph has 15 vertices and 27 edges. A graceful labeling requires labels 0..27 on vertices such that edge differences are 1..27.\n\nLet me try to construct one manually or find a pattern.\n\nI notice that K_3 \u25a1 P_n is known to be graceful for certain n? Actually, there is a concept of \"graceful labeling of Cartesian products\". Let me search my knowledge.\n\nAlternatively, I can try to write a more efficient solver using SAT with a different encoding, or use a heuristic search.\n\nLet me try a different approach: since the graph has a regular structure, maybe I can use a backtracking search with ordering constraints to reduce the search space. Let me write a Python script using recursion with pruning.\n\nBut wait, I'm supposed to submit an answer now. Let me think if I know whether this graph is graceful.\n\nActually, I recall that all trees are graceful (graceful tree conjecture), but this is not a tree. Cartesian products of graphs: K_3 \u25a1 P_n might be graceful. Let me try to search my memory. \n\nThere's a known result: \"The Cartesian product of two cycles C_m \u25a1 C_n is graceful if and only if...\" but that's different.\n\nFor K_3 \u25a1 P_n: K_3 has 3 vertices, P_5 has 5 vertices. The product has 15 vertices. I think K_m \u25a1 P_n is graceful for all m,n? Not sure.\n\nLet me try a quick computational approach with a timeout. Since I can't run long, let me try to write a more efficient Z3 model with bit-vectors or a custom backtracking.\n\nActually, let me try to use the `python-constraint` library with a smarter formulation, or just write a recursive backtracking in Python with pruning and see if it finds a solution quickly.\n\nLet me think about symmetries: the graph has automorphisms: permuting the three vertices within each clique (but the connections between cliques link vertex i to vertex i of next clique, so the three \"rails\" are symmetric). We can fix some labels to break symmetry.\n\nAlso, edge differences must be 1..27. The maximum possible label is 27. The sum of labels? Not directly constrained.\n\nLet me try to write a quick backtracking in Python that might find a solution.\n\nActually, I can try to use an ILP formulation with Z3 but with a different strategy: use integer variables and set a timeout. Or use the SAT solver from pysat but encode the problem differently.\n\nLet me try a quick Python script with backtracking and constraint propagation.\n\nBut I'm running out of time in this thinking block. Let me just submit a guess? No, I need to be careful.\n\nLet me quickly try to use `python-constraint` with a custom constraint but break it down: instead of having one big constraint, I can add constraints that for each pair of edges, their differences are distinct. There are 27*26/2 = 351 pairs of edges. For each pair, I can add a constraint that |label(u)-label(v)| != |label(u')-label(v')|. But this is still heavy.\n\nActually, I can try to use Z3 with a timeout of say 5 seconds and see if it finds something. But previous attempt timed out at 60s. Maybe I can add symmetry breaking constraints.\n\nLet me try a different tool: OR-Tools CP-SAT, which is often faster for this kind of problem.\n\nLet me check if ortools is available. Earlier it said \"ortools not available\". Let me check again.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 26218,
+  "completion_tokens": 5073,
+  "reasoning_tokens": 2569,
+  "cached_tokens": 4992,
+  "cost_usd": 0.0655192,
+  "cost_source": "openrouter",
+  "latency_ms": 434756.73151016235,
+  "tool_dispatch_ms_total": 62669.42286491394,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat import SATSolver\nfrom pysat.card import CardEnc\n\n# Define graph\nnum_cliques = 5\nclique_size = 3\nnum_vertices = num_cliques * clique_size  # 15\nnum_edges = 27\nmax_label = num_edges  # 27\n\n# Vertices indexed by (clique, vertex_in_clique)\nvertices = [(g, i) for g in range(num_cliques) for i in range(clique_size)]\nv_index = {v: idx for idx, v in enumerate(vertices)}\n\n# Edges: within each clique, all pairs; between consecutive cliques, matching i\nedges = []\nfor g in range(num_cliques):\n    for i in range(clique_size):\n        for j in range(i+1, clique_size):\n            edges.append(((g,i), (g,j)))\nfor g in range(num_cliques-1):\n    for i in range(clique_size):\n        edges.append(((g,i), (g+1,i)))\n\nprint(\"Total edges:\", len(edges))\n\n# We'll use a SAT encoding with variables x_{v, label} meaning vertex v gets label.\n# But 15*28=420 variables, and we need distinct labels and distinct edge differences.\n# Alternative: use a direct search with constraint solver (python-constraint) or write a custom backtracking.\n\n# Let's try using python's itertools and backtracking? Might be too large.\n# Better: use MILP? Or use SAT with ordering?\n\n# Let's try to use pysat with cardinality constraints for distinct labels and distinct differences.\n# But encoding differences as variables is tricky.\n\n# Maybe we can use a simpler approach: since the graph is structured, we can try to find a pattern.\n# Let's think about algebraic construction.\n\n# Actually, let's try to use a SAT solver with a different encoding: \n# We can assign each vertex a label from 0..27, but we can use \"order\" variables?\n# Or we can use a direct CSP solver from python-constraint library.\n\n# Let's check if python-constraint is available.\ntry:\n    import constraint\n    print(\"constraint available\")\nexcept:\n    print(\"constraint not available\")\n\n# Let's try to use pysat with a more clever encoding.\n# We can use variables for each vertex's label in binary (5 bits for 0..27).\n# Then edge differences can be computed via arithmetic circuits (hard).\n\n# Alternative: Since the number of vertices is small, we could try to use a SAT solver with \n# \"exactly one\" constraints for each vertex-label pair, and then for each edge and each possible difference,\n# enforce that if the difference is d, then the edge gets label d. But that's many clauses.\n\n# Let's try a different approach: use integer programming with pulp or ortools?\n# Check availability.\ntry:\n    import ortools\n    print(\"ortools available\")\nexcept:\n    print(\"ortools not available\")\n\ntry:\n    import pulp\n    print(\"pulp available\")\nexcept:\n    print(\"pulp not available\")\n\n# Let's try to write a custom backtracking search with pruning.\n# Since the graph has symmetry, we can break some symmetries.\n\n# Actually, maybe we can find a known graceful labeling for K_3 \u25a1 P_n.\n# Let's search literature: Graceful labeling of Cartesian product of cycles and paths?\n# There is a paper: \"Graceful Labeling of Graphs\" - maybe K_3 x P_n is graceful for all n?\n# Let's try to construct manually.\n\n# Let's try to use Z3? Not sure if available.\ntry:\n    import z3\n    print(\"z3 available\")\nexcept:\n    print(\"z3 not available\")"
+      },
+      "ok": false,
+      "latency_ms": 36.23
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import pysat\nprint(dir(pysat))"
+      },
+      "ok": true,
+      "latency_ms": 37.48
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys\nprint(sys.path)\n# Check for installed packages\nimport pkg_resources\ninstalled = [p.project_name for p in pkg_resources.working_set]\nprint(installed)"
+      },
+      "ok": true,
+      "latency_ms": 1744.99
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import z3\n\n# Define graph\nnum_cliques = 5\nclique_size = 3\nnum_vertices = num_cliques * clique_size  # 15\nnum_edges = 27\nmax_label = num_edges  # 27\n\n# Vertices indexed by (clique, vertex_in_clique)\nvertices = [(g, i) for g in range(num_cliques) for i in range(clique_size)]\nv_index = {v: idx for idx, v in enumerate(vertices)}\n\n# Edges\nedges = []\nfor g in range(num_cliques):\n    for i in range(clique_size):\n        for j in range(i+1, clique_size):\n            edges.append(((g,i), (g,j)))\nfor g in range(num_cliques-1):\n    for i in range(clique_size):\n        edges.append(((g,i), (g+1,i)))\n\nprint(\"Total edges:\", len(edges))\n\n# Create Z3 variables for each vertex's label\nlabel_vars = [z3.Int(f\"v_{idx}\") for idx in range(num_vertices)]\n\ns = z3.Solver()\n\n# Each label between 0 and max_label inclusive\nfor v in label_vars:\n    s.add(v >= 0, v <= max_label)\n\n# All labels distinct\ns.add(z3.Distinct(label_vars))\n\n# Edge differences distinct\ndiff_vars = []\nfor (u, v) in edges:\n    u_idx = v_index[u]\n    v_idx = v_index[v]\n    diff = z3.Int(f\"diff_{u_idx}_{v_idx}\")\n    s.add(diff == z3.Abs(label_vars[u_idx] - label_vars[v_idx]))\n    diff_vars.append(diff)\n\ns.add(z3.Distinct(diff_vars))\n\n# Also edge differences must be between 1 and max_label (since labels distinct, diff >=1)\n# But Distinct already ensures they are distinct; they will be between 1 and 27 automatically.\n\nprint(\"Solving...\")\nres = s.check()\nprint(\"Result:\", res)\nif res == z3.sat:\n    m = s.model()\n    sol = [m.evaluate(label_vars[i]).as_long() for i in range(num_vertices)]\n    print(\"Solution:\", sol)\n    # Verify\n    labels_set = set(sol)\n    print(\"Distinct labels:\", len(labels_set) == num_vertices)\n    diffs = set()\n    for (u,v) in edges:\n        d = abs(sol[v_index[u]] - sol[v_index[v]])\n        diffs.add(d)\n    print(\"Distinct diffs:\", len(diffs) == num_edges)\n    print(\"Diffs:\", sorted(diffs))\nelse:\n    print(\"UNSAT\")",
+        "timeout_seconds": 120
+      },
+      "ok": false,
+      "latency_ms": 60129.49
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import python_sat\nprint(dir(python_sat))"
+      },
+      "ok": false,
+      "latency_ms": 33.99
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import pysat\nprint(pysat.__version__)\nprint(pysat.__all__)\n# Try to import solver\nfrom pysat import SATSolver"
+      },
+      "ok": false,
+      "latency_ms": 369.72
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat import solvers\nprint(dir(solvers))\nfrom pysat.solvers import Solver\nprint(Solver)"
+      },
+      "ok": true,
+      "latency_ms": 240.01
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import constraint\n\n# Define graph\nnum_cliques = 5\nclique_size = 3\nnum_vertices = num_cliques * clique_size  # 15\nnum_edges = 27\nmax_label = num_edges  # 27\n\n# Vertices indexed by (clique, vertex_in_clique)\nvertices = [(g, i) for g in range(num_cliques) for i in range(clique_size)]\nv_index = {v: idx for idx, v in enumerate(vertices)}\n\n# Edges\nedges = []\nfor g in range(num_cliques):\n    for i in range(clique_size):\n        for j in range(i+1, clique_size):\n            edges.append(((g,i), (g,j)))\nfor g in range(num_cliques-1):\n    for i in range(clique_size):\n        edges.append(((g,i), (g+1,i)))\n\nprint(\"Total edges:\", len(edges))\n\n# CSP problem\nproblem = constraint.Problem()\n\n# Variables: each vertex gets a label from 0..27\nfor idx in range(num_vertices):\n    problem.addVariable(idx, range(max_label+1))\n\n# All distinct\nproblem.addConstraint(constraint.AllDifferentConstraint())\n\n# Edge differences distinct\n# We need a custom constraint: for each edge, the absolute difference is unique.\n# We can add a constraint that all differences are distinct.\n# But python-constraint doesn't have a built-in for this; we can use a function constraint.\n\ndef edge_diffs_distinct(*args):\n    # args are labels of all vertices in order\n    diffs = []\n    for (u, v) in edges:\n        d = abs(args[v_index[u]] - args[v_index[v]])\n        if d in diffs:\n            return False\n        diffs.append(d)\n    return True\n\n# This is too heavy for 15 variables; but let's try with smaller search?\n# Actually, we can add pairwise constraints for edges that share a vertex?\n# Better: use a SAT or ILP approach.\n\n# Let's try to use Z3 with a timeout and maybe a different strategy.\nprint(\"Trying Z3 with bit-vector...\")"
+      },
+      "ok": true,
+      "latency_ms": 77.51
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "max_rounds",
+  "forced_submit": false
+}

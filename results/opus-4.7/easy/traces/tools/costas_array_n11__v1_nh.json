@@ -1,0 +1,94 @@
+{
+  "problem_name": "costas_array_n11__v1_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 1035.3,
+    "search_space": 39916800,
+    "num_variables": 11,
+    "num_constraints": 12,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 73.12,
+    "solve_pct_type": 61.11
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    6,
+    4,
+    9,
+    10,
+    5,
+    8,
+    2,
+    1,
+    3,
+    0,
+    7
+  ],
+  "reasoning": "Found via backtracking search; verified all 55 displacement vectors are distinct.",
+  "raw_response": null,
+  "cot_trace": " I need to find a Costas array of order 11. The standard constructions like Welch and Lempel give smaller orders, so I'll search for known examples of order 11 Costas arrays.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3485,
+  "completion_tokens": 734,
+  "reasoning_tokens": 44,
+  "cached_tokens": 0,
+  "cost_usd": 0.035775,
+  "cost_source": "openrouter",
+  "latency_ms": 23967.87714958191,
+  "tool_dispatch_ms_total": 65.92416763305664,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools, random\n\ndef is_costas(p):\n    n = len(p)\n    seen = set()\n    for d in range(1, n):\n        for i in range(n-d):\n            v = (d, p[i+d]-p[i])\n            if v in seen: return False\n            seen.add(v)\n    return True\n\nrandom.seed(1)\nn=11\n# backtracking\ndef solve():\n    p=[-1]*n\n    used=[False]*n\n    vecs=set()\n    def bt(c):\n        if c==n: return True\n        order=list(range(n))\n        random.shuffle(order)\n        for r in order:\n            if used[r]: continue\n            p[c]=r\n            new=[]\n            ok=True\n            for cc in range(c):\n                v=(c-cc, r-p[cc])\n                if v in vecs or v in new:\n                    ok=False; break\n                new.append(v)\n            if ok:\n                for v in new: vecs.add(v)\n                used[r]=True\n                if bt(c+1): return True\n                used[r]=False\n                for v in new: vecs.discard(v)\n        p[c]=-1\n        return False\n    if bt(0): return p\n    return None\n\nsol=solve()\nprint(sol, is_costas(sol))\n"
+      },
+      "ok": true,
+      "latency_ms": 65.92
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          6,
+          4,
+          9,
+          10,
+          5,
+          8,
+          2,
+          1,
+          3,
+          0,
+          7
+        ],
+        "reasoning": "Found via backtracking search; verified all 55 displacement vectors are distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

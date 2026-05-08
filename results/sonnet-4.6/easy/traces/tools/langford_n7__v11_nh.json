@@ -1,0 +1,109 @@
+{
+  "problem_name": "langford_n7__v11_nh",
+  "problem_type": "langford",
+  "params": {
+    "n": 7
+  },
+  "difficulty": {
+    "solve_time_ms": 1875.0,
+    "search_space": 87178291200,
+    "num_variables": 14,
+    "num_constraints": 110,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.79,
+    "solve_pct_type": 56.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    1,
+    4,
+    1,
+    5,
+    6,
+    7,
+    4,
+    2,
+    3,
+    5,
+    2,
+    6,
+    3,
+    7
+  ],
+  "reasoning": "\nFound via backtracking search. The sequence [1,4,1,5,6,7,4,2,3,5,2,6,3,7] satisfies all Langford L(2,7) constraints:\n- v=1 at positions 0,2 \u2192 gap 2 = 1+1 \u2713\n- v=2 at positions 7,10 \u2192 gap 3 = 2+1 \u2713\n- v=3 at positions 8,12 \u2192 gap 4 = 3+1 \u2713\n- v=4 at positions 1,6 \u2192 gap 5 = 4+1 \u2713\n- v=5 at positions 3,9 \u2192 gap 6 = 5+1 \u2713\n- v=6 at positions 4,11 \u2192 gap 7 = 6+1 \u2713\n- v=7 at positions 5,13 \u2192 gap 8 = 7+1 \u2713\nEach integer 1\u20137 appears exactly twice, length is 14.\n",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5666,
+  "completion_tokens": 1319,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.036782999999999996,
+  "cost_source": "openrouter",
+  "latency_ms": 18974.167346954346,
+  "tool_dispatch_ms_total": 255.13553619384766,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom pysat.formula import CNF\nfrom pysat.solvers import Solver\n\n# Langford sequence L(2,7): length 14, values 1-7, each appearing twice\n# Constraint: the two copies of value v are exactly v+1 positions apart\n# (i.e., if v is at position i, the other copy is at position i+v+1)\n\n# Let's use a direct backtracking search first\ndef solve_langford(n=7):\n    length = 2 * n\n    seq = [0] * length\n    used = [False] * (n + 1)  # used[v] = True if v has been placed\n    \n    def backtrack(pos):\n        if pos == length:\n            return all(used[v] for v in range(1, n+1))\n        \n        if seq[pos] != 0:\n            return backtrack(pos + 1)\n        \n        for v in range(1, n + 1):\n            if not used[v]:\n                # Place v at pos and pos + v + 1\n                other = pos + v + 1\n                if other < length and seq[other] == 0:\n                    seq[pos] = v\n                    seq[other] = v\n                    used[v] = True\n                    if backtrack(pos + 1):\n                        return True\n                    seq[pos] = 0\n                    seq[other] = 0\n                    used[v] = False\n        \n        return False\n    \n    if backtrack(0):\n        return seq\n    return None\n\nresult = solve_langford(7)\nprint(\"Solution:\", result)\n\n# Verify\nif result:\n    n = 7\n    print(\"Verification:\")\n    for v in range(1, n+1):\n        positions = [i for i, x in enumerate(result) if x == v]\n        print(f\"  Value {v}: positions {positions}, gap = {positions[1] - positions[0]} (expected {v+1})\")\n    print(\"All values present:\", sorted(result) == sorted(list(range(1,8))*2))\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 221.96
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nseq = [1, 4, 1, 5, 6, 7, 4, 2, 3, 5, 2, 6, 3, 7]\nprint(f\"Sequence: {seq}\")\nprint(f\"Length: {len(seq)}\")\nprint(f\"Values: {sorted(set(seq))} each appearing {seq.count(1)} times\")\nprint()\nprint(\"Gap check (two copies of v must be v+1 apart):\")\nall_ok = True\nfor v in range(1, 8):\n    positions = [i for i, x in enumerate(seq) if x == v]\n    gap = positions[1] - positions[0]\n    expected = v + 1\n    ok = gap == expected\n    if not ok:\n        all_ok = False\n    print(f\"  v={v}: positions {positions[0]} and {positions[1]}, gap={gap}, expected={expected} {'\u2713' if ok else '\u2717'}\")\nprint(f\"\\nAll constraints satisfied: {all_ok}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.17
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          1,
+          4,
+          1,
+          5,
+          6,
+          7,
+          4,
+          2,
+          3,
+          5,
+          2,
+          6,
+          3,
+          7
+        ],
+        "reasoning": "\nFound via backtracking search. The sequence [1,4,1,5,6,7,4,2,3,5,2,6,3,7] satisfies all Langford L(2,7) constraints:\n- v=1 at positions 0,2 \u2192 gap 2 = 1+1 \u2713\n- v=2 at positions 7,10 \u2192 gap 3 = 2+1 \u2713\n- v=3 at positions 8,12 \u2192 gap 4 = 3+1 \u2713\n- v=4 at positions 1,6 \u2192 gap 5 = 4+1 \u2713\n- v=5 at positions 3,9 \u2192 gap 6 = 5+1 \u2713\n- v=6 at positions 4,11 \u2192 gap 7 = 6+1 \u2713\n- v=7 at positions 5,13 \u2192 gap 8 = 7+1 \u2713\nEach integer 1\u20137 appears exactly twice, length is 14.\n"
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

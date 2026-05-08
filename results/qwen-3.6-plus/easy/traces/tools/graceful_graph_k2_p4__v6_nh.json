@@ -1,0 +1,90 @@
+{
+  "problem_name": "graceful_graph_k2_p4__v6_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1359.6,
+    "search_space": 214358881,
+    "num_variables": 18,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 83.65,
+    "solve_pct_type": 56.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[0, 5, 10, 2, 1, 8, 3, 4]",
+  "reasoning": "Found a graceful labeling for G_{2,4} by searching through permutations of 8 labels chosen from 0..10. The solution [0, 5, 10, 2, 1, 8, 3, 4] assigns unique labels to all 8 vertices such that all 10 edge differences are distinct (1, 2, 3, 4, 5, 6, 7, 8, 9, 10). Verification confirms: within-clique edges give differences 5, 8, 7, 1 and between-clique edges give differences 10, 3, 9, 6, 2, 4.",
+  "raw_response": null,
+  "cot_trace": "Let me understand the problem:\n\n1. We have 4 disjoint K_2 cliques (cliques 0, 1, 2, 3), each with 2 vertices.\n2. Each K_2 clique has 1 edge (connecting its 2 vertices).\n3. Between consecutive cliques (g, g+1), there are 2 edges: vertex i of clique g connects to vertex i of clique g+1 for i in {0, 1}.\n4. So we have:\n   - 4 edges within cliques (one per clique)\n   - 3 pairs of consecutive cliques \u00d7 2 edges each = 6 edges between cliques\n   - Total: 4 + 6 = 10 edges\n\n5. The graph has 8 vertices and 10 edges.\n6. A graceful labeling assigns labels 0-10 to the 8 vertices (wait, that's 11 labels for 8 vertices... let me re-read).\n\nActually, a graceful labeling for a graph with m edges assigns labels from {0, 1, ..., m} to the vertices. So with 10 edges, we use labels from {0, 1, ..., 10}, which is 11 possible labels for 8 vertices. Each vertex gets a unique label.\n\nThe edge labels are |label(u) - label(v)| for each edge, and all 10 edge labels must be distinct (and thus must be {1, 2, ..., 10}).\n\nLet me model this:\n- Vertices: (g, i) where g \u2208 {0, 1, 2, 3} and i \u2208 {0, 1}\n- Edges:\n  - Within clique g: ((g, 0), (g, 1)) for g = 0, 1, 2, 3\n  - Between cliques: ((g, i), (g+1, i)) for g = 0, 1, 2 and i = 0, 1\n\nLet me denote the label of vertex (g, i) as L[g][i].\n\nEdges and their labels:\n1. Within clique 0: |L[0][0] - L[0][1]|\n2. Within clique 1: |L[1][0] - L[1][1]|\n3. Within clique 2: |L[2][0] - L[2][1]|\n4. Within clique 3: |L[3][0] - L[3][1]|\n5. Between 0-1, vertex 0: |L[0][0] - L[1][0]|\n6. Between 0-1, vertex 1: |L[0][1] - L[1][1]|\n7. Between 1-2, vertex 0: |L[1][0] - L[2][0]|\n8. Between 1-2, vertex 1: |L[1][1] - L[2][1]|\n9. Between 2-3, vertex 0: |L[2][0] - L[3][0]|\n10. Between 2-3, vertex 1: |L[2][1] - L[3][1]|\n\nAll 10 edge labels must be distinct and in {1, 2, ..., 10}.\n\nLet me write a Python script to solve this using constraint programming or backtracking.\n---\nThe backtracking didn't find a solution. Let me try a more efficient approach using a SAT solver or constraint programming.\n\n---\nThe solution was found: [0, 5, 10, 2, 1, 8, 3, 4]. Let me verify this solution.\n\n---\nThe solution is verified. The graceful labeling [0, 5, 10, 2, 1, 8, 3, 4] works perfectly:\n- All 8 labels are unique and in range 0-10\n- All 10 edge differences are distinct (1 through 10)\n\nLet me submit this answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 9212,
+  "completion_tokens": 3144,
+  "reasoning_tokens": 892,
+  "cached_tokens": 0,
+  "cost_usd": 0.0091247,
+  "cost_source": "openrouter",
+  "latency_ms": 62601.243019104004,
+  "tool_dispatch_ms_total": 654.6616554260254,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import permutations\n\n# Let's model this as a constraint satisfaction problem\n# We have 8 vertices: (g, i) for g in 0..3, i in 0..1\n# We need to assign labels from 0..10 to these 8 vertices\n# All edge differences must be distinct (1..10)\n\n# Edges:\n# Within cliques: (g,0)-(g,1) for g=0,1,2,3\n# Between cliques: (g,i)-(g+1,i) for g=0,1,2 and i=0,1\n\n# Let's use backtracking with constraint propagation\nfrom itertools import combinations\n\ndef solve():\n    # Try all ways to choose 8 labels from 0..10 and assign them to vertices\n    # This is C(11,8) * 8! = 165 * 40320 = 6,652,800 which is manageable\n    \n    # Actually, let's be smarter and use backtracking\n    \n    vertices = [(g, i) for g in range(4) for i in range(2)]\n    \n    edges = []\n    # Within cliques\n    for g in range(4):\n        edges.append(((g, 0), (g, 1)))\n    # Between cliques\n    for g in range(3):\n        for i in range(2):\n            edges.append(((g, i), (g+1, i)))\n    \n    print(f\"Number of edges: {len(edges)}\")\n    print(f\"Edges: {edges}\")\n    \n    # Backtracking approach\n    labels = [None] * 8  # labels[v] = label assigned to vertex v\n    \n    def get_vertex_idx(g, i):\n        return g * 2 + i\n    \n    def backtrack(v_idx, used_labels, used_diffs):\n        if v_idx == 8:\n            # Check all edge differences are distinct\n            diffs = set()\n            for (u, v) in edges:\n                u_idx = get_vertex_idx(*u)\n                v_idx = get_vertex_idx(*v)\n                diff = abs(labels[u_idx] - labels[v_idx])\n                if diff == 0 or diff in diffs:\n                    return None\n                diffs.add(diff)\n            if len(diffs) == 10:\n                return labels[:]\n            return None\n        \n        for label in range(11):\n            if label in used_labels:\n                continue\n            \n            labels[v_idx] = label\n            used_labels.add(label)\n            \n            # Check constraints with already-assigned vertices\n            valid = True\n            current_diffs = set()\n            for (u, v) in edges:\n                u_idx = get_vertex_idx(*u)\n                v_idx_e = get_vertex_idx(*v)\n                if labels[u_idx] is not None and labels[v_idx_e] is not None:\n                    diff = abs(labels[u_idx] - labels[v_idx_e])\n                    if diff == 0 or diff in used_diffs or diff in current_diffs:\n                        valid = False\n                        break\n                    current_diffs.add(diff)\n            \n            if valid:\n                new_used_diffs = used_diffs | current_diffs\n                result = backtrack(v_idx + 1, used_labels, new_used_diffs)\n                if result is not None:\n                    return result\n            \n            used_labels.remove(label)\n            labels[v_idx] = None\n        \n        return None\n    \n    result = backtrack(0, set(), set())\n    return result\n\nresult = solve()\nif result:\n    print(f\"Solution found: {result}\")\n    # Verify\n    vertices = [(g, i) for g in range(4) for i in range(2)]\n    edges = []\n    for g in range(4):\n        edges.append(((g, 0), (g, 1)))\n    for g in range(3):\n        for i in range(2):\n            edges.append(((g, i), (g+1, i)))\n    \n    diffs = []\n    for (u, v) in edges:\n        u_idx = u[0] * 2 + u[1]\n        v_idx = v[0] * 2 + v[1]\n        diff = abs(result[u_idx] - result[v_idx])\n        diffs.append(diff)\n    \n    print(f\"Edge differences: {sorted(diffs)}\")\n    print(f\"All distinct: {len(set(diffs)) == 10}\")\nelse:\n    print(\"No solution found\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 35.68
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's try using pysat for a more efficient search\nfrom pysat.solvers import Glucose3\nfrom pysat.card import *\n\ndef solve_with_sat():\n    # 8 vertices, labels 0..10\n    # We need to assign each vertex a unique label from 0..10\n    # All 10 edge differences must be distinct (1..10)\n    \n    # Variables:\n    # x[v][l] = vertex v gets label l (v=0..7, l=0..10)\n    # d[e][k] = edge e has difference k (e=0..9, k=1..10)\n    \n    # But this is complex. Let's try a different approach:\n    # Use integer programming or just smarter backtracking\n    \n    # Actually, let's try all permutations of 8 labels chosen from 0..10\n    # C(11,8) = 165 ways to choose labels\n    # 8! = 40320 permutations\n    # Total: 165 * 40320 = 6,652,800 - still manageable\n    \n    from itertools import combinations, permutations\n    \n    vertices = list(range(8))\n    \n    edges = []\n    for g in range(4):\n        edges.append((g*2, g*2+1))  # within clique\n    for g in range(3):\n        edges.append((g*2, (g+1)*2))  # between cliques, vertex 0\n        edges.append((g*2+1, (g+1)*2+1))  # between cliques, vertex 1\n    \n    print(f\"Edges: {edges}\")\n    \n    count = 0\n    for label_set in combinations(range(11), 8):\n        for perm in permutations(label_set):\n            count += 1\n            labels = list(perm)\n            \n            diffs = []\n            valid = True\n            seen_diffs = set()\n            for (u, v) in edges:\n                diff = abs(labels[u] - labels[v])\n                if diff == 0 or diff in seen_diffs:\n                    valid = False\n                    break\n                seen_diffs.add(diff)\n                diffs.append(diff)\n            \n            if valid and len(seen_diffs) == 10:\n                print(f\"Found solution after {count} attempts: {labels}\")\n                return labels\n        \n        if count % 1000000 == 0:\n            print(f\"Checked {count} permutations...\")\n    \n    print(f\"Total checked: {count}\")\n    return None\n\nresult = solve_with_sat()\nif result:\n    print(f\"Solution: {result}\")\nelse:\n    print(\"UNSATISFIABLE\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 583.43
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify the solution\nlabels = [0, 5, 10, 2, 1, 8, 3, 4]\n\nedges = []\nfor g in range(4):\n    edges.append((g*2, g*2+1))  # within clique\nfor g in range(3):\n    edges.append((g*2, (g+1)*2))  # between cliques, vertex 0\n    edges.append((g*2+1, (g+1)*2+1))  # between cliques, vertex 1\n\nprint(\"Edge differences:\")\ndiffs = []\nfor (u, v) in edges:\n    diff = abs(labels[u] - labels[v])\n    diffs.append(diff)\n    print(f\"  Edge ({u},{v}): |{labels[u]} - {labels[v]}| = {diff}\")\n\nprint(f\"\\nAll differences: {sorted(diffs)}\")\nprint(f\"Number of distinct differences: {len(set(diffs))}\")\nprint(f\"All labels unique: {len(set(labels)) == 8}\")\nprint(f\"Labels in range 0-10: {all(0 <= l <= 10 for l in labels)}\")\n",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 35.55
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[0, 5, 10, 2, 1, 8, 3, 4]",
+        "reasoning": "Found a graceful labeling for G_{2,4} by searching through permutations of 8 labels chosen from 0..10. The solution [0, 5, 10, 2, 1, 8, 3, 4] assigns unique labels to all 8 vertices such that all 10 edge differences are distinct (1, 2, 3, 4, 5, 6, 7, 8, 9, 10). Verification confirms: within-clique edges give differences 5, 8, 7, 1 and between-clique edges give differences 10, 3, 9, 6, 2, 4."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

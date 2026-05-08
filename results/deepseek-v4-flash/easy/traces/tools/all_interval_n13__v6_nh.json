@@ -1,0 +1,102 @@
+{
+  "problem_name": "all_interval_n13__v6_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 969.3,
+    "search_space": 6227020800,
+    "num_variables": 25,
+    "num_constraints": 16,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 66.35,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    9,
+    2,
+    10,
+    4,
+    7,
+    6,
+    8,
+    3,
+    12,
+    0,
+    11,
+    1,
+    5
+  ],
+  "reasoning": "Found a valid all-interval series of size 13 using a SAT solver. The sequence is a permutation of 0..12, and the absolute differences between consecutive elements are 7,8,6,3,1,2,5,9,12,11,10,4 which is a permutation of 1..12.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [9, 2, 10, 4, 7, 6, 8, 3, 12, 0, 11, 1, 5],\n    \"reasoning\": \"Found a valid all-interval series of size 13 using a SAT solver. The sequence is a permutation of 0..12, and the absolute differences between consecutive elements are 7,8,6,3,1,2,5,9,12,11,10,4 which is a permutation of 1..12.\"\n}",
+  "cot_trace": "The SAT solver found a solution: [9, 2, 10, 4, 7, 6, 8, 3, 12, 0, 11, 1, 5]. Let me verify:\n\n- Permutation of 0..12: yes, all numbers appear exactly once.\n- Differences: |9-2|=7, |2-10|=8, |10-4|=6, |4-7|=3, |7-6|=1, |6-8|=2, |8-3|=5, |3-12|=9, |12-0|=12, |0-11|=11, |11-1|=10, |1-5|=4. These are {1,2,3,4,5,6,7,8,9,10,11,12} - a permutation of 1..12.\n\nSo the problem is satisfiable.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 13127,
+  "completion_tokens": 3172,
+  "reasoning_tokens": 197,
+  "cached_tokens": 1024,
+  "cost_usd": 0.002804292,
+  "cost_source": "openrouter",
+  "latency_ms": 390949.4755268097,
+  "tool_dispatch_ms_total": 943.9547061920166,
+  "tool_calls_made": 4,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat import SAT\n\n# Let's try to find an all-interval series of size 13\n# We need a permutation of 0..12 such that differences are 1..12\n\n# Let's use a SAT solver approach\nfrom pysat.formula import CNF\nfrom pysat.solvers import Glucose3\n\n# We'll encode variables: x[i][v] = 1 if position i has value v\n# and d[i][diff] = 1 if difference between position i and i+1 is diff\n\nn = 13\nvalues = list(range(n))\ndiffs = list(range(1, n))\n\n# Create variable mapping\nvar = {}\nidx = 1\n\n# x[i][v]\nx = {}\nfor i in range(n):\n    x[i] = {}\n    for v in values:\n        x[i][v] = idx\n        var[idx] = f\"x_{i}_{v}\"\n        idx += 1\n\n# d[i][diff]\nd = {}\nfor i in range(n-1):\n    d[i] = {}\n    for diff in diffs:\n        d[i][diff] = idx\n        var[idx] = f\"d_{i}_{diff}\"\n        idx += 1\n\ntotal_vars = idx - 1\nprint(f\"Total variables: {total_vars}\")\n\n# Build CNF\ncnf = CNF()\n\n# Each position has exactly one value\nfor i in range(n):\n    # At least one\n    cnf.add_clause([x[i][v] for v in values])\n    # At most one (pairwise)\n    for v1 in range(n):\n        for v2 in range(v1+1, n):\n            cnf.add_clause([-x[i][v1], -x[i][v2]])\n\n# Each value used exactly once (already covered by above + permutation constraint)\n# But let's add: each value appears at least once\nfor v in values:\n    cnf.add_clause([x[i][v] for i in range(n)])\n\n# Each difference appears exactly once\nfor diff in diffs:\n    # At least one\n    cnf.add_clause([d[i][diff] for i in range(n-1)])\n    # At most one\n    for i1 in range(n-1):\n        for i2 in range(i1+1, n-1):\n            cnf.add_clause([-d[i1][diff], -d[i2][diff]])\n\n# Each position has exactly one difference\nfor i in range(n-1):\n    cnf.add_clause([d[i][diff] for diff in diffs])\n    for diff1 in range(1, n):\n        for diff2 in range(diff1+1, n):\n            cnf.add_clause([-d[i][diff1], -d[i][diff2]])\n\n# Link x and d: if x[i][a] and x[i+1][b] then d[i][|a-b|]\nfor i in range(n-1):\n    for a in values:\n        for b in values:\n            diff = abs(a - b)\n            if diff > 0:\n                cnf.add_clause([-x[i][a], -x[i+1][b], d[i][diff]])\n\nprint(f\"Total clauses: {len(cnf.clauses)}\")\n\n# Solve\nsolver = Glucose3(cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    # Extract solution\n    solution = [None] * n\n    for i in range(n):\n        for v in values:\n            if model[x[i][v]-1] > 0:\n                solution[i] = v\n                break\n    print(f\"Solution: {solution}\")\n    \n    # Verify\n    diffs_found = [abs(solution[i+1] - solution[i]) for i in range(n-1)]\n    print(f\"Diffs: {diffs_found}\")\n    print(f\"Sorted diffs: {sorted(diffs_found)}\")\n    print(f\"Expected: {list(range(1, n))}\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 34.82
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Glucose3\n\n# We'll encode variables: x[i][v] = 1 if position i has value v\n# and d[i][diff] = 1 if difference between position i and i+1 is diff\n\nn = 13\nvalues = list(range(n))\ndiffs = list(range(1, n))\n\n# Create variable mapping\nvar = {}\nidx = 1\n\n# x[i][v]\nx = {}\nfor i in range(n):\n    x[i] = {}\n    for v in values:\n        x[i][v] = idx\n        var[idx] = f\"x_{i}_{v}\"\n        idx += 1\n\n# d[i][diff]\nd = {}\nfor i in range(n-1):\n    d[i] = {}\n    for diff in diffs:\n        d[i][diff] = idx\n        var[idx] = f\"d_{i}_{diff}\"\n        idx += 1\n\ntotal_vars = idx - 1\nprint(f\"Total variables: {total_vars}\")\n\n# Build CNF\ncnf = CNF()\n\n# Each position has exactly one value\nfor i in range(n):\n    # At least one\n    cnf.add_clause([x[i][v] for v in values])\n    # At most one (pairwise)\n    for v1 in range(n):\n        for v2 in range(v1+1, n):\n            cnf.add_clause([-x[i][v1], -x[i][v2]])\n\n# Each value used exactly once\nfor v in values:\n    cnf.add_clause([x[i][v] for i in range(n)])\n\n# Each difference appears exactly once\nfor diff in diffs:\n    # At least one\n    cnf.add_clause([d[i][diff] for i in range(n-1)])\n    # At most one\n    for i1 in range(n-1):\n        for i2 in range(i1+1, n-1):\n            cnf.add_clause([-d[i1][diff], -d[i2][diff]])\n\n# Each position has exactly one difference\nfor i in range(n-1):\n    cnf.add_clause([d[i][diff] for diff in diffs])\n    for diff1 in range(1, n):\n        for diff2 in range(diff1+1, n):\n            cnf.add_clause([-d[i][diff1], -d[i][diff2]])\n\n# Link x and d: if x[i][a] and x[i+1][b] then d[i][|a-b|]\nfor i in range(n-1):\n    for a in values:\n        for b in values:\n            diff = abs(a - b)\n            if diff > 0:\n                cnf.add_clause([-x[i][a], -x[i+1][b], d[i][diff]])\n\nprint(f\"Total clauses: {len(cnf.clauses)}\")\n\n# Solve\nsolver = Glucose3(cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    # Extract solution\n    solution = [None] * n\n    for i in range(n):\n        for v in values:\n            if model[x[i][v]-1] > 0:\n                solution[i] = v\n                break\n    print(f\"Solution: {solution}\")\n    \n    # Verify\n    diffs_found = [abs(solution[i+1] - solution[i]) for i in range(n-1)]\n    print(f\"Diffs: {diffs_found}\")\n    print(f\"Sorted diffs: {sorted(diffs_found)}\")\n    print(f\"Expected: {list(range(1, n))}\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 224.36
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import pysat\nprint(dir(pysat))\nfrom pysat.formula import CNF\nprint(dir(CNF))\nhelp(CNF.__init__)",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 331.13
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Glucose3\n\nn = 13\nvalues = list(range(n))\ndiffs = list(range(1, n))\n\n# Create variable mapping\nidx = 1\n\n# x[i][v]\nx = {}\nfor i in range(n):\n    x[i] = {}\n    for v in values:\n        x[i][v] = idx\n        idx += 1\n\n# d[i][diff]\nd = {}\nfor i in range(n-1):\n    d[i] = {}\n    for diff in diffs:\n        d[i][diff] = idx\n        idx += 1\n\ntotal_vars = idx - 1\nprint(f\"Total variables: {total_vars}\")\n\n# Build CNF\ncnf = CNF()\n\n# Each position has exactly one value\nfor i in range(n):\n    # At least one\n    cnf.append([x[i][v] for v in values])\n    # At most one (pairwise)\n    for v1 in range(n):\n        for v2 in range(v1+1, n):\n            cnf.append([-x[i][v1], -x[i][v2]])\n\n# Each value used exactly once\nfor v in values:\n    cnf.append([x[i][v] for i in range(n)])\n\n# Each difference appears exactly once\nfor diff in diffs:\n    # At least one\n    cnf.append([d[i][diff] for i in range(n-1)])\n    # At most one\n    for i1 in range(n-1):\n        for i2 in range(i1+1, n-1):\n            cnf.append([-d[i1][diff], -d[i2][diff]])\n\n# Each position has exactly one difference\nfor i in range(n-1):\n    cnf.append([d[i][diff] for diff in diffs])\n    for diff1 in range(1, n):\n        for diff2 in range(diff1+1, n):\n            cnf.append([-d[i][diff1], -d[i][diff2]])\n\n# Link x and d: if x[i][a] and x[i+1][b] then d[i][|a-b|]\nfor i in range(n-1):\n    for a in values:\n        for b in values:\n            diff = abs(a - b)\n            if diff > 0:\n                cnf.append([-x[i][a], -x[i+1][b], d[i][diff]])\n\nprint(f\"Total clauses: {len(cnf.clauses)}\")\n\n# Solve\nsolver = Glucose3(cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    # Extract solution\n    solution = [None] * n\n    for i in range(n):\n        for v in values:\n            if model[x[i][v]-1] > 0:\n                solution[i] = v\n                break\n    print(f\"Solution: {solution}\")\n    \n    # Verify\n    diffs_found = [abs(solution[i+1] - solution[i]) for i in range(n-1)]\n    print(f\"Diffs: {diffs_found}\")\n    print(f\"Sorted diffs: {sorted(diffs_found)}\")\n    print(f\"Expected: {list(range(1, n))}\")\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 353.64
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

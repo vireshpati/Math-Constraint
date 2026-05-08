@@ -1,0 +1,70 @@
+{
+  "problem_name": "pysms_mtf_vertices16__v7_nh",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 16
+  },
+  "difficulty": {
+    "solve_time_ms": 105.9,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 28,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 43.8,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[[0, 8], [0, 9], [0, 10], [0, 11], [0, 12], [0, 13], [0, 14], [0, 15], [1, 8], [1, 9], [1, 10], [1, 11], [1, 12], [1, 13], [1, 14], [1, 15], [2, 8], [2, 9], [2, 10], [2, 11], [2, 12], [2, 13], [2, 14], [2, 15], [3, 8], [3, 9], [3, 10], [3, 11], [3, 12], [3, 13], [3, 14], [3, 15], [4, 8], [4, 9], [4, 10], [4, 11], [4, 12], [4, 13], [4, 14], [4, 15], [5, 8], [5, 9], [5, 10], [5, 11], [5, 12], [5, 13], [5, 14], [5, 15], [6, 8], [6, 9], [6, 10], [6, 11], [6, 12], [6, 13], [6, 14], [6, 15], [7, 8], [7, 9], [7, 10], [7, 11], [7, 12], [7, 13], [7, 14], [7, 15]]",
+  "reasoning": "The complete bipartite graph K_{8,8} is a maximal triangle-free graph on 16 vertices. By Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on n vertices is achieved by the complete bipartite graph with partitions as equal as possible. For n=16, this is K_{8,8} with 64 edges. The graph is triangle-free because bipartite graphs have no odd cycles, and it's maximal because adding any edge within a partition would create a triangle (since every vertex in one partition is already connected to all vertices in the other partition).",
+  "raw_response": null,
+  "cot_trace": "The problem asks for a maximal triangle-free graph with 16 vertices. Let me understand what this means:\n\n1. Triangle-free: The graph contains no triangles (no 3 vertices that are all connected to each other).\n2. Maximal: Adding any edge to the graph would create a triangle. In other words, for any pair of non-adjacent vertices (u, v), there exists a vertex w such that both (u, w) and (v, w) are edges.\n\nA maximal triangle-free graph is also known as a \"maximal K3-free graph\".\n\nOne well-known construction of maximal triangle-free graphs is the complete bipartite graph K_{n/2, n/2} when n is even. For n=16, this would be K_{8,8}.\n\nLet me verify:\n- K_{8,8} is triangle-free because it's bipartite (no odd cycles).\n- K_{8,8} is maximal triangle-free because any edge added within one partition would create a triangle with any vertex from the other partition.\n\nSo K_{8,8} is a maximal triangle-free graph with 16 vertices.\n\nThe edges of K_{8,8} would be all pairs (u, v) where u is in {0, 1, ..., 7} and v is in {8, 9, ..., 15}.\n\nLet me generate this:\n- Vertices 0-7 form one partition\n- Vertices 8-15 form the other partition\n- Edges are all (u, v) where 0 <= u <= 7 and 8 <= v <= 15\n\nThis gives 8 * 8 = 64 edges.\n\nLet me verify this is correct by writing a quick Python script.\n\n---\nThe complete bipartite graph K_{8,8} is a maximal triangle-free graph with 16 vertices. It has 64 edges, which is the maximum possible for a triangle-free graph on 16 vertices (by Tur\u00e1n's theorem, the maximum is achieved by the complete bipartite graph with equal partitions).\n\nLet me submit the answer.\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 2026,
+  "completion_tokens": 1573,
+  "reasoning_tokens": 456,
+  "cached_tokens": 0,
+  "cost_usd": 0.0037258,
+  "cost_source": "openrouter",
+  "latency_ms": 30828.847408294678,
+  "tool_dispatch_ms_total": 380.4011344909668,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Generate K_{8,8} as a maximal triangle-free graph with 16 vertices\n# Partition 1: vertices 0-7\n# Partition 2: vertices 8-15\n\nedges = []\nfor u in range(8):\n    for v in range(8, 16):\n        edges.append((u, v))\n\nprint(f\"Number of edges: {len(edges)}\")\nprint(\"First 10 edges:\", edges[:10])\n\n# Verify triangle-free\ndef is_triangle_free(n, edges):\n    adj = {i: set() for i in range(n)}\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    for u in range(n):\n        for v in adj[u]:\n            if v > u:\n                for w in adj[u]:\n                    if w > v and w in adj[v]:\n                        return False, (u, v, w)\n    return True, None\n\ntriangle_free, triangle = is_triangle_free(16, edges)\nprint(f\"Triangle-free: {triangle_free}\")\nif not triangle_free:\n    print(f\"Triangle found: {triangle}\")\n\n# Verify maximal: for every non-edge (u,v), there should be a w such that (u,w) and (v,w) are edges\ndef is_maximal_triangle_free(n, edges):\n    adj = {i: set() for i in range(n)}\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    for u in range(n):\n        for v in range(u+1, n):\n            if v not in adj[u]:  # non-edge\n                # Check if there's a common neighbor\n                common = adj[u] & adj[v]\n                if not common:\n                    return False, (u, v)\n    return True, None\n\nmaximal, non_maximal_pair = is_maximal_triangle_free(16, edges)\nprint(f\"Maximal: {maximal}\")\nif not maximal:\n    print(f\"Non-maximal pair: {non_maximal_pair}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 380.4
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[[0, 8], [0, 9], [0, 10], [0, 11], [0, 12], [0, 13], [0, 14], [0, 15], [1, 8], [1, 9], [1, 10], [1, 11], [1, 12], [1, 13], [1, 14], [1, 15], [2, 8], [2, 9], [2, 10], [2, 11], [2, 12], [2, 13], [2, 14], [2, 15], [3, 8], [3, 9], [3, 10], [3, 11], [3, 12], [3, 13], [3, 14], [3, 15], [4, 8], [4, 9], [4, 10], [4, 11], [4, 12], [4, 13], [4, 14], [4, 15], [5, 8], [5, 9], [5, 10], [5, 11], [5, 12], [5, 13], [5, 14], [5, 15], [6, 8], [6, 9], [6, 10], [6, 11], [6, 12], [6, 13], [6, 14], [6, 15], [7, 8], [7, 9], [7, 10], [7, 11], [7, 12], [7, 13], [7, 14], [7, 15]]",
+        "reasoning": "The complete bipartite graph K_{8,8} is a maximal triangle-free graph on 16 vertices. By Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on n vertices is achieved by the complete bipartite graph with partitions as equal as possible. For n=16, this is K_{8,8} with 64 edges. The graph is triangle-free because bipartite graphs have no odd cycles, and it's maximal because adding any edge within a partition would create a triangle (since every vertex in one partition is already connected to all vertices in the other partition)."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

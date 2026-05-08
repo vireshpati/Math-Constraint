@@ -1,0 +1,70 @@
+{
+  "problem_name": "all_interval_n14__v1_h",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 993.6,
+    "search_space": 87178291200,
+    "num_variables": 27,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 69.74,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "empty_response",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 3127,
+  "completion_tokens": 2766,
+  "reasoning_tokens": 0,
+  "cached_tokens": 512,
+  "cost_usd": 0.001229576,
+  "cost_source": "openrouter",
+  "latency_ms": 366361.06991767883,
+  "tool_dispatch_ms_total": 107.76305198669434,
+  "tool_calls_made": 2,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat import CNF, Solver\nfrom pysat.card import CardEnc\n\nn = 14\n\n# We'll use Python with backtracking or use pysat\n# Let's think about encoding this as SAT\n\n# Variables:\n# x[i] = value at position i (0..13)\n# d[i] = |x[i+1] - x[i]| for i=0..12\n\n# We have fixed: x[6]=3, x[12]=6, d[3]=10, d[11]=2\n\n# Let's try a simple backtracking approach first with constraint propagation\n\ndef solve_all_interval(n, fixed_x, fixed_d):\n    # fixed_x: dict pos->value\n    # fixed_d: dict pos->diff (for diff between pos and pos+1)\n    \n    # x values: 0..n-1\n    # d values: 1..n-1\n    \n    all_vals = set(range(n))\n    all_diffs = set(range(1, n))\n    \n    # We'll use backtracking with pruning\n    \n    x = [None] * n\n    d = [None] * (n-1)\n    \n    # Apply fixed values\n    for pos, val in fixed_x.items():\n        x[pos] = val\n    for pos, val in fixed_d.items():\n        d[pos] = val\n    \n    used_vals = set(v for v in x if v is not None)\n    used_diffs = set(v for v in d if v is not None)\n    \n    # Check consistency\n    if len(used_vals) != sum(1 for v in x if v is not None):\n        return None\n    if len(used_diffs) != sum(1 for v in d if v is not None):\n        return None\n    \n    # Check that fixed diffs are consistent with fixed x values\n    for i in range(n-1):\n        if x[i] is not None and x[i+1] is not None and d[i] is not None:\n            if abs(x[i] - x[i+1]) != d[i]:\n                return None\n    \n    # Order of filling: let's try positions that are most constrained\n    \n    def backtrack():\n        nonlocal x, d\n        \n        # Check if complete\n        if all(v is not None for v in x) and all(v is not None for v in d):\n            # Verify all constraints\n            for i in range(n-1):\n                if abs(x[i] - x[i+1]) != d[i]:\n                    return None\n            if set(x) != set(range(n)):\n                return None\n            if set(d) != set(range(1, n)):\n                return None\n            return x[:]\n        \n        # Find most constrained variable\n        # For x positions\n        best_var = None\n        best_domain_size = float('inf')\n        \n        for i in range(n):\n            if x[i] is None:\n                # Compute possible values\n                possible = set(range(n)) - used_vals\n                # Also check consistency with adjacent diffs\n                for val in list(possible):\n                    ok = True\n                    if i > 0 and d[i-1] is not None:\n                        if abs(x[i-1] - val) != d[i-1]:\n                            ok = False\n                    if i < n-1 and d[i] is not None:\n                        if abs(val - x[i+1]) != d[i]:\n                            ok = False\n                    if not ok:\n                        possible.remove(val)\n                if len(possible) < best_domain_size:\n                    best_domain_size = len(possible)\n                    best_var = ('x', i, possible)\n        \n        for i in range(n-1):\n            if d[i] is None:\n                possible = set(range(1, n)) - used_diffs\n                for val in list(possible):\n                    ok = True\n                    if x[i] is not None and x[i+1] is not None:\n                        if abs(x[i] - x[i+1]) != val:\n                            ok = False\n                    if not ok:\n                        possible.remove(val)\n                if len(possible) < best_domain_size:\n                    best_domain_size = len(possible)\n                    best_var = ('d', i, possible)\n        \n        if best_var is None or best_domain_size == 0:\n            return None\n        \n        typ, idx, domain = best_var\n        \n        for val in sorted(domain):\n            old_x = x[:]\n            old_d = d[:]\n            old_used_vals = used_vals.copy()\n            old_used_diffs = used_diffs.copy()\n            \n            if typ == 'x':\n                x[idx] = val\n                used_vals.add(val)\n                # Propagate: if adjacent x's are known, set d\n                if idx > 0 and x[idx-1] is not None and d[idx-1] is None:\n                    diff = abs(x[idx-1] - val)\n                    if diff in used_diffs:\n                        x[idx] = None\n                        used_vals.remove(val)\n                        continue\n                    d[idx-1] = diff\n                    used_diffs.add(diff)\n                if idx < n-1 and x[idx+1] is not None and d[idx] is None:\n                    diff = abs(val - x[idx+1])\n                    if diff in used_diffs:\n                        x[idx] = None\n                        used_vals.remove(val)\n                        continue\n                    d[idx] = diff\n                    used_diffs.add(diff)\n            else:  # d\n                d[idx] = val\n                used_diffs.add(val)\n                # Propagate: if both x's are known, check consistency\n                if x[idx] is not None and x[idx+1] is not None:\n                    if abs(x[idx] - x[idx+1]) != val:\n                        d[idx] = None\n                        used_diffs.remove(val)\n                        continue\n            \n            result = backtrack()\n            if result is not None:\n                return result\n            \n            # Restore\n            x = old_x\n            d = old_d\n            used_vals = old_used_vals\n            used_diffs = old_used_diffs\n        \n        return None\n    \n    return backtrack()\n\nfixed_x = {6: 3, 12: 6}\nfixed_d = {3: 10, 11: 2}\n\nresult = solve_all_interval(14, fixed_x, fixed_d)\nprint(\"Result:\", result)",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 35.29
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 14\n\ndef solve_all_interval(n, fixed_x, fixed_d):\n    all_vals = set(range(n))\n    all_diffs = set(range(1, n))\n    \n    x = [None] * n\n    d = [None] * (n-1)\n    \n    for pos, val in fixed_x.items():\n        x[pos] = val\n    for pos, val in fixed_d.items():\n        d[pos] = val\n    \n    used_vals = set(v for v in x if v is not None)\n    used_diffs = set(v for v in d if v is not None)\n    \n    # Check consistency\n    if len(used_vals) != sum(1 for v in x if v is not None):\n        return None\n    if len(used_diffs) != sum(1 for v in d if v is not None):\n        return None\n    \n    for i in range(n-1):\n        if x[i] is not None and x[i+1] is not None and d[i] is not None:\n            if abs(x[i] - x[i+1]) != d[i]:\n                return None\n    \n    def backtrack():\n        nonlocal x, d\n        \n        if all(v is not None for v in x) and all(v is not None for v in d):\n            for i in range(n-1):\n                if abs(x[i] - x[i+1]) != d[i]:\n                    return None\n            if set(x) != set(range(n)):\n                return None\n            if set(d) != set(range(1, n)):\n                return None\n            return x[:]\n        \n        # Find most constrained variable\n        best_var = None\n        best_domain_size = float('inf')\n        \n        for i in range(n):\n            if x[i] is None:\n                possible = set(range(n)) - used_vals\n                for val in list(possible):\n                    ok = True\n                    if i > 0 and d[i-1] is not None:\n                        if abs(x[i-1] - val) != d[i-1]:\n                            ok = False\n                    if i < n-1 and d[i] is not None:\n                        if abs(val - x[i+1]) != d[i]:\n                            ok = False\n                    if not ok:\n                        possible.remove(val)\n                if len(possible) < best_domain_size:\n                    best_domain_size = len(possible)\n                    best_var = ('x', i, possible)\n        \n        for i in range(n-1):\n            if d[i] is None:\n                possible = set(range(1, n)) - used_diffs\n                for val in list(possible):\n                    ok = True\n                    if x[i] is not None and x[i+1] is not None:\n                        if abs(x[i] - x[i+1]) != val:\n                            ok = False\n                    if not ok:\n                        possible.remove(val)\n                if len(possible) < best_domain_size:\n                    best_domain_size = len(possible)\n                    best_var = ('d', i, possible)\n        \n        if best_var is None or best_domain_size == 0:\n            return None\n        \n        typ, idx, domain = best_var\n        \n        for val in sorted(domain):\n            old_x = x[:]\n            old_d = d[:]\n            old_used_vals = used_vals.copy()\n            old_used_diffs = used_diffs.copy()\n            \n            if typ == 'x':\n                x[idx] = val\n                used_vals.add(val)\n                \n                # Propagate to adjacent diffs\n                conflict = False\n                if idx > 0 and x[idx-1] is not None:\n                    diff = abs(x[idx-1] - val)\n                    if d[idx-1] is not None:\n                        if d[idx-1] != diff:\n                            conflict = True\n                    else:\n                        if diff in used_diffs:\n                            conflict = True\n                        else:\n                            d[idx-1] = diff\n                            used_diffs.add(diff)\n                \n                if not conflict and idx < n-1 and x[idx+1] is not None:\n                    diff = abs(val - x[idx+1])\n                    if d[idx] is not None:\n                        if d[idx] != diff:\n                            conflict = True\n                    else:\n                        if diff in used_diffs:\n                            conflict = True\n                        else:\n                            d[idx] = diff\n                            used_diffs.add(diff)\n                \n                if conflict:\n                    x[idx] = None\n                    used_vals.remove(val)\n                    # Restore any d changes\n                    x = old_x\n                    d = old_d\n                    used_vals = old_used_vals\n                    used_diffs = old_used_diffs\n                    continue\n            else:  # d\n                d[idx] = val\n                used_diffs.add(val)\n                \n                conflict = False\n                if x[idx] is not None and x[idx+1] is not None:\n                    if abs(x[idx] - x[idx+1]) != val:\n                        conflict = True\n                \n                if conflict:\n                    d[idx] = None\n                    used_diffs.remove(val)\n                    continue\n            \n            result = backtrack()\n            if result is not None:\n                return result\n            \n            # Restore\n            x = old_x\n            d = old_d\n            used_vals = old_used_vals\n            used_diffs = old_used_diffs\n        \n        return None\n    \n    return backtrack()\n\nfixed_x = {6: 3, 12: 6}\nfixed_d = {3: 10, 11: 2}\n\nresult = solve_all_interval(14, fixed_x, fixed_d)\nprint(\"Result:\", result)",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 72.48
+    }
+  ],
+  "error": "parse_failure: empty",
+  "failure_bucket": "parse_failure",
+  "forced_submit": false
+}

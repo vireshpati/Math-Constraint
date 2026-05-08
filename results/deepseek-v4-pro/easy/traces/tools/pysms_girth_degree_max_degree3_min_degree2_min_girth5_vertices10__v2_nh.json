@@ -1,0 +1,115 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree3_min_degree2_min_girth5_vertices10__v2_nh",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 3,
+    "min_degree": 2,
+    "min_girth": 5,
+    "vertices": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 11.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 12,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 5.83,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      6,
+      9
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      4,
+      9
+    ]
+  ],
+  "reasoning": "The Petersen graph on 10 vertices is 3-regular (all vertices degree 3) and has girth 5, satisfying the degree constraints (2-3) and the minimum cycle length of 5.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,1],[1,2],[2,3],[3,4],[0,4],[5,7],[7,9],[6,9],[6,8],[5,8],[0,5],[1,6],[2,7],[3,8],[4,9]],\n    \"reasoning\": \"The Petersen graph on 10 vertices is 3-regular (all vertices degree 3) and has girth 5, satisfying the degree constraints (2-3) and the minimum cycle length of 5.\"\n}",
+  "cot_trace": "We need to generate a graph with 10 vertices, girth at least 5 (i.e., no cycles of length 3 or 4), and every vertex has degree between 2 and 3 inclusive. So it's a graph with minimum degree 2, maximum degree 3, and girth >= 5.\n\nWe need to output edges as list of pairs (u,v) with u<v.\n\nWe need to determine if such a graph exists. This is a constraint satisfaction problem. We can try to construct or use SAT solver.\n\nLet's think: A graph with 10 vertices, degrees 2 or 3, girth >=5. The sum of degrees must be even. Let's see possible degree sequences. Each vertex degree 2 or 3. Let n2 be number of degree-2 vertices, n3 degree-3. n2 + n3 = 10. Sum degrees = 2*n2 + 3*n3 = 2*(10 - n3) + 3*n3 = 20 + n3. Must be even, so n3 must be even. So n3 can be 0,2,4,6,8,10. But minimum degree 2, so n3=0 gives all degree 2, which would be a collection of cycles. Girth >=5 means each cycle length >=5. With 10 vertices, all degree 2, we could have two 5-cycles (disconnected). But the problem might expect a connected graph? It doesn't specify connected. But typically \"graph\" could be disconnected. However, girth is defined as the length of the shortest cycle; if graph is disconnected, girth is the minimum over all cycles in any component. So two 5-cycles would have girth 5. That satisfies. But degree 2 for all vertices, that's allowed. But maybe they want a connected graph? Not specified. Let's check: \"Generate a graph with 10 vertices where the girth (shortest cycle) is at least 5 and every vertex has degree between 2 and 3.\" So all degree 2 is allowed. But is there a connected graph with these properties? Let's explore.\n\nWe can try to find a graph using SAT or search.\n\nLet's use Python with networkx or custom SAT.\n\nWe'll try to use python-constraint or just brute force search? 10 vertices, edges possible: C(10,2)=45. Too many for brute force.\n\nWe can use SAT solver (pysat). Let's formulate.\n\nWe need to encode:\n- Each vertex degree between 2 and 3.\n- No cycles of length 3 or 4 (girth >=5). Actually girth at least 5 means no cycles of length <5, i.e., no triangles, no 4-cycles.\n\nWe can encode edge variables e_ij for i<j.\n\nDegree constraints: for each vertex i, sum_{j!=i} e_ij \u2208 {2,3}. (where e_ij = e_ji).\n\nCycle constraints: For each triple (i,j,k), not all three edges present (triangle). For each 4-tuple (i,j,k,l) distinct, not all four edges of a 4-cycle present. But careful: a 4-cycle is a cycle of length 4; it requires exactly four edges forming a cycle. However, we also need to forbid any cycle of length 4, which could be a subgraph. But if we forbid any set of four vertices that contain a 4-cycle, we need to forbid the presence of those four edges. However, there could be chords that make shorter cycles? Actually if a 4-cycle has a chord, then there is a triangle, which is already forbidden. So forbidding triangles and 4-cycles (induced or not) is sufficient: any cycle of length 4 is a set of 4 vertices with edges forming a cycle; if there is a chord, then there is a triangle. So we can just forbid all 4-cycles (i.e., for any distinct a,b,c,d, we cannot have edges ab, bc, cd, da all present). That's a clause: not (ab \u2227 bc \u2227 cd \u2227 da). Similarly for triangles: not (ab \u2227 bc \u2227 ca).\n\nBut there are many 4-cycles: number of ordered 4-cycles = P(10,4)/8? Actually number of distinct 4-cycles (as sets of 4 vertices with cyclic order) = (10 choose 4) * 3 = 210 * 3 = 630? Wait: For a given set of 4 vertices, there are 3 distinct 4-cycles (since there are 3 ways to pair them into two opposite edges? Actually a 4-cycle on 4 labeled vertices is determined by a cyclic ordering; there are (4-1)!/2 = 3 distinct cycles (ignoring direction). So total 4-cycles = C(10,4)*3 = 210*3=630. That's many clauses but manageable for SAT.\n\nBut we also need to ensure girth >=5, which also means no cycles of length 3 or 4. That's it.\n\nBut wait: Could there be a cycle of length 5 that is the shortest? Yes, that's allowed.\n\nSo we just need to find any graph satisfying degree bounds and no small cycles.\n\nLet's try to use SAT solver.\n\nAlternatively, we can try to construct known graphs: The Petersen graph has 10 vertices, degree 3, girth 5. Yes! The Petersen graph is a classic example: 10 vertices, 3-regular, girth 5. That satisfies all conditions: degree 3 (between 2 and 3), girth 5. So the answer is the Petersen graph.\n\nThus we can just output the edges of the Petersen graph.\n\nThe Petersen graph is usually defined with vertices as 2-element subsets of a 5-set, edges between disjoint subsets. Or we can list standard edges.\n\nStandard Petersen graph edges (0-9 labeling):\n\nOne common labeling:\nVertices 0-4 outer pentagon, 5-9 inner star, with connections.\n\nStandard adjacency:\n0: 1,4,5\n1: 0,2,6\n2: 1,3,7\n3: 2,4,8\n4: 0,3,9\n5: 0,7,8\n6: 1,8,9\n7: 2,5,9\n8: 3,5,6\n9: 4,6,7\n\nLet's verify degrees: all 3. Girth: 5 (no triangles, no 4-cycles). Yes.\n\nSo we can output edges list.\n\nBut the problem says \"Generate a graph with 10 vertices where the girth (shortest cycle) is at least 5 and every vertex has degree between 2 and 3.\" So Petersen graph qualifies.\n\nThus answer: list of edges.\n\nWe need to output as list of edges (u, v) with 0 <= u < v < 10.\n\nLet's produce edges from above adjacency, ensuring u<v.\n\nEdges:\n(0,1), (0,4), (0,5)\n(1,2), (1,6)\n(2,3), (2,7)\n(3,4), (3,8)\n(4,9)\n(5,7), (5,8)\n(6,8), (6,9)\n(7,9)\nWait also (5,0) already, (6,1), (7,2), (8,3), (9,4). Also (5,7),(5,8); (6,8),(6,9); (7,5),(7,9); (8,5),(8,6); (9,6),(9,7). Let's list all unique with u<v:\n\nFrom 0: (0,1),(0,4),(0,5)\nFrom 1: (1,2),(1,6) (0,1 already)\nFrom 2: (2,3),(2,7)\nFrom 3: (3,4),(3,8)\nFrom 4: (4,9) (0,4 and 3,4 already)\nFrom 5: (5,7),(5,8) (0,5 already)\nFrom 6: (6,8),(6,9) (1,6 already)\nFrom 7: (7,9) (2,7 and 5,7 already)\nFrom 8: (8,?) (3,8,5,8,6,8 already) none left\nFrom 9: (9,?) (4,9,6,9,7,9 already)\n\nTotal edges: 5*3/2 = 15 edges. Let's count: 3+2+2+2+1+2+2+1 = 15. Yes.\n\nSo edges list:\n(0,1), (0,4), (0,5),\n(1,2), (1,6),\n(2,3), (2,7),\n(3,4), (3,8),\n(4,9),\n(5,7), (5,8),\n(6,8), (6,9),\n(7,9)\n\nCheck all degrees: \n0: 1,4,5 -> deg3\n1: 0,2,6 -> deg3\n2: 1,3,7 -> deg3\n3: 2,4,8 -> deg3\n4: 0,3,9 -> deg3\n5: 0,7,8 -> deg3\n6: 1,8,9 -> deg3\n7: 2,5,9 -> deg3\n8: 3,5,6 -> deg3\n9: 4,6,7 -> deg3\n\nAll degree 3, girth 5.\n\nThus answer is satisfiable.\n\nWe'll output the edges as a list.\n\nBut the problem might expect a general solution or just the edges. We'll provide the list.\n\nLet's also consider if they want a graph that is not necessarily the Petersen graph; but any valid graph is fine.\n\nWe'll output the edges.\n\nWe should also mention that it's the Petersen graph.\n\nBut the instruction: \"Return the graph as a list of edges (u, v) with 0 <= u < v < 10, or state 'UNSATISFIABLE' if no graph exists.\"\n\nSo we just output the list.\n\nLet's format as a Python list or just text.\n\nI'll output the edges.\n---\nWe need to generate a graph with 10 vertices, girth at least 5 (i.e., no cycles of length 3 or 4), and every vertex has degree between 2 and 3 inclusive. So it's a graph with minimum degree 2, maximum degree 3, and girth >= 5. We need to find such a graph or determine if it's impossible.\n\nWe need to output a list of edges (u,v) with 0<=u<v<10.\n\nLet's think: Is there a known graph with these properties? The Petersen graph has 10 vertices, is 3-regular (all vertices degree 3), and has girth 5. Yes! The Petersen graph is a classic example: 10 vertices, 3-regular, girth 5. So it satisfies degree between 2 and 3 (all degree 3), girth 5. So it's satisfiable.\n\nWe can provide the edges of the Petersen graph. The standard Petersen graph can be described with vertices 0..9. There are many ways to label it. One common representation: outer pentagon (0,1,2,3,4) with edges (i, i+1 mod 5), inner star (5,6,7,8,9) with edges (5,7,9,6,8) maybe? Actually the standard Petersen graph: vertices 0-4 outer, 5-9 inner. Edges: outer cycle: (0,1), (1,2), (2,3), (3,4), (4,0). Inner star: (5,7), (7,9), (9,6), (6,8), (8,5) (this is a 5-cycle? Actually the inner star is a 5-cycle but with chords? Wait, the Petersen graph is usually drawn with a pentagon and a pentagram inside. The inner vertices are connected in a star shape: each inner vertex connects to two others forming a 5-cycle? Actually the standard construction: outer vertices 0-4, inner vertices 5-9. Edges: outer cycle (0,1),(1,2),(2,3),(3,4),(4,0). Inner edges: (5,7),(7,9),(9,6),(6,8),(8,5) \u2014 that's a 5-cycle? Let's check: 5-7-9-6-8-5 is a 5-cycle. Then spokes: each outer vertex i connects to inner vertex i+5? Actually typical: outer i connects to inner i. So (0,5), (1,6), (2,7), (3,8), (4,9). That gives a 3-regular graph. Let's verify girth: The Petersen graph has girth 5. So that works.\n\nBut we need to ensure no cycles of length 3 or 4. The Petersen graph is known to have girth 5. So it's satisfiable.\n\nWe can output the edges as a list of tuples. Let's list them:\n\nOuter cycle: (0,1), (1,2), (2,3), (3,4), (4,0)\nInner cycle: (5,7), (7,9), (9,6), (6,8), (8,5)  [Wait, is that a cycle? 5-7-9-6-8-5: yes, 5 edges]\nSpokes: (0,5), (1,6), (2,7), (3,8), (4,9)\n\nTotal edges: 5+5+5=15. Each vertex degree 3.\n\nCheck degrees: outer vertices: each has two outer edges and one spoke -> degree 3. Inner vertices: each has two inner edges and one spoke -> degree 3. So all degree 3.\n\nGirth: The shortest cycle is 5. For example, outer cycle is length 5. There are no triangles or 4-cycles.\n\nThus, this graph satisfies the conditions.\n\nWe need to output as JSON with \"satisfiable\": true, \"solution\": list of edges. The edges should be pairs with u < v.\n\nLet's write the edges:\n\n(0,1), (1,2), (2,3), (3,4), (0,4) [since 4-0, but 0<4 so (0,4)]\n(5,7), (7,9), (6,9) [9,6 -> (6,9)], (6,8), (5,8) [8,5 -> (5,8)]\n(0,5), (1,6), (2,7), (3,8), (4,9)\n\nCheck: (5,7): 5<7 ok; (7,9): 7<9 ok; (6,9): 6<9 ok; (6,8): 6<8 ok; (5,8): 5<8 ok.\n\nSo list: [[0,1],[1,2],[2,3],[3,4],[0,4],[5,7],[7,9],[6,9],[6,8],[5,8],[0,5],[1,6],[2,7],[3,8],[4,9]]\n\nBut we need to ensure that the graph is simple, no multiple edges. Yes.\n\nWe could also use a different labeling. But this is fine.\n\nThus answer: satisfiable: true, solution: list of edges.\n\nWe should provide reasoning: \"The Petersen graph on 10 vertices is 3-regular and has girth 5, satisfying all conditions.\"\n\nLet's output JSON.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 1223,
+  "completion_tokens": 3721,
+  "reasoning_tokens": 2694,
+  "cached_tokens": 512,
+  "cost_usd": 0.0179679,
+  "cost_source": "openrouter",
+  "latency_ms": 331855.8111190796,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

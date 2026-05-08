@@ -1,0 +1,162 @@
+{
+  "problem_name": "pysms_independent_connectivity_max_independent_set5_min_connectivity2_vertices11__v10_nh",
+  "problem_type": "pysms_independent_connectivity",
+  "params": {
+    "max_independent_set": 5,
+    "min_connectivity": 2,
+    "vertices": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 106.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 55,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 44.55,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      8,
+      9
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      10,
+      0
+    ]
+  ],
+  "reasoning": "A cycle graph C11 on 11 vertices satisfies both conditions: (1) its independence number is floor(11/2) = 5, which is \u2264 5, and (2) its vertex-connectivity is 2 (removing any single vertex leaves a path, which is connected), satisfying \u03ba(G) \u2265 2.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 2375,
+  "completion_tokens": 1038,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.0007864,
+  "cost_source": "openrouter",
+  "latency_ms": 80339.7147655487,
+  "tool_dispatch_ms_total": 35.643577575683594,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Check cycle C11\nn = 11\nedges = [(i, (i+1) % n) for i in range(n)]\n\n# Check independence number\ndef max_independent_set(edges, n):\n    # brute force for small n\n    best = 0\n    for r in range(n, 0, -1):\n        for combo in itertools.combinations(range(n), r):\n            ok = True\n            for u, v in edges:\n                if u in combo and v in combo:\n                    ok = False\n                    break\n            if ok:\n                return r\n    return 0\n\nalpha = max_independent_set(edges, n)\nprint(f\"Independence number: {alpha}\")\n\n# Check vertex connectivity\n# A cycle has vertex connectivity 2\n# Let's verify by checking if removing any single vertex leaves the graph connected\ndef is_connected(edges, n, removed=None):\n    if removed is None:\n        vertices = list(range(n))\n    else:\n        vertices = [v for v in range(n) if v != removed]\n    if len(vertices) <= 1:\n        return True\n    adj = {v: [] for v in vertices}\n    for u, v in edges:\n        if u in vertices and v in vertices:\n            adj[u].append(v)\n            adj[v].append(u)\n    # BFS\n    visited = set()\n    stack = [vertices[0]]\n    while stack:\n        v = stack.pop()\n        if v in visited:\n            continue\n        visited.add(v)\n        for nb in adj[v]:\n            if nb not in visited:\n                stack.append(nb)\n    return len(visited) == len(vertices)\n\nkappa = n  # start high\nfor v in range(n):\n    if not is_connected(edges, n, removed=v):\n        kappa = 0\n        break\nelse:\n    # check if removing any single vertex disconnects\n    # for cycle, removing any vertex leaves a path which is connected\n    kappa = 2  # cycle has connectivity 2\n\nprint(f\"Vertex connectivity: at least 2 (cycle)\")\n\n# Let's also check if removing any 1 vertex disconnects\nfor v in range(n):\n    conn = is_connected(edges, n, removed=v)\n    print(f\"  Remove {v}: connected = {conn}\")"
+      },
+      "ok": true,
+      "latency_ms": 35.64
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            0
+          ]
+        ],
+        "reasoning": "A cycle graph C11 on 11 vertices satisfies both conditions: (1) its independence number is floor(11/2) = 5, which is \u2264 5, and (2) its vertex-connectivity is 2 (removing any single vertex leaves a path, which is connected), satisfying \u03ba(G) \u2265 2."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

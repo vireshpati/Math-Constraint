@@ -1,0 +1,97 @@
+{
+  "problem_name": "graceful_graph_k3_p4__v3_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1447.9,
+    "search_space": 12855002631049216,
+    "num_variables": 33,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 86.28,
+    "solve_pct_type": 68.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    3,
+    21,
+    15,
+    20,
+    0,
+    1,
+    7,
+    2,
+    17,
+    16,
+    5,
+    9
+  ],
+  "reasoning": "Used Z3 to find graceful labeling respecting fixed partial assignments. Verified all 21 edge differences are distinct and cover {1..21}.",
+  "raw_response": null,
+  "cot_trace": " I'm working with a graph structure G_{3,4} composed of 4 cliques of K_3 each, where vertices are labeled by group and position, connected both within their cliques and across adjacent groups through a systematic edge pattern\u201421 edges total that need graceful labeling with distinct values from 0 to 21.\n\nI've got some partial assignments: vertex labels x[2]=15 and x[4]=0, plus edge labels d[6]=5, d[9]=11, d[15]=13, d[18]=9. Now I'm figuring out the edge indexing scheme\u2014it looks like intra-clique edges come first (3 edges per clique, so indices 0-11), followed by inter-clique edges connecting corresponding vertices across adjacent groups (indices 12-20). With this ordering, I can map which edges those d values correspond to and continue building out the labeling.\n\nSetting up a constraint solver...",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 4369,
+  "completion_tokens": 1914,
+  "reasoning_tokens": 206,
+  "cached_tokens": 0,
+  "cost_usd": 0.06969500000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 31052.956342697144,
+  "tool_dispatch_ms_total": 1159.9235534667969,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\nfrom z3 import *\n\n# Vertex index: clique g, vertex i -> 3*g + i, g=0..3, i=0..2\n# Edges:\n# Intra-clique edges for g=0..3: (g,0)-(g,1), (g,0)-(g,2), (g,1)-(g,2)\n#   indices 3g, 3g+1, 3g+2  (so 0..11)\n# Inter-clique edges for g=0..2, i=0..2: (g,i)-(g+1,i)\n#   indices 12 + 3g + i  (so 12..20)\n\nedges = []\nfor g in range(4):\n    edges.append((3*g+0, 3*g+1))\n    edges.append((3*g+0, 3*g+2))\n    edges.append((3*g+1, 3*g+2))\nfor g in range(3):\n    for i in range(3):\n        edges.append((3*g+i, 3*(g+1)+i))\n\nprint(len(edges))\nfor idx in [6, 9, 15, 18]:\n    print(idx, edges[idx])\n\nx = [Int(f'x{i}') for i in range(12)]\ns = Solver()\nfor xi in x:\n    s.add(xi >= 0, xi <= 21)\ns.add(Distinct(x))\n\n# Partial vertex assignments\ns.add(x[2] == 15)\ns.add(x[4] == 0)\n\n# Edge diff variables\nd = []\nfor (u,v) in edges:\n    di = If(x[u] - x[v] >= 0, x[u] - x[v], x[v] - x[u])\n    d.append(di)\n\ns.add(Distinct(d))\nfor di in d:\n    s.add(di >= 1, di <= 21)\n\n# Partial edge constraints\ns.add(d[6] == 5)\ns.add(d[9] == 11)\ns.add(d[15] == 13)\ns.add(d[18] == 9)\n\nif s.check() == sat:\n    m = s.model()\n    sol = [m[xi].as_long() for xi in x]\n    print(\"SAT:\", sol)\n    # verify\n    diffs = [abs(sol[u]-sol[v]) for (u,v) in edges]\n    print(\"diffs:\", sorted(diffs))\n    print(\"distinct:\", len(set(diffs))==21)\nelse:\n    print(\"UNSAT\")\n"
+      },
+      "ok": true,
+      "latency_ms": 1159.92
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Used Z3 to find graceful labeling respecting fixed partial assignments. Verified all 21 edge differences are distinct and cover {1..21}.",
+        "satisfiable": true,
+        "solution": [
+          3,
+          21,
+          15,
+          20,
+          0,
+          1,
+          7,
+          2,
+          17,
+          16,
+          5,
+          9
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

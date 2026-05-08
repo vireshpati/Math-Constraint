@@ -1,0 +1,119 @@
+{
+  "problem_name": "graceful_graph_k3_p5__v2_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1655.4,
+    "search_space": 5097655355238390956032,
+    "num_variables": 42,
+    "num_constraints": 31,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 88.91,
+    "solve_pct_type": 81.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    27,
+    2,
+    26,
+    5,
+    8,
+    3,
+    23,
+    4,
+    20,
+    13,
+    17,
+    6,
+    25
+  ],
+  "reasoning": "Using OR-Tools CP-SAT solver, I found a valid graceful labeling for G_{3,5}. The 15 vertices are labeled with distinct integers from 0 to 27, and the 27 edges produce all distinct differences from 1 to 27. The labels are ordered by clique then vertex within clique: Clique 0: [0,1,27], Clique 1: [2,26,5], Clique 2: [8,3,23], Clique 3: [4,20,13], Clique 4: [17,6,25].",
+  "raw_response": null,
+  "cot_trace": " We need to find a graceful labeling for a specific graph G_{3,5}: 5 disjoint K_3 cliques (numbered 0 through 4), where each pair of consecutive cliques (g, g+1) is connected by 3 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..2. The graph has 15 vertices and 27 edges in total.\n\nA graceful labeling assigns each vertex a unique label from 0 to 27 such that all edge labels |label(u) - label(v)| are distinct.\n\nReturn a list of 15 integers giving the vertex labels, ordered by clique then vertex within clique (so the i-th block of 3 consecutive entries gives the labels for clique i), or state \"UNSATISFIABLE\" if no such labeling exists.\n\nWe need to determine if there exists a graceful labeling. This is a specific graph: 5 copies of K_3 arranged in a path, with matching edges between corresponding vertices. So vertices: for g in 0..4, i in 0..2, vertex (g,i). Edges: within each clique, all 3 pairs: (g,0)-(g,1), (g,0)-(g,2), (g,1)-(g,2). That's 5*3 = 15 edges. Between cliques: for g=0..3, i=0..2, edge (g,i)-(g+1,i). That's 4*3 = 12 edges. Total 27 edges. So we need labels 0..27 assigned to 15 vertices, all distinct, such that the 27 absolute differences are exactly 1..27 (or at least distinct; since there are 27 edges and possible differences from 1 to 27, they must be exactly 1..27). Actually the definition of graceful labeling: labels are distinct integers from 0 to m (where m is number of edges), and edge labels (absolute differences) are all distinct. Since there are 27 edges, the edge labels must be a set of 27 distinct positive integers. The maximum possible difference is 27 (since labels are between 0 and 27). So the edge labels must be exactly {1,2,...,27}. So we need a labeling.\n\nThis is a known problem: graceful labeling of \"ladder-like\" graphs or \"prism\" graphs? Actually G_{3,5} is a triangular ladder? It's like a path of 5 triangles with rungs connecting corresponding vertices. This is also known as the \"triangular snake\" or \"triangular ladder\"? Let's think.\n\nGraph: vertices arranged in 5 columns (cliques) of 3 vertices each. Within each column, it's a triangle. Between columns, there are 3 parallel edges connecting same-index vertices. So it's like a 3-layer path graph with triangles in each layer.\n\nWe need to assign labels. Let's try to solve using Python with a SAT solver or constraint programming. Since there are only 15 vertices and labels 0..27, we could try to use OR-Tools CP-SAT or python's itertools? But 28 choose 15 is huge. Better to use a SAT solver or CP-SAT. We have pysat available? The environment says we may import pysat. But maybe easier to use OR-Tools CP-SAT if installed. Let's check. Or use python's `python-sat` (pysat). Or use `z3`? Not sure if installed. Let's try to use OR-Tools or pysat.\n\nWe can also try a backtracking search with pruning. Since the graph is relatively small, a SAT solver should handle it. Let's try to encode as a SAT problem using pysat. But pysat is a bit low-level. Alternatively, we can use `python-constraint`? Not sure. Let's just try to use `ortools.sat.python.cp_model` if available. If not, we can use `pysat` or write a simple backtracking with pruning.\n\nLet's first check what packages are available.\n---\nWe have OR-Tools, PySAT, and Z3 available. Let's model this as a constraint satisfaction problem.\n\nThe graph has 15 vertices and 27 edges. We need to assign labels 0..27 to the 15 vertices such that all edge labels are distinct.\n\nVertices: clique g (0..4), vertex i (0..2). Let's denote V[g][i].\n\nEdges:\n1. Within each clique: 3 edges forming K_3. Clique g has vertices (g,0), (g,1), (g,2). Edges: ((g,0),(g,1)), ((g,0),(g,2)), ((g,1),(g,2)). That's 5 cliques * 3 = 15 edges.\n2. Between consecutive cliques: for g in 0..3, i in 0..2, edge ((g,i), (g+1,i)). That's 4 * 3 = 12 edges.\nTotal: 15 + 12 = 27 edges.\n\nWe need all 27 edge labels |label(u)-label(v)| to be distinct. Since there are 27 edges and possible differences range from 1 to 27, the set of edge labels must be exactly {1,2,...,27}.\n\nThis is a classic graceful labeling problem. Let's try to solve it with OR-Tools CP-SAT or Z3.\n\nSince there are 15 vertices and labels 0..27, we need to choose 15 distinct labels from 0..27. The edge labels must be 1..27.\n\nLet's model it.\n\nVariables: x[g][i] in 0..27, all different.\nFor each edge (u,v), |x[u]-x[v]| must be all different.\n\nIn CP-SAT, we can use AllDifferent for vertices, and AllDifferent for edge labels.\n\nBut absolute value in CP-SAT: we can introduce auxiliary variables d[e] = |x[u]-x[v]|, with linear constraints.\n\nLet's try OR-Tools CP-SAT.\n\nActually, since the graph is relatively structured, maybe we can try a direct search or use SAT solver.\n\nLet me try OR-Tools first. \n---\n The CP-SAT solver returned INFEASIBLE, which means it proved there is no solution. But wait, let me double-check my model. The issue might be that I used `AddAbsEquality` with `x[u] - x[v]` which is a linear expression, and `AddAbsEquality` might expect a single variable. Let me check the OR-Tools documentation.\n\nActually, `AddAbsEquality` takes a target variable and a variable (not an expression). So `model.AddAbsEquality(du, x[u] - x[v])` might be invalid or causing issues.\n\nLet me rewrite the model properly.\n---\nWe found a solution! Let me verify it carefully.\n\nLabels: [0, 1, 27, 2, 26, 5, 8, 3, 23, 4, 20, 13, 17, 6, 25]\n\nClique 0: 0, 1, 27\nClique 1: 2, 26, 5\nClique 2: 8, 3, 23\nClique 3: 4, 20, 13\nClique 4: 17, 6, 25\n\nEdges within cliques:\n- Clique 0: |0-1|=1, |0-27|=27, |1-27|=26\n- Clique 1: |2-26|=24, |2-5|=3, |26-5|=21\n- Clique 2: |8-3|=5, |8-23|=15, |3-23|=20\n- Clique 3: |4-20|=16, |4-13|=9, |20-13|=7\n- Clique 4: |17-6|=11, |17-25|=8, |6-25|=19\n\nEdges between cliques:\n- Clique 0-1: |0-2|=2, |1-26|=25, |27-5|=22\n- Clique 1-2: |2-8|=6, |26-3|=23, |5-23|=18\n- Clique 2-3: |8-4|=4, |3-20|=17, |23-13|=10\n- Clique 3-4: |4-17|=13, |20-6|=14, |13-25|=12\n\nAll edge labels: 1, 27, 26, 24, 3, 21, 5, 15, 20, 16, 9, 7, 11, 8, 19, 2, 25, 22, 6, 23, 18, 4, 17, 10, 13, 14, 12\n\nSorted: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27\n\nThat's all 27 distinct values! The solution is valid.\n\nThe format requested is: a list of 15 integers giving the vertex labels, ordered by clique then vertex within clique.\n\nSo: [0, 1, 27, 2, 26, 5, 8, 3, 23, 4, 20, 13, 17, 6, 25] ",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5094,
+  "completion_tokens": 3675,
+  "reasoning_tokens": 1653,
+  "cached_tokens": 1120,
+  "cost_usd": 0.0179860918,
+  "cost_source": "openrouter",
+  "latency_ms": 267397.0146179199,
+  "tool_dispatch_ms_total": 6566.887140274048,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys, subprocess, json, math, itertools, random, time, os, textwrap, collections, functools, heapq\n\n# Check available packages\npackages = ['ortools', 'pysat', 'z3', 'python_constraint', 'pulp']\nfor pkg in packages:\n    try:\n        __import__(pkg)\n        print(pkg, 'available')\n    except ImportError:\n        print(pkg, 'NOT available')\n"
+      },
+      "ok": true,
+      "latency_ms": 410.9
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\n# Build the graph\nn_cliques = 5\nvertices_per_clique = 3\nn_vertices = n_cliques * vertices_per_clique\n\n# Vertex index: g * 3 + i\nedges = []\n# Within cliques\nfor g in range(n_cliques):\n    base = g * 3\n    edges.append((base, base+1))\n    edges.append((base, base+2))\n    edges.append((base+1, base+2))\n# Between cliques\nfor g in range(n_cliques - 1):\n    for i in range(vertices_per_clique):\n        edges.append((g*3 + i, (g+1)*3 + i))\n\nprint(f\"Number of edges: {len(edges)}\")\nassert len(edges) == 27\n\n# CP-SAT model\nmodel = cp_model.CpModel()\n\n# Vertex labels\nx = [model.NewIntVar(0, 27, f'x{v}') for v in range(n_vertices)]\nmodel.AddAllDifferent(x)\n\n# Edge label variables\nd = []\nfor (u, v) in edges:\n    du = model.NewIntVar(0, 27, f'd_{u}_{v}')\n    # du = |x[u] - x[v]|\n    model.Add(du >= x[u] - x[v])\n    model.Add(du >= x[v] - x[u])\n    model.Add(du <= x[u] - x[v] + 27 * (1 - model.NewBoolVar(f'b1_{u}_{v}'))) # This is tricky\n    # Better way: use AddAbsEquality\n    model.AddAbsEquality(du, x[u] - x[v])\n    d.append(du)\n\nmodel.AddAllDifferent(d)\n\n# Also edge labels must be >= 1 (since all different and 0 would force two vertices same label, but let's enforce)\nfor du in d:\n    model.Add(du >= 1)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30.0\nsolver.parameters.num_search_workers = 8\n\nprint(\"Solving...\")\nstatus = solver.Solve(model)\nprint(f\"Status: {status} (OPTIMAL={cp_model.OPTIMAL}, FEASIBLE={cp_model.FEASIBLE})\")\n\nif status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n    labels = [solver.Value(x[v]) for v in range(n_vertices)]\n    print(\"Labels:\", labels)\n    edge_labels = [abs(labels[u] - labels[v]) for (u,v) in edges]\n    print(\"Edge labels:\", sorted(edge_labels))\n    print(\"Distinct?\", len(set(edge_labels)) == 27)\nelse:\n    print(\"No solution found within time limit\")\n"
+      },
+      "ok": true,
+      "latency_ms": 4296.01
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\n# Build the graph\nn_cliques = 5\nvertices_per_clique = 3\nn_vertices = n_cliques * vertices_per_clique\n\n# Vertex index: g * 3 + i\nedges = []\n# Within cliques\nfor g in range(n_cliques):\n    base = g * 3\n    edges.append((base, base+1))\n    edges.append((base, base+2))\n    edges.append((base+1, base+2))\n# Between cliques\nfor g in range(n_cliques - 1):\n    for i in range(vertices_per_clique):\n        edges.append((g*3 + i, (g+1)*3 + i))\n\nprint(f\"Number of edges: {len(edges)}\")\nassert len(edges) == 27\n\n# CP-SAT model\nmodel = cp_model.CpModel()\n\n# Vertex labels\nx = [model.NewIntVar(0, 27, f'x{v}') for v in range(n_vertices)]\nmodel.AddAllDifferent(x)\n\n# Edge label variables\nd = []\nfor (u, v) in edges:\n    du = model.NewIntVar(0, 27, f'd_{u}_{v}')\n    # du = |x[u] - x[v]|\n    # Use intermediate variable for difference\n    diff = model.NewIntVar(-27, 27, f'diff_{u}_{v}')\n    model.Add(diff == x[u] - x[v])\n    model.AddAbsEquality(du, diff)\n    d.append(du)\n\nmodel.AddAllDifferent(d)\n\n# Also edge labels must be >= 1 (since all different and 0 would force two vertices same label, but let's enforce)\nfor du in d:\n    model.Add(du >= 1)\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30.0\nsolver.parameters.num_search_workers = 8\n\nprint(\"Solving...\")\nstatus = solver.Solve(model)\nprint(f\"Status: {status} (OPTIMAL={cp_model.OPTIMAL}, FEASIBLE={cp_model.FEASIBLE})\")\n\nif status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n    labels = [solver.Value(x[v]) for v in range(n_vertices)]\n    print(\"Labels:\", labels)\n    edge_labels = [abs(labels[u] - labels[v]) for (u,v) in edges]\n    print(\"Edge labels:\", sorted(edge_labels))\n    print(\"Distinct?\", len(set(edge_labels)) == 27)\nelse:\n    print(\"No solution found within time limit\")\n"
+      },
+      "ok": true,
+      "latency_ms": 1859.98
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          27,
+          2,
+          26,
+          5,
+          8,
+          3,
+          23,
+          4,
+          20,
+          13,
+          17,
+          6,
+          25
+        ],
+        "reasoning": "Using OR-Tools CP-SAT solver, I found a valid graceful labeling for G_{3,5}. The 15 vertices are labeled with distinct integers from 0 to 27, and the 27 edges produce all distinct differences from 1 to 27. The labels are ordered by clique then vertex within clique: Clique 0: [0,1,27], Clique 1: [2,26,5], Clique 2: [8,3,23], Clique 3: [4,20,13], Clique 4: [17,6,25]."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

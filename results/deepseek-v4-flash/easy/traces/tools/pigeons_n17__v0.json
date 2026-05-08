@@ -1,0 +1,68 @@
+{
+  "problem_name": "pigeons_n17__v0",
+  "problem_type": "pigeons",
+  "params": {
+    "n": 17
+  },
+  "difficulty": {
+    "solve_time_ms": 929.3,
+    "search_space": 295147905179352825856,
+    "num_variables": 17,
+    "num_constraints": 1,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 59.96,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "By the pigeonhole principle, placing 17 pigeons into 16 holes with each hole holding at most one pigeon is impossible. At least one hole would need to contain two pigeons, violating the constraint.",
+  "raw_response": "{\n    \"satisfiable\": false,\n    \"solution\": null,\n    \"reasoning\": \"By the pigeonhole principle, placing 17 pigeons into 16 holes with each hole holding at most one pigeon is impossible. At least one hole would need to contain two pigeons, violating the constraint.\"\n}",
+  "cot_trace": "The problem is a classic pigeonhole principle: 17 pigeons into 16 holes, each hole at most one pigeon. This is impossible. So unsatisfiable.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Correct UNSAT",
+  "prompt_tokens": 3029,
+  "completion_tokens": 566,
+  "reasoning_tokens": 32,
+  "cached_tokens": 512,
+  "cost_usd": 0.000575796,
+  "cost_source": "openrouter",
+  "latency_ms": 83989.86673355103,
+  "tool_dispatch_ms_total": 68.48812103271484,
+  "tool_calls_made": 2,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat import SATSolver\n\n# 17 pigeons, 16 holes (0..15)\n# Variables: x[i][h] means pigeon i goes to hole h\n# We'll encode: each pigeon exactly one hole, each hole at most one pigeon\n\nn_pigeons = 17\nn_holes = 16\n\n# Map (i, h) to a unique variable index (1-based for pysat)\ndef var(i, h):\n    return i * n_holes + h + 1\n\nsolver = SATSolver(name='glucose4')\n\n# Each pigeon must be in exactly one hole\nfor i in range(n_pigeons):\n    # at least one hole\n    solver.add_clause([var(i, h) for h in range(n_holes)])\n    # at most one hole: pairwise negative\n    for h1 in range(n_holes):\n        for h2 in range(h1+1, n_holes):\n            solver.add_clause([-var(i, h1), -var(i, h2)])\n\n# Each hole at most one pigeon\nfor h in range(n_holes):\n    for i1 in range(n_pigeons):\n        for i2 in range(i1+1, n_pigeons):\n            solver.add_clause([-var(i1, h), -var(i2, h)])\n\nresult = solver.solve()\nprint(\"SAT\" if result else \"UNSAT\")"
+      },
+      "ok": false,
+      "latency_ms": 33.89
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import pysat\nprint(dir(pysat))"
+      },
+      "ok": true,
+      "latency_ms": 34.6
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

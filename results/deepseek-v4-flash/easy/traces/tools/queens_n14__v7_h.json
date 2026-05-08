@@ -1,0 +1,110 @@
+{
+  "problem_name": "queens_n14__v7_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 1143.3,
+    "search_space": 11112006825558016,
+    "num_variables": 14,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 78.01,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    2,
+    0,
+    7,
+    10,
+    4,
+    9,
+    1,
+    13,
+    11,
+    6,
+    8,
+    12,
+    5,
+    3
+  ],
+  "reasoning": "The 14-Queens problem is satisfiable. Using backtracking with constraint propagation, we found a valid solution where q[4]=4 and q[6]=1 as required. The solution places queens such that no two share a row, column, or diagonal.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3881,
+  "completion_tokens": 1021,
+  "reasoning_tokens": 0,
+  "cached_tokens": 1024,
+  "cost_usd": 0.0007145319999999999,
+  "cost_source": "openrouter",
+  "latency_ms": 59143.35036277771,
+  "tool_dispatch_ms_total": 68.61352920532227,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys\nfrom itertools import permutations\n\n# We'll use backtracking with constraint propagation for N=14\n# Fixed: q[4]=4, q[6]=1\n\nN = 14\nfixed = {4: 4, 6: 1}\n\n# We'll use a simple backtracking solver\ndef solve_nqueens(N, fixed):\n    # board[row] = col\n    board = [-1] * N\n    for r, c in fixed.items():\n        board[r] = c\n    \n    # Track used columns and diagonals\n    used_cols = set()\n    used_diag1 = set()  # row - col\n    used_diag2 = set()  # row + col\n    \n    for r, c in fixed.items():\n        if c in used_cols:\n            return None\n        d1 = r - c\n        d2 = r + c\n        if d1 in used_diag1 or d2 in used_diag2:\n            return None\n        used_cols.add(c)\n        used_diag1.add(d1)\n        used_diag2.add(d2)\n    \n    # Order rows: try rows with fewer options first\n    rows = [r for r in range(N) if r not in fixed]\n    \n    def backtrack(idx):\n        if idx == len(rows):\n            return board[:]\n        row = rows[idx]\n        for col in range(N):\n            if col in used_cols:\n                continue\n            d1 = row - col\n            d2 = row + col\n            if d1 in used_diag1 or d2 in used_diag2:\n                continue\n            # Place queen\n            board[row] = col\n            used_cols.add(col)\n            used_diag1.add(d1)\n            used_diag2.add(d2)\n            \n            result = backtrack(idx + 1)\n            if result is not None:\n                return result\n            \n            # Backtrack\n            board[row] = -1\n            used_cols.remove(col)\n            used_diag1.remove(d1)\n            used_diag2.remove(d2)\n        return None\n    \n    return backtrack(0)\n\nsolution = solve_nqueens(N, fixed)\nprint(solution)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 35.05
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def verify(solution):\n    N = len(solution)\n    # Check rows (implicitly fine)\n    # Check columns\n    if len(set(solution)) != N:\n        return False, \"Column conflict\"\n    # Check diagonals\n    for i in range(N):\n        for j in range(i+1, N):\n            if abs(i - j) == abs(solution[i] - solution[j]):\n                return False, f\"Diagonal conflict between rows {i} and {j}\"\n    return True, \"Valid\"\n\nsol = [2, 0, 7, 10, 4, 9, 1, 13, 11, 6, 8, 12, 5, 3]\nprint(verify(sol))\nprint(f\"q[4] = {sol[4]}, q[6] = {sol[6]}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 33.56
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          2,
+          0,
+          7,
+          10,
+          4,
+          9,
+          1,
+          13,
+          11,
+          6,
+          8,
+          12,
+          5,
+          3
+        ],
+        "reasoning": "The 14-Queens problem is satisfiable. Using backtracking with constraint propagation, we found a valid solution where q[4]=4 and q[6]=1 as required. The solution places queens such that no two share a row, column, or diagonal."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

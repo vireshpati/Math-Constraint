@@ -1,0 +1,125 @@
+{
+  "problem_name": "graceful_graph_k3_p4__v7_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 2420.7,
+    "search_space": 12855002631049216,
+    "num_variables": 33,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "easy",
+    "solve_pct_global": 14.86,
+    "solve_pct_type": 21.43
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    21,
+    13,
+    20,
+    19,
+    1,
+    3,
+    8,
+    17,
+    9,
+    12,
+    2
+  ],
+  "reasoning": "The listed vertex labels are all distinct integers in 0..21. Computing the 12 intra-clique edge differences and 9 matching-edge differences gives {1,2,...,21}, so all 21 edge labels are distinct.",
+  "raw_response": null,
+  "cot_trace": "**Analyzing graph labeling**\n\nI need to solve a graceful labeling for a graph that has 4 disjoint K3 cliques connected by matching edges. There are a total of 12 vertices, and the edges amount to 21. My goal is to assign unique labels from 0 to 21, ensuring that each edge has distinct differences. Since there are 21 edges and exactly 21 possible labels, I must explore my options carefully. I could consider using Python tools for backtracking or constraints like CP-SAT or Z3, but I need a smart approach!**Exploring graph symmetries**\n\nI'm considering a few approaches for solving my graph problem, like using SAT or backtracking. I think starting with Z3 could be promising, or I might build a custom Depth-First Search (DFS). I need to inspect graph symmetries, especially how labels complement each other and the automorphisms that permute vertex positions. I could start by fixing one label, maybe for vertex 0. If Z3 is installed, I should define integer variables for the labels, ensuring that edge differences remain distinct between 1 and 21.\n---\n**Considering z3 integer constraints**\n\nI'm thinking about using z3 integer constraints with 12 variables, each ranging from 0 to 21. They need to be distinct, and I'm estimating there are 21 edge differences also distinct and likely equal to 1 to 21 because of the bounded nature. My goal is to find a solution while possibly employing symmetry. I\u2019ll start running z3 to see how it handles this configuration!\n---\n**Considering graph labeling**\n\nI\u2019m pondering the idea of labeling, particularly looking into graceful labeling and its parity constraints. The sum of edge labels from 1 to 21 is 231, which prompts me to think about how this applies to oriented sums. I realize the bipartite theorem isn't relevant since the graph isn't bipartite due to triangles. So, maybe I need to solve this using z3, particularly for edge cases and symmetry breaks. I can explore different scenarios while fixing labels for representative edges.\n---\n**Exploring graceful labeling**\n\nI'm working on a graph labeled Z3, which is running slow. I need to find a graceful labeling for a ladder of K3 cliques, which has 12 vertices and 21 edges. The goal is to assign labels from 0 to 21 while ensuring that all edge differences equal exactly 1 to 21. I should consider using backtracking or custom DFS to search through vertex connections for potential edge types. I wonder if a graceful labeling likely exists here. I'll keep searching!**Implementing symmetries in labeling**\n\nI'm working on a graph with 12 labels ranging from 0 to 21 and considering symmetries or automorphisms in the labeling. This involves potentially reversing cliques and permuting coordinates globally within triangles. I need to implement a depth-first search (DFS) that tracks adjacency lists, used labels, and the current differences. I'll preassign the label 21 to a representative edge and iterate downwards from 20 to 1, ensuring proper assignments while keeping the distinct edge differences in mind. Let's see how this unfolds!**Ensuring unique edge differences**\n\nI need to enforce the differences in my graph by selecting edges that haven't been assigned a used difference yet. Once both endpoints of an edge are labeled, their difference becomes fixed and must be unique. During the edge-labeling process, when reaching step d, edges with differences greater than d are already assigned while lower differences remain unassigned. If an unassigned edge becomes fully labeled with a difference greater than d, it shouldn't be possible unless that difference has already been assigned. Let\u2019s clarify this further!\n---\n**Ensuring solution submission**\n\nI\u2019ve got a solution! I need to respond with a JSON object. The developer mentioned that I should always finish by calling submit_answer when using tools. So, I\u2019ll call commentary submit_answer with true, including the solution list and reasoning. I also need to make sure the edge order is correct and that the solution labels are preferably ordered by clique and then vertex. Plus, I'll verify that all labels from 0 to 21 are unique and the edges are distinct before I submit.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 7174,
+  "completion_tokens": 4387,
+  "reasoning_tokens": 2127,
+  "cached_tokens": 1536,
+  "cost_usd": 0.160568,
+  "cost_source": "openrouter",
+  "latency_ms": 181275.2010822296,
+  "tool_dispatch_ms_total": 90490.01979827881,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "try:\n import z3\n print('z3 available', z3.get_version_string())\nexcept Exception as e:\n print('z3 err',e)\ntry:\n import pycosat\n print('pycosat available')\nexcept Exception as e: print('pycosat err',e)\ntry:\n import pysat\n print('pysat available')\nexcept Exception as e: print('pysat err',e)\n",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 315.47
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\n# vertices index g*3+i\nV=12; m=21\nedges=[]\n# clique edges within each K3\nfor g in range(4):\n    base=g*3\n    for i in range(3):\n        for j in range(i+1,3):\n            edges.append((base+i,base+j))\n# matching edges between consecutive cliques\nfor g in range(3):\n    for i in range(3):\n        edges.append((g*3+i,(g+1)*3+i))\nprint(len(edges), edges)\nxs=[Int(f'x{i}') for i in range(V)]\ns=Solver()\nfor x in xs:\n    s.add(x>=0,x<=m)\ns.add(Distinct(xs))\nds=[]\nfor k,(u,v) in enumerate(edges):\n    d=Int(f'd{k}')\n    s.add(d==Abs(xs[u]-xs[v]))\n    s.add(d>=1,d<=m)\n    ds.append(d)\ns.add(Distinct(ds))\n# symmetry: label complement; set x0 < 21-x0? maybe x0 < x? no\n# try maybe fix one vertex label 0? In graceful labeling, 0 and m adjacent must be labels. Could leave.\n# add ds cover 1..21 via distinct and range automatic\nprint(s.check())\nif s.check()==sat:\n    mod=s.model()\n    sol=[mod[x].as_long() for x in xs]\n    print(sol)\n    print([abs(sol[u]-sol[v]) for u,v in edges])\n",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 30036.73
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\nV=12; m=21\nedges=[]\nfor g in range(4):\n    base=g*3\n    for i in range(3):\n        for j in range(i+1,3): edges.append((base+i,base+j))\nfor g in range(3):\n    for i in range(3): edges.append((g*3+i,(g+1)*3+i))\nreps={\n'end_clique':(0,1),\n'mid_clique':(3,4),\n'outer_match':(0,3),\n'mid_match':(3,6)\n}\nfor name,e21 in reps.items():\n    xs=[Int(f'{name}_x{i}') for i in range(V)]\n    s=Solver()\n    s.set('timeout',15000)\n    for x in xs: s.add(x>=0,x<=m)\n    s.add(Distinct(xs))\n    ds=[]\n    for k,(u,v) in enumerate(edges):\n        d=Int(f'{name}_d{k}')\n        s.add(d==If(xs[u]>=xs[v], xs[u]-xs[v], xs[v]-xs[u]))\n        ds.append(d)\n    s.add(Distinct(ds))\n    for d in ds: s.add(d>=1,d<=m)\n    u,v=e21\n    s.add(xs[u]==0, xs[v]==21)  # complement orientation arbitrary? graph automorphism can swap endpoints if edge within clique but matching? complement can orient yes choose one endpoint 0, the rep's first endpoint 0.\n    print('case',name)\n    r=s.check()\n    print(r)\n    if r==sat:\n        mod=s.model(); sol=[mod[x].as_long() for x in xs]\n        print(sol)\n        print([abs(sol[u]-sol[v]) for u,v in edges])\n        break\n",
+        "timeout_seconds": 70
+      },
+      "ok": false,
+      "latency_ms": 60067.01
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from functools import lru_cache\nV=12; m=21\nedges=[]\nfor g in range(4):\n    b=g*3\n    for i in range(3):\n        for j in range(i+1,3): edges.append((b+i,b+j))\nfor g in range(3):\n    for i in range(3): edges.append((g*3+i,(g+1)*3+i))\nadj=[[] for _ in range(V)]\nfor ei,(u,v) in enumerate(edges):\n    adj[u].append((v,ei)); adj[v].append((u,ei))\n# edge orbits reps with endpoint orientation\nreps=[('end_clique',(0,1)),('mid_clique',(3,4)),('outer_match',(0,3)),('mid_match',(3,6))]\n\ndef check_partial(labels):\n    diffs={}\n    for ei,(u,v) in enumerate(edges):\n        if labels[u] is not None and labels[v] is not None:\n            d=abs(labels[u]-labels[v])\n            if d==0 or d in diffs: return None\n            diffs[d]=ei\n    return set(diffs)\n\ndef search(labels, used_mask, nodes=[0], limit=2000000):\n    nodes[0]+=1\n    if nodes[0]%100000==0:\n        print('nodes',nodes[0],'assigned',sum(x is not None for x in labels),'used diffs',len(check_partial(labels) or []), 'labels', labels, flush=True)\n    if nodes[0]>limit: return 'LIMIT'\n    diffs=check_partial(labels)\n    if diffs is None: return None\n    if len(diffs)==m:\n        if all(x is not None for x in labels): return labels.copy()\n        # all edges assigned implies all vertices? graph connected yes.\n    # find highest missing diff\n    d=None\n    for dd in range(m,0,-1):\n        if dd not in diffs:\n            d=dd; break\n    if d is None:\n        return labels.copy()\n    # Build candidate moves for d\n    cand=[]\n    for ei,(u,v) in enumerate(edges):\n        lu,lv=labels[u],labels[v]\n        if lu is not None and lv is not None:\n            continue\n        if lu is not None or lv is not None:\n            if lu is None:\n                known_v=v; unk=u; a=lv\n            else:\n                known_v=u; unk=v; a=lu\n            for b in (a-d,a+d):\n                if 0<=b<=m and not (used_mask>>b)&1:\n                    cand.append((1, ei, [(unk,b)]))\n        else:\n            # both unassigned; pairs l,l+d\n            for a in range(0,m-d+1):\n                b=a+d\n                if ((used_mask>>a)&1) or ((used_mask>>b)&1): continue\n                cand.append((2, ei, [(u,a),(v,b)]))\n                cand.append((2, ei, [(u,b),(v,a)]))\n    # Heuristic sort: one assignment first? High constraint vertices maybe\n    def score(move):\n        _,ei,assigns=move; u,v=edges[ei]\n        # prefer assignments with endpoints having many assigned neighbors? and labels extremes\n        sc=len(assigns)*10 - (len(adj[u])+len(adj[v]))\n        return sc\n    cand.sort(key=score)\n    if not cand: return None\n    # maybe remove symmetric duplicates for unlabeled edge pairs? no\n    for _,ei,assigns in cand:\n        # apply and local check\n        ok=True; changed=[]; newmask=used_mask\n        for var,val in assigns:\n            if labels[var] is not None:\n                if labels[var]!=val: ok=False; break\n            if (newmask>>val)&1: ok=False; break\n            labels[var]=val; changed.append(var); newmask |= 1<<val\n        if ok:\n            # local duplicate check more efficient use full\n            res=search(labels,newmask,nodes,limit)\n            if res=='LIMIT': return 'LIMIT'\n            if res is not None: return res\n        for var in reversed(changed): labels[var]=None\n    return None\n\nfor name,(u,v) in reps:\n    for orient in [(0,21)]: # complement handles\n        labels=[None]*V\n        labels[u]=orient[0]; labels[v]=orient[1]\n        print('TRY',name,(u,v), orient, flush=True)\n        res=search(labels,(1<<orient[0])|(1<<orient[1]),nodes=[0],limit=1000000)\n        print('RESULT',res, flush=True)\n        if isinstance(res,list):\n            sol=res\n            print('solution',sol)\n            print('diffs',[abs(sol[a]-sol[b]) for a,b in edges], sorted(abs(sol[a]-sol[b]) for a,b in edges))\n            raise SystemExit\nprint('done')\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 70.81
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          21,
+          13,
+          20,
+          19,
+          1,
+          3,
+          8,
+          17,
+          9,
+          12,
+          2
+        ],
+        "reasoning": "The listed vertex labels are all distinct integers in 0..21. Computing the 12 intra-clique edge differences and 9 matching-edge differences gives {1,2,...,21}, so all 21 edge labels are distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

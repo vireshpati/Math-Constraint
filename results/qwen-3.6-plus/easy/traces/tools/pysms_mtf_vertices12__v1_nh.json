@@ -1,0 +1,70 @@
+{
+  "problem_name": "pysms_mtf_vertices12__v1_nh",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 94.7,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 20,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 35.9,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[[0, 6], [0, 7], [0, 8], [0, 9], [0, 10], [0, 11], [1, 6], [1, 7], [1, 8], [1, 9], [1, 10], [1, 11], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10], [2, 11], [3, 6], [3, 7], [3, 8], [3, 9], [3, 10], [3, 11], [4, 6], [4, 7], [4, 8], [4, 9], [4, 10], [4, 11], [5, 6], [5, 7], [5, 8], [5, 9], [5, 10], [5, 11]]",
+  "reasoning": "The complete bipartite graph K_{6,6} is a maximal triangle-free graph with 12 vertices. By Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on n vertices is achieved by the complete bipartite graph K_{n/2,n/2}, which for n=12 gives K_{6,6} with 36 edges. The graph is triangle-free because bipartite graphs have no odd cycles, and it's maximal because adding any edge within a partition would create a triangle (any two vertices in the same partition share all 6 neighbors in the other partition).",
+  "raw_response": null,
+  "cot_trace": "The problem asks for a maximal triangle-free graph with 12 vertices. Let me understand what this means:\n\n1. Triangle-free: The graph contains no triangles (no 3 vertices that are all connected to each other).\n2. Maximal: We cannot add any edge to the graph without creating a triangle.\n\nA maximal triangle-free graph is one where:\n- It has no triangles\n- Adding any missing edge would create a triangle\n\nBy Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on n vertices is achieved by the complete bipartite graph K_{\u230an/2\u230b, \u2308n/2\u2309}. For n=12, this would be K_{6,6}, which has 6*6 = 36 edges.\n\nK_{6,6} is triangle-free (since it's bipartite) and it's maximal triangle-free (adding any edge within a partition would create a triangle with any vertex from the other partition).\n\nSo K_{6,6} is a maximal triangle-free graph with 12 vertices.\n\nLet me construct K_{6,6}:\n- Partition 1: vertices 0, 1, 2, 3, 4, 5\n- Partition 2: vertices 6, 7, 8, 9, 10, 11\n- Edges: all edges between partition 1 and partition 2\n\nThe edges would be:\n(0,6), (0,7), (0,8), (0,9), (0,10), (0,11),\n(1,6), (1,7), (1,8), (1,9), (1,10), (1,11),\n(2,6), (2,7), (2,8), (2,9), (2,10), (2,11),\n(3,6), (3,7), (3,8), (3,9), (3,10), (3,11),\n(4,6), (4,7), (4,8), (4,9), (4,10), (4,11),\n(5,6), (5,7), (5,8), (5,9), (5,10), (5,11)\n\nThat's 36 edges.\n\nLet me verify this is correct by writing a quick Python script.\n---\nThe complete bipartite graph K_{6,6} is a maximal triangle-free graph with 12 vertices and 36 edges. This is indeed the maximum possible number of edges for a triangle-free graph on 12 vertices by Tur\u00e1n's theorem.\n\nLet me submit this answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 2189,
+  "completion_tokens": 1513,
+  "reasoning_tokens": 594,
+  "cached_tokens": 0,
+  "cost_usd": 0.003661775,
+  "cost_source": "openrouter",
+  "latency_ms": 30328.996419906616,
+  "tool_dispatch_ms_total": 271.7738151550293,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Generate K_{6,6} as a maximal triangle-free graph\nedges = []\nfor u in range(6):\n    for v in range(6, 12):\n        edges.append((u, v))\n\nprint(f\"Number of edges: {len(edges)}\")\nprint(\"Edges:\", edges)\n\n# Verify it's triangle-free\ndef is_triangle_free(edges, n):\n    adj = {i: set() for i in range(n)}\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    for i in range(n):\n        for j in adj[i]:\n            if j > i:\n                for k in adj[j]:\n                    if k > j and k in adj[i]:\n                        return False, (i, j, k)\n    return True, None\n\ntriangle_free, triangle = is_triangle_free(edges, 12)\nprint(f\"Triangle-free: {triangle_free}\")\nif not triangle_free:\n    print(f\"Triangle found: {triangle}\")\n\n# Verify it's maximal (adding any missing edge creates a triangle)\ndef is_maximal_triangle_free(edges, n):\n    adj = {i: set() for i in range(n)}\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # Check all non-edges\n    for i in range(n):\n        for j in range(i+1, n):\n            if j not in adj[i]:\n                # Try adding edge (i, j)\n                # Check if this creates a triangle\n                creates_triangle = False\n                for k in range(n):\n                    if k != i and k != j:\n                        if k in adj[i] and k in adj[j]:\n                            creates_triangle = True\n                            break\n                if not creates_triangle:\n                    return False, (i, j)\n    return True, None\n\nmaximal, non_maximal_edge = is_maximal_triangle_free(edges, 12)\nprint(f\"Maximal: {maximal}\")\nif not maximal:\n    print(f\"Can add edge without creating triangle: {non_maximal_edge}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 271.77
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[[0, 6], [0, 7], [0, 8], [0, 9], [0, 10], [0, 11], [1, 6], [1, 7], [1, 8], [1, 9], [1, 10], [1, 11], [2, 6], [2, 7], [2, 8], [2, 9], [2, 10], [2, 11], [3, 6], [3, 7], [3, 8], [3, 9], [3, 10], [3, 11], [4, 6], [4, 7], [4, 8], [4, 9], [4, 10], [4, 11], [5, 6], [5, 7], [5, 8], [5, 9], [5, 10], [5, 11]]",
+        "reasoning": "The complete bipartite graph K_{6,6} is a maximal triangle-free graph with 12 vertices. By Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on n vertices is achieved by the complete bipartite graph K_{n/2,n/2}, which for n=12 gives K_{6,6} with 36 edges. The graph is triangle-free because bipartite graphs have no odd cycles, and it's maximal because adding any edge within a partition would create a triangle (any two vertices in the same partition share all 6 neighbors in the other partition)."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

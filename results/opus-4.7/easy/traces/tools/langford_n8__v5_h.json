@@ -1,0 +1,112 @@
+{
+  "problem_name": "langford_n8__v5_h",
+  "problem_type": "langford",
+  "params": {
+    "n": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 1339.8,
+    "search_space": 20922789888000,
+    "num_variables": 16,
+    "num_constraints": 141,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 82.89,
+    "solve_pct_type": 6.25
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    6,
+    1,
+    5,
+    1,
+    7,
+    4,
+    8,
+    6,
+    5,
+    3,
+    4,
+    2,
+    7,
+    3,
+    2,
+    8
+  ],
+  "reasoning": "Found valid L(2,8) sequence via backtracking respecting fixed positions seq[4]=7, seq[8]=5, seq[10]=4.",
+  "raw_response": null,
+  "cot_trace": " I'm working through a Langford sequence L(2,8) with 16 positions, where each number v appears twice with exactly v+1 positions between them. I've fixed three values\u20147 at position 4, 5 at position 8, and 4 at position 10\u2014and now I'm determining where their pairs must go based on the spacing constraint, then searching for a valid complete sequence.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6463,
+  "completion_tokens": 1086,
+  "reasoning_tokens": 89,
+  "cached_tokens": 0,
+  "cost_usd": 0.059465000000000004,
+  "cost_source": "openrouter",
+  "latency_ms": 30803.645372390747,
+  "tool_dispatch_ms_total": 74.65100288391113,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import product\n\ndef solve():\n    seq = [0]*16\n    fixed = {4:7, 8:5, 10:4}\n    # Place fixed values\n    # 7 at 4, so also at 12\n    seq[4]=7; seq[12]=7\n    seq[8]=5\n    seq[10]=4\n    \n    results = []\n    # 5's other position: 2 or 14\n    for p5 in [2,14]:\n        s = seq[:]\n        if s[p5]!=0: continue\n        s[p5]=5\n        # 4's other: 5 or 15\n        for p4 in [5,15]:\n            s2 = s[:]\n            if s2[p4]!=0: continue\n            s2[p4]=4\n            # now place 1,2,3,6,8\n            def place(s, vals):\n                if not vals:\n                    results.append(s[:])\n                    return\n                v = vals[0]\n                for i in range(16-(v+1)):\n                    if s[i]==0 and s[i+v+1]==0:\n                        s[i]=v; s[i+v+1]=v\n                        place(s, vals[1:])\n                        s[i]=0; s[i+v+1]=0\n            place(s2, [8,6,3,2,1])\n    print(len(results))\n    for r in results[:5]:\n        print(r)\n\nsolve()\n"
+      },
+      "ok": true,
+      "latency_ms": 37.42
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify first solution\ns = [6, 1, 5, 1, 7, 4, 8, 6, 5, 3, 4, 2, 7, 3, 2, 8]\nassert s[4]==7 and s[8]==5 and s[10]==4\nfor v in range(1,9):\n    idx=[i for i,x in enumerate(s) if x==v]\n    assert len(idx)==2 and idx[1]-idx[0]==v+1\nprint(\"ok\")\n"
+      },
+      "ok": true,
+      "latency_ms": 37.23
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Found valid L(2,8) sequence via backtracking respecting fixed positions seq[4]=7, seq[8]=5, seq[10]=4.",
+        "satisfiable": true,
+        "solution": [
+          6,
+          1,
+          5,
+          1,
+          7,
+          4,
+          8,
+          6,
+          5,
+          3,
+          4,
+          2,
+          7,
+          3,
+          2,
+          8
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

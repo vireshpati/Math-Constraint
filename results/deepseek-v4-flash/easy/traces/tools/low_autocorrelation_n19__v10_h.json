@@ -1,0 +1,61 @@
+{
+  "problem_name": "low_autocorrelation_n19__v10_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 19
+  },
+  "difficulty": {
+    "solve_time_ms": 2829.7,
+    "search_space": 524288,
+    "num_variables": 37,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 95.3,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 800,
+  "completion_tokens": 1272,
+  "reasoning_tokens": 0,
+  "cached_tokens": 512,
+  "cost_usd": 0.000410816,
+  "cost_source": "openrouter",
+  "latency_ms": 85630.78355789185,
+  "tool_dispatch_ms_total": 35.06731986999512,
+  "tool_calls_made": 1,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport numpy as np\n\n# Let's first understand the constraints\nn = 19\n\n# Fixed sequence values (0-indexed)\n# seq[4] = -1, seq[12] = 1, seq[13] = -1\n\n# Fixed autocorrelation values:\n# C_1 = -1, C_2 = 0, C_7 = -3\n\n# Let's try to search using backtracking with pruning\n\ndef compute_correlation(seq, k):\n    n = len(seq)\n    total = 0\n    for i in range(n - k):\n        total += seq[i] * seq[i + k]\n    return total\n\n# Let's first check if the fixed values are consistent with the given C_k values\n# We'll do a systematic search\n\n# Let's use pysat or just brute force with pruning\n\n# First, let's see what constraints the fixed C_k values impose\n\n# C_1 = sum_{i=0}^{17} seq[i]*seq[i+1] = -1\n# C_2 = sum_{i=0}^{16} seq[i]*seq[i+2] = 0\n# C_7 = sum_{i=0}^{11} seq[i]*seq[i+7] = -3\n\n# Let's try to find solutions using backtracking\n\ndef search():\n    n = 19\n    seq = [None] * n\n    \n    # Fixed values\n    seq[4] = -1\n    seq[12] = 1\n    seq[13] = -1\n    \n    best_sum = float('inf')\n    best_seq = None\n    \n    # We'll use recursion with pruning\n    def backtrack(pos):\n        nonlocal best_sum, best_seq\n        \n        if pos == n:\n            # Check all constraints\n            C1 = compute_correlation(seq, 1)\n            C2 = compute_correlation(seq, 2)\n            C7 = compute_correlation(seq, 7)\n            \n            if C1 != -1 or C2 != 0 or C7 != -3:\n                return\n            \n            # Compute sum of squares\n            total = 0\n            for k in range(1, n):\n                Ck = compute_correlation(seq, k)\n                total += Ck * Ck\n            \n            if total <= 46:\n                if total < best_sum:\n                    best_sum = total\n                    best_seq = seq.copy()\n                    print(f\"Found solution with sum={total}: {best_seq}\")\n            return\n        \n        if seq[pos] is not None:\n            backtrack(pos + 1)\n            return\n        \n        for val in [-1, 1]:\n            seq[pos] = val\n            \n            # Pruning: check partial constraints if possible\n            # For C_1, we need positions 0..17 and 1..18\n            # For C_2, we need positions 0..16 and 2..18\n            # For C_7, we need positions 0..11 and 7..18\n            \n            # Check if we can prune based on partial C_k values\n            # Only prune if all needed positions are filled\n            \n            can_prune = False\n            \n            # Check C_1 partial\n            if pos >= 1:\n                # We have seq[0..pos] and seq[1..pos] partially\n                # Actually let's just check full constraints when all needed are filled\n                pass\n            \n            backtrack(pos + 1)\n            seq[pos] = None\n    \n    backtrack(0)\n    return best_seq, best_sum\n\n# This is 2^15 = 32768 possibilities, very manageable\n# Let's just brute force\n\ndef brute_force():\n    n = 19\n    fixed_indices = {4: -1, 12: 1, 13: -1}\n    free_indices = [i for i in range(n) if i not in fixed_indices]\n    \n    solutions = []\n    \n    for bits in itertools.product([-1, 1], repeat=len(free_indices)):\n        seq = [0] * n\n        for i, val in fixed_indices.items():\n            seq[i] = val\n        for i, idx in enumerate(free_indices):\n            seq[idx] = bits[i]\n        \n        # Check fixed C_k values\n        C1 = compute_correlation(seq, 1)\n        if C1 != -1:\n            continue\n        C2 = compute_correlation(seq, 2)\n        if C2 != 0:\n            continue\n        C7 = compute_correlation(seq, 7)\n        if C7 != -3:\n            continue\n        \n        # Compute sum of squares\n        total = 0\n        for k in range(1, n):\n            Ck = compute_correlation(seq, k)\n            total += Ck * Ck\n        \n        if total <= 46:\n            solutions.append((seq.copy(), total))\n            print(f\"Found: seq={seq}, sum={total}\")\n    \n    return solutions\n\nsolutions = brute_force()\nprint(f\"\\nTotal solutions found: {len(solutions)}\")\nfor seq, total in solutions:\n    print(f\"seq={seq}, sum={total}\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 35.07
+    }
+  ],
+  "error": "JSONDecodeError: Expecting value: line 93 column 1 (char 506)",
+  "failure_bucket": "api_error",
+  "forced_submit": false
+}

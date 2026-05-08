@@ -1,0 +1,71 @@
+{
+  "problem_name": "ramsey_n13_r4_s3__v4",
+  "problem_type": "ramsey",
+  "params": {
+    "n": 13,
+    "r": 4,
+    "s": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 4319.4,
+    "search_space": 302231454903657293676544,
+    "num_variables": 78,
+    "num_constraints": 3003,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 96.8,
+    "solve_pct_type": 95.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "The Ramsey number R(4,3) = 9, meaning any 2-coloring of K_9 contains either a red K_4 or a blue K_3. Since K_13 contains K_9, no valid coloring exists. Verified with pysat Glucose3 solver which returned UNSAT.",
+  "raw_response": null,
+  "cot_trace": " Since R(3,4) = 9, any 2-coloring of K_9 contains either a red K_4 or blue K_3, which means K_13 must also contain one of these monochromatic subgraphs. This makes the constraint unsatisfiable.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Correct UNSAT",
+  "prompt_tokens": 3571,
+  "completion_tokens": 925,
+  "reasoning_tokens": 49,
+  "cached_tokens": 0,
+  "cost_usd": 0.04098,
+  "cost_source": "openrouter",
+  "latency_ms": 9612.465143203735,
+  "tool_dispatch_ms_total": 768.120288848877,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify with a SAT solver\nfrom pysat.solvers import Glucose3\nfrom itertools import combinations\n\nn = 13\n# edge variables\nedge_var = {}\nv = 1\nfor i,j in combinations(range(n),2):\n    edge_var[(i,j)] = v\n    v += 1\n\ndef lit(i,j,color):\n    # color 0 = red (negative), 1 = blue (positive)\n    var = edge_var[(min(i,j),max(i,j))]\n    return var if color==1 else -var\n\nsolver = Glucose3()\n# No red K_4: for every 4-subset, at least one edge must be blue (=1)\nfor S in combinations(range(n),4):\n    clause = [lit(i,j,1) for i,j in combinations(S,2)]\n    solver.add_clause(clause)\n# No blue K_3: for every 3-subset, at least one edge must be red (=0)\nfor S in combinations(range(n),3):\n    clause = [lit(i,j,0) for i,j in combinations(S,2)]\n    solver.add_clause(clause)\n\nprint(\"SAT?\", solver.solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 768.12
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "The Ramsey number R(4,3) = 9, meaning any 2-coloring of K_9 contains either a red K_4 or a blue K_3. Since K_13 contains K_9, no valid coloring exists. Verified with pysat Glucose3 solver which returned UNSAT.",
+        "satisfiable": false
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

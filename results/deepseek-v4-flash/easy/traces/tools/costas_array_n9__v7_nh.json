@@ -1,0 +1,107 @@
+{
+  "problem_name": "costas_array_n9__v7_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 932.4,
+    "search_space": 362880,
+    "num_variables": 9,
+    "num_constraints": 10,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 60.71,
+    "solve_pct_type": 50.0
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    5,
+    3,
+    8,
+    7,
+    4,
+    6,
+    2
+  ],
+  "reasoning": "Found a Costas array of order 9 via backtracking search. The permutation [0, 1, 5, 3, 8, 7, 4, 6, 2] satisfies the condition that all 36 displacement vectors (dr, dc) between pairs of marks (with dc > 0) are pairwise distinct.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6535,
+  "completion_tokens": 1372,
+  "reasoning_tokens": 0,
+  "cached_tokens": 4096,
+  "cost_usd": 0.000840308,
+  "cost_source": "openrouter",
+  "latency_ms": 236253.55434417725,
+  "tool_dispatch_ms_total": 101.82356834411621,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's try to find a Costas array of order 9 using a SAT solver or backtracking\n# First, let's check known Costas arrays from literature\n\n# Known Costas arrays of order 9 (from Wikipedia / known results)\n# One known: [0, 2, 7, 1, 8, 6, 5, 3, 4] - let's check\ndef is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            if (dr, dc) in vectors:\n                return False\n            vectors.add((dr, dc))\n    return True\n\n# Try some known ones\ncandidates = [\n    [0, 2, 7, 1, 8, 6, 5, 3, 4],\n    [0, 4, 3, 8, 6, 1, 7, 2, 5],\n    [0, 5, 7, 2, 6, 3, 1, 8, 4],\n    [0, 7, 5, 2, 8, 1, 6, 3, 4],\n    [0, 8, 1, 6, 3, 7, 4, 2, 5],\n]\n\nfor c in candidates:\n    print(c, is_costas(c))"
+      },
+      "ok": true,
+      "latency_ms": 33.87
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's use backtracking with pruning to find a Costas array of order 9\nimport itertools\n\ndef find_costas(n):\n    # We'll use backtracking with constraint propagation\n    # Represent permutation as list of rows for columns 0..n-1\n    \n    # Precompute all possible vectors for quick check\n    used_vectors = set()\n    \n    def backtrack(col, perm):\n        if col == n:\n            return perm[:]\n        \n        for row in range(n):\n            if row in perm:\n                continue\n            \n            # Check all new vectors with previous columns\n            ok = True\n            new_vectors = []\n            for prev_col in range(col):\n                dr = row - perm[prev_col]\n                dc = col - prev_col\n                if (dr, dc) in used_vectors:\n                    ok = False\n                    break\n                new_vectors.append((dr, dc))\n            \n            if not ok:\n                continue\n            \n            # Add vectors\n            for v in new_vectors:\n                used_vectors.add(v)\n            perm.append(row)\n            \n            result = backtrack(col+1, perm)\n            if result:\n                return result\n            \n            # Backtrack\n            perm.pop()\n            for v in new_vectors:\n                used_vectors.remove(v)\n        \n        return None\n    \n    return backtrack(0, [])\n\nresult = find_costas(9)\nprint(\"Result:\", result)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 34.75
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            if (dr, dc) in vectors:\n                return False\n            vectors.add((dr, dc))\n    return True\n\nperm = [0, 1, 5, 3, 8, 7, 4, 6, 2]\nprint(\"Is Costas:\", is_costas(perm))\nprint(\"Perm:\", perm)\n\n# Show the vectors\nn = len(perm)\nvectors = []\nfor i in range(n):\n    for j in range(i+1, n):\n        dr = perm[j] - perm[i]\n        dc = j - i\n        vectors.append((dr, dc))\nprint(\"Vectors:\", sorted(vectors))\nprint(\"Unique count:\", len(set(vectors)))\nprint(\"Total pairs:\", n*(n-1)//2)"
+      },
+      "ok": true,
+      "latency_ms": 33.21
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          5,
+          3,
+          8,
+          7,
+          4,
+          6,
+          2
+        ],
+        "reasoning": "Found a Costas array of order 9 via backtracking search. The permutation [0, 1, 5, 3, 8, 7, 4, 6, 2] satisfies the condition that all 36 displacement vectors (dr, dc) between pairs of marks (with dc > 0) are pairwise distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

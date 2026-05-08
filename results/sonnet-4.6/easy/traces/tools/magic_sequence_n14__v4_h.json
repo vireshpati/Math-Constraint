@@ -1,0 +1,100 @@
+{
+  "problem_name": "magic_sequence_n14__v4_h",
+  "problem_type": "magic_sequence",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 978.1,
+    "search_space": 11112006825558016,
+    "num_variables": 14,
+    "num_constraints": 26,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 67.11,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    10,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "reasoning": "\nThe magic sequence of length 14 is [10, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0].\n\nVerification:\n- x[0]=10: the digit 0 appears 10 times \u2713\n- x[1]=2: the digit 1 appears 2 times (at positions 1 and 10... wait, value 1 appears at index 2 and index 10) \u2713\n- x[2]=1: the digit 2 appears 1 time \u2713\n- x[3..9]=0: digits 3\u20139 each appear 0 times \u2713\n- x[10]=1: the digit 10 appears 1 time \u2713\n- x[11]=0: the digit 11 appears 0 times \u2713 (satisfies fixed constraint)\n- x[12]=0: the digit 12 appears 0 times \u2713 (satisfies fixed constraint)\n- x[13]=0: the digit 13 appears 0 times \u2713\n\nThis follows the classic magic sequence pattern for length n: x[0]=n-4, x[1]=2, x[2]=1, x[n-4]=1, all others=0.\n",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3709,
+  "completion_tokens": 1605,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.035202,
+  "cost_source": "openrouter",
+  "latency_ms": 21528.98335456848,
+  "tool_dispatch_ms_total": 52.99663543701172,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import product\n\ndef solve_magic_sequence():\n    n = 14\n    # Fixed values\n    fixed = {11: 0, 12: 0}\n    \n    # Use constraint propagation / search\n    # x[i] = number of times i appears in the sequence\n    # Sum of all x[i] must equal n (since each element counts occurrences)\n    # Also sum(i * x[i]) = n (since each x[i] contributes x[i] copies of value i)\n    \n    # Let's use a SAT/CP solver approach with python-constraint or brute force with pruning\n    \n    # Key insight: sum(x[i]) = n = 14, sum(i * x[i]) = n = 14\n    \n    from itertools import product\n    \n    # Since values can't be too large, let's bound them\n    # x[i] <= n for all i\n    # For large i, x[i] is likely 0\n    \n    # Let's try with backtracking\n    def backtrack(pos, current, counts):\n        if pos == n:\n            # Verify magic property\n            for i in range(n):\n                if current[i] != counts.get(i, 0):\n                    return None\n            return current[:]\n        \n        # Try values for current[pos]\n        # If pos is fixed, only try fixed value\n        if pos in fixed:\n            val = fixed[pos]\n            new_counts = counts.copy()\n            new_counts[val] = new_counts.get(val, 0) + 1\n            current[pos] = val\n            result = backtrack(pos + 1, current, new_counts)\n            if result:\n                return result\n            current[pos] = None\n            return None\n        \n        for val in range(n):\n            new_counts = counts.copy()\n            new_counts[val] = new_counts.get(val, 0) + 1\n            current[pos] = val\n            result = backtrack(pos + 1, current, new_counts)\n            if result:\n                return result\n        current[pos] = None\n        return None\n    \n    # This pure backtracking is too slow, let's use a smarter approach\n    # Use CP with pruning\n    \n    # Better: use known structure of magic sequences\n    # For length n, magic sequences have the form:\n    # x[0] = n - k - 1 (roughly), x[1] = 2, x[2] = 1, ..., x[k] = 1, rest = 0\n    # For n=14: try x[0]=10, x[1]=2, x[2]=1, x[10]=1, rest=0\n    # Check: count of 0s = 14-4 = 10 \u2713, count of 1s = 3 (x[2],x[10] and... wait\n    \n    # Let me just enumerate carefully\n    # Known pattern for magic sequences of length n:\n    # x[0] = n-4, x[1]=2, x[2]=1, x[n-4]=1, rest=0\n    \n    # For n=14: x[0]=10, x[1]=2, x[2]=1, x[10]=1, rest=0\n    # Check fixed: x[11]=0 \u2713, x[12]=0 \u2713\n    # Verify: \n    seq = [0] * 14\n    seq[0] = 10\n    seq[1] = 2\n    seq[2] = 1\n    seq[10] = 1\n    # x[11]=0, x[12]=0 already set\n    \n    print(\"Candidate sequence:\", seq)\n    \n    # Verify\n    from collections import Counter\n    counts = Counter(seq)\n    print(\"Counts:\", dict(counts))\n    \n    valid = True\n    for i in range(14):\n        expected = seq[i]\n        actual = counts.get(i, 0)\n        if expected != actual:\n            print(f\"FAIL: x[{i}]={expected} but {i} appears {actual} times\")\n            valid = False\n        else:\n            print(f\"OK: x[{i}]={expected}, {i} appears {actual} times\")\n    \n    if valid:\n        print(\"\\nSOLUTION FOUND:\", seq)\n    \n    return seq if valid else None\n\nresult = solve_magic_sequence()\n"
+      },
+      "ok": true,
+      "latency_ms": 53.0
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          10,
+          2,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "reasoning": "\nThe magic sequence of length 14 is [10, 2, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0].\n\nVerification:\n- x[0]=10: the digit 0 appears 10 times \u2713\n- x[1]=2: the digit 1 appears 2 times (at positions 1 and 10... wait, value 1 appears at index 2 and index 10) \u2713\n- x[2]=1: the digit 2 appears 1 time \u2713\n- x[3..9]=0: digits 3\u20139 each appear 0 times \u2713\n- x[10]=1: the digit 10 appears 1 time \u2713\n- x[11]=0: the digit 11 appears 0 times \u2713 (satisfies fixed constraint)\n- x[12]=0: the digit 12 appears 0 times \u2713 (satisfies fixed constraint)\n- x[13]=0: the digit 13 appears 0 times \u2713\n\nThis follows the classic magic sequence pattern for length n: x[0]=n-4, x[1]=2, x[2]=1, x[n-4]=1, all others=0.\n"
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

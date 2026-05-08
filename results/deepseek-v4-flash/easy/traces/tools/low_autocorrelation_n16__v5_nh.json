@@ -1,0 +1,132 @@
+{
+  "problem_name": "low_autocorrelation_n16__v5_nh",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 16
+  },
+  "difficulty": {
+    "solve_time_ms": 1391.4,
+    "search_space": 65536,
+    "num_variables": 31,
+    "num_constraints": 22,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 84.02,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    -1
+  ],
+  "reasoning": "Brute-force search over all 2^16 = 65536 binary sequences of length 16 found many sequences satisfying the constraint. The sequence [-1, -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1] has aperiodic autocorrelation sum of squares = 36, which is \u2264 37. The minimum possible sum is 24, so the problem is satisfiable.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 9120,
+  "completion_tokens": 1631,
+  "reasoning_tokens": 0,
+  "cached_tokens": 6144,
+  "cost_usd": 0.0010453519999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 87811.87438964844,
+  "tool_dispatch_ms_total": 974.414587020874,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport numpy as np\n\ndef aperiodic_autocorrelation(seq):\n    n = len(seq)\n    total = 0\n    for k in range(1, n):\n        ck = 0\n        for i in range(n - k):\n            ck += seq[i] * seq[i + k]\n        total += ck * ck\n    return total\n\n# Let's first try a brute-force search for all 2^16 = 65536 sequences\n# That's feasible!\nbest_seq = None\nbest_val = float('inf')\ncount = 0\nfor bits in itertools.product([-1, 1], repeat=16):\n    val = aperiodic_autocorrelation(bits)\n    if val <= 37:\n        print(f\"Found! seq={list(bits)}, val={val}\")\n        best_seq = list(bits)\n        best_val = val\n        break\n    count += 1\n    if count % 10000 == 0:\n        print(f\"Checked {count}...\")\n\nif best_seq is None:\n    print(\"No sequence found with sum <= 37\")\nelse:\n    print(f\"Best: {best_seq}, val={best_val}\")",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 33.17
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef aperiodic_autocorrelation(seq):\n    n = len(seq)\n    total = 0\n    for k in range(1, n):\n        ck = 0\n        for i in range(n - k):\n            ck += seq[i] * seq[i + k]\n        total += ck * ck\n    return total\n\n# Brute-force search for all 2^16 = 65536 sequences\nbest_seq = None\nbest_val = float('inf')\ncount = 0\nfor bits in itertools.product([-1, 1], repeat=16):\n    val = aperiodic_autocorrelation(bits)\n    if val <= 37:\n        print(f\"Found! seq={list(bits)}, val={val}\")\n        best_seq = list(bits)\n        best_val = val\n        break\n    count += 1\n    if count % 10000 == 0:\n        print(f\"Checked {count}...\")\n\nif best_seq is None:\n    print(\"No sequence found with sum <= 37\")\nelse:\n    print(f\"Best: {best_seq}, val={best_val}\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 79.21
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def aperiodic_autocorrelation(seq):\n    n = len(seq)\n    total = 0\n    details = []\n    for k in range(1, n):\n        ck = 0\n        for i in range(n - k):\n            ck += seq[i] * seq[i + k]\n        total += ck * ck\n        details.append((k, ck, ck*ck))\n    return total, details\n\nseq = [-1, -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1]\ntotal, details = aperiodic_autocorrelation(seq)\nprint(f\"Total sum of C_k^2 = {total}\")\nfor k, ck, ck2 in details:\n    print(f\"k={k:2d}: C_k={ck:3d}, C_k^2={ck2}\")\nprint(f\"\\nSum = {total}\")\nprint(f\"Length = {len(seq)}\")\nprint(f\"Sequence: {seq}\")",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 33.77
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef aperiodic_autocorrelation(seq):\n    n = len(seq)\n    total = 0\n    for k in range(1, n):\n        ck = 0\n        for i in range(n - k):\n            ck += seq[i] * seq[i + k]\n        total += ck * ck\n    return total\n\n# Find all sequences with sum <= 37\nsolutions = []\nfor bits in itertools.product([-1, 1], repeat=16):\n    val = aperiodic_autocorrelation(bits)\n    if val <= 37:\n        solutions.append((list(bits), val))\n\nprint(f\"Number of solutions with sum <= 37: {len(solutions)}\")\n# Show min and distribution\nvals = [s[1] for s in solutions]\nprint(f\"Min value: {min(vals)}\")\nprint(f\"Max value: {max(vals)}\")\nfrom collections import Counter\nprint(f\"Distribution: {Counter(vals)}\")\n# Show first few\nfor seq, val in solutions[:5]:\n    print(f\"val={val}: {seq}\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 828.26
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          1,
+          1,
+          -1,
+          -1,
+          -1,
+          1,
+          1,
+          -1
+        ],
+        "reasoning": "Brute-force search over all 2^16 = 65536 binary sequences of length 16 found many sequences satisfying the constraint. The sequence [-1, -1, -1, -1, -1, -1, 1, -1, 1, 1, -1, -1, -1, 1, 1, -1] has aperiodic autocorrelation sum of squares = 36, which is \u2264 37. The minimum possible sum is 24, so the problem is satisfiable."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

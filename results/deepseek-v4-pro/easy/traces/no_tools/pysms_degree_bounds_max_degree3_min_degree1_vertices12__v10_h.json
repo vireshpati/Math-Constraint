@@ -1,0 +1,106 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree3_min_degree1_vertices12__v10_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 3,
+    "min_degree": 1,
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 22.5,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 18,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 12.97,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      9
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      2,
+      11
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      11
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      8,
+      10
+    ]
+  ],
+  "reasoning": "Vertex 2 already has three edges, saturating its degree at 3. The remaining nine vertices are connected via a path (0-1-3-4-5-6-7-8) with additional edges (0,9), (8,10), and (3,11). All vertices have degree between 1 and 3, satisfying the constraints.",
+  "raw_response": "{\n  \"satisfiable\": true,\n  \"solution\": [[0,1],[0,9],[1,3],[2,9],[2,10],[2,11],[3,4],[3,11],[4,5],[5,6],[6,7],[7,8],[8,10]],\n  \"reasoning\": \"Vertex 2 already has three edges, saturating its degree at 3. The remaining nine vertices are connected via a path (0-1-3-4-5-6-7-8) with additional edges (0,9), (8,10), and (3,11). All vertices have degree between 1 and 3, satisfying the constraints.\"\n}",
+  "cot_trace": "We are asked: \"Generate a graph with 12 vertices where every vertex has degree between 1 and 3. Return the graph as a list of edges (u, v) with 0 <= u < v < 12, or state \"UNSATISFIABLE\" if no graph exists. Partial assignment (fixed values that must be respected): - Known present edges: (2,9), (2,11), (2,10) Return a complete solution consistent with these fixed assignments.\"\n\nInterpretation: We need a graph with 12 vertices (0 through 11). Every vertex must have degree between 1 and 3 inclusive. Partial assignment gives edges (2,9), (2,11), (2,10). Those edges are present. So vertex 2 is connected to 9, 10, 11. Thus degree of vertex 2 is 3. The other vertices degrees are between 1 and 3. We need to provide edges such that every vertex has degree 1-3, no vertex isolated, no vertex with degree >3. We can add other edges, but must include those three. Return as a list of edges (u,v) with u<v. The graph is simple, undirected.\n\nIs it satisfiable? Yes, many possible graphs. We just need to provide one valid set of edges. We must ensure degrees for vertices 0-11: vertex 2 already has 3 edges to 9,10,11. So degree(2)=3. That's fine (between 1-3). Vertices 9,10,11 each have at least 1 edge (to 2). They can have degree up to 3, so we can add up to 2 more edges to each. Other vertices (0,1,3,4,5,6,7,8) currently degree 0. They must have at least degree 1, and at most 3. So we need to connect them appropriately.\n\nWe can create a simple graph that satisfies these. For example, make a cycle covering all vertices, but then degree of vertex 2 might exceed 3 if we add cycle edges. Better: make a 3-regular graph? But vertex 2 is already degree 3, so we shouldn't add any more to 2. So we need to make sure no edges incident to 2 besides the given ones. So 2 is saturated. So 9,10,11 can have additional edges to other vertices. We need to ensure all vertices 0,1,3,4,5,6,7,8 have degree at least 1. So we can connect them among themselves and to 9,10,11.\n\nOne simple solution: Connect 9,10,11 to some of the other vertices, and the rest form a 1-regular matching? But degree must be at least 1, so we can just make a path among {0,1,3,4,5,6,7,8} and connect the ends to 9,10,11 or something. However, we must ensure no vertex degree >3. 9,10,11 currently degree 1, so they can take up to 2 more edges each. So we can distribute the 9 isolated vertices (0,1,3,4,5,6,7,8) and connect them such that each gets degree 1-3.\n\nSimplest: make a cycle among all 12 vertices, but remove edges incident to 2 that are not given, and adjust? But we need a graph where 2 has degree exactly 3, so we can't have it in a cycle because a cycle would give degree 2, but 2 already has degree 3, so it cannot have any additional edges. So 2 cannot be in any cycle beyond the 3 edges. So the graph will be disconnected? Not necessarily. 2 is a central node connected to 9,10,11. The rest of vertices can be connected among themselves and to 9,10,11. 9,10,11 are the bridge from 2 to the rest.\n\nLet's design: Vertices {0,1,3,4,5,6,7,8} (9 nodes). We need to give each degree at least 1. We can create edges among them, and also connect some to 9,10,11. Since 9,10,11 have capacity of 2 more edges each, we can connect them to up to 6 of the 9 nodes. Then the remaining 3 nodes need edges among themselves. E.g., pair them or make a small cycle.\n\nFor simplicity, I'll create a path: 0-1-3-4-5-6-7-8, that gives degrees: 0:1,1:2,3:2,4:2,5:2,6:2,7:2,8:1, if we just do edges (0,1),(1,3),(3,4),(4,5),(5,6),(6,7),(7,8). But we need to incorporate the given edges only from 2 to 9,10,11. So we can connect the endpoints 0 and 8 to 9 and 10 perhaps, and connect 11 to something else like 3 or whatever, but 3 already degree 2, so adding edge to 11 gives degree 3 (ok). Then all vertices have degree between 1 and 3. Check degrees: 2:3, 9:2 (2,0), 10:2 (2,8), 11:2 (2,3) but then 3 would have edges (1,3), (3,4), (3,11) -> degree 3. 0: edges (0,1), (0,9) -> 2. 1: (0,1),(1,3) -> 2. 3: (1,3),(3,4),(3,11) -> 3. 4: (3,4),(4,5) -> 2. 5: (4,5),(5,6) -> 2. 6: (5,6),(6,7) -> 2. 7: (6,7),(7,8) -> 2. 8: (7,8),(8,10) -> 2. So all degrees 1-3. Satisfiable.\n\nBut wait: vertex 2 is excluded from those edges, good. So the full edge list would be: (2,9), (2,10), (2,11) [given], plus (0,1), (1,3), (3,4), (4,5), (5,6), (6,7), (7,8), (0,9), (8,10), (3,11). Let's list all with u<v. The vertices numbers: ensure all u<v. Check: 0-1, 0-9, 1-3, 2-9, 2-10, 2-11, 3-4, 3-11, 4-5, 5-6, 6-7, 7-8, 8-10. That's 13 edges. Total vertices 12. Check degrees: vertex 0: edges 0-1,0-9 -> degree 2. vertex 1: 0-1,1-3 -> degree 2. vertex 2: 2-9,2-10,2-11 -> 3. vertex 3: 1-3,3-4,3-11 -> 3. vertex 4: 3-4,4-5 ->2. vertex 5: 4-5,5-6 ->2. vertex 6: 5-6,6-7 ->2. vertex 7: 6-7,7-8 ->2. vertex 8: 7-8,8-10 ->2. vertex 9: 0-9,2-9 ->2. vertex 10: 2-10,8-10 ->2. vertex 11: 2-11,3-11 ->2. All degrees between 1 and 3. Yes.\n\nBut is there any requirement that the graph must be connected? No, just degrees between 1 and 3. So this works. We can provide this solution.\n\nWe must output in JSON: satisfiable: true, solution: a list of edges (each edge as a pair). The problem says \"Return the graph as a list of edges (u, v) with 0 <= u < v < 12\" so solution should be a list of such pairs. I'll output them sorted in some order, maybe by first vertex then second.\n\nThus: solution: [[0,1],[0,9],[1,3],[2,9],[2,10],[2,11],[3,4],[3,11],[4,5],[5,6],[6,7],[7,8],[8,10]] \n\nWe need to ensure that all pairs are correct u<v.\n\nCheck: 0,1 ok; 0,9 ok; 1,3 ok; 2,9 ok; 2,10 ok; 2,11 ok; 3,4 ok; 3,11 ok; 4,5 ok; 5,6 ok; 6,7 ok; 7,8 ok; 8,10 ok. All good.\n\nWe could also consider if there is any constraint that all vertices 0-11 must be present. Yes. We have all 12 vertices. All good.\n\nSo answer: satisfiable: true, solution: that list. Reasoning: briefly explain.\n\nI'll output JSON.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 236,
+  "completion_tokens": 2228,
+  "reasoning_tokens": 2077,
+  "cached_tokens": 128,
+  "cost_usd": 0.006367936,
+  "cost_source": "openrouter",
+  "latency_ms": 65525.09689331055,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

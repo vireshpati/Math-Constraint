@@ -1,0 +1,67 @@
+{
+  "problem_name": "graph_k_coloring_density15_k4_n33_seed97776__v20_nh",
+  "problem_type": "graph_k_coloring",
+  "params": {
+    "density": 15,
+    "k": 4,
+    "n": 33,
+    "seed": 97776
+  },
+  "difficulty": {
+    "solve_time_ms": 1442.2,
+    "search_space": 73786976294838206464,
+    "num_variables": 33,
+    "num_constraints": 79,
+    "num_edges": -1,
+    "backend": "pycsp"
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": "We need to determine if a graph with 33 vertices and 76 edges is 4-colorable. Let's parse the edges and try to solve this with a SAT solver or other approach.\n\nLet me write Python code using pysat or just implement a backtracking search. But given it's 33 vertices and 76 edges, the graph is fairly sparse. We can try using a SAT solver.\n\nLet me first write the graph and then use pysat to solve.\n---\nThe SAT solver found a valid 4-coloring. Let me verify the solution is correct and submit.\n\nThe coloring is:\n[3, 0, 3, 0, 2, 1, 3, 2, 1, 0, 0, 2, 1, 0, 2, 1, 1, 3, 1, 1, 1, 1, 2, 0, 1, 0, 0, 1, 1, 0, 0, 0, 0]\n\nVerification passed - no conflicts.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 2648,
+  "completion_tokens": 1150,
+  "reasoning_tokens": 162,
+  "cached_tokens": 512,
+  "cost_usd": 0.00779288,
+  "cost_source": "openrouter",
+  "latency_ms": 47257.5364112854,
+  "tool_dispatch_ms_total": 230.92913627624512,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\n\n# Parse edges\nedges_str = \"\"\"(0,4), (0,5), (0,13), (0,18), (0,27), (0,31), (1,15), (1,17), (2,4), (2,12), (2,14), (2,15), (2,16), (2,29), (3,5), (3,7), (3,8), (3,17), (3,19), (3,22), (4,5), (4,6), (4,13), (4,24), (4,25), (4,28), (4,31), (6,12), (6,13), (6,14), (6,15), (6,18), (6,19), (6,22), (6,32), (7,19), (7,28), (8,26), (9,11), (9,28), (10,18), (10,24), (11,18), (11,21), (11,24), (11,25), (12,13), (12,17), (12,26), (13,22), (14,15), (14,17), (14,28), (14,30), (15,17), (15,29), (16,30), (17,25), (17,26), (17,28), (17,32), (18,25), (18,26), (19,26), (19,30), (20,29), (20,32), (21,22), (21,25), (21,26), (22,27), (22,32), (23,27), (24,32), (27,30), (28,32)\"\"\"\n\nedges = []\nfor part in edges_str.split('),'):\n    part = part.strip().strip('(').strip(')')\n    if ',' in part:\n        a,b = part.split(',')\n        edges.append((int(a.strip()), int(b.strip())))\n\nprint(\"Number of edges:\", len(edges))\nprint(\"Vertices:\", sorted(set(v for e in edges for v in e)))\n\n# Build adjacency list\nn = 33\nadj = [set() for _ in range(n)]\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\nprint(\"Degrees:\", [len(adj[i]) for i in range(n)])\nprint(\"Max degree:\", max(len(adj[i]) for i in range(n)))\n\n# Let's try using pysat\nfrom pysat.solvers import Glucose3\n\n# Variables: x_{v,c} = v*4 + c + 1 (1-indexed)\ndef var(v, c):\n    return v * 4 + c + 1\n\nclauses = []\n\n# Each vertex at least one color\nfor v in range(n):\n    clauses.append([var(v, c) for c in range(4)])\n\n# Each vertex at most one color (pairwise)\nfor v in range(n):\n    for c1 in range(4):\n        for c2 in range(c1+1, 4):\n            clauses.append([-var(v, c1), -var(v, c2)])\n\n# Edge constraints\nfor u,v in edges:\n    for c in range(4):\n        clauses.append([-var(u, c), -var(v, c)])\n\nprint(\"Number of clauses:\", len(clauses))\n\nsolver = Glucose3()\nfor cl in clauses:\n    solver.add_clause(cl)\n\nresult = solver.solve()\nprint(\"Result:\", result)\nif result:\n    model = solver.get_model()\n    # model is list of literals that are true\n    coloring = [None]*n\n    for v in range(n):\n        for c in range(4):\n            if var(v,c) in model:\n                coloring[v] = c\n                break\n    print(\"Coloring:\", coloring)\n    # Verify\n    ok = True\n    for u,v in edges:\n        if coloring[u] == coloring[v]:\n            print(f\"Conflict: {u}-{v} both {coloring[u]}\")\n            ok = False\n    print(\"Verification:\", ok)\nelse:\n    print(\"UNSAT\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 230.93
+    },
+    {
+      "name": "submit_answer",
+      "args": {},
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": false
+}

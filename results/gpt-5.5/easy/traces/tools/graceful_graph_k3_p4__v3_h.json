@@ -1,0 +1,107 @@
+{
+  "problem_name": "graceful_graph_k3_p4__v3_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1447.9,
+    "search_space": 12855002631049216,
+    "num_variables": 33,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 86.28,
+    "solve_pct_type": 68.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    3,
+    21,
+    15,
+    20,
+    0,
+    1,
+    7,
+    2,
+    17,
+    16,
+    5,
+    9
+  ],
+  "reasoning": "A valid graceful labeling is given. The labels are unique, include x[2]=15 and x[4]=0, and the 21 edge differences are all distinct (indeed they form 1..21). Using the natural edge order with all clique-internal edges first, then matching edges between consecutive cliques, the fixed edge labels are d[6]=5, d[9]=11, d[15]=13, and d[18]=9.",
+  "raw_response": null,
+  "cot_trace": "**Exploring edge orderings**\n\nI\u2019m thinking about possible edge orderings and how to satisfy certain fixed d under ambiguous orders. I'm considering formulating and solving for edge order A. If the final checks rely on one order, it needs to be accurate. I\u2019ll look into using tools for searching, possibly employing Python backtracking or OR-Tools, but I\u2019m not sure they\u2019re installed. Since I have a small graph with distinct edge labels, I might brute-force the solution. I'll explore modeling this as SAT or using backtracking with constraint propagation. Let\u2019s test these out!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 4197,
+  "completion_tokens": 4371,
+  "reasoning_tokens": 3446,
+  "cached_tokens": 0,
+  "cost_usd": 0.152115,
+  "cost_source": "openrouter",
+  "latency_ms": 87449.85938072205,
+  "tool_dispatch_ms_total": 9758.537530899048,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys, importlib.util\nmods=['z3','ortools','constraint','pysat']\nfor m in mods:\n print(m, importlib.util.find_spec(m))",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 90.02
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\n\ndef solve(edges, name):\n    n=12; m=21\n    x=[Int(f'x{i}') for i in range(n)]\n    d=[Int(f'd{i}') for i in range(m)]\n    s=Solver()\n    for xi in x: s.add(And(xi>=0, xi<=m))\n    s.add(Distinct(x))\n    for e,(u,v) in enumerate(edges):\n        s.add(d[e] == If(x[u]>=x[v], x[u]-x[v], x[v]-x[u]))\n        s.add(And(d[e]>=1,d[e]<=m))\n    s.add(Distinct(d))\n    s.add(x[2]==15, x[4]==0)\n    for k,val in {6:5,9:11,15:13,18:9}.items(): s.add(d[k]==val)\n    # Sym break maybe x4=0 already\n    res=s.check()\n    print(name, res)\n    if res==sat:\n        mod=s.model()\n        sol=[mod.eval(xi).as_long() for xi in x]\n        ds=[mod.eval(di).as_long() for di in d]\n        print(sol)\n        print(ds)\n        print('edges fixed', [(k, edges[k], ds[k]) for k in [6,9,15,18]])\n        return sol, ds\n\n# A\nedgesA=[]\nfor g in range(4):\n    base=3*g\n    for i in range(3):\n        for j in range(i+1,3):\n            edgesA.append((base+i,base+j))\nfor g in range(3):\n    for i in range(3):\n        edgesA.append((3*g+i,3*(g+1)+i))\n# B\nedgesB=[]\nfor g in range(4):\n    base=3*g\n    for i in range(3):\n        for j in range(i+1,3):\n            edgesB.append((base+i,base+j))\n    if g<3:\n        for i in range(3):\n            edgesB.append((3*g+i,3*(g+1)+i))\n# C lex by u v\nadj=set()\nfor g in range(4):\n    for i in range(3):\n        for j in range(i+1,3):\n            adj.add((3*g+i,3*g+j))\nfor g in range(3):\n    for i in range(3): adj.add((3*g+i,3*(g+1)+i))\nedgesC=sorted(adj)\nprint('A', list(enumerate(edgesA)))\nprint('B', list(enumerate(edgesB)))\nprint('C', list(enumerate(edgesC)))\nfor name,edges in [('A',edgesA),('B',edgesB),('C',edgesC)]:\n    solve(edges,name)\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 9668.51
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          3,
+          21,
+          15,
+          20,
+          0,
+          1,
+          7,
+          2,
+          17,
+          16,
+          5,
+          9
+        ],
+        "reasoning": "A valid graceful labeling is given. The labels are unique, include x[2]=15 and x[4]=0, and the 21 edge differences are all distinct (indeed they form 1..21). Using the natural edge order with all clique-internal edges first, then matching edges between consecutive cliques, the fixed edge labels are d[6]=5, d[9]=11, d[15]=13, and d[18]=9."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

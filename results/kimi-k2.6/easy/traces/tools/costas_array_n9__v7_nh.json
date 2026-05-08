@@ -1,0 +1,98 @@
+{
+  "problem_name": "costas_array_n9__v7_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 932.4,
+    "search_space": 362880,
+    "num_variables": 9,
+    "num_constraints": 10,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 60.71,
+    "solve_pct_type": 50.0
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    5,
+    3,
+    8,
+    7,
+    4,
+    6,
+    2
+  ],
+  "reasoning": "Found a valid Costas array of order 9 by exhaustive search. The permutation [0,1,5,3,8,7,4,6,2] places 9 marks with one per row and column, and all 36 displacement vectors between pairs are distinct.",
+  "raw_response": null,
+  "cot_trace": " We need to find a Costas array of order 9. A Costas array is a permutation of {0,...,n-1} such that the vectors (dr, dc) between pairs of points (c, x[c]) with dc > 0 are all distinct. That is, for any two pairs of columns c1 < c2 and c3 < c4, if c2 - c1 = c4 - c3 then we must have x[c2] - x[c1] != x[c4] - x[c3]. Equivalently, all the differences x[j] - x[i] for j > i must be unique for each difference j - i. Actually, the condition is: for each distance d = 1,...,n-1, the set of differences {x[i+d] - x[i] : i = 0,...,n-1-d} must consist of distinct values. Because if two pairs have same dc = d, then dr must be distinct. So for each d, the n-d differences must be all distinct.\n\nWe need to find a permutation of length 9 satisfying this. It is known that Costas arrays exist for all n <= 27 except n = 2, 3? Wait, known existence: Costas arrays exist for n = 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27? Actually, it's known that they exist for all n <= 27, and for many larger n, but not all. Wait, I recall that Costas arrays are known to exist for all n <= 27, and for n = 28, 29, 30, etc., some are missing. But order 9 definitely exists. For example, the Welch construction for prime p = 11 gives order 10, but we can maybe find one for order 9 via Lempel-Golomb or just brute force.\n\nWe can brute force search using Python. There are 9! = 362880 permutations. That's manageable. We can just iterate and check. Or use backtracking with pruning. Let's just brute force with Python. Use itertools.permutations(range(9)) and check the condition. 362k is small; should be fast. Let's do that.\n---\nThe brute force search found a Costas array of order 9: (0, 1, 5, 3, 8, 7, 4, 6, 2). Let me verify this is correct by checking the displacement vectors. \n---\nThe solution [0, 1, 5, 3, 8, 7, 4, 6, 2] is a valid Costas array of order 9. All 36 displacement vectors are distinct, and it's a valid permutation (one mark per row and column). ",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2387,
+  "completion_tokens": 1079,
+  "reasoning_tokens": 501,
+  "cached_tokens": 1440,
+  "cost_usd": 0.0054885908,
+  "cost_source": "openrouter",
+  "latency_ms": 38739.251375198364,
+  "tool_dispatch_ms_total": 69.70334053039551,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef is_costas(perm):\n    n = len(perm)\n    # For each distance d, check differences are unique\n    for d in range(1, n):\n        diffs = set()\n        for i in range(n - d):\n            diff = perm[i+d] - perm[i]\n            if diff in diffs:\n                return False\n            diffs.add(diff)\n    return True\n\nn = 9\nfound = None\nfor perm in itertools.permutations(range(n)):\n    if is_costas(perm):\n        found = perm\n        break\n\nprint(found)\n"
+      },
+      "ok": true,
+      "latency_ms": 36.05
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "perm = (0, 1, 5, 3, 8, 7, 4, 6, 2)\n\n# Verify Costas property\nn = len(perm)\nvectors = []\nfor i in range(n):\n    for j in range(i+1, n):\n        dr = perm[j] - perm[i]\n        dc = j - i\n        vectors.append((dr, dc))\n\nprint(f\"Number of vectors: {len(vectors)}\")\nprint(f\"Unique vectors: {len(set(vectors))}\")\nprint(f\"All vectors: {sorted(vectors)}\")\n\n# Check one per row and column\nprint(f\"Is permutation: {sorted(perm) == list(range(n))}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.66
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          5,
+          3,
+          8,
+          7,
+          4,
+          6,
+          2
+        ],
+        "reasoning": "Found a valid Costas array of order 9 by exhaustive search. The permutation [0,1,5,3,8,7,4,6,2] places 9 marks with one per row and column, and all 36 displacement vectors between pairs are distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

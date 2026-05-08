@@ -1,0 +1,100 @@
+{
+  "problem_name": "langford_n7__v11_nh",
+  "problem_type": "langford",
+  "params": {
+    "n": 7
+  },
+  "difficulty": {
+    "solve_time_ms": 1875.0,
+    "search_space": 87178291200,
+    "num_variables": 14,
+    "num_constraints": 110,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.79,
+    "solve_pct_type": 56.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    7,
+    3,
+    6,
+    2,
+    5,
+    3,
+    2,
+    4,
+    7,
+    6,
+    5,
+    1,
+    4,
+    1
+  ],
+  "reasoning": "Found via backtracking: place numbers from 7 down to 1, ensuring each value v occupies two positions exactly v+1 apart. Verified all constraints.",
+  "raw_response": null,
+  "cot_trace": " We need to find a Langford sequence L(2,7). Langford pairing problem: arrange 2 copies of numbers 1..n such that the two occurrences of k are k positions apart. For n=7, length 14. Known results: Langford pairing exists iff n \u2261 0 or 3 mod 4. 7 \u2261 3 mod 4, so it exists. Need to produce one.\n\nWe can solve via Python using backtracking or known sequence. Let's recall known Langford sequences for n=7. I know some examples: For n=7, one solution is [5,1,6,2,7,3,5,4,2,6,3,7,1,4]? Let's check. Actually need to verify. Let's derive.\n\nLangford sequence L(2,7) known: 5, 7, 2, 3, 6, 2, 5, 3, 4, 7, 6, 1, 4, 1? Let's check distances.\n\nBetter to just use Python to find one. Use backtracking or OR-Tools or simple brute force with pruning. Since n=7, small. Let's write a Python script to find a Langford sequence.\n\nWe need to fill positions 0..13. For each number v from 1..7, place two copies at positions i and i+v+1 (since distance v+1 apart means if first at index i, second at i+v+1). Actually \"v+1 positions apart\" means the difference in indices is v+1. So if one copy at position p, the other at p+v+1. So we need to choose for each v a starting position p such that p and p+v+1 are within [0,13] and unoccupied.\n\nWe can backtrack. Let's do Python.\n---\n The backtracking found a solution: [7, 3, 6, 2, 5, 3, 2, 4, 7, 6, 5, 1, 4, 1].\n\nLet me verify it manually:\n- Value 1: positions 11 and 13? Wait, indexing from 0: positions 11 and 13. Distance = 13-11 = 2, but should be 1+1=2. Yes, correct.\n- Value 2: positions 3 and 6. Distance = 6-3 = 3, should be 2+1=3. Correct.\n- Value 3: positions 1 and 5. Distance = 5-1 = 4, should be 3+1=4. Correct.\n- Value 4: positions 7 and 12. Distance = 12-7 = 5, should be 4+1=5. Correct.\n- Value 5: positions 4 and 10. Distance = 10-4 = 6, should be 5+1=6. Correct.\n- Value 6: positions 2 and 9. Distance = 9-2 = 7, should be 6+1=7. Correct.\n- Value 7: positions 0 and 8. Distance = 8-0 = 8, should be 7+1=8. Correct.\n\nAll values from 1 to 7 appear exactly twice. Length 14. This is a valid solution.\n\nSo the answer is SAT with solution [7, 3, 6, 2, 5, 3, 2, 4, 7, 6, 5, 1, 4, 1].",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1458,
+  "completion_tokens": 1256,
+  "reasoning_tokens": 548,
+  "cached_tokens": 0,
+  "cost_usd": 0.0055624,
+  "cost_source": "openrouter",
+  "latency_ms": 81916.39018058777,
+  "tool_dispatch_ms_total": 32.515525817871094,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def find_langford(n):\n    length = 2*n\n    seq = [0]*length\n    used = [False]*(n+1)\n    \n    def backtrack(v):\n        if v > n:\n            return True\n        # try to place value v\n        for i in range(length - v - 1):\n            j = i + v + 1\n            if seq[i] == 0 and seq[j] == 0:\n                seq[i] = v\n                seq[j] = v\n                if backtrack(v+1):\n                    return True\n                seq[i] = 0\n                seq[j] = 0\n        return False\n    \n    # We can also try different orderings; but simple v from 1..n may work.\n    # Actually typical backtracking tries numbers in some order; let's try descending or ascending.\n    # For Langford, descending often easier.\n    # Let's rewrite to try numbers descending.\n    pass\n\n# Let's implement descending backtracking.\ndef find_langford_desc(n):\n    length = 2*n\n    seq = [0]*length\n    \n    def backtrack(v):\n        if v == 0:\n            return True\n        for i in range(length - v - 1):\n            j = i + v + 1\n            if seq[i] == 0 and seq[j] == 0:\n                seq[i] = v\n                seq[j] = v\n                if backtrack(v-1):\n                    return True\n                seq[i] = 0\n                seq[j] = 0\n        return False\n    \n    if backtrack(n):\n        return seq\n    else:\n        return None\n\nprint(find_langford_desc(7))\n"
+      },
+      "ok": true,
+      "latency_ms": 32.52
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          7,
+          3,
+          6,
+          2,
+          5,
+          3,
+          2,
+          4,
+          7,
+          6,
+          5,
+          1,
+          4,
+          1
+        ],
+        "reasoning": "Found via backtracking: place numbers from 7 down to 1, ensuring each value v occupies two positions exactly v+1 apart. Verified all constraints."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,71 @@
+{
+  "problem_name": "all_interval_n14__v1_h",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 993.6,
+    "search_space": 87178291200,
+    "num_variables": 27,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 69.74,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7]",
+  "reasoning": "Found a valid all-interval series of size 14. Verification: x[6]=3 \u2713, x[12]=6 \u2713, d[3]=|2-12|=10 \u2713, d[11]=|6-8|=2 \u2713. The differences are [13,12,11,10,9,8,7,6,5,4,3,2,1], which is a permutation of 1..13.",
+  "raw_response": null,
+  "cot_trace": "Let me understand the problem:\n\n1. We need to find an all-interval series of size 14.\n2. This is a permutation of 0 to 13 (14 elements).\n3. The absolute differences between consecutive elements must also be a permutation of 1 to 13.\n4. We have partial assignments:\n   - x[6] = 3 (the 7th element in the permutation is 3)\n   - x[12] = 6 (the 13th element in the permutation is 6)\n   - d[3] = 10 (the 4th difference is 10)\n   - d[11] = 2 (the 12th difference is 2)\n\nLet me denote the permutation as x[0], x[1], ..., x[13].\nThe differences are d[i] = |x[i+1] - x[i]| for i = 0, 1, ..., 12.\n\nSo we have:\n- x[6] = 3\n- x[12] = 6\n- d[3] = |x[4] - x[3]| = 10\n- d[11] = |x[12] - x[11]| = 2\n\nSince x[12] = 6 and d[11] = 2, we have |6 - x[11]| = 2, so x[11] = 4 or x[11] = 8.\n\nLet me write a Python script to solve this constraint satisfaction problem.\n---\nThe solution found is [0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7]. Let me verify the constraints:\n- x[6] = 3 \u2713\n- x[12] = 6 \u2713\n- d[3] = |x[4] - x[3]| = |2 - 12| = 10 \u2713\n- d[11] = |x[12] - x[11]| = |6 - 8| = 2 \u2713\n\nThe differences are [13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1 to 13. \u2713\n\nThis is a valid solution!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 2622,
+  "completion_tokens": 1668,
+  "reasoning_tokens": 558,
+  "cached_tokens": 0,
+  "cost_usd": 0.00410475,
+  "cost_source": "openrouter",
+  "latency_ms": 38712.69726753235,
+  "tool_dispatch_ms_total": 504.2295455932617,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import permutations\n\ndef solve():\n    # We need to find a permutation x of 0..13 such that\n    # d[i] = |x[i+1] - x[i]| for i=0..12 is a permutation of 1..13\n    # With constraints:\n    # x[6] = 3, x[12] = 6\n    # d[3] = 10, d[11] = 2\n    \n    # d[3] = |x[4] - x[3]| = 10\n    # d[11] = |x[12] - x[11]| = |6 - x[11]| = 2, so x[11] = 4 or 8\n    \n    # Let's use constraint programming with python-constraint or backtracking\n    # Given the size (14!), we need a smarter approach\n    \n    # Let's use OR-Tools or a SAT solver\n    # Actually, let's try a backtracking approach with pruning\n    \n    n = 14\n    x = [None] * n\n    x[6] = 3\n    x[12] = 6\n    \n    # d[11] = |x[12] - x[11]| = 2, so x[11] = 4 or 8\n    # d[3] = |x[4] - x[3]| = 10\n    \n    used_values = {3, 6}\n    used_diffs = set()\n    \n    def backtrack(pos):\n        if pos == n:\n            # Check all differences are unique and cover 1..13\n            diffs = [abs(x[i+1] - x[i]) for i in range(n-1)]\n            if sorted(diffs) == list(range(1, n)):\n                return True\n            return False\n        \n        if x[pos] is not None:\n            # This position is fixed\n            if pos > 0:\n                d = abs(x[pos] - x[pos-1])\n                if d == 0 or d >= n or d in used_diffs:\n                    return False\n                used_diffs.add(d)\n            \n            result = backtrack(pos + 1)\n            \n            if pos > 0:\n                used_diffs.remove(abs(x[pos] - x[pos-1]))\n            \n            return result\n        \n        # Try all possible values for this position\n        for val in range(n):\n            if val in used_values:\n                continue\n            \n            if pos > 0:\n                d = abs(val - x[pos-1])\n                if d == 0 or d >= n or d in used_diffs:\n                    continue\n            \n            # Check if placing val here is consistent with future constraints\n            # If pos+1 is fixed, check the difference\n            if pos < n-1 and x[pos+1] is not None:\n                d_next = abs(x[pos+1] - val)\n                if d_next == 0 or d_next >= n or d_next in used_diffs:\n                    continue\n            \n            x[pos] = val\n            used_values.add(val)\n            \n            if pos > 0:\n                d = abs(x[pos] - x[pos-1])\n                used_diffs.add(d)\n            \n            if backtrack(pos + 1):\n                return True\n            \n            if pos > 0:\n                used_diffs.remove(abs(x[pos] - x[pos-1]))\n            \n            used_values.remove(val)\n            x[pos] = None\n        \n        return False\n    \n    if backtrack(0):\n        print(\"Solution found:\", x)\n        diffs = [abs(x[i+1] - x[i]) for i in range(n-1)]\n        print(\"Differences:\", diffs)\n        print(\"Sorted diffs:\", sorted(diffs))\n        return x\n    else:\n        print(\"No solution found\")\n        return None\n\nsolve()\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 504.23
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7]",
+        "reasoning": "Found a valid all-interval series of size 14. Verification: x[6]=3 \u2713, x[12]=6 \u2713, d[3]=|2-12|=10 \u2713, d[11]=|6-8|=2 \u2713. The differences are [13,12,11,10,9,8,7,6,5,4,3,2,1], which is a permutation of 1..13."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

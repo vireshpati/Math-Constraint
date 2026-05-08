@@ -1,0 +1,106 @@
+{
+  "problem_name": "costas_array_n12__v4_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1129.3,
+    "search_space": 479001600,
+    "num_variables": 12,
+    "num_constraints": 13,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 77.63,
+    "solve_pct_type": 83.33
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    6,
+    10,
+    8,
+    9,
+    4,
+    1,
+    11,
+    2,
+    5,
+    7,
+    3
+  ],
+  "reasoning": "Found a permutation of rows 0..11 respecting x[3]=8 and x[8]=2. Verification confirms that for every column separation d=1..11, all row differences x[c+d]-x[c] are distinct, so all displacement vectors with dc>0 are pairwise distinct.",
+  "raw_response": null,
+  "cot_trace": "**Solving Costas array order**\n\nI need to solve the Costas order 12 with fixed values: x[3]=8 and x[8]=2. My goal is to produce a permutation that satisfies this. To do this using Python, I can implement a backtracking algorithm with constraints, ensuring all displacement vectors are distinct. I'll focus on pairs in the same column separation and search for a solution. Brute-force backtracking could work, so I\u2019ll consider variable order and dynamic assignment. Let's get coding!**Assigning column constraints**\n\nWhen I'm assigning a new column, I need to consider constraints like ensuring rows aren't reused. For any assigned column j, I calculate the difference d based on the absolute column separation. If j is less than c, the difference is row - x[j]; otherwise, it\u2019s x[j] - row. I also have to keep in mind that future assignments may become impossible. I should search with the fixed values I've already established. Let\u2019s give this a try!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4455,
+  "completion_tokens": 2108,
+  "reasoning_tokens": 449,
+  "cached_tokens": 0,
+  "cost_usd": 0.085515,
+  "cost_source": "openrouter",
+  "latency_ms": 42055.795669555664,
+  "tool_dispatch_ms_total": 154.937744140625,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from time import time\nn=12\nfixed={3:8,8:2}\n# variable order: fixed first? Then columns with many assigned neighbors?\n# We'll simple backtrack with MRV over unassigned: for each col, candidate rows unused satisfying current constraints; choose smallest.\nassigned={}\nused_rows=set()\nused_diffs=[set() for _ in range(n)]\n# initialize fixed sequentially check\n\ndef can_assign(c,r):\n    if r in used_rows: return False\n    for j,rj in assigned.items():\n        if j<c:\n            d=c-j; diff=r-rj\n        else:\n            d=j-c; diff=rj-r\n        if diff in used_diffs[d]:\n            return False\n    return True\n\ndef do_assign(c,r):\n    assigned[c]=r; used_rows.add(r)\n    added=[]\n    for j,rj in assigned.items():\n        if j==c: continue\n        if j<c:\n            d=c-j; diff=r-rj\n        else:\n            d=j-c; diff=rj-r\n        used_diffs[d].add(diff); added.append((d,diff))\n    return added\n\ndef undo_assign(c,r,added):\n    for d,diff in added:\n        used_diffs[d].remove(diff)\n    used_rows.remove(r); del assigned[c]\n\nfor c,r in fixed.items():\n    print('can fixed',c,r,can_assign(c,r))\n    a=do_assign(c,r)\n\nnodes=0; start=time()\n\ndef candidates(c):\n    if c in fixed:\n        rs=[fixed[c]] if fixed[c] not in used_rows or assigned.get(c)==fixed[c] else []\n    else:\n        rs=[r for r in range(n) if r not in used_rows]\n    # maybe heuristic order\n    return [r for r in rs if can_assign(c,r)]\n\ndef backtrack():\n    global nodes\n    nodes+=1\n    if len(assigned)==n:\n        return [assigned[i] for i in range(n)]\n    un=[c for c in range(n) if c not in assigned]\n    best=None; best_cands=None\n    for c in un:\n        cand=candidates(c)\n        if not cand:\n            return None\n        if best is None or len(cand)<len(best_cands):\n            best=c; best_cands=cand\n            if len(cand)==1: break\n    # Try candidates maybe random/value ordering\n    # print(len(assigned), best, best_cands)\n    for r in best_cands:\n        added=do_assign(best,r)\n        sol=backtrack()\n        if sol: return sol\n        undo_assign(best,r,added)\n    return None\nsol=backtrack()\nprint('nodes',nodes,'time',time()-start)\nprint(sol)\n# verify\ndef verify(x):\n    if len(set(x))!=n: return False,'perm'\n    for d in range(1,n):\n        seen=set()\n        for c in range(n-d):\n            diff=x[c+d]-x[c]\n            if diff in seen:\n                return False,(d,diff,c)\n            seen.add(diff)\n    return True,'ok'\nprint(verify(sol) if sol else None)\n",
+        "timeout_seconds": 15
+      },
+      "ok": false,
+      "latency_ms": 34.87
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from time import time\nn=12\nfixed={3:8,8:2}\nassigned={}\nused_rows=set()\nused_diffs=[set() for _ in range(n)]\n\ndef new_diffs(c,r):\n    lst=[]\n    seen=set()\n    for j,rj in assigned.items():\n        if j<c:\n            d=c-j; diff=r-rj\n        else:\n            d=j-c; diff=rj-r\n        key=(d,diff)\n        if diff in used_diffs[d] or key in seen:\n            return None\n        seen.add(key); lst.append(key)\n    return lst\n\ndef can_assign(c,r):\n    if r in used_rows: return False\n    return new_diffs(c,r) is not None\n\ndef do_assign(c,r):\n    lst=new_diffs(c,r)\n    assert lst is not None\n    assigned[c]=r; used_rows.add(r)\n    for d,diff in lst: used_diffs[d].add(diff)\n    return lst\n\ndef undo_assign(c,r,lst):\n    for d,diff in lst: used_diffs[d].remove(diff)\n    used_rows.remove(r); del assigned[c]\n\nfor c,r in fixed.items():\n    print('can fixed',c,r,can_assign(c,r))\n    if not can_assign(c,r): raise SystemExit('fixed contradiction')\n    do_assign(c,r)\n\nnodes=0; start=time()\n\ndef candidates(c):\n    rs=[r for r in range(n) if r not in used_rows]\n    return [r for r in rs if can_assign(c,r)]\n\ndef forward_ok():\n    # quick Hall? skip\n    return True\n\ndef backtrack():\n    global nodes\n    nodes+=1\n    if nodes%100000==0:\n        print('nodes',nodes,'depth',len(assigned),'time',time()-start)\n    if len(assigned)==n:\n        return [assigned[i] for i in range(n)]\n    un=[c for c in range(n) if c not in assigned]\n    best=None; best_cands=None\n    for c in un:\n        cand=candidates(c)\n        if not cand:\n            return None\n        if best is None or len(cand)<len(best_cands):\n            best=c; best_cands=cand\n            if len(cand)==1: break\n    # sort maybe by middle? \n    for r in best_cands:\n        lst=do_assign(best,r)\n        sol=backtrack()\n        if sol: return sol\n        undo_assign(best,r,lst)\n    return None\nsol=backtrack()\nprint('nodes',nodes,'time',time()-start)\nprint(sol)\ndef verify(x):\n    if len(set(x))!=n: return False,'perm'\n    if any(x[c]!=r for c,r in fixed.items()): return False,'fixed'\n    for d in range(1,n):\n        seen=set()\n        for c in range(n-d):\n            diff=x[c+d]-x[c]\n            if diff in seen:\n                return False,(d,diff,c)\n            seen.add(diff)\n    return True,'ok'\nprint(verify(sol) if sol else None)\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 120.07
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          6,
+          10,
+          8,
+          9,
+          4,
+          1,
+          11,
+          2,
+          5,
+          7,
+          3
+        ],
+        "reasoning": "Found a permutation of rows 0..11 respecting x[3]=8 and x[8]=2. Verification confirms that for every column separation d=1..11, all row differences x[c+d]-x[c] are distinct, so all displacement vectors with dc>0 are pairwise distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

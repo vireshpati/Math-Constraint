@@ -1,0 +1,81 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree5_min_degree4_min_girth6_vertices16__v1",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 4,
+    "min_girth": 6,
+    "vertices": 16
+  },
+  "difficulty": {
+    "solve_time_ms": 131.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": -1,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 47.18,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "By the Moore bound for girth \u2265 6: any vertex v has \u22654 neighbors, and each of those has \u22653 other neighbors. Girth \u2265 6 means no triangles (so v's neighbors aren't mutually adjacent), no 4-cycles (so v's neighbors share no common neighbor besides v), and no 5-cycles. Thus the BFS ball of radius 2 contains \u2265 1 + 4 + 4\u00b73 = 17 distinct vertices. But we only have 16, contradiction. Hence UNSAT.",
+  "raw_response": null,
+  "cot_trace": " I'm working through the Moore bound constraints for a graph with girth at least 6 and degree 4 or 5\u2014trying to figure out the minimum number of vertices needed and whether 16 vertices is feasible for these parameters.\n\nLooking at the degree constraint more carefully: if I pick any vertex v with degree at least 4, it has at least 4 neighbors, and each of those neighbors must have at least 3 other neighbors (since they also have degree \u22654). With girth \u22656, the breadth-first search tree from v up to distance 2 must be a true tree with no cross-edges, which means I need at least 1 + 4 + 4\u00b73 = 17 vertices just within distance 2 of v. But I only have 16 total vertices, so this is impossible.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Correct UNSAT",
+  "prompt_tokens": 7506,
+  "completion_tokens": 2830,
+  "reasoning_tokens": 178,
+  "cached_tokens": 0,
+  "cost_usd": 0.10828,
+  "cost_source": "openrouter",
+  "latency_ms": 41427.0715713501,
+  "tool_dispatch_ms_total": 15043.968200683594,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify with a quick SAT check - try to find any such graph using pysat\nfrom pysat.solvers import Glucose4\nfrom itertools import combinations\n\nn = 16\nedges = list(combinations(range(n), 2))\nedge_idx = {e: i+1 for i, e in enumerate(edges)}\n\nsolver = Glucose4()\n\ndef var(u, v):\n    if u > v: u, v = v, u\n    return edge_idx[(u,v)]\n\n# Degree constraints: 4 <= deg(v) <= 5 via cardinality\nfrom pysat.card import CardEnc, EncType\ntop = len(edges)\ndef fresh():\n    global top\n    top += 1\n    return top\n\nfor v in range(n):\n    lits = [var(v,u) for u in range(n) if u != v]\n    # at least 4\n    cnf = CardEnc.atleast(lits=lits, bound=4, top_id=top, encoding=EncType.seqcounter)\n    top = max(top, max((abs(l) for cl in cnf.clauses for l in cl), default=top))\n    for cl in cnf.clauses: solver.add_clause(cl)\n    cnf = CardEnc.atmost(lits=lits, bound=5, top_id=top, encoding=EncType.seqcounter)\n    top = max(top, max((abs(l) for cl in cnf.clauses for l in cl), default=top))\n    for cl in cnf.clauses: solver.add_clause(cl)\n\n# No cycles of length 3,4,5: for every set of k vertices forming a path/cycle\n# Simpler: for every 3-subset, not all 3 edges; for 4-subset cycle, forbid; 5-subset cycle forbid\n# Actually: forbid triangles\nfor a,b,c in combinations(range(n),3):\n    solver.add_clause([-var(a,b), -var(b,c), -var(a,c)])\n\n# forbid 4-cycles: for each pair u,v, at most one common neighbor... \n# equivalent: for each 4-tuple forming C4\n# Simpler constraint: for any two vertices, they have at most 1 common neighbor\nfor u,v in combinations(range(n),2):\n    others = [w for w in range(n) if w!=u and w!=v]\n    # for each pair of common neighbors, forbid\n    for w1, w2 in combinations(others, 2):\n        # not (uw1 & vw1 & uw2 & vw2)\n        solver.add_clause([-var(u,w1), -var(v,w1), -var(u,w2), -var(v,w2)])\n\n# forbid 5-cycles: enumerate 5-cycles\nfor verts in combinations(range(n), 5):\n    # each cyclic ordering\n    from itertools import permutations\n    seen = set()\n    for perm in permutations(verts):\n        # canonical: start with min, direction\n        if perm[0] != min(perm): continue\n        if perm[1] > perm[-1]: continue\n        seen.add(perm)\n    for perm in seen:\n        clause = []\n        for i in range(5):\n            clause.append(-var(perm[i], perm[(i+1)%5]))\n        solver.add_clause(clause)\n\nresult = solver.solve()\nprint(\"SAT?\", result)\n"
+      },
+      "ok": false,
+      "latency_ms": 15007.35
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Moore bound verification:\n# For girth >= 6 and min degree d, number of vertices >= 1 + d + d(d-1)\n# For d=4: >= 1 + 4 + 12 = 17\n# We have only 16 vertices, so impossible.\nprint(1 + 4 + 4*3)\n"
+      },
+      "ok": true,
+      "latency_ms": 36.62
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "By the Moore bound for girth \u2265 6: any vertex v has \u22654 neighbors, and each of those has \u22653 other neighbors. Girth \u2265 6 means no triangles (so v's neighbors aren't mutually adjacent), no 4-cycles (so v's neighbors share no common neighbor besides v), and no 5-cycles. Thus the BFS ball of radius 2 contains \u2265 1 + 4 + 4\u00b73 = 17 distinct vertices. But we only have 16, contradiction. Hence UNSAT.",
+        "satisfiable": false,
+        "solution": null
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

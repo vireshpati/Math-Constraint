@@ -1,0 +1,90 @@
+{
+  "problem_name": "graceful_graph_k2_p5__v1_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 5
+  },
+  "difficulty": {
+    "solve_time_ms": 1003.9,
+    "search_space": 289254654976,
+    "num_variables": 23,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 70.49,
+    "solve_pct_type": 6.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[0, 2, 13, 1, 3, 12, 8, 4, 5, 11]",
+  "reasoning": "Found a valid graceful labeling using backtracking search. The solution assigns labels [0, 2, 13, 1, 3, 12, 8, 4, 5, 11] to vertices 0-9 (ordered by clique then vertex within clique). The edge labels are |0-2|=2, |13-1|=12, |3-12|=9, |8-4|=4, |5-11|=6, |0-13|=13, |2-1|=1, |13-3|=10, |1-12|=11, |3-8|=5, |12-4|=8, |8-5|=3, |4-11|=7, which gives all distinct values {1,2,3,4,5,6,7,8,9,10,11,12,13}.",
+  "raw_response": null,
+  "cot_trace": "Let me understand the problem:\n\n1. We have 5 disjoint K_2 cliques (cliques 0 through 4)\n2. Each K_2 clique has 2 vertices (vertex 0 and vertex 1)\n3. Consecutive cliques (g, g+1) are connected by 2 edges: vertex i of clique g connects to vertex i of clique g+1 for i in {0, 1}\n4. Total vertices: 5 * 2 = 10\n5. Total edges: 5 * 1 (edges within each K_2) + 4 * 2 (edges between consecutive cliques) = 5 + 8 = 13\n\nSo the graph looks like:\n- Clique 0: vertices (0,0) and (0,1), connected by an edge\n- Clique 1: vertices (1,0) and (1,1), connected by an edge\n- Clique 2: vertices (2,0) and (2,1), connected by an edge\n- Clique 3: vertices (3,0) and (3,1), connected by an edge\n- Clique 4: vertices (4,0) and (4,1), connected by an edge\n\nEdges between cliques:\n- (0,0)-(1,0), (0,1)-(1,1)\n- (1,0)-(2,0), (1,1)-(2,1)\n- (2,0)-(3,0), (2,1)-(3,1)\n- (3,0)-(4,0), (3,1)-(4,1)\n\nTotal edges: 5 (within cliques) + 8 (between cliques) = 13\n\nA graceful labeling assigns labels 0-13 to the 10 vertices such that all 13 edge labels (absolute differences) are distinct.\n\nLet me write a Python script to solve this using constraint programming or SAT solving.\n\nI'll use pysat or a simple backtracking approach.\n\nLet me think about the structure:\n- 10 vertices, labeled 0-13\n- 13 edges, each with a distinct label from 1-13\n\nLet me code this up.\n\n---\nThere's a bug in my backtracking code - I'm removing edge labels that might have been added by multiple edges. Let me fix this.\n---\nThe backtracking found a solution but it has duplicate edge labels (two 4s). The issue is that the backtracking doesn't properly check all edge labels. Let me fix the approach - I need to check edge labels more carefully. The problem is that when we assign a label to vertex v_idx, we need to check edges where both endpoints are assigned, but we might have already checked some edges when the other endpoint was assigned.\n\nLet me think about this more carefully. The backtracking should work, but I think the issue is that I'm not properly tracking which edges have been \"checked\". Let me rewrite this more carefully.\n\nActually, looking at the output, the edge labels have two 4s, which means the solution is invalid. The backtracking should have caught this. Let me trace through the logic...\n\nOh I see the issue - when we assign a label to vertex v_idx, we check edges where the other endpoint is already assigned. But we don't check edges where both endpoints will be assigned later. The backtracking should still work because when we later assign the other endpoint, we'll check the edge then.\n\nWait, but the solution has duplicate edge labels. Let me check which edges have label 4:\n- Edge (0,1): |0-1| = 1\n- Edge (2,3): |2-13| = 11\n- Edge (4,5): |12-4| = 8\n- Edge (6,7): |6-11| = 5\n- Edge (8,9): |3-7| = 4\n- Edge (0,2): |0-2| = 2\n- Edge (1,3): |1-13| = 12\n- Edge (2,4): |2-12| = 10\n- Edge (3,5): |13-4| = 9\n- Edge (4,6): |12-6| = 6\n- Edge (5,7): |4-11| = 7\n- Edge (6,8): |6-3| = 3\n- Edge (7,9): |11-7| = 4\n\nSo edges (8,9) and (7,9) both have label 4. The backtracking should have caught this when assigning vertex 9 (label 7), since vertex 8 (label 3) and vertex 7 (label 11) were already assigned.\n\nWait, let me check the order. The backtracking assigns vertices 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 in order.\n\nWhen assigning vertex 9 (label 7):\n- Edge (8,9): |3-7| = 4, check if 4 is in used_edge_labels\n- Edge (7,9): |11-7| = 4, check if 4 is in used_edge_labels\n\nAt this point, used_edge_labels should contain the edge labels from all edges where both endpoints are assigned. Let me trace through...\n\nActually, I think the issue is that the backtracking is checking edges correctly, but the solution it found is wrong because of a bug. Let me add more debugging.\n\nWait, actually looking at the code again, I think the issue is that the backtracking is finding a solution where the edge labels are not all distinct, which means there's a bug in the checking logic.\n\nLet me rewrite the backtracking more carefully, checking all edges after each assignment.\n\n---\nThe solution found is [0, 2, 13, 1, 3, 12, 8, 4, 5, 11]. Let me verify this is correct and submit it.\n\nThe vertices are ordered by clique then vertex within clique:\n- Clique 0: vertices 0, 1 \u2192 labels 0, 2\n- Clique 1: vertices 2, 3 \u2192 labels 13, 1\n- Clique 2: vertices 4, 5 \u2192 labels 3, 12\n- Clique 3: vertices 6, 7 \u2192 labels 8, 4\n- Clique 4: vertices 8, 9 \u2192 labels 5, 11\n\nWait, let me re-read the output. The solution is [0, 2, 13, 1, 3, 12, 8, 4, 5, 11].\n\nSo:\n- Vertex 0 (clique 0, vertex 0): 0\n- Vertex 1 (clique 0, vertex 1): 2\n- Vertex 2 (clique 1, vertex 0): 13\n- Vertex 3 (clique 1, vertex 1): 1\n- Vertex 4 (clique 2, vertex 0): 3\n- Vertex 5 (clique 2, vertex 1): 12\n- Vertex 6 (clique 3, vertex 0): 8\n- Vertex 7 (clique 3, vertex 1): 4\n- Vertex 8 (clique 4, vertex 0): 5\n- Vertex 9 (clique 4, vertex 1): 11\n\nEdges:\n- (0,1): |0-2| = 2\n- (2,3): |13-1| = 12\n- (4,5): |3-12| = 9\n- (6,7): |8-4| = 4\n- (8,9): |5-11| = 6\n- (0,2): |0-13| = 13\n- (1,3): |2-1| = 1\n- (2,4): |13-3| = 10\n- (3,5): |1-12| = 11\n- (4,6): |3-8| = 5\n- (5,7): |12-4| = 8\n- (6,8): |8-5| = 3\n- (7,9): |4-11| = 7\n\nEdge labels: 2, 12, 9, 4, 6, 13, 1, 10, 11, 5, 8, 3, 7\nSorted: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13\n\nAll distinct! This is a valid graceful labeling.\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 9448,
+  "completion_tokens": 4337,
+  "reasoning_tokens": 1969,
+  "cached_tokens": 0,
+  "cost_usd": 0.01152775,
+  "cost_source": "openrouter",
+  "latency_ms": 85078.04656028748,
+  "tool_dispatch_ms_total": 575.5267143249512,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc\n\n# Let's define the graph structure\n# Vertices: (clique, vertex) for clique in 0..4, vertex in 0..1\n# We'll index them as 0..9 where index = clique*2 + vertex\n\n# Edges:\n# Within each clique: (clique, 0) - (clique, 1) for clique in 0..4\n# Between consecutive cliques: (clique, i) - (clique+1, i) for clique in 0..3, i in 0..1\n\nedges = []\n# Within cliques\nfor g in range(5):\n    edges.append((g*2, g*2+1))\n# Between cliques\nfor g in range(4):\n    for i in range(2):\n        edges.append((g*2+i, (g+1)*2+i))\n\nprint(f\"Number of vertices: 10\")\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Edges: {edges}\")\n\n# We need to assign labels 0..13 to 10 vertices\n# Such that all |label(u) - label(v)| for edges (u,v) are distinct\n\n# Let's use a SAT solver approach\n# Variables: x[v][l] = True if vertex v gets label l\n# For each vertex v, exactly one label\n# For each label l, at most one vertex gets it (since we have 10 vertices and 14 labels)\n# For each edge e=(u,v), the edge label |l_u - l_v| must be unique\n\n# Actually, let's use a simpler approach with constraint programming\n# or just try a backtracking search\n\ndef solve_graceful():\n    # Backtracking approach\n    # Assign labels to vertices one by one\n    \n    n_vertices = 10\n    n_labels = 14  # labels 0..13\n    n_edges = len(edges)\n    \n    # Try to assign labels\n    best = [None] * n_vertices\n    used_labels = set()\n    used_edge_labels = set()\n    \n    def backtrack(v_idx):\n        if v_idx == n_vertices:\n            return True\n        \n        for label in range(n_labels):\n            if label in used_labels:\n                continue\n            \n            # Check if this assignment creates any duplicate edge labels\n            valid = True\n            new_edge_labels = []\n            for e_idx, (u, w) in enumerate(edges):\n                if u == v_idx and best[w] is not None:\n                    el = abs(label - best[w])\n                    if el in used_edge_labels or el == 0:\n                        valid = False\n                        break\n                    new_edge_labels.append(el)\n                elif w == v_idx and best[u] is not None:\n                    el = abs(label - best[u])\n                    if el in used_edge_labels or el == 0:\n                        valid = False\n                        break\n                    new_edge_labels.append(el)\n            \n            if not valid:\n                continue\n            \n            # Make assignment\n            best[v_idx] = label\n            used_labels.add(label)\n            for el in new_edge_labels:\n                used_edge_labels.add(el)\n            \n            if backtrack(v_idx + 1):\n                return True\n            \n            # Undo assignment\n            best[v_idx] = None\n            used_labels.remove(label)\n            for el in new_edge_labels:\n                used_edge_labels.remove(el)\n        \n        return False\n    \n    if backtrack(0):\n        return best\n    return None\n\nresult = solve_graceful()\nif result:\n    print(f\"Solution found: {result}\")\n    # Verify\n    edge_labels = []\n    for u, v in edges:\n        el = abs(result[u] - result[v])\n        edge_labels.append(el)\n    print(f\"Edge labels: {sorted(edge_labels)}\")\n    print(f\"Unique edge labels: {len(set(edge_labels))}\")\nelse:\n    print(\"No solution found with simple backtracking\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 231.54
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's fix the backtracking approach\nedges = []\nfor g in range(5):\n    edges.append((g*2, g*2+1))\nfor g in range(4):\n    for i in range(2):\n        edges.append((g*2+i, (g+1)*2+i))\n\nn_vertices = 10\nn_labels = 14\n\ndef solve_graceful():\n    best = [None] * n_vertices\n    used_labels = set()\n    used_edge_labels = set()\n    \n    def backtrack(v_idx):\n        if v_idx == n_vertices:\n            return True\n        \n        for label in range(n_labels):\n            if label in used_labels:\n                continue\n            \n            # Check if this assignment creates any duplicate edge labels\n            valid = True\n            new_edge_labels = []\n            for e_idx, (u, w) in enumerate(edges):\n                if u == v_idx and best[w] is not None:\n                    el = abs(label - best[w])\n                    if el in used_edge_labels or el == 0:\n                        valid = False\n                        break\n                    new_edge_labels.append(el)\n                elif w == v_idx and best[u] is not None:\n                    el = abs(label - best[u])\n                    if el in used_edge_labels or el == 0:\n                        valid = False\n                        break\n                    new_edge_labels.append(el)\n            \n            if not valid:\n                continue\n            \n            # Make assignment\n            best[v_idx] = label\n            used_labels.add(label)\n            for el in new_edge_labels:\n                used_edge_labels.add(el)\n            \n            if backtrack(v_idx + 1):\n                return True\n            \n            # Undo assignment\n            best[v_idx] = None\n            used_labels.remove(label)\n            for el in new_edge_labels:\n                used_edge_labels.discard(el)  # Use discard instead of remove\n        \n        return False\n    \n    if backtrack(0):\n        return best\n    return None\n\nresult = solve_graceful()\nif result:\n    print(f\"Solution found: {result}\")\n    # Verify\n    edge_labels = []\n    for u, v in edges:\n        el = abs(result[u] - result[v])\n        edge_labels.append(el)\n    print(f\"Edge labels: {sorted(edge_labels)}\")\n    print(f\"Unique edge labels: {len(set(edge_labels))}\")\n    print(f\"All distinct: {len(set(edge_labels)) == len(edge_labels)}\")\nelse:\n    print(\"No solution found with simple backtracking\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 40.0
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's rewrite the backtracking more carefully\nedges = []\nfor g in range(5):\n    edges.append((g*2, g*2+1))\nfor g in range(4):\n    for i in range(2):\n        edges.append((g*2+i, (g+1)*2+i))\n\nn_vertices = 10\nn_labels = 14\n\ndef solve_graceful():\n    best = [None] * n_vertices\n    used_labels = set()\n    \n    def get_edge_labels():\n        \"\"\"Get all edge labels for currently assigned vertices\"\"\"\n        labels = []\n        for u, v in edges:\n            if best[u] is not None and best[v] is not None:\n                labels.append(abs(best[u] - best[v]))\n        return labels\n    \n    def backtrack(v_idx):\n        if v_idx == n_vertices:\n            # Verify all edge labels are distinct\n            edge_labels = get_edge_labels()\n            if len(set(edge_labels)) == len(edge_labels) and len(edge_labels) == len(edges):\n                return True\n            return False\n        \n        for label in range(n_labels):\n            if label in used_labels:\n                continue\n            \n            # Make assignment\n            best[v_idx] = label\n            used_labels.add(label)\n            \n            # Check if any edge label is duplicated\n            edge_labels = get_edge_labels()\n            if len(set(edge_labels)) == len(edge_labels):\n                if backtrack(v_idx + 1):\n                    return True\n            \n            # Undo assignment\n            best[v_idx] = None\n            used_labels.remove(label)\n        \n        return False\n    \n    if backtrack(0):\n        return best\n    return None\n\nresult = solve_graceful()\nif result:\n    print(f\"Solution found: {result}\")\n    # Verify\n    edge_labels = []\n    for u, v in edges:\n        el = abs(result[u] - result[v])\n        edge_labels.append(el)\n    print(f\"Edge labels: {sorted(edge_labels)}\")\n    print(f\"Unique edge labels: {len(set(edge_labels))}\")\n    print(f\"All distinct: {len(set(edge_labels)) == len(edge_labels)}\")\nelse:\n    print(\"No solution found\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 303.98
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[0, 2, 13, 1, 3, 12, 8, 4, 5, 11]",
+        "reasoning": "Found a valid graceful labeling using backtracking search. The solution assigns labels [0, 2, 13, 1, 3, 12, 8, 4, 5, 11] to vertices 0-9 (ordered by clique then vertex within clique). The edge labels are |0-2|=2, |13-1|=12, |3-12|=9, |8-4|=4, |5-11|=6, |0-13|=13, |2-1|=1, |13-3|=10, |1-12|=11, |3-8|=5, |12-4|=8, |8-5|=3, |4-11|=7, which gives all distinct values {1,2,3,4,5,6,7,8,9,10,11,12,13}."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

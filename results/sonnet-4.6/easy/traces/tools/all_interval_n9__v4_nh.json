@@ -1,0 +1,90 @@
+{
+  "problem_name": "all_interval_n9__v4_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 1016.2,
+    "search_space": 362880,
+    "num_variables": 17,
+    "num_constraints": 12,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 71.24,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    8,
+    1,
+    7,
+    2,
+    6,
+    3,
+    5,
+    4
+  ],
+  "reasoning": "Found via backtracking search. The permutation [0,8,1,7,2,6,3,5,4] uses each of 0\u20138 exactly once, and the consecutive absolute differences are [8,7,6,5,4,3,2,1], which is a permutation of 1\u20138. This is the classic \"zigzag\" all-interval series.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2616,
+  "completion_tokens": 776,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.019488,
+  "cost_source": "openrouter",
+  "latency_ms": 11704.656839370728,
+  "tool_dispatch_ms_total": 36.14306449890137,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\ndef check_all_interval(perm):\n    diffs = [abs(perm[i+1] - perm[i]) for i in range(len(perm)-1)]\n    return sorted(diffs) == list(range(1, len(perm)))\n\n# Try to find a solution efficiently with backtracking\ndef solve():\n    n = 9\n    used_vals = [False] * n\n    used_diffs = [False] * n  # index 1..8\n    path = []\n\n    def backtrack():\n        if len(path) == n:\n            return True\n        for v in range(n):\n            if used_vals[v]:\n                continue\n            if path:\n                d = abs(path[-1] - v)\n                if d == 0 or used_diffs[d]:\n                    continue\n                used_diffs[d] = True\n                path.append(v)\n                used_vals[v] = True\n                if backtrack():\n                    return True\n                path.pop()\n                used_vals[v] = False\n                used_diffs[d] = False\n            else:\n                path.append(v)\n                used_vals[v] = True\n                if backtrack():\n                    return True\n                path.pop()\n                used_vals[v] = False\n        return False\n\n    backtrack()\n    return path\n\nsolution = solve()\nprint(\"Solution:\", solution)\nprint(\"Differences:\", [abs(solution[i+1]-solution[i]) for i in range(len(solution)-1)])\nprint(\"Valid:\", check_all_interval(solution))\n"
+      },
+      "ok": true,
+      "latency_ms": 36.14
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          8,
+          1,
+          7,
+          2,
+          6,
+          3,
+          5,
+          4
+        ],
+        "reasoning": "Found via backtracking search. The permutation [0,8,1,7,2,6,3,5,4] uses each of 0\u20138 exactly once, and the consecutive absolute differences are [8,7,6,5,4,3,2,1], which is a permutation of 1\u20138. This is the classic \"zigzag\" all-interval series."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

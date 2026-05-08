@@ -1,0 +1,117 @@
+{
+  "problem_name": "magic_sequence_n13__v3_h",
+  "problem_type": "magic_sequence",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 1045.4,
+    "search_space": 302875106592253,
+    "num_variables": 13,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 74.25,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    9,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "reasoning": "The standard magic sequence formula for length n is: x[0]=n-4, x[1]=2, x[2]=1, x[n-4]=1, all others=0. For n=13: x[0]=9, x[1]=2, x[2]=1, x[9]=1, rest=0. This satisfies all magic sequence constraints and respects the fixed values x[7]=0 and x[11]=0.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 9340,
+  "completion_tokens": 2297,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.062475,
+  "cost_source": "openrouter",
+  "latency_ms": 87896.79050445557,
+  "tool_dispatch_ms_total": 60216.15433692932,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import product\n\ndef is_magic_sequence(seq):\n    n = len(seq)\n    for i in range(n):\n        if seq[i] != seq.count(i):\n            return False\n    return True\n\ndef solve_magic_sequence(n, fixed={}):\n    # Use constraint propagation + backtracking\n    # Known solution pattern for length 13: typically looks like [1,2,3,...] style\n    # Let's use a smarter approach\n    \n    # For a magic sequence of length n:\n    # sum(x[i]) = n (total count of all digits)\n    # sum(i * x[i]) = n (each x[i] counts i's, so sum of all values = n)\n    \n    from pysat.pb import PBEnc\n    from pysat.formula import CNF\n    \n    # Let's just do backtracking with pruning\n    seq = [None] * n\n    \n    # Apply fixed values\n    for idx, val in fixed.items():\n        seq[idx] = val\n    \n    def backtrack(pos):\n        if pos == n:\n            return is_magic_sequence(seq)\n        \n        if seq[pos] is not None:\n            return backtrack(pos + 1)\n        \n        for val in range(n):\n            seq[pos] = val\n            # Pruning: check partial consistency\n            # Count how many times each number appears so far\n            counts = {}\n            for i in range(n):\n                if seq[i] is not None:\n                    counts[seq[i]] = counts.get(seq[i], 0) + 1\n            \n            valid = True\n            for i, cnt in counts.items():\n                if seq[i] is not None and seq[i] < cnt:\n                    valid = False\n                    break\n            \n            if valid:\n                if backtrack(pos + 1):\n                    return True\n        \n        seq[pos] = None\n        return False\n    \n    if backtrack(0):\n        return seq\n    return None\n\n# Fixed: x[7]=0, x[11]=0\nfixed = {7: 0, 11: 0}\nresult = solve_magic_sequence(13, fixed)\nprint(\"Result:\", result)\nif result:\n    print(\"Is magic:\", is_magic_sequence(result))\n    # Verify fixed values\n    print(\"x[7] =\", result[7], \"(should be 0)\")\n    print(\"x[11] =\", result[11], \"(should be 0)\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 119.22
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef is_magic_sequence(seq):\n    n = len(seq)\n    for i in range(n):\n        if seq[i] != seq.count(i):\n            return False\n    return True\n\ndef solve_magic_sequence(n, fixed={}):\n    seq = [None] * n\n    \n    # Apply fixed values\n    for idx, val in fixed.items():\n        seq[idx] = val\n    \n    def backtrack(pos):\n        if pos == n:\n            return is_magic_sequence(seq)\n        \n        if seq[pos] is not None:\n            return backtrack(pos + 1)\n        \n        for val in range(n):\n            seq[pos] = val\n            # Pruning: check partial consistency\n            counts = {}\n            for i in range(n):\n                if seq[i] is not None:\n                    counts[seq[i]] = counts.get(seq[i], 0) + 1\n            \n            valid = True\n            for i, cnt in counts.items():\n                if seq[i] is not None and seq[i] < cnt:\n                    valid = False\n                    break\n            \n            if valid:\n                if backtrack(pos + 1):\n                    return True\n        \n        seq[pos] = None\n        return False\n    \n    if backtrack(0):\n        return seq\n    return None\n\n# Fixed: x[7]=0, x[11]=0\nfixed = {7: 0, 11: 0}\nresult = solve_magic_sequence(13, fixed)\nprint(\"Result:\", result)\nif result:\n    print(\"Is magic:\", is_magic_sequence(result))\n    print(\"x[7] =\", result[7], \"(should be 0)\")\n    print(\"x[11] =\", result[11], \"(should be 0)\")\n    # Show verification\n    for i in range(13):\n        print(f\"x[{i}]={result[i]}, count of {i} in seq={result.count(i)}\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 60061.51
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Use a smarter approach - known structure of magic sequences\n# For length n, magic sequences have the form:\n# x[0] = n-4, x[1] = 2, x[2] = 1, x[n-4] = 1, rest = 0\n# This works for n >= 7\n\n# For n=13: x[0]=9, x[1]=2, x[2]=1, x[9]=1, rest=0\n# Let's verify this and check against fixed constraints\n\ndef is_magic_sequence(seq):\n    n = len(seq)\n    for i in range(n):\n        if seq[i] != seq.count(i):\n            return False\n    return True\n\nn = 13\n# Standard magic sequence for n=13\nseq = [0] * n\nseq[0] = n - 4  # = 9\nseq[1] = 2\nseq[2] = 1\nseq[n-4] = 1   # seq[9] = 1\n\nprint(\"Standard magic sequence:\", seq)\nprint(\"Is magic:\", is_magic_sequence(seq))\nprint(\"x[7] =\", seq[7], \"(need 0 \u2713)\" if seq[7]==0 else \"(need 0 \u2717)\")\nprint(\"x[11] =\", seq[11], \"(need 0 \u2713)\" if seq[11]==0 else \"(need 0 \u2717)\")\n\n# Verify each position\nfor i in range(n):\n    print(f\"x[{i}]={seq[i]}, count({i})={seq.count(i)}, match={seq[i]==seq.count(i)}\")\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 35.42
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          9,
+          2,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "reasoning": "The standard magic sequence formula for length n is: x[0]=n-4, x[1]=2, x[2]=1, x[n-4]=1, all others=0. For n=13: x[0]=9, x[1]=2, x[2]=1, x[9]=1, rest=0. This satisfies all magic sequence constraints and respects the fixed values x[7]=0 and x[11]=0."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

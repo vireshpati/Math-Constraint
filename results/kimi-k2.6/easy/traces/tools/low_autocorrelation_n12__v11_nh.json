@@ -1,0 +1,104 @@
+{
+  "problem_name": "low_autocorrelation_n12__v11_nh",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1544.4,
+    "search_space": 4096,
+    "num_variables": 23,
+    "num_constraints": 18,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 87.41,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    -1,
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    1
+  ],
+  "reasoning": "Verified via exhaustive search that sequences exist with sum of aperiodic autocorrelation squares <= 25. The best sequence found has sum of squares equal to 10, with C values: [1,0,1,0,-1,2,1,0,-1,0,-1].",
+  "raw_response": null,
+  "cot_trace": "We need to find a binary sequence of length 12 over alphabet {-1, +1} such that sum_{k=1}^{11} C_k^2 <= 25, where C_k = sum_{i=0}^{n-k-1} seq[i]*seq[i+k], n=12.\n\nThis is a combinatorial optimization / constraint satisfaction problem. We can try to solve it using Python, perhaps brute force (2^12 = 4096 sequences) which is trivial. Let's compute all sequences and check if any satisfy the condition. If yes, return one. If not, UNSAT.\n\nLet's do brute force. \n---\nThe brute force search found 112 solutions with sum of C_k^2 <= 25. The best value is 10. Let me verify one of the solutions to make sure the calculation is correct, and then I'll submit a valid sequence.\n\nLet me pick the first solution: (-1, -1, -1, -1, -1, 1, -1, 1, -1, -1, 1, 1)\n\nActually, let me verify the best solution: (-1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1) with value 10.\n\nLet me double-check by computing the autocorrelations manually. \n---\nWe found a solution with sum of squares = 10, which is well below the required threshold of 25. The sequence is:\n\n[-1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1]\n\nI verified the autocorrelations manually, and they sum to 10. This is SAT.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2563,
+  "completion_tokens": 867,
+  "reasoning_tokens": 298,
+  "cached_tokens": 864,
+  "cost_usd": 0.00477465,
+  "cost_source": "openrouter",
+  "latency_ms": 66494.82131004333,
+  "tool_dispatch_ms_total": 137.10832595825195,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef aperiodic_autocorr(seq):\n    n = len(seq)\n    C = []\n    for k in range(1, n):\n        ck = sum(seq[i]*seq[i+k] for i in range(n-k))\n        C.append(ck)\n    return C\n\nn = 12\nbest = None\nbest_val = float('inf')\nsolutions = []\n\nfor bits in itertools.product([-1,1], repeat=n):\n    C = aperiodic_autocorr(bits)\n    val = sum(c*c for c in C)\n    if val <= 25:\n        solutions.append((bits, val))\n    if val < best_val:\n        best_val = val\n        best = bits\n\nprint(\"Number of solutions:\", len(solutions))\nprint(\"Best value:\", best_val)\nprint(\"Best sequence:\", best)\nif solutions:\n    print(\"First solution:\", solutions[0][0], \"value:\", solutions[0][1])\n"
+      },
+      "ok": true,
+      "latency_ms": 104.22
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = (-1, -1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1)\nn = len(seq)\nC = []\nfor k in range(1, n):\n    ck = sum(seq[i]*seq[i+k] for i in range(n-k))\n    C.append(ck)\n    print(f\"C_{k} = {ck}\")\n\nprint(\"Sum of squares:\", sum(c*c for c in C))\nprint(\"Sequence:\", list(seq))\n"
+      },
+      "ok": true,
+      "latency_ms": 32.88
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          -1,
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          1,
+          -1,
+          -1,
+          1,
+          -1,
+          1
+        ],
+        "reasoning": "Verified via exhaustive search that sequences exist with sum of aperiodic autocorrelation squares <= 25. The best sequence found has sum of squares equal to 10, with C values: [1,0,1,0,-1,2,1,0,-1,0,-1]."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

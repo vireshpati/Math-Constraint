@@ -1,0 +1,98 @@
+{
+  "problem_name": "costas_array_n13__v2_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 1330.0,
+    "search_space": 6227020800,
+    "num_variables": 13,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 82.52,
+    "solve_pct_type": 94.44
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    11,
+    6,
+    3,
+    8,
+    9,
+    7,
+    10,
+    1,
+    5,
+    4,
+    12
+  ],
+  "reasoning": "Found via backtracking search respecting the fixed positions; all pairwise (dc>0, dr) vectors are unique by construction.",
+  "raw_response": null,
+  "cot_trace": "The problem is to find a Costas array of order 13. It's like placing 13 marks on a 13x13 grid, one per row and column, so it's a permutation. The condition is that all the displacement vectors (dr, dc...I need to find a Costas array of order 13, which means placing  respect the fixed placements: column 4 has its mark in row 3, and column 9 has its mark in row 1. The array is a permutation where x[c] is the row for column c, using 0-based indexing.\n\nTo solve this, I can use backtracking in Python to place the positions column by column, ensuring no row is used twice and that all displacement vectors (dc, dr) with dc > 0 are unique.\n---\nThe code found a solution: [0, 2, 11, 6, 3, 8, 9, 7, 10, 1, 5, 4, 12]\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1792,
+  "completion_tokens": 1553,
+  "reasoning_tokens": 1172,
+  "cached_tokens": 640,
+  "cost_usd": 0.01175,
+  "cost_source": "openrouter",
+  "latency_ms": 23340.09075164795,
+  "tool_dispatch_ms_total": 114.8061752319336,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def is_costas(n, fixed):\n    pos = [-1] * n\n    used_row = [False] * n\n    used_diffs = set()\n    \n    def backtrack(c):\n        if c == n:\n            return True\n        candidates = [fixed[c]] if c in fixed else range(n)\n        for r in candidates:\n            if used_row[r]:\n                continue\n            # check new diffs\n            conflict = False\n            new_diffs = []\n            for prev in range(c):\n                dc = c - prev\n                dr = r - pos[prev]\n                diff = (dc, dr)\n                if diff in used_diffs:\n                    conflict = True\n                    break\n                new_diffs.append(diff)\n            if conflict:\n                continue\n            # place\n            pos[c] = r\n            used_row[r] = True\n            for d in new_diffs:\n                used_diffs.add(d)\n            if backtrack(c + 1):\n                return True\n            # backtrack\n            for d in new_diffs:\n                used_diffs.remove(d)\n            used_row[r] = False\n            pos[c] = -1\n        return False\n    \n    if backtrack(0):\n        return pos\n    return None\n\nfixed = {4: 3, 9: 1}\nresult = is_costas(13, fixed)\nprint(result)"
+      },
+      "ok": true,
+      "latency_ms": 114.81
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          11,
+          6,
+          3,
+          8,
+          9,
+          7,
+          10,
+          1,
+          5,
+          4,
+          12
+        ],
+        "reasoning": "Found via backtracking search respecting the fixed positions; all pairwise (dc>0, dr) vectors are unique by construction."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,356 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree5_min_degree3_min_girth6_vertices21__v7_nh",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 3,
+    "min_girth": 6,
+    "vertices": 21
+  },
+  "difficulty": {
+    "solve_time_ms": 5041.2,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 33,
+    "backend": "pysms"
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      9
+    ],
+    [
+      0,
+      16
+    ],
+    [
+      0,
+      20
+    ],
+    [
+      1,
+      13
+    ],
+    [
+      1,
+      18
+    ],
+    [
+      1,
+      19
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      2,
+      19
+    ],
+    [
+      2,
+      20
+    ],
+    [
+      3,
+      9
+    ],
+    [
+      3,
+      10
+    ],
+    [
+      3,
+      19
+    ],
+    [
+      4,
+      10
+    ],
+    [
+      4,
+      15
+    ],
+    [
+      4,
+      18
+    ],
+    [
+      4,
+      20
+    ],
+    [
+      5,
+      9
+    ],
+    [
+      5,
+      17
+    ],
+    [
+      5,
+      18
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      6,
+      17
+    ],
+    [
+      7,
+      12
+    ],
+    [
+      7,
+      14
+    ],
+    [
+      8,
+      11
+    ],
+    [
+      8,
+      13
+    ],
+    [
+      8,
+      14
+    ],
+    [
+      10,
+      14
+    ],
+    [
+      11,
+      15
+    ],
+    [
+      11,
+      17
+    ],
+    [
+      12,
+      15
+    ],
+    [
+      12,
+      16
+    ],
+    [
+      13,
+      16
+    ]
+  ],
+  "reasoning": "Found a graph with 21 vertices, 32 edges, all degrees between 3 and 4 (satisfying the 3-5 range), and girth exactly 6 (no cycles of length 3, 4, or 5). Verified using Z3 SAT solver with constraints forbidding all triangles, 4-cycles, and 5-cycles, then confirmed via exhaustive cycle checking.",
+  "raw_response": null,
+  "cot_trace": "We need to find a graph with 21 vertices, girth at least 6 (no cycles of length 3, 4, or 5), and every vertex has degree between 3 and 5 inclusive.\n\nThis is a problem of finding a graph with given minimum girth and degree constraints. Let's think about this.\n\nGirth at least 6 means the graph is triangle-free, C4-free, and C5-free. This is a sparse graph condition.\n\nWe need 21 vertices, each degree between 3 and 5. Let's try to construct such a graph.\n\nOne approach: use a known construction. For girth 6, we can think of incidence graphs of finite projective planes or generalized polygons.\n\nThe incidence graph of a projective plane of order q has girth 6 (it's a generalized 3-gon). The incidence graph of PG(2,q) has 2(q^2+q+1) vertices, each vertex has degree q+1.\n\nFor q=2: PG(2,2) has 7 points and 7 lines, incidence graph has 14 vertices, degree 3. Girth 6 (since it's the Heawood graph, which is the incidence graph of the Fano plane). But we need 21 vertices.\n\nFor q=3: PG(2,3) has 13 points and 13 lines, incidence graph has 26 vertices, degree 4. That's too many.\n\nWhat about other constructions? Maybe we can take a subgraph or modify.\n\nActually, let's think about the (3,5)-cage or similar. The (3,5)-cage is the Petersen graph with 10 vertices, girth 5. But we need girth 6.\n\nThe (3,6)-cage is the Heawood graph with 14 vertices, degree 3, girth 6.\n\nThe (3,7)-cage is the McGee graph with 24 vertices.\n\nThe (3,8)-cage is the Tutte-Coxeter graph with 30 vertices.\n\nFor degree 4: (4,6)-cage has 26 vertices? Actually the (4,6)-cage is the incidence graph of PG(2,3) with 26 vertices.\n\nWe need 21 vertices with degrees between 3 and 5. This is not necessarily regular.\n\nLet me try to construct using computational search. I'll use Python with some SAT solver or constraint programming.\n\nActually, let me think about this more carefully. We need a graph on 21 vertices, girth >= 6, degrees in [3,5].\n\nLet's try to use a SAT solver approach.\n\nFirst, let's check if such a graph is possible by some simple counting.\n\nSum of degrees must be even. With 21 vertices, min sum = 21*3 = 63 (odd), so we need at least one vertex of degree 4 or some even degree to make sum even. Actually 63 is odd, so we need at least one vertex with even degree (4) to make total sum even. So we need at least one degree-4 vertex.\n\nLet me try to construct using computational methods.\n---\nWe have Z3 available. Let's use Z3 to solve this constraint satisfaction problem.\n\nWe need a graph with 21 vertices, girth >= 6 (no cycles of length 3, 4, or 5), and every vertex has degree between 3 and 5 inclusive.\n\nLet's formulate this as a SAT/SMT problem.\n\nVariables: For each pair (i, j) with i < j, a boolean variable e_{i,j} indicating whether there's an edge.\n\nConstraints:\n1. For each vertex i: 3 <= sum_{j != i} e_{i,j} <= 5 (where e_{i,j} = e_{j,i})\n2. No cycles of length 3: For any triple i < j < k, not all three edges present.\n3. No cycles of length 4: For any four distinct vertices i, j, k, l, they cannot form a 4-cycle.\n4. No cycles of length 5: For any five distinct vertices, they cannot form a 5-cycle.\n\nThis is16 constraints. Let's try Z3.\n\nActually, for 21 vertices, the number of edge variables is C(21,2) = 210. The number of triangle constraints is C(21,3) = 1330. The number of 4-cycle constraints is large: for each set of 4 vertices, there are 3 possible 4-cycles (actually, a 4-cycle on 4 labeled vertices has 3 distinct cycles: (a,b,c,d), (a,b,d,c), (a,c,b,d) - but we need to be careful). Actually, a 4-cycle is a cycle of length 4 with no chords. So we need to forbid any induced 4-cycle? No, we just need girth >= 6, meaning no cycles of length < 6. So any cycle of length 3, 4, or 5 is forbidden, regardless of chords.\n\nFor a 4-cycle on vertices a,b,c,d, the edges are (a,b), (b,c), (c,d), (d,a). We need to forbid all four edges being present simultaneously.\n\nFor a 5-cycle on vertices a,b,c,d,e, edges are (a,b), (b,c), (c,d), (d,e), (e,a).\n\nLet's try Z3 with these constraints. But the number of constraints is large. Let's try a different approach: maybe we can use known constructions.\n\nA graph with girth >= 6 and minimum degree >= 3 is known as a (3,6)-cage or similar. The smallest (3,6)-cage is the Heawood graph with 14 vertices, which is 3-regular and has girth 6. But we need 21 vertices with degrees between 3 and 5.\n\nActually, we could try to find a graph using Z3 but it might be slow. Let's try a heuristic approach first.\n\nMaybe we can use the incidence graph of a projective plane or something. The incidence graph of the Fano plane (PG(2,2)) has 14 vertices (7 points + 7 lines), is 3-regular, and has girth 6. That's the Heawood graph.\n\nFor 21 vertices, maybe we can\r\n take the incidence graph of something else? Or we could try to construct a graph using a known technique.\n\nLet me try Z3 with a more efficient encoding. Instead of forbidding all cycles explicitly, we could use a different approach: ensure that the graph is bipartite? No, bipartite graphs have no odd cycles, but they can have 4-cycles. Girth >= 6 means no 3,4,5 cycles.\n\nActually, let me try to16 use Z3 with a Python script. The number of constraints for 4-cycles and 5-cycles is large but manageable with Z3.\n\nFor 4-cycles: we need to consider all sets of 4 distinct vertices. For each set {a,b,c,d}, there are 3 possible 4-cycles (up to rotation and reflection): (a,b,c,d), (a,c,b,d), (a,b,d,c). But we can just forbid any 4-cycle by saying: for any 4 distinct vertices, they cannot have a cycle of length 4. We can enumerate all possible 4-cycles: for each ordered 4-tuple (a,b,c,d) with a<b, a<c<d, etc., we can check the cycle a-b-c-d-a. But 16 careful with symmetries.\n\nActually, let's just enumerate all possible 4-cycles. A 4-cycle is determined by a cyclic ordering of 4 vertices. There are (4-1)!/2 = 3 distinct 4-cycles on 4 labeled vertices. For each set of 4 vertices, we have 3 constraints.\n\nNumber of 4-sets: C(21,4) = 5985. Times 3 = 17955 constraints. That's manageable.\n\nFor 5-cycles: C(21,5) = 20349. Number of distinct 5-cycles on 5 labeled vertices: (5-1)!/2 = 12. So 20349 * 12 = 244188 constraints. That's a lot but maybe Z3 can handle it.\n\nLet me try a different approach: use a SAT solver with a more efficient encoding, or use a constructive approach.\n\nActually, let me think about known graphs. The (3,6)-cage is the Heawood graph (14 vertices). The (4,6)-cage is... actually the smallest 4-regular graph with girth 6 has 26 vertices (the McGee graph? No, McGee is (3,7)-cage). Let me think.\n\nActually, there's a known graph called the \"Robertson graph\" which is 4-regular with girth 5 on 19 vertices. For girth 6, the smallest 4-regular graph is the (4,6)-cage with 26 vertices.\n\nBut we need degrees between 3 and 5, not necessarily regular. And we have 21 vertices.\n\nLet me try Z3 with a more clever approach. Maybe we can use a known construction: take the Heawood graph (14 vertices, 3-regular, girth 6) and add 7 more vertices, connecting them appropriately.\n\nOr maybe we can use the incidence graph of a symmetric design. The incidence graph of a (v,k,\u03bb) symmetric design is bipartite and has girth at least 6 if \u03bb = 1 (i.e., a projective plane of order q, which gives a (q^2+q+1, q+1, 1) design). For q=4, we get 21 points and 21 lines, so the incidence graph would have 42 vertices. That's too many.\n\nFor q=2, we get the Fano plane: 7 points, 7 lines, incidence graph has 14 vertices (Heawood).\n\nFor q=3, we get PG(2,3): 13 points, 13 lines, incidence graph has 26 vertices.\n\nHmm. What about the incidence graph of a generalized quadrangle? GQ(s,t) has girth 8. But that's larger.\n\nLet me just try Z3 with a SAT encoding. Maybe I can use cardinality constraints more efficiently.\n\nActually, let me try a different approach: use a heuristic search or a known construction.\n\nWait, maybe we can use the fact that the graph doesn't need to be regular. We could take a known graph and modify it.\n\nLet me try Z3 with a bit of optimization. I'll encode the problem and see if Z3 can solve it.\n\nActually, let me first try to16 see if there's a known result. The problem asks for a graph with 21 vertices, girth >= 6, degrees 3-5.\n\nLet me try to construct one: maybe take three copies of the Heawood graph (14 vertices each) and... no, that's 42 vertices.\n\nWhat about the incidence graph of the projective plane of order 4? That's 21+21=42 vertices.\n\nWhat about taking the Heawood graph (14 vertices) and adding 7 vertices in a careful way?\n\nLet me try Z3.\n---\nThe solver found a solution. Let me verify the girth is at least 6. The constraints we added forbid triangles, 4-cycles, and 5-cycles. So the girth should be at least 6. Let me verify the degrees are between 3 and 5.\n\nLet me16, 20), (1, 13), (1, 18), (1, 19), (2, 6), (2, 19), (2, 20), (3, 9), (3, 10), (3, 19), (4, 10), (4, 15), (4, 18), (4, 20), (5, 9), (5, 17), (5, 18), (6, 7), (6, 17), (7, 12), (7, 14), (8, 11), (8, 13), (8, 14), (10, 14), (11, 15), (11, 17), (12, 15), (12, 16), (13, 16)]\n\nLet me verify the degrees and girth.\n---\nThe graph has girth 6, all degrees between 3 and 5 (actually 3-4). Let me verify more carefully that there are no cycles of length 3, 4, or 5.\n\nThe BFS found a cycle of length 6, and16. Let me16. Let me verify there are no shorter cycles.\n---\nThe graph is valid:\n- 21 vertices\n- All degrees between 3 and 5 (specifically 3 or 4)\n- No cycles of length 3, 4, or 5 (girth at least 6)\n- The BFS found a cycle of length 6, confirming girth = 6\n\nThis is a valid solution. Let me submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by SAT solver (constraints satisfied)",
+  "prompt_tokens": 11362,
+  "completion_tokens": 5772,
+  "reasoning_tokens": 2477,
+  "cached_tokens": 2816,
+  "cost_usd": 0.03573612,
+  "cost_source": "openrouter",
+  "latency_ms": 220753.36933135986,
+  "tool_dispatch_ms_total": 54909.42358970642,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\nimport random\n\n# Let's try to use a SAT solver approach with python-sat\ntry:\n    from pysat import Solver\n    from pysat.card import CardEnc\n    HAS_PYSAT = True\nexcept ImportError:\n    HAS_PYSAT = False\n    print(\"pysat not available\")\n\n# Let's try z3\ntry:\n    import z3\n    HAS_Z3 = True\nexcept ImportError:\n    HAS_Z3 = False\n    print(\"z3 not available\")\n\nprint(f\"pysat: {HAS_PYSAT}, z3: {HAS_Z3}\")\n",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 310.18
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import z3\nimport time\n\nn = 21\n# Variables: e[i][j] for i < j\ne = {}\nfor i in range(n):\n    for j in range(i+1, n):\n        e[(i,j)] = z3.Bool(f\"e_{i}_{j}\")\n\ns = z3.Solver()\n\n# Degree constraints: each vertex has degree between 3 and 5\nfor i in range(n):\n    edges_i = [e[(min(i,j), max(i,j))] for j in range(n) if j != i]\n    # sum of bools >= 3 and <= 5\n    s.add(z3.PbGe([(v, 1) for v in edges_i], 3))\n    s.add(z3.PbLe([(v, 1) for v in edges_i], 5))\n\n# No triangles\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(j+1, n):\n            s.add(z3.Not(z3.And(e[(i,j)], e[(j,k)], e[(i,k)])))\n\nprint(\"Triangle constraints added.\")\n\n# No 4-cycles\n# A 4-cycle on vertices a,b,c,d (in order) has edges (a,b),(b,c),(c,d),(d,a)\n# We need to forbid any 4 distinct vertices having such a cycle.\n# For each set of 4 distinct vertices, there are 3 distinct 4-cycles.\n# We can iterate over all ordered 4-tuples with a < b < c < d and forbid the 3 cycles.\ncount_4 = 0\nfor a in range(n):\n    for b in range(a+1, n):\n        for c in range(b+1, n):\n            for d in range(c+1, n):\n                # cycle a-b-c-d-a\n                s.add(z3.Not(z3.And(e[(a,b)], e[(b,c)], e[(c,d)], e[(a,d)])))\n                # cycle a-b-d-c-a\n                s.add(z3.Not(z3.And(e[(a,b)], e[(b,d)], e[(c,d)], e[(a,c)])))\n                # cycle a-c-b-d-a\n                s.add(z3.Not(z3.And(e[(a,c)], e[(b,c)], e[(b,d)], e[(a,d)])))\n                count_4 += 3\nprint(f\"4-cycle constraints added: {count_4}\")\n\n# No 5-cycles\n# For each set of 5 distinct vertices, there are 12 distinct 5-cycles.\n# Let's enumerate them.\ncount_5 = 0\nfor a in range(n):\n    for b in range(a+1, n):\n        for c in range(b+1, n):\n            for d in range(c+1, n):\n                for f in range(d+1, n):  # using f instead of e\n                    verts = [a,b,c,d,f]\n                    # All 12 distinct 5-cycles on these 5 vertices\n                    # We can generate all permutations of the 5 vertices that are distinct cycles\n                    # A 5-cycle is a cyclic ordering. Number of distinct cycles = (5-1)!/2 = 12\n                    # Let's generate them systematically\n                    import itertools\n                    # Fix first vertex as the smallest (a), then permute the other 4\n                    others = [b,c,d,f]\n                    seen = set()\n                    for perm in itertools.permutations(others):\n                        cycle = [a] + list(perm)\n                        # Canonical representation: rotate so smallest is first, then decide direction\n                        # Actually we just need to add the constraint for each cycle\n                        # But we need to avoid duplicates (same cycle reversed or rotated)\n                        # Let's just use a canonical form\n                        # Rotate so that the smallest element is first\n                        min_idx = min(range(5), key=lambda x: cycle[x])\n                        rotated = cycle[min_idx:] + cycle[:min_idx]\n                        # Decide direction: compare rotated[1] vs rotated[-1]\n                        if rotated[1] < rotated[-1]:\n                            canonical = tuple(rotated)\n                        else:\n                            canonical = tuple([rotated[0]] + list(reversed(rotated[1:])))\n                        if canonical not in seen:\n                            seen.add(canonical)\n                            # Add constraint: not all 5 edges present\n                            edges_cycle = []\n                            for idx in range(5):\n                                u = canonical[idx]\n                                v = canonical[(idx+1)%5]\n                                edges_cycle.append(e[(min(u,v), max(u,v))])\n                            s.add(z3.Not(z3.And(*edges_cycle)))\n                            count_5 += 1\nprint(f\"5-cycle constraints added: {count_5}\")\n\nprint(\"Solving...\")\nstart = time.time()\nres = s.check()\nelapsed = time.time() - start\nprint(f\"Result: {res}, time: {elapsed:.2f}s\")\n\nif res == z3.sat:\n    model = s.model()\n    edges = []\n    for (i,j), var in e.items():\n        if z3.is_true(model[var]):\n            edges.append((i,j))\n    print(f\"Number of edges: {len(edges)}\")\n    # Verify degrees\n    deg = [0]*n\n    for u,v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(f\"Degrees: min={min(deg)}, max={max(deg)}\")\n    print(f\"Edges: {edges}\")",
+        "timeout_seconds": 120
+      },
+      "ok": true,
+      "latency_ms": 53996.66
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0, 9), (0, 16), (0, 20), (1, 13), (1, 18), (1, 19), (2, 6), (2, 19), (2, 20), (3, 9), (3, 10), (3, 19), (4, 10), (4, 15), (4, 18), (4, 20), (5, 9), (5, 17), (5, 18), (6, 7), (6, 17), (7, 12), (7, 14), (8, 11), (8, 13), (8, 14), (10, 14), (11, 15), (11, 17), (12, 15), (12, 16), (13, 16)]\n\nn = 21\n# Build adjacency\nadj = [[] for _ in range(n)]\nfor u,v in edges:\n    adj[u].append(v)\n    adj[v].append(u)\n\n# Check degrees\ndeg = [len(adj[i]) for i in range(n)]\nprint(f\"Degrees: {deg}\")\nprint(f\"Min degree: {min(deg)}, Max degree: {max(deg)}\")\n\n# Check girth via BFS\nfrom collections import deque\n\ndef find_shortest_cycle():\n    best = float('inf')\n    for start in range(n):\n        # BFS from start\n        dist = [-1]*n\n        parent = [-1]*n\n        q = deque([start])\n        dist[start] = 0\n        while q:\n            u = q.popleft()\n            for v in adj[u]:\n                if dist[v] == -1:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    q.append(v)\n                elif v != parent[u]:\n                    # Found a cycle\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len < best:\n                        best = cycle_len\n                        print(f\"Found cycle of length {cycle_len} at start={start}, u={u}, v={v}\")\n    return best\n\ngirth = find_shortest_cycle()\nprint(f\"Girth: {girth}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 569.54
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0, 9), (0, 16), (0, 20), (1, 13), (1, 18), (1, 19), (2, 6), (2, 19), (2, 20), (3, 9), (3, 10), (3, 19), (4, 10), (4, 15), (4, 18), (4, 20), (5, 9), (5, 17), (5, 18), (6, 7), (6, 17), (7, 12), (7, 14), (8, 11), (8, 13), (8, 14), (10, 14), (11, 15), (11, 17), (12, 15), (12, 16), (13, 16)]\n\nn = 21\nadj = [[] for _ in range(n)]\nfor u,v in edges:\n    adj[u].append(v)\n    adj[v].append(u)\n\n# Check for cycles of length 3, 4, 5 exhaustively\nimport itertools\n\n# Triangles\nfor i in range(n):\n    for j in adj[i]:\n        if j > i:\n            for k in adj[j]:\n                if k > j and k in adj[i]:\n                    print(f\"Triangle: {i},{j},{k}\")\n\n# 4-cycles\nfor a in range(n):\n    for b in adj[a]:\n        if b > a:\n            for c in adj[b]:\n                if c != a:\n                    for d in adj[c]:\n                        if d != b and d in adj[a] and d > a:\n                            # Check distinct vertices\n                            if len({a,b,c,d}) == 4:\n                                print(f\"4-cycle: {a},{b},{c},{d}\")\n\n# 5-cycles\nfor a in range(n):\n    for b in adj[a]:\n        if b > a:\n            for c in adj[b]:\n                if c != a:\n                    for d in adj[c]:\n                        if d != b and d != a:\n                            for e in adj[d]:\n                                if e != c and e != b and e in adj[a]:\n                                    if len({a,b,c,d,e}) == 5:\n                                        print(f\"5-cycle: {a},{b},{c},{d},{e}\")\n\nprint(\"Done checking.\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 33.04
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            9
+          ],
+          [
+            0,
+            16
+          ],
+          [
+            0,
+            20
+          ],
+          [
+            1,
+            13
+          ],
+          [
+            1,
+            18
+          ],
+          [
+            1,
+            19
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            2,
+            19
+          ],
+          [
+            2,
+            20
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            3,
+            10
+          ],
+          [
+            3,
+            19
+          ],
+          [
+            4,
+            10
+          ],
+          [
+            4,
+            15
+          ],
+          [
+            4,
+            18
+          ],
+          [
+            4,
+            20
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            5,
+            17
+          ],
+          [
+            5,
+            18
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            6,
+            17
+          ],
+          [
+            7,
+            12
+          ],
+          [
+            7,
+            14
+          ],
+          [
+            8,
+            11
+          ],
+          [
+            8,
+            13
+          ],
+          [
+            8,
+            14
+          ],
+          [
+            10,
+            14
+          ],
+          [
+            11,
+            15
+          ],
+          [
+            11,
+            17
+          ],
+          [
+            12,
+            15
+          ],
+          [
+            12,
+            16
+          ],
+          [
+            13,
+            16
+          ]
+        ],
+        "reasoning": "Found a graph with 21 vertices, 32 edges, all degrees between 3 and 4 (satisfying the 3-5 range), and girth exactly 6 (no cycles of length 3, 4, or 5). Verified using Z3 SAT solver with constraints forbidding all triangles, 4-cycles, and 5-cycles, then confirmed via exhaustive cycle checking."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

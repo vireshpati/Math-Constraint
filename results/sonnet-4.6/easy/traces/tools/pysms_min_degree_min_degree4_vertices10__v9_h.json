@@ -1,0 +1,170 @@
+{
+  "problem_name": "pysms_min_degree_min_degree4_vertices10__v9_h",
+  "problem_type": "pysms_min_degree",
+  "params": {
+    "min_degree": 4,
+    "vertices": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 88.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 45,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 30.26,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      1,
+      9
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      9
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      5,
+      8
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      8,
+      9
+    ]
+  ],
+  "reasoning": "Starting from the fixed edges, I computed each vertex's current degree and identified which vertices needed additional edges to reach degree \u2265 4. I then added edges strategically: connecting the low-degree vertices (4, 6, 3, 5, 7) among themselves, and adding edges (0,2),(0,9),(1,2),(1,9) to bring vertices 0 and 1 up to degree 4. The final graph has all 10 vertices with degree \u2265 4: vertex 0\u21924, 1\u21924, 2\u21925, 3\u21925, 4\u21924, 5\u21925, 6\u21924, 7\u21925, 8\u21926, 9\u21924.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,1],[0,2],[0,8],[0,9],[1,2],[1,8],[1,9],[2,7],[2,8],[2,9],[3,4],[3,5],[3,6],[3,7],[3,8],[4,5],[4,6],[4,7],[5,6],[5,7],[5,8],[6,7],[8,9]],\n    \"reasoning\": \"Starting from the fixed edges, I computed each vertex's current degree and identified which vertices needed additional edges to reach degree \u2265 4. I then added edges strategically: connecting the low-degree vertices (4, 6, 3, 5, 7) among themselves, and adding edges (0,2),(0,9),(1,2),(1,9) to bring vertices 0 and 1 up to degree 4. The final graph has all 10 vertices with degree \u2265 4: vertex 0\u21924, 1\u21924, 2\u21925, 3\u21925, 4\u21924, 5\u21925, 6\u21924, 7\u21925, 8\u21926, 9\u21924.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 11242,
+  "completion_tokens": 2231,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.067191,
+  "cost_source": "openrouter",
+  "latency_ms": 31603.176832199097,
+  "tool_dispatch_ms_total": 241.8661117553711,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's analyze the current degree of each vertex from fixed edges\nfixed_edges = [(8,9), (2,8), (2,7), (2,9), (0,1), (0,8), (1,8), (3,8), (5,8)]\n\ndegree = {i: 0 for i in range(10)}\nfor u, v in fixed_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(\"Current degrees from fixed edges:\")\nfor v, d in degree.items():\n    print(f\"  vertex {v}: degree {d}\")\n\nprint(\"\\nVertices needing more edges (degree < 4):\")\nfor v, d in degree.items():\n    if d < 4:\n        print(f\"  vertex {v}: needs {4 - d} more edges\")\n"
+      },
+      "ok": true,
+      "latency_ms": 136.85
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\n# Use a greedy/search approach to add edges\n# Vertices needing most help: 4 (needs 4), 6 (needs 4), 3 (needs 3), 5 (needs 3), 7 (needs 3)\n\nfixed_edges_set = set(fixed_edges)\n\ndef make_edge(u, v):\n    return (min(u,v), max(u,v))\n\n# Try to solve with constraint satisfaction\n# Let's use a simple greedy: connect the most needy vertices together\n\ndegree = {i: 0 for i in range(10)}\nfor u, v in fixed_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nedges = set(fixed_edges_set)\n\n# Strategy: connect vertices that need edges\n# 4 and 6 need 4 each - connect them to each other and to others\n# Let's try: \n# Connect 4-6, 4-3, 4-5, 4-7 (gives 4 degree 4)\n# Connect 6-3, 6-5, 6-7 (gives 6 degree 4)\n# Connect 3-5, 3-7 (gives 3 degree... let's check)\n# Connect 5-7 \n# Connect 0-9, 1-9, 0-2 or similar\n\ncandidate_edges = [\n    (4,6), (3,4), (4,5), (4,7),\n    (3,6), (5,6), (6,7),\n    (3,5), (3,7),\n    (5,7),\n    (0,9), (1,9),\n    (0,2), (1,2),\n    (0,3), (1,5),\n    (2,9),  # already fixed\n]\n\n# Recompute\ndegree = {i: 0 for i in range(10)}\nfor u, v in fixed_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nadded = []\n# Add edges greedily\nto_add = [(4,6), (3,4), (4,5), (4,7), (3,6), (5,6), (6,7), (3,5), (3,7), (5,7), (0,9), (1,9), (0,2), (1,2)]\n\nfor e in to_add:\n    u, v = make_edge(*e)\n    if (u,v) not in edges:\n        edges.add((u,v))\n        degree[u] += 1\n        degree[v] += 1\n        added.append((u,v))\n\nprint(\"Degrees after additions:\")\nfor v, d in degree.items():\n    status = \"OK\" if d >= 4 else f\"NEED {4-d} MORE\"\n    print(f\"  vertex {v}: degree {d} {status}\")\n\nprint(\"\\nAll edges:\", sorted(edges))\nprint(\"Added edges:\", added)\n"
+      },
+      "ok": false,
+      "latency_ms": 53.2
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfixed_edges = [(8,9), (2,8), (2,7), (2,9), (0,1), (0,8), (1,8), (3,8), (5,8)]\n\ndef make_edge(u, v):\n    return (min(u,v), max(u,v))\n\ndegree = {i: 0 for i in range(10)}\nedges = set()\nfor u, v in fixed_edges:\n    e = make_edge(u, v)\n    edges.add(e)\n    degree[u] += 1\n    degree[v] += 1\n\n# Add edges to bring all degrees to >= 4\nto_add = [(4,6), (3,4), (4,5), (4,7), (3,6), (5,6), (6,7), (3,5), (3,7), (5,7), (0,9), (1,9), (0,2), (1,2)]\n\nfor e in to_add:\n    u, v = make_edge(*e)\n    if (u,v) not in edges:\n        edges.add((u,v))\n        degree[u] += 1\n        degree[v] += 1\n\nprint(\"Degrees after additions:\")\nfor v, d in degree.items():\n    status = \"OK\" if d >= 4 else f\"NEED {4-d} MORE\"\n    print(f\"  vertex {v}: degree {d} {status}\")\n\nprint(\"\\nAll edges:\", sorted(edges))\nprint(\"Total edges:\", len(edges))\n"
+      },
+      "ok": true,
+      "latency_ms": 51.82
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

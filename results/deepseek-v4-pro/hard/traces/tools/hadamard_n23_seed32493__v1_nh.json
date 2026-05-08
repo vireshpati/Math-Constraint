@@ -1,0 +1,74 @@
+{
+  "problem_name": "hadamard_n23_seed32493__v1_nh",
+  "problem_type": "hadamard",
+  "params": {
+    "n": 23,
+    "seed": 32493
+  },
+  "difficulty": {
+    "solve_time_ms": 21611.7,
+    "search_space": 70368744177664,
+    "num_variables": 46,
+    "num_constraints": 21,
+    "num_edges": -1,
+    "backend": "pycsp"
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": "We need to find two binary sequences x and y of length 23 (n odd), each over {-1, +1}, such that:\n(a) Sum(x) = 1, Sum(y) = 1\n(b) For every k in 1..11, the cyclic cross-correlation (actually it's sum of auto-correlations? Let me read carefully):\n\nSum_{i=0..22} x[i] * x[(i+k) mod 23] + Sum_{i=0..22} y[i] * y[(i+k) mod 23] = -2\n\nThis is the sum of the two sequences' periodic autocorrelations at shift k. So we need:\nR_x(k) + R_y(k) = -2 for all k = 1..11.\n\nWhere R_x(k) = sum_i x[i] * x[i+k mod 23], similarly for y.\n\nThis is known as a Legendre pair of length 23. \n\nLet me first try to solve this computationally. The search space is 2^46 which is huge, but we can use constraints.\n\nActually, Legendre pairs are known to exist for certain lengths. For prime n \u2261 3 mod 4, Legendre pairs exist. 23 is prime and 23 \u2261 3 mod 4 (since 23 = 4*5 + 3). So a Legendre pair should exist.\n\nThe construction often uses Legendre sequences. Let me think about this.\n\nFor a prime p \u2261 3 (mod 4), the Legendre sequence of length p is defined as:\nx[i] = (i/p) (Legendre symbol) for i=0,...,p-1, with (0/p) = 1 typically.\n\nBut we need a pair of sequences. There's known constructions.\n\nLet me try to use computational search via SAT or integer linear programming. Since 23 is relatively small (46 variables), we might be able to use Z3 or a SAT solver.\n\nActually, the constraints are:\n- Each variable in {-1, +1}\n- sum(x) = 1, sum(y) = 1\n- For each k = 1..11: sum_i (x_i*x_{i+k} + y_i*y_{i+k}) = -2\n\nThis is a quadratic constraint problem. We can linearize by introducing variables for products.\n\nBut maybe there's a known construction. Let me try Z3.\n\nActually, let me first try using Python with Z3 or a SAT solver.\n\nWe have 46 Boolean variables. Let's map: each variable v in {-1,1} can be represented as 2*b - 1 where b in {0,1}.\n\nThen sum(x) = 1 => sum_i (2*b_i - 1) = 1 => 2*sum(b_i) - 23 = 1 => sum(b_i) = 12.\nSimilarly for y: sum(c_i) = 12.\n\nFor the autocorrelation: R_x(k) = sum_i (2*b_i - 1)*(2*b_{i+k} - 1) = sum_i (4*b_i*b_{i+k} - 2*b_i - 2*b_{i+k} + 1)\n= 4*sum_i b_i*b_{i+k} - 2*sum_i b_i - 2*sum_i b_{i+k} + 23\n= 4*sum_i b_i*b_{i+k} - 4*sum_i b_i + 23 (since cyclic sum is same)\n= 4*sum_i b_i*b_{i+k} - 4*12 + 23\n= 4*sum_i b_i*b_{i+k} - 48 + 23\n= 4*sum_i b_i*b_{i+k} - 25\n\nSimilarly R_y(k) = 4*sum_i c_i*c_{i+k} - 25.\n\nSo R_x(k) + R_y(k) = 4*(sum_i b_i*b_{i+k} + sum_i c_i*c_{i+k}) - 50 = -2\n\n=> 4*(sum_i b_i*b_{i+k} + sum_i c_i*c_{i+k}) = 48\n=> sum_i b_i*b_{i+k} + sum_i c_i*c_{i+k} = 12 for each k=1..11.\n\nSo we have:\n- b_i, c_i are binary (0/1)\n- sum(b) = 12, sum(c) = 12\n- For each k=1..11: sum_i (b_i*b_{i+k} + c_i*c_{i+k}) = 12\n\nThis is a combinatorial problem. Let's try Z3.\n\nActually, I can try to use a known construction. For prime p = 23 \u2261 3 mod 4, there's a construction using quadratic residues.\n\nThe Legendre symbol (i/p) gives a sequence of length p with values in {-1, 0, 1} where 0 is for i=0. But we need {-1, +1}.\n\nThere's a known construction: For prime p \u2261 3 mod 4, define sequences a and b where:\na_i = (i/p) for i \u2260 0, and a_0 = 1\nb_i = (i/p) for i \u2260 0, and b_0 = -1\n\nThen sum(a) = 1, sum(b) = -1? Let's check.\n\nActually, for p \u2261 3 mod 4, the sum of Legendre symbols over 1..p-1 is 0 (since exactly half are 1 and half -1). So sum of a = a_0 + 0 = 1 if a_0=1. And sum of b = b_0 + 0 = -1 if b_0=-1.\n\nBut we need both sums to be 1. So maybe we can use two different constructions.\n\nLet me just try to solve it with computational methods.\n\nLet me use Z3 or a pseudo-Boolean solver.\n\nActually, I'll try Python with Z3.\n---\nThe solution found by Z3 satisfies all constraints. Let me verify:\n\n- sum(x) = 1 \u2713\n- sum(y) = 1 \u2713\n- For all k=1..11, Rx + Ry = -2 \u2713\n\nThe solution is:\nx = [1, 1, -1, -1, -1, -1, 1, -1, -1, -1, -1, 1, 1, 1, 1, -1, 1, -1, 1, -1, 1, 1, 1]\ny = [-1, 1, -1, 1, -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, -1, -1, 1, 1, -1, -1, -1, 1, 1]\n\nLet me double-check the correlation sums more carefully. The problem says:\nSum_{i=0..22} x[i] * x[(i+k) mod 23] + Sum_{i=0..22} y[i] * y[(i+k) mod 23] = -2\n\nFor binary sequences with values in {-1, +1}, the autocorrelation at shift k is:\nR_x(k) = sum_i x[i] * x[i+k]\n\nThe Z3 encoding used bits b_i where b_i=1 means x_i=+1 and b_i=0 means x_i=-1.\n\nFor the product x[i] * x[i+k]:\n- If both are +1 (both bits 1): product = +1\n- If both are -1 (both bits 0): product = +1\n- If one is +1 and other -1: product = -1\n\nSo the product is +1 when bits are equal, -1 when bits differ.\n\nIn the Z3 encoding, I used And(b[i], b[j]) which is true only when both are 1. But that's wrong! The product should be +1 when both bits are equal (both 0 or both 1), not just when both are 1.\n\nWait, let me re-examine. The constraint was:\ns.add(z3.PbEq(terms_b + terms_c, 12))\n\nWhere terms_b has (And(b[i], b[j]), 1) for each i. This counts the number of positions where both x[i] and x[i+k] are +1. But the correlation sum counts +1 for each position where x[i] == x[i+k] (both +1 or both -1) and -1 where they differ.\n\nLet me think about this more carefully.\n\nFor a sequence of length n with values in {-1, +1}:\nR(k) = sum_i x[i] * x[i+k]\n\nLet a_i = (x_i + 1)/2, so a_i \u2208 {0,1}. Then x_i = 2a_i - 1.\n\nx_i * x_j = (2a_i - 1)(2a_j - 1) = 4a_i a_j - 2a_i - 2a_j + 1\n\nSum over i: R(k) = 4 * sum_i a_i a_{i+k} - 2 * sum_i a_i - 2 * sum_i a_{i+k} + n\n\nSince sum_i a_i = sum_i a_{i+k} = w (weight, number of +1's):\nR(k) = 4 * sum_i a_i a_{i+k} - 4w + n\n\nSo sum_i a_i a_{i+k} = (R(k) + 4w - n) / 4\n\nFor our problem: n=23, w=12 (since sum x = 1 means 12 ones and 11 minus-ones: 12 - 11 = 1).\n\nFor the combined correlation: R_x(k) + R_y(k) = -2.\n\nSo sum_i a_i a_{i+k} + sum_i b_i b_{i+k} = (R_x(k) + R_y(k) + 8w - 2n) / 4 = (-2 + 96 - 46) / 4 = 48/4 = 12.\n\nSo the constraint should be: the number of positions where both x bits are 1 plus the number where both y bits are 1 equals 12. That's exactly what I encoded! Good.\n\nWait, but I only counted positions where both bits are 1 (And(b[i], b[j])). Let me verify the formula again.\n\nR(k) = sum_i x_i x_{i+k}\n= sum_i (2a_i - 1)(2a_{i+k} - 1)\n= sum_i (4 a_i a_{i+k} - 2a_i - 2a_{i+k} + 1)\n= 4 sum_i a_i a_{i+k} - 2 sum_i a_i - 2 sum_i a_{i+k} + n\n= 4 sum_i a_i a_{i+k} - 2w - 2w + n\n= 4 sum_i a_i a_{i+k} - 4w + n\n\nSo sum_i a_i a_{i+k} = (R(k) + 4w - n) / 4\n\nFor R_x(k) + R_y(k) = -2:\nsum_i a_i a_{i+k} + sum_i b_i b_{i+k} = (R_x(k) + 4w - n)/4 + (R_y(k) + 4w - n)/4\n= (R_x(k) + R_y(k) + 8w - 2n) / 4\n= (-2 + 8*12 - 2*23) / 4\n= (-2 + 96 - 46) / 4\n= 48/4 = 12\n\nYes, the constraint is correct: the total number of (1,1) pairs across both sequences at shift k must be 12.\n\nBut wait, is this sufficient? Let me verify with the solution found.\n\nFor k=1: Rx=3, Ry=-5, sum=-2. \nCheck: sum_i a_i a_{i+1} = (3 + 48 - 23)/4 = 28/4 = 7\nsum_i b_i b_{i+1} = (-5 + 48 - 23)/4 = 20/4 = 5\nTotal = 12 \u2713\n\nSo the encoding is correct. The solution is valid.\n\nLet me also verify the solution manually with Python to be absolutely sure.\n---\nThe solution is valid. Let me submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 4360,
+  "completion_tokens": 3740,
+  "reasoning_tokens": 2720,
+  "cached_tokens": 512,
+  "cost_usd": 0.01956076,
+  "cost_source": "openrouter",
+  "latency_ms": 146779.3526649475,
+  "tool_dispatch_ms_total": 22974.594593048096,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport z3\n\n# 23 variables for x, 23 for y, each in {0,1} representing bits where true means +1\nb = [z3.Bool(f'b_{i}') for i in range(23)]\nc = [z3.Bool(f'c_{i}') for i in range(23)]\n\ns = z3.Solver()\n\n# sum constraints: 12 ones each => sum(b) = 12, sum(c) = 12\ns.add(z3.PbEq([(b[i], 1) for i in range(23)], 12))\ns.add(z3.PbEq([(c[i], 1) for i in range(23)], 12))\n\n# For each shift k=1..11: sum_i (b_i*b_{i+k} + c_i*c_{i+k}) = 12\nfor k in range(1, 12):\n    # Create product variables\n    terms_b = []\n    terms_c = []\n    for i in range(23):\n        j = (i + k) % 23\n        prod_b = z3.And(b[i], b[j])\n        prod_c = z3.And(c[i], c[j])\n        terms_b.append((prod_b, 1))\n        terms_c.append((prod_c, 1))\n    s.add(z3.PbEq(terms_b + terms_c, 12))\n\nprint(\"Solving...\")\nresult = s.check()\nprint(\"Result:\", result)\n\nif result == z3.sat:\n    model = s.model()\n    x_bits = [1 if z3.is_true(model[b[i]]) else 0 for i in range(23)]\n    y_bits = [1 if z3.is_true(model[c[i]]) else 0 for i in range(23)]\n    x = [2*v - 1 for v in x_bits]\n    y = [2*v - 1 for v in y_bits]\n    print(\"x bits:\", x_bits)\n    print(\"y bits:\", y_bits)\n    print(\"x:\", x)\n    print(\"y:\", y)\n    print(\"sum(x):\", sum(x))\n    print(\"sum(y):\", sum(y))\n    # Verify correlations\n    for k in range(1, 12):\n        rx = sum(x[i] * x[(i+k)%23] for i in range(23))\n        ry = sum(y[i] * y[(i+k)%23] for i in range(23))\n        print(f\"k={k}: Rx={rx}, Ry={ry}, sum={rx+ry}\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 22933.63
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "x = [1, 1, -1, -1, -1, -1, 1, -1, -1, -1, -1, 1, 1, 1, 1, -1, 1, -1, 1, -1, 1, 1, 1]\ny = [-1, 1, -1, 1, -1, -1, 1, 1, -1, 1, 1, -1, 1, 1, -1, -1, 1, 1, -1, -1, -1, 1, 1]\n\nn = 23\nprint(\"sum(x):\", sum(x))\nprint(\"sum(y):\", sum(y))\n\nall_ok = True\nfor k in range(1, 12):\n    rx = sum(x[i] * x[(i+k)%n] for i in range(n))\n    ry = sum(y[i] * y[(i+k)%n] for i in range(n))\n    total = rx + ry\n    ok = total == -2\n    if not ok:\n        all_ok = False\n    print(f\"k={k:2d}: Rx={rx:3d}, Ry={ry:3d}, sum={total:3d} {'OK' if ok else 'FAIL'}\")\n\nprint(\"All constraints satisfied:\", all_ok)\n\n# Also verify the concatenated output\nconcat = x + y\nprint(\"Length:\", len(concat))\nprint(\"Concatenated:\", concat)\n",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 40.96
+    },
+    {
+      "name": "submit_answer",
+      "args": {},
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": false
+}

@@ -1,0 +1,89 @@
+{
+  "problem_name": "graceful_graph_k2_p4__v6_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1359.6,
+    "search_space": 214358881,
+    "num_variables": 18,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 83.65,
+    "solve_pct_type": 56.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    10,
+    1,
+    3,
+    9,
+    7,
+    4
+  ],
+  "reasoning": "The graph is a ladder L_4 (2x4 grid). A graceful labeling was found via backtracking search. The labeling assigns vertices in order (clique 0: 0,2; clique 1: 10,1; clique 2: 3,9; clique 3: 7,4). Edge differences are: within cliques: 2,9,6,3; between cliques: 10,1,7,8,4,5. All differences 1..10 appear exactly once.",
+  "raw_response": null,
+  "cot_trace": "We need to find a graceful labeling for a specific graph G_{2,4}. Let's understand the graph:\n\n- 4 disjoint K_2 cliques (i.e., edges), numbered 0 through 3. Each clique has 2 vertices (indexed 0 and 1). So total 8 vertices.\n- Each pair of consecutive cliques (g, g+1) is connected by 2 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..1.\n\nSo we have cliques: C0, C1, C2, C3. Each clique has vertices (g,0) and (g,1). Edges:\n- Within each clique: (g,0)-(g,1) for g=0..3 (4 edges)\n- Between consecutive cliques: (g,0)-(g+1,0) and (g,1)-(g+1,1) for g=0..2 (3*2=6 edges)\n\nTotal edges: 4 + 6 = 10.\n\nWe need a graceful labeling: assign each vertex a unique label from 0 to 10 (since there are 8 vertices, labels from 0 to 10? Wait, graceful labeling typically uses labels from 0 to m where m is number of edges. Here edges = 10, so labels from 0 to 10 inclusive (11 labels) but we have only 8 vertices. Actually graceful labeling: vertices are assigned distinct integers from 0 to |E| (inclusive) such that the set of edge labels (absolute differences) is exactly {1, 2, ..., |E|}. So we need labels from 0 to 10, but we have only 8 vertices, so some numbers in 0..10 are not used as vertex labels. That's fine: the vertex labels are a subset of {0,...,10} of size 8, and edge differences must cover 1..10 exactly once.\n\nSo we need to assign 8 distinct integers from 0..10 to the 8 vertices such that the 10 edge differences are all distinct and cover 1..10.\n\nLet's model this as a constraint satisfaction problem. We can try to solve using SAT or integer programming.\n\nLet's denote vertices:\nv_{g,i} for g=0..3, i=0..1.\n\nEdges:\n- Within clique g: (v_{g,0}, v_{g,1}) difference d_g\n- Between g and g+1: (v_{g,0}, v_{g+1,0}) diff a_g, (v_{g,1}, v_{g+1,1}) diff b_g\n\nWe need all 10 differences to be a permutation of 1..10.\n\nWe can try to find a solution via search. Let's write Python code to solve.\n\nBut first, let's think about structure. The graph is essentially a \"ladder\" graph with 4 rungs? Actually it's like two parallel paths of length 3 (4 vertices each) plus edges connecting the two paths at each \"column\" (the cliques). So it's a 2x4 grid graph? Let's see: vertices arranged in 2 rows, 4 columns. Edges: horizontal edges between adjacent columns in each row (6 edges), plus vertical edges within each column (4 edges). That's exactly a 2x4 grid graph (a ladder graph with 4 rungs). Yes! The graph is the Cartesian product P_2 \u00d7 P_4? Actually P_2 is an edge (2 vertices), P_4 is a path of 4 vertices. The Cartesian product of K_2 and P_4 gives a ladder graph: 2 rows, 4 columns, with vertical edges (the K_2 cliques) and horizontal edges (the paths). So it's the 2x4 grid graph.\n\nGraceful labeling of grid graphs is a known problem. The 2xn grid (ladder) is known to be graceful for all n? I recall that ladders are graceful. Actually, the ladder graph L_n = P_2 \u00d7 P_n is graceful for all n. There are known constructions.\n\nBut we need to find one explicit labeling.\n\nLet's try to solve with SAT or backtracking.\n\nWe can use Python with constraint solving.\n---\nThe backtracking found a solution quickly: [0, 2, 10, 1, 3, 9, 7, 4]. Let's verify it.\n\nVertices:\nClique 0: v0=0, v1=2\nClique 1: v0=10, v1=1\nClique 2: v0=3, v1=9\nClique 3: v0=7, v1=4\n\nEdges:\nWithin cliques:\n(0,1): |0-2|=2\n(2,3): |10-1|=9\n(4,5): |3-9|=6\n(6,7): |7-4|=3\n\nBetween cliques:\n(0,2): |0-10|=10\n(1,3): |2-1|=1\n(2,4): |10-3|=7\n(3,5): |1-9|=8\n(4,6): |3-7|=4\n(5,7): |9-4|=5\n\nDifferences: {2,9,6,3,10,1,7,8,4,5} = {1,2,3,4,5,6,7,8,9,10} all distinct.\n\nYes, it works.\n\nBut wait, the problem says \"each pair of consecutive cliques (g, g+1) is connected by 2 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..1.\" So edges: (0,2), (1,3), (2,4), (3,5), (4,6), (5,7). That matches.\n\nSo solution is valid.\n\nBut let's double-check the ordering: \"ordered by clique then vertex within clique (so the i-th block of 2 consecutive entries gives the labels for clique i)\". So the list should be: [clique0_v0, clique0_v1, clique1_v0, clique1_v1, clique2_v0, clique2_v1, clique3_v0, clique3_v1].\n\nOur assignment: indices 0..7 correspond to that order. So [0,2,10,1,3,9,7,4] is correct.\n\nLet's also verify that labels are unique and from 0 to 10: {0,2,10,1,3,9,7,4} are 8 distinct numbers from 0..10. Yes.\n\nThus satisfiable.\n\nI'll submit the answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3644,
+  "completion_tokens": 3463,
+  "reasoning_tokens": 1148,
+  "cached_tokens": 768,
+  "cost_usd": 0.021430400000000002,
+  "cost_source": "openrouter",
+  "latency_ms": 131827.40259170532,
+  "tool_dispatch_ms_total": 165.19689559936523,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Let's brute force search? 8 vertices, labels from 0..10, choose 8 distinct labels and assign to vertices.\n# That's P(11,8) = 11*10*9*8*7*6*5*4 = 6,652,800? Actually 11! / 3! = 6,652,800. Too many for brute force.\n# But we can use constraint programming or SAT.\n\n# Let's try using python-constraint or backtracking with pruning.\n\n# We'll use a simple backtracking with heuristics.\n\n# Represent vertices as list of 8 variables: order: clique0_v0, clique0_v1, clique1_v0, clique1_v1, clique2_v0, clique2_v1, clique3_v0, clique3_v1.\n\n# Edges:\n# (0,1), (2,3), (4,5), (6,7) - within cliques\n# (0,2), (1,3), (2,4), (3,5), (4,6), (5,7) - between cliques\n\n# We need all 10 differences distinct and cover 1..10.\n\n# Let's use SAT via pysat? Might be available.\n\n# First, let's try using z3 if available? Or we can use python's itertools with pruning.\n\n# Actually, we can use a simple backtracking with constraint propagation.\n\n# Let's try to use python-constraint library? Might not be installed.\n\n# Let's implement a recursive search with forward checking.\n\nimport sys\nsys.setrecursionlimit(10000)\n\n# Precompute all possible pairs of labels that give each difference?\n# We'll assign labels one by one.\n\n# Order of assignment: maybe assign vertices in order of constraints.\n\n# Let's try to use a SAT solver via pysat if installed.\ntry:\n    from pysat import SATSolver\nexcept ImportError:\n    print(\"pysat not available\")\n    # Try to install? No.\n    pass\n\n# Let's try to use OR-Tools CP-SAT? Might not be installed.\n\n# Let's just implement a backtracking search with some pruning.\n\n# We have 11 possible labels: 0..10. We need to pick 8 distinct.\n# The differences must be 1..10 exactly once.\n\n# Let's think about parity or other constraints.\n\n# Let's write a simple backtracking that assigns labels to vertices in order, maintaining set of used labels and set of used differences.\n\n# To reduce search space, we can note that the graph is bipartite? Actually ladder is bipartite. Graceful labelings often have a pattern.\n\n# Let's try to find known graceful labeling for ladder L_4 (2x4 grid). \n# I recall a paper: \"Graceful labelings of ladders\" - maybe there is a known formula.\n\n# Let's search memory: For ladder L_n (P_2 x P_n), a graceful labeling exists for all n.\n# One construction: label vertices (i,j) where i=0,1 (row) and j=0..n-1 (column) as:\n# For even n? Not sure.\n\n# Let's try to solve with integer linear programming? Or just use brute force with heuristics.\n\n# Actually, we can use the fact that the graph is small; we can use a SAT solver via pysat if we install? But we can't install.\n\n# Let's try to use Python's itertools to generate all combinations of 8 labels from 11, then all permutations? That's too many.\n\n# But we can use a smarter search: assign labels to vertices one by one, and use difference constraints to prune.\n\n# Let's implement a backtracking with dynamic ordering.\n\nimport time\n\n# Variables indices 0..7\nedges = [\n    (0,1), (2,3), (4,5), (6,7),  # within cliques\n    (0,2), (1,3), (2,4), (3,5), (4,6), (5,7)   # between cliques\n]\n\n# We'll assign labels to vertices in order of index.\n# Use recursion with forward checking: for each unassigned vertex, maintain possible labels.\n\ndef solve():\n    n_vertices = 8\n    n_labels = 11  # 0..10\n    all_labels = set(range(n_labels))\n    \n    # We'll use a list for assignment, None if unassigned\n    assignment = [None] * n_vertices\n    used_labels = set()\n    used_diffs = set()\n    \n    # For each edge, we need a difference; we can compute diff only when both endpoints assigned.\n    # We'll maintain for each edge whether its diff is determined.\n    \n    # To prune, we can check that for any edge with one endpoint assigned, the possible diffs to unused labels must include at least one unused diff.\n    # Also, we can precompute for each vertex its neighbors.\n    \n    neighbors = [[] for _ in range(n_vertices)]\n    for (u,v) in edges:\n        neighbors[u].append(v)\n        neighbors[v].append(u)\n    \n    # Order of assignment: maybe by degree? Let's just do 0..7.\n    \n    # For forward checking, we can maintain for each unassigned vertex the set of possible labels that are consistent with current assignments.\n    # But simpler: just try all labels for next vertex, check consistency with already assigned neighbors.\n    \n    # Let's use recursion with ordering heuristics: choose vertex with fewest remaining possible labels.\n    \n    # We'll implement a recursive function that returns assignment or None.\n    \n    # To speed up, we can precompute all possible differences for each pair of labels? Not needed.\n    \n    # Let's try a simple backtracking with ordering by most constrained variable.\n    \n    def backtrack(assignment, used_labels, used_diffs):\n        # Find unassigned vertex with fewest possible labels\n        best_v = None\n        best_possible = None\n        for v in range(n_vertices):\n            if assignment[v] is None:\n                # Compute possible labels for v\n                possible = []\n                for l in all_labels - used_labels:\n                    # Check consistency with assigned neighbors\n                    ok = True\n                    for u in neighbors[v]:\n                        if assignment[u] is not None:\n                            diff = abs(l - assignment[u])\n                            if diff in used_diffs or diff == 0:\n                                ok = False\n                                break\n                            # Also diff must be between 1 and 10\n                            if not (1 <= diff <= 10):\n                                ok = False\n                                break\n                    if ok:\n                        possible.append(l)\n                if not possible:\n                    return None  # dead end\n                if best_v is None or len(possible) < len(best_possible):\n                    best_v = v\n                    best_possible = possible\n                    if len(possible) == 1:\n                        break  # can't get better\n        \n        if best_v is None:\n            # All assigned; check that all diffs are used and cover 1..10\n            if len(used_diffs) == 10 and used_diffs == set(range(1,11)):\n                return assignment[:]\n            else:\n                return None\n        \n        # Try each possible label\n        for l in best_possible:\n            assignment[best_v] = l\n            new_used_labels = used_labels | {l}\n            new_used_diffs = used_diffs.copy()\n            # Add diffs for edges to assigned neighbors\n            ok = True\n            for u in neighbors[best_v]:\n                if assignment[u] is not None:\n                    diff = abs(l - assignment[u])\n                    if diff in new_used_diffs:\n                        ok = False\n                        break\n                    new_used_diffs.add(diff)\n            if ok:\n                result = backtrack(assignment, new_used_labels, new_used_diffs)\n                if result is not None:\n                    return result\n            assignment[best_v] = None\n        \n        return None\n    \n    return backtrack(assignment, used_labels, used_diffs)\n\nstart = time.time()\nsol = solve()\nprint(\"Time:\", time.time() - start)\nprint(\"Solution:\", sol)"
+      },
+      "ok": true,
+      "latency_ms": 165.2
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          10,
+          1,
+          3,
+          9,
+          7,
+          4
+        ],
+        "reasoning": "The graph is a ladder L_4 (2x4 grid). A graceful labeling was found via backtracking search. The labeling assigns vertices in order (clique 0: 0,2; clique 1: 10,1; clique 2: 3,9; clique 3: 7,4). Edge differences are: within cliques: 2,9,6,3; between cliques: 10,1,7,8,4,5. All differences 1..10 appear exactly once."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,134 @@
+{
+  "problem_name": "pysms_min_girth_min_girth3_vertices12__v1_nh",
+  "problem_type": "pysms_min_girth",
+  "params": {
+    "min_girth": 3,
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 87.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 66,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 28.76,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      11
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      9
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      6,
+      10
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      8,
+      9
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      10,
+      11
+    ]
+  ],
+  "reasoning": "A simple graph (no self-loops, no multi-edges) automatically has girth \u2265 3 if it contains any cycle. I constructed a 12-cycle (0-1-2-...-11-0) and added chord edges. The resulting graph is a valid simple graph on 12 vertices with girth exactly 3 (several triangles exist, e.g., 0-1-2-0), which satisfies the requirement of girth \u2265 3.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,1],[0,2],[0,11],[1,2],[1,3],[2,3],[3,4],[3,8],[4,5],[4,7],[5,6],[5,9],[6,7],[6,10],[7,8],[8,9],[9,10],[10,11]],\n    \"reasoning\": \"A simple graph (no self-loops, no multi-edges) automatically has girth \u2265 3 if it contains any cycle. I constructed a 12-cycle (0-1-2-...-11-0) and added chord edges. The resulting graph is a valid simple graph on 12 vertices with girth exactly 3 (several triangles exist, e.g., 0-1-2-0), which satisfies the requirement of girth \u2265 3.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 4398,
+  "completion_tokens": 1481,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.035408999999999996,
+  "cost_source": "openrouter",
+  "latency_ms": 22573.40383529663,
+  "tool_dispatch_ms_total": 52.81424522399902,
+  "tool_calls_made": 1,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Girth >= 3 simply means: no self-loops, no multi-edges (a simple graph).\n# Any simple graph with at least one cycle satisfies girth >= 3.\n# Let's build a simple cycle on all 12 vertices (girth = 12 >= 3),\n# then add a few extra edges to make it more interesting while keeping it simple.\n\n# A 12-cycle: 0-1-2-3-4-5-6-7-8-9-10-11-0\ncycle_edges = [(i, i+1) for i in range(11)] + [(0, 11)]\n\n# Add some chords (extra edges) \u2014 all must satisfy u < v and not duplicate\nextra_edges = [\n    (0, 2),\n    (1, 3),\n    (4, 7),\n    (5, 9),\n    (6, 10),\n    (3, 8),\n]\n\nall_edges = cycle_edges + extra_edges\n\n# Verify: no duplicates, all u < v, all vertices in [0,11]\nedge_set = set()\nfor u, v in all_edges:\n    assert u != v, \"self-loop!\"\n    lo, hi = min(u,v), max(u,v)\n    assert (lo, hi) not in edge_set, f\"duplicate edge ({lo},{hi})!\"\n    assert 0 <= lo < hi < 12\n    edge_set.add((lo, hi))\n\nprint(f\"Number of edges: {len(all_edges)}\")\nprint(\"Edges:\", sorted(edge_set))\n\n# Compute girth using BFS\nimport collections\n\ndef girth(n, edges):\n    adj = [[] for _ in range(n)]\n    for u, v in edges:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    min_cycle = float('inf')\n    for start in range(n):\n        # BFS from start, track distances and parents\n        dist = [-1] * n\n        parent = [-1] * n\n        dist[start] = 0\n        queue = collections.deque([start])\n        while queue:\n            u = queue.popleft()\n            for w in adj[u]:\n                if dist[w] == -1:\n                    dist[w] = dist[u] + 1\n                    parent[w] = u\n                    queue.append(w)\n                elif parent[u] != w:\n                    # Found a cycle\n                    cycle_len = dist[u] + dist[w] + 1\n                    min_cycle = min(min_cycle, cycle_len)\n    return min_cycle\n\ng = girth(12, list(edge_set))\nprint(f\"Girth of the graph: {g}\")\nprint(f\"Girth >= 3? {g >= 3}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 52.81
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

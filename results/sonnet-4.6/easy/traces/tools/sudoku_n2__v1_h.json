@@ -1,0 +1,104 @@
+{
+  "problem_name": "sudoku_n2__v1_h",
+  "problem_type": "sudoku",
+  "params": {
+    "n": 2
+  },
+  "difficulty": {
+    "solve_time_ms": 1036.2,
+    "search_space": 4294967296,
+    "num_variables": 16,
+    "num_constraints": 18,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 73.5,
+    "solve_pct_type": 50.0
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    1,
+    2,
+    3,
+    4,
+    3,
+    4,
+    1,
+    2,
+    2,
+    1,
+    4,
+    3,
+    4,
+    3,
+    2,
+    1
+  ],
+  "reasoning": "Solved the 4x4 Sudoku via backtracking. The grid satisfies all row, column, and 2x2 block constraints (each contains 1-4 exactly once), and respects the fixed assignments x[7]=2, x[9]=1, x[12]=4.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3378,
+  "completion_tokens": 1303,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.029679,
+  "cost_source": "openrouter",
+  "latency_ms": 18699.405193328857,
+  "tool_dispatch_ms_total": 34.4395637512207,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let me map out the grid first\n# Grid indices (row-major order):\n# [0]  [1]  [2]  [3]\n# [4]  [5]  [6]  [7]\n# [8]  [9]  [10] [11]\n# [12] [13] [14] [15]\n\n# Fixed values: x[7]=2, x[9]=1, x[12]=4\n\n# 2x2 blocks:\n# Block 0 (top-left):    indices 0,1,4,5\n# Block 1 (top-right):   indices 2,3,6,7\n# Block 2 (bottom-left): indices 8,9,10,11\n# Block 3 (bottom-right):indices 12,13,14,15\n\nfrom itertools import product\n\ndef solve_sudoku():\n    grid = [0] * 16\n    # Fixed assignments\n    grid[7] = 2\n    grid[9] = 1\n    grid[12] = 4\n    \n    def get_row(i): return i // 4\n    def get_col(i): return i % 4\n    def get_block(i): return (i // 4 // 2) * 2 + (i % 4 // 2)\n    \n    def is_valid(grid, pos, val):\n        r, c, b = get_row(pos), get_col(pos), get_block(pos)\n        for i in range(16):\n            if i == pos:\n                continue\n            if grid[i] == 0:\n                continue\n            if get_row(i) == r and grid[i] == val:\n                return False\n            if get_col(i) == c and grid[i] == val:\n                return False\n            if get_block(i) == b and grid[i] == val:\n                return False\n        return True\n    \n    def backtrack(pos):\n        if pos == 16:\n            return True\n        if grid[pos] != 0:\n            return backtrack(pos + 1)\n        for val in range(1, 5):\n            if is_valid(grid, pos, val):\n                grid[pos] = val\n                if backtrack(pos + 1):\n                    return True\n                grid[pos] = 0\n        return False\n    \n    if backtrack(0):\n        return grid\n    return None\n\nsolution = solve_sudoku()\nprint(\"Solution:\", solution)\nprint(\"\\nGrid:\")\nfor r in range(4):\n    print(solution[r*4:(r+1)*4])\n\n# Verify\ndef verify(grid):\n    def get_block(i): return (i // 4 // 2) * 2 + (i % 4 // 2)\n    for r in range(4):\n        row = [grid[r*4+c] for c in range(4)]\n        assert sorted(row) == [1,2,3,4], f\"Row {r} failed: {row}\"\n    for c in range(4):\n        col = [grid[r*4+c] for r in range(4)]\n        assert sorted(col) == [1,2,3,4], f\"Col {c} failed: {col}\"\n    for b in range(4):\n        block = [grid[i] for i in range(16) if get_block(i) == b]\n        assert sorted(block) == [1,2,3,4], f\"Block {b} failed: {block}\"\n    assert grid[7] == 2 and grid[9] == 1 and grid[12] == 4, \"Fixed values violated\"\n    print(\"All constraints satisfied!\")\n\nverify(solution)\n"
+      },
+      "ok": true,
+      "latency_ms": 34.44
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          1,
+          2,
+          3,
+          4,
+          3,
+          4,
+          1,
+          2,
+          2,
+          1,
+          4,
+          3,
+          4,
+          3,
+          2,
+          1
+        ],
+        "reasoning": "Solved the 4x4 Sudoku via backtracking. The grid satisfies all row, column, and 2x2 block constraints (each contains 1-4 exactly once), and respects the fixed assignments x[7]=2, x[9]=1, x[12]=4."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,94 @@
+{
+  "problem_name": "costas_array_n11__v1_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 1035.3,
+    "search_space": 39916800,
+    "num_variables": 11,
+    "num_constraints": 12,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 73.12,
+    "solve_pct_type": 61.11
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    4,
+    8,
+    3,
+    10,
+    9,
+    6,
+    2,
+    7,
+    5
+  ],
+  "reasoning": "The Costas array of order 11 was found using a backtracking algorithm that ensures all displacement vectors between pairs of marks are distinct. The resulting permutation is [0, 1, 4, 8, 3, 10, 9, 6, 2, 7, 5].",
+  "raw_response": null,
+  "cot_trace": "**Defining Costas Arrays**\n\nI'm now focusing on defining Costas arrays. I'm exploring the core concept: an $n \\times n$ grid with $n$ marks, each in a unique row and column. I'm focusing on how these marks must have distinct displacement vectors. I'm representing these marks as $(i, x_i)$ for further analysis.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1967,
+  "completion_tokens": 1291,
+  "reasoning_tokens": 335,
+  "cached_tokens": 0,
+  "cost_usd": 0.00242825,
+  "cost_source": "openrouter",
+  "latency_ms": 5321.071147918701,
+  "tool_dispatch_ms_total": 81.91847801208496,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def is_costas(p):\n    n = len(p)\n    diffs = set()\n    for i in range(n):\n        for j in range(i + 1, n):\n            diff = (j - i, p[j] - p[i])\n            if diff in diffs:\n                return False\n            diffs.add(diff)\n    return True\n\ndef solve_costas(n):\n    import itertools\n    for p in itertools.permutations(range(n)):\n        if is_costas(p):\n            return p\n    return None\n\n# Let's try a backtracking approach instead of permutations, as 11! is 39,916,800.\n# 11! is small enough for a quick search.\ndef solve_costas_backtracking(n):\n    def backtrack(current_p, used):\n        if len(current_p) == n:\n            return current_p\n        \n        for i in range(n):\n            if not used[i]:\n                # Check if adding i at position len(current_p) is valid\n                valid = True\n                new_col = len(current_p)\n                for prev_col, prev_row in enumerate(current_p):\n                    diff = (new_col - prev_col, i - prev_row)\n                    # We need to check if this diff has been used.\n                    # Wait, the condition is that all displacement vectors are distinct.\n                    # The displacement vectors are (j-i, x_j - x_i) for 0 <= i < j <= n-1.\n                    # So we need to check all pairs (prev_col, new_col).\n                    pass\n                \n                # Let's refine the check.\n                # When we add a new mark at (new_col, i), we need to check all\n                # (new_col - prev_col, i - prev_row) for all prev_col < new_col.\n                # These must not have been used by any other pair of marks.\n                \n                # This means we need to keep track of all used displacement vectors.\n                pass\n        return None\n\n# Actually, let's just use a simple backtracking with a set of used vectors.\ndef solve_costas_optimized(n):\n    used_diffs = set()\n    p = [0] * n\n    used_rows = [False] * n\n    \n    def backtrack(col):\n        if col == n:\n            return True\n        \n        for row in range(n):\n            if not used_rows[row]:\n                # Check if all new displacement vectors are valid\n                new_diffs = []\n                possible = True\n                for prev_col in range(col):\n                    diff = (col - prev_col, row - p[prev_col])\n                    if diff in used_diffs:\n                        possible = False\n                        break\n                    new_diffs.append(diff)\n                \n                if possible:\n                    # Add to used_diffs\n                    for diff in new_diffs:\n                        used_diffs.add(diff)\n                    p[col] = row\n                    used_rows[row] = True\n                    \n                    if backtrack(col + 1):\n                        return True\n                    \n                    # Backtrack\n                    used_rows[row] = False\n                    for diff in new_diffs:\n                        used_diffs.remove(diff)\n        return False\n\n    if backtrack(0):\n        return p\n    return None\n\nprint(solve_costas_optimized(11))\n"
+      },
+      "ok": true,
+      "latency_ms": 81.92
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          4,
+          8,
+          3,
+          10,
+          9,
+          6,
+          2,
+          7,
+          5
+        ],
+        "reasoning": "The Costas array of order 11 was found using a backtracking algorithm that ensures all displacement vectors between pairs of marks are distinct. The resulting permutation is [0, 1, 4, 8, 3, 10, 9, 6, 2, 7, 5]."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

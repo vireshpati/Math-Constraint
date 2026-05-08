@@ -1,0 +1,120 @@
+{
+  "problem_name": "low_autocorrelation_n20__v2_nh",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 20
+  },
+  "difficulty": {
+    "solve_time_ms": 3389.3,
+    "search_space": 1048576,
+    "num_variables": 39,
+    "num_constraints": 26,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 96.43,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    1,
+    1,
+    1,
+    -1,
+    1,
+    1,
+    -1,
+    1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    1
+  ],
+  "reasoning": "Found a sequence of length 20 over {-1,+1} with sum of squared aperiodic autocorrelations equal to 46, which is <= 49.",
+  "raw_response": null,
+  "cot_trace": "We need to find a binary sequence of length 20 over {-1, +1} with aperiodic autocorrelation sidelobe energy (sum of squares of aperiodic autocorrelations at shifts k=1..19) at most 49. The aperiodic autocorrelation C_k = sum_{i=0}^{n-k-1} seq[i] * seq[i+k], where n=20. So for each shift k from 1 to 19, C_k ranges from -(n-k) to (n-k) in steps of 2. We want sum_{k=1}^{19} C_k^2 <= 49.\n\nThis is a known problem: finding binary sequences with low aperiodic autocorrelation. For length 20, what's the minimum possible merit factor? Let's think.\n\nThe total energy sum_{k=1}^{n-1} C_k^2 is related to the sequence's autocorrelation. Known optimal sequences for length 20 (e.g., Barker codes, but Barker codes only exist for certain lengths; length 20 is not a Barker length). The best known merit factor for length 20? The merit factor F = n^2 / (2 * sum_{k=1}^{n-1} C_k^2). So sum = n^2 / (2F). For n=20, n^2 = 400. If sum <= 49, then F >= 400 / (2*49) = 400/98 \u2248 4.08. So we need merit factor at least ~4.08.\n\nKnown results: For lengths up to 40, optimal merit factors have been computed. For n=20, I recall the optimal merit factor might be around 5 or higher? Actually, the best known merit factor for n=20 might be around 4.0? Let's check known sequences: For n=13, Barker code gives sum = 1 (since all sidelobes are -1 or 0? Actually Barker length 13 has C_k = \u00b11 for all k, so sum = 12). Merit factor = 169/(2*12) \u2248 7.04.\n\nFor n=20, I think the best merit factor is about 3.5? Let me recall: There is a known sequence \"optimal\" for length 20 with merit factor maybe 3.5? Actually, for n=20, there might be a sequence with merit factor ~4.0. Let's search memory: The best known merit factors for lengths up to 60 are known from exhaustive search for small n. For n=20, exhaustive search is 2^20 \u2248 1 million, which is feasible. So the exact optimal merit factor is known. I think the minimum sum for n=20 is maybe 44 or 48? Not sure.\n\nBut the problem asks for sum <= 49. So we just need any sequence with sum <= 49. Since 2^20 = 1,048,576, we can brute-force search using Python. That's feasible within 15 seconds? 1 million sequences, computing autocorrelation each time. With vectorized numpy or efficient loops, it should be okay. But we need to be careful about time. Let's write a Python script that enumerates all 2^20 sequences? Actually, we can use symmetry: flipping all signs (multiply by -1) doesn't change C_k^2 sum. Also reversing the sequence doesn't change the sum. So we could reduce search space, but 1 million is manageable. Let's try brute force with numpy or bit operations.\n\nHowever, 1 million sequences, each requiring computing 19 dot products of length up to 19. That's about sum_{k=1}^{19} (20-k) \u2248 190 operations per sequence. 190 million operations. In Python loops, that might be too slow (maybe ~10 seconds? maybe more). We can optimize using convolution via FFT? For all sequences? Not straightforward.\n\nBetter approach: Use integer programming or SAT solver? But we have Python and pysat? The system says we can import pysat. But maybe brute force with bit representation and using precomputed tables or using numpy's dot product for random search might find a solution quickly.\n\nAlternatively, use known sequences. For example, the Rudin-Shapiro sequence or modifications might have low autocorrelation. But we need guaranteed sum <= 49.\n\nLet's do a random search first. Generate random sequences, compute sum, see if we get <= 49. Since 2^20 is small, random search might find it quickly if many solutions exist. But if solutions are rare, maybe not. Let's think about the distribution of sum. For a random sequence, C_k is sum of (n-k) independent \u00b11 products, which is roughly normal with mean 0, variance (n-k). So E[C_k^2] = n-k. So expected sum = sum_{k=1}^{19} (n-k) = sum_{m=1}^{19} m = 190. The standard deviation? Var(C_k^2) \u2248 2(n-k)^2 for normal? Actually for a symmetric random walk, E[C_k^4] = 3(n-k)^2 - 2(n-k) (if exactly normal? Let's compute). But anyway, sum is around 190 \u00b1 something. 49 is about (190-49)/sd. If sd is maybe ~ sqrt(2 * sum (n-k)^2) = sqrt(2 * sum_{m=1}^{19} m^2) = sqrt(2 * 2470) = sqrt(4940) \u2248 70.3. So 49 is about 2 sigma below mean. So random solutions might be somewhat rare but not extremely rare: probability maybe a few percent? Actually, for sum of 190 with sd 70, 49 is about 2 std below. For a sum of independent (but not exactly independent) chi-square-like variables, the distribution might be skewed. But probability of being <=49 might be on the order of 1-2%. So random search of a few thousand might find one. Let's try random search first.\n\nBut maybe there are many solutions due to symmetries. Let's try a quick Python random search.\n---\nWe found a sequence with autocorrelation sum 46, which is \u2264 49. Let me verify this result and format it properly.\n\nThe sequence is: [1, 1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1, 1]\n\nLet me verify it meets the constraint.\n---\nThe random search found a sequence with sum of squared autocorrelations equal to 46, which is at most 49. So the answer is satisfiable, and the solution is [1, 1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1, 1].\n\nLet me verify again carefully. The sequence is of length 20 over {-1, +1}. The autocorrelation C_k = sum_{i=0}^{n-k-1} seq[i]*seq[i+k] for k=1..19. The sum of C_k^2 is 46 <= 49. Yes, this works.\n\nI should submit this.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2636,
+  "completion_tokens": 2041,
+  "reasoning_tokens": 1380,
+  "cached_tokens": 1280,
+  "cost_usd": 0.009656999999999999,
+  "cost_source": "openrouter",
+  "latency_ms": 51508.45980644226,
+  "tool_dispatch_ms_total": 145.0645923614502,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import random\nimport math\n\ndef autocorr_sum(seq):\n    n = len(seq)\n    total = 0\n    for k in range(1, n):\n        c = sum(seq[i] * seq[i+k] for i in range(n-k))\n        total += c*c\n    return total\n\nbest = float('inf')\nbest_seq = None\nfor _ in range(200000):\n    seq = [random.choice([-1,1]) for _ in range(20)]\n    s = autocorr_sum(seq)\n    if s < best:\n        best = s\n        best_seq = seq\n        if s <= 49:\n            print(\"Found\", s, seq)\n            break\nprint(\"Best found\", best, best_seq)\n"
+      },
+      "ok": true,
+      "latency_ms": 109.52
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = [1, 1, 1, 1, -1, -1, 1, 1, 1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1, 1]\nn = len(seq)\ntotal = 0\nfor k in range(1, n):\n    c = sum(seq[i] * seq[i+k] for i in range(n-k))\n    total += c*c\n    print(f\"k={k}, C_k={c}\")\nprint(\"Total sum:\", total)\nprint(seq)\n"
+      },
+      "ok": true,
+      "latency_ms": 35.55
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          1,
+          1,
+          1,
+          1,
+          -1,
+          -1,
+          1,
+          1,
+          1,
+          -1,
+          1,
+          1,
+          -1,
+          1,
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          1
+        ],
+        "reasoning": "Found a sequence of length 20 over {-1,+1} with sum of squared aperiodic autocorrelations equal to 46, which is <= 49."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,86 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree5_min_degree1_vertices11__v1_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 1,
+    "vertices": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 17.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 26,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 9.59,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      9
+    ],
+    [
+      0,
+      10
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      5,
+      7
+    ]
+  ],
+  "reasoning": "The fixed edges give degrees: 0:1, 1:0, 2:3, 3:1, 4:0, 5:0, 6:1, 7:0, 8:2, 9:0, 10:2. Adding edges (0,9), (1,4), (5,7) ensures every vertex has degree between 1 and 5 without exceeding the maximum.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0, 9], [0, 10], [1, 4], [2, 6], [2, 8], [2, 10], [3, 8], [5, 7]],\n    \"reasoning\": \"The fixed edges give degrees: 0:1, 1:0, 2:3, 3:1, 4:0, 5:0, 6:1, 7:0, 8:2, 9:0, 10:2. Adding edges (0,9), (1,4), (5,7) ensures every vertex has degree between 1 and 5 without exceeding the maximum.\"\n}",
+  "cot_trace": "We are asked to generate a graph with 11 vertices (0 to 10) where every vertex has degree between 1 and 5 inclusive. We are given some fixed edges: (2,8), (2,6), (2,10), (3,8), (0,10). We need to return a complete list of edges that satisfies the degree constraints for all vertices, or state UNSATISFIABLE if impossible.\n\nWe need to output a JSON with satisfiable, solution (list of edges), and reasoning.\n\nFirst, check if the fixed edges already violate degree constraints. The fixed edges are:\n(2,8), (2,6), (2,10), (3,8), (0,10)\n\nLet's count degrees from fixed edges:\nVertex 0: edge (0,10) -> degree 1\nVertex 1: no edges yet -> degree 0 (needs at least 1)\nVertex 2: edges (2,8), (2,6), (2,10) -> degree 3\nVertex 3: edge (3,8) -> degree 1\nVertex 4: no edges -> degree 0\nVertex 5: no edges -> degree 0\nVertex 6: edge (2,6) -> degree 1\nVertex 7: no edges -> degree 0\nVertex 8: edges (2,8), (3,8) -> degree 2\nVertex 9: no edges -> degree 0\nVertex 10: edges (2,10), (0,10) -> degree 2\n\nAll vertices currently have degree <=5, but vertices 1,4,5,7,9 have degree 0, which violates the minimum degree 1. So we need to add edges to give them at least degree 1, and also ensure no vertex exceeds degree 5.\n\nWe have 11 vertices, total degree sum must be even. The sum of degrees must be between 11*1=11 and 11*5=55. The number of edges is half the sum of degrees. We need to add edges to satisfy the degree constraints.\n\nWe can try to construct a graph. Since we need to add edges, we can connect the isolated vertices (1,4,5,7,9) to other vertices, but we must not exceed degree 5 for any vertex. Let's see current degrees:\n0:1, 1:0, 2:3, 3:1, 4:0, 5:0, 6:1, 7:0, 8:2, 9:0, 10:2.\n\nWe need to add edges such that all degrees are between 1 and 5. We can add edges among the isolated vertices and also connect them to vertices with low degree. But we must be careful not to create multiple edges (simple graph). The fixed edges are given, we cannot remove them.\n\nLet's list available degree capacity (max 5):\n0: can add up to 4 edges\n1: can add up to 5 edges (needs at least 1)\n2: can add up to 2 edges (currently 3)\n3: can add up to 4 edges (currently 1)\n4: can add up to 5 edges (needs at least 1)\n5: can add up to 5 edges (needs at least 1)\n6: can add up to 4 edges (currently 1)\n7: can add up to 5 edges (needs at least 1)\n8: can add up to 3 edges (currently 2)\n9: can add up to 5 edges (needs at least 1)\n10: can add up to 3 edges (currently 2)\n\nWe need to add edges to cover the minimum degree for vertices 1,4,5,7,9. That's 5 vertices that need at least one edge. We can pair them among themselves or connect to others. But we must also ensure the total degree sum is even. Currently sum of degrees from fixed edges: 0:1, 1:0, 2:3, 3:1, 4:0, 5:0, 6:1, 7:0, 8:2, 9:0, 10:2. Sum = 1+0+3+1+0+0+1+0+2+0+2 = 10. So we need to add edges that increase the sum by an even number to keep total even. The final sum must be even. The minimum sum we need is at least 11 (if all have degree 1) but 11 is odd, so minimum even sum is 12. So we need to add at least 2 to the sum (i.e., add at least 1 edge). But we have 5 isolated vertices, so we need at least 5 edges? Not necessarily: one edge connects two vertices, so adding one edge increases the sum by 2 and gives degree 1 to two vertices. To give degree 1 to 5 isolated vertices, we need at least ceil(5/2)=3 edges (since each edge covers two vertices). But 3 edges would cover 6 vertices, so we could cover all 5 isolated vertices and one extra vertex that already has degree, but that's fine. So we need at least 3 edges. But we must also ensure no vertex exceeds degree 5. Let's try to construct.\n\nWe can simply connect the isolated vertices in pairs: (1,4), (5,7), and then (9, something). But we need to connect 9 to something. We can connect 9 to 0, or 3, or 6, etc. Let's check capacities.\n\nOption: Add edges (1,4), (5,7), (9,0). Then degrees become:\n0: 1+1=2\n1: 1\n2: 3\n3: 1\n4: 1\n5: 1\n6: 1\n7: 1\n8: 2\n9: 1\n10: 2\nAll degrees between 1 and 5. Sum = 2+1+3+1+1+1+1+1+2+1+2 = 16, even. Number of edges: fixed 5 + added 3 = 8 edges. That's a valid graph. But we must ensure no multiple edges: (0,10) exists, (0,9) is new, no conflict. (1,4) new, (5,7) new. All good. So this is a valid solution.\n\nBut wait: The problem says \"Generate a graph with 11 vertices where every vertex has degree between 1 and 5.\" It doesn't say we must use all possible edges or anything, just any graph satisfying the constraints. So this simple addition works.\n\nWe should check if any vertex exceeds 5: no. So this is satisfiable.\n\nThus, the solution is the fixed edges plus these three edges: (1,4), (5,7), (0,9). But we need to list all edges. The fixed edges are: (2,8), (2,6), (2,10), (3,8), (0,10). So total edges: (0,10), (0,9), (1,4), (2,6), (2,8), (2,10), (3,8), (5,7). That's 8 edges.\n\nWe should output the list of edges in the solution. The format expects a list of edges? The problem says: \"Return the graph as a list of edges (u, v) with 0 <= u < v < 11\". So we need to provide a list of pairs. In the JSON, \"solution\" should be this list.\n\nLet's double-check degrees:\n0: edges with 10,9 -> degree 2\n1: edge with 4 -> degree 1\n2: edges with 8,6,10 -> degree 3\n3: edge with 8 -> degree 1\n4: edge with 1 -> degree 1\n5: edge with 7 -> degree 1\n6: edge with 2 -> degree 1\n7: edge with 5 -> degree 1\n8: edges with 2,3 -> degree 2\n9: edge with 0 -> degree 1\n10: edges with 2,0 -> degree 2\nAll between 1 and 5. Perfect.\n\nThus, satisfiable: true.\n\nWe can provide reasoning: \"Added edges (0,9), (1,4), (5,7) to satisfy minimum degree 1 for all vertices while keeping max degree 5.\"\n\nSo the JSON:\n{\n    \"satisfiable\": true,\n    \"solution\": [[0,9], [0,10], [1,4], [2,6], [2,8], [2,10], [3,8], [5,7]],\n    \"reasoning\": \"The fixed edges give degrees: 0:1, 1:0, 2:3, 3:1, 4:0, 5:0, 6:1, 7:0, 8:2, 9:0, 10:2. Adding edges (0,9), (1,4), (5,7) gives all vertices degree between 1 and 5.\"\n}\n\nBut note: The order of edges in the list might not matter, but we should list them with u < v. In my list, (0,9) has 0<9, (0,10) 0<10, (1,4) 1<4, (2,6) 2<6, (2,8) 2<8, (2,10) 2<10, (3,8) 3<8, (5,7) 5<7. All good.\n\nI'll output that.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 246,
+  "completion_tokens": 2294,
+  "reasoning_tokens": 2130,
+  "cached_tokens": 0,
+  "cost_usd": 0.00841116,
+  "cost_source": "openrouter",
+  "latency_ms": 92186.49983406067,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

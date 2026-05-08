@@ -1,0 +1,156 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree3_min_degree2_min_girth5_vertices10__v2_nh",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 3,
+    "min_degree": 2,
+    "min_girth": 5,
+    "vertices": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 11.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 12,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 5.83,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      9
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      1,
+      9
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      6
+    ]
+  ],
+  "reasoning": "Found via SAT solver with cardinality constraints for degrees 2-3, plus clauses forbidding all triangles and 4-cycles. The resulting graph on 10 vertices has degrees [3,3,3,3,2,2,3,3,2,2], no triangles, no 4-cycles, and girth exactly 5. Verified with NetworkX: girth=5, all degrees in {2,3}.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,3],[0,8],[0,9],[1,6],[1,7],[1,9],[2,5],[2,7],[2,8],[3,4],[3,6],[4,7],[5,6]],\n    \"reasoning\": \"Found via SAT solver with cardinality constraints for degrees 2-3, plus clauses forbidding all triangles and 4-cycles. The resulting graph on 10 vertices has degrees [3,3,3,3,2,2,3,3,2,2], no triangles, no 4-cycles, and girth exactly 5. Verified with NetworkX: girth=5, all degrees in {2,3}.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 29971,
+  "completion_tokens": 4377,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.15556799999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 59796.9229221344,
+  "tool_dispatch_ms_total": 3311.0880851745605,
+  "tool_calls_made": 6,
+  "tool_rounds": 7,
+  "n_execute_python": 6,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom pysat.formula import CNF\nfrom pysat.solvers import Solver\nimport itertools\n\n# We need a graph on 10 vertices (0-9) where:\n# 1. Every vertex has degree in {2, 3}\n# 2. No cycle of length 3 (no triangle)\n# 3. No cycle of length 4\n\n# Variables: x_{u,v} = 1 if edge (u,v) exists, for 0 <= u < v < 10\n# Map edge (u,v) to variable index\n\nn = 10\nedges = [(u, v) for u in range(n) for v in range(u+1, n)]\nedge_idx = {e: i+1 for i, e in enumerate(edges)}  # 1-indexed for SAT\n\ndef var(u, v):\n    if u > v: u, v = v, u\n    return edge_idx[(u, v)]\n\ncnf = CNF()\n\n# Constraint 1: Each vertex has degree between 2 and 3\n# For vertex w, sum of edge vars involving w is in {2, 3}\n# Use cardinality constraints via PySAT\n\nfrom pysat.card import CardEnc, EncType\n\nfor w in range(n):\n    nbr_vars = [var(w, v) for v in range(n) if v != w]\n    # degree >= 2\n    atmost3 = CardEnc.atmost(lits=nbr_vars, bound=3, encoding=EncType.seqcounter)\n    atleast2 = CardEnc.atleast(lits=nbr_vars, bound=2, encoding=EncType.seqcounter)\n    cnf.extend(atmost3.clauses)\n    cnf.extend(atleast2.clauses)\n\n# Constraint 2: No triangle (3-cycle)\n# For every triple (u,v,w): NOT (edge(u,v) AND edge(v,w) AND edge(u,w))\nfor u, v, w in itertools.combinations(range(n), 3):\n    cnf.append([-var(u,v), -var(u,w), -var(v,w)])\n\n# Constraint 3: No 4-cycle\n# For every 4-tuple of distinct vertices (a,b,c,d):\n# NOT (edge(a,b) AND edge(b,c) AND edge(c,d) AND edge(d,a))\n# But we need to consider all cyclic orderings carefully.\n# A 4-cycle uses 4 distinct vertices and 4 edges forming a cycle.\n# For vertices {a,b,c,d}, the possible 4-cycles are:\n# a-b-c-d-a, a-b-d-c-a, a-c-b-d-a (these are the 3 distinct cycle structures)\n\nfor combo in itertools.combinations(range(n), 4):\n    a, b, c, d = combo\n    # All distinct cyclic orderings of 4 vertices (3 distinct pairings)\n    cycles_4 = [\n        (a,b,c,d),  # a-b-c-d-a\n        (a,b,d,c),  # a-b-d-c-a\n        (a,c,b,d),  # a-c-b-d-a\n    ]\n    for (p,q,r,s) in cycles_4:\n        # edges: p-q, q-r, r-s, s-p\n        cnf.append([-var(p,q), -var(q,r), -var(r,s), -var(s,p)])\n\nprint(f\"Variables: {cnf.nv}, Clauses: {len(cnf.clauses)}\")\n\nwith Solver(name='glucose3', bootstrap_with=cnf) as solver:\n    sat = solver.solve()\n    print(f\"SAT: {sat}\")\n    if sat:\n        model = solver.get_model()\n        sol_edges = [e for e in edges if model[edge_idx[e]-1] > 0]\n        print(f\"Edges: {sol_edges}\")\n        # Verify degrees\n        deg = [0]*n\n        for u,v in sol_edges:\n            deg[u] += 1\n            deg[v] += 1\n        print(f\"Degrees: {deg}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 355.15
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let me verify with a known example first.\n# The Petersen graph has 10 vertices, girth 5, and is 3-regular.\n# Let's check if it satisfies our constraints.\n\npetersen_edges = [\n    (0,1),(1,2),(2,3),(3,4),(4,0),   # outer pentagon\n    (0,5),(1,6),(2,7),(3,8),(4,9),   # spokes\n    (5,7),(7,9),(9,6),(6,8),(8,5)    # inner pentagram\n]\n\ndeg = [0]*10\nfor u,v in petersen_edges:\n    deg[u]+=1; deg[v]+=1\nprint(\"Petersen degrees:\", deg)\n\n# Check girth\nimport networkx as nx\nG = nx.Graph()\nG.add_edges_from(petersen_edges)\nprint(\"Petersen girth:\", nx.girth(G))\nprint(\"Petersen edges (sorted):\", sorted([(min(u,v),max(u,v)) for u,v in petersen_edges]))\n"
+      },
+      "ok": true,
+      "latency_ms": 831.14
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# The Petersen graph IS a valid solution! Let me debug why my SAT solver said UNSAT.\n# Let me check if the Petersen graph satisfies my constraints manually.\n\npetersen_edges_sorted = [(0,1),(0,4),(0,5),(1,2),(1,6),(2,3),(2,7),(3,4),(3,8),(4,9),(5,7),(5,8),(6,8),(6,9),(7,9)]\n\n# Check no triangle\nimport itertools\nadj = {i: set() for i in range(10)}\nfor u,v in petersen_edges_sorted:\n    adj[u].add(v); adj[v].add(u)\n\ntriangles = []\nfor u,v,w in itertools.combinations(range(10),3):\n    if v in adj[u] and w in adj[u] and w in adj[v]:\n        triangles.append((u,v,w))\nprint(\"Triangles:\", triangles)\n\n# Check no 4-cycle\nfour_cycles = []\nfor combo in itertools.combinations(range(10), 4):\n    a,b,c,d = combo\n    cycles_4 = [(a,b,c,d),(a,b,d,c),(a,c,b,d)]\n    for (p,q,r,s) in cycles_4:\n        if (q in adj[p]) and (r in adj[q]) and (s in adj[r]) and (p in adj[s]):\n            four_cycles.append((p,q,r,s))\nprint(\"4-cycles:\", four_cycles)\n"
+      },
+      "ok": true,
+      "latency_ms": 107.8
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Good - Petersen satisfies the constraints. The SAT encoding must have a bug.\n# Let me re-examine the cardinality constraint setup.\n# The issue might be auxiliary variable collisions between different CardEnc calls.\n\nfrom pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc, EncType\nimport itertools\n\nn = 10\nedges = [(u, v) for u in range(n) for v in range(u+1, n)]\nedge_idx = {e: i+1 for i, e in enumerate(edges)}  # 1-indexed\n\ndef var(u, v):\n    if u > v: u, v = v, u\n    return edge_idx[(u, v)]\n\n# Total edge variables: C(10,2) = 45, so vars 1..45\n# Auxiliary vars for cardinality should start at 46\n\ncnf = CNF()\ntop_var = len(edges) + 1  # next available variable = 46\n\nfor w in range(n):\n    nbr_vars = [var(w, v) for v in range(n) if v != w]\n    \n    atmost3 = CardEnc.atmost(lits=nbr_vars, bound=3, encoding=EncType.seqcounter, top_id=top_var)\n    top_var = atmost3.nv + 1\n    cnf.extend(atmost3.clauses)\n    \n    atleast2 = CardEnc.atleast(lits=nbr_vars, bound=2, encoding=EncType.seqcounter, top_id=top_var)\n    top_var = atleast2.nv + 1\n    cnf.extend(atleast2.clauses)\n\nprint(f\"After cardinality constraints: top_var={top_var}\")\n\n# No triangle\nfor u, v, w in itertools.combinations(range(n), 3):\n    cnf.append([-var(u,v), -var(u,w), -var(v,w)])\n\n# No 4-cycle\nfor combo in itertools.combinations(range(n), 4):\n    a, b, c, d = combo\n    cycles_4 = [(a,b,c,d),(a,b,d,c),(a,c,b,d)]\n    for (p,q,r,s) in cycles_4:\n        cnf.append([-var(p,q), -var(q,r), -var(r,s), -var(s,p)])\n\nprint(f\"Variables: {cnf.nv}, Clauses: {len(cnf.clauses)}\")\n\nwith Solver(name='glucose3', bootstrap_with=cnf) as solver:\n    sat = solver.solve()\n    print(f\"SAT: {sat}\")\n    if sat:\n        model = solver.get_model()\n        sol_edges = [e for e in edges if model[edge_idx[e]-1] > 0]\n        print(f\"Edges: {sol_edges}\")\n        deg = [0]*n\n        for u,v in sol_edges:\n            deg[u] += 1; deg[v] += 1\n        print(f\"Degrees: {deg}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 303.57
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Great! Found a solution. Let's fully verify it.\nimport networkx as nx\n\nsol_edges = [(0,3),(0,8),(0,9),(1,6),(1,7),(1,9),(2,5),(2,7),(2,8),(3,4),(3,6),(4,7),(5,6)]\n\nG = nx.Graph()\nG.add_nodes_from(range(10))\nG.add_edges_from(sol_edges)\n\nprint(\"Edges:\", sorted(sol_edges))\nprint(\"Degrees:\", dict(G.degree()))\nprint(\"Min degree:\", min(d for _,d in G.degree()))\nprint(\"Max degree:\", max(d for _,d in G.degree()))\nprint(\"Is connected:\", nx.is_connected(G))\nprint(\"Girth:\", nx.girth(G))\nprint(\"Number of edges:\", G.number_of_edges())\n\n# Double-check no triangles and no 4-cycles manually\nadj = {i: set(G.neighbors(i)) for i in range(10)}\n\ntriangles = [(u,v,w) for u,v,w in itertools.combinations(range(10),3)\n             if v in adj[u] and w in adj[u] and w in adj[v]]\nprint(\"Triangles:\", triangles)\n\nfour_cycles = []\nfor combo in itertools.combinations(range(10), 4):\n    a,b,c,d = combo\n    for (p,q,r,s) in [(a,b,c,d),(a,b,d,c),(a,c,b,d)]:\n        if q in adj[p] and r in adj[q] and s in adj[r] and p in adj[s]:\n            four_cycles.append((p,q,r,s))\nprint(\"4-cycles:\", four_cycles)\nprint(\"\\n\u2713 All constraints satisfied!\" if not triangles and not four_cycles else \"\u2717 Constraint violated!\")\n"
+      },
+      "ok": false,
+      "latency_ms": 904.4
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools, networkx as nx\n\nsol_edges = [(0,3),(0,8),(0,9),(1,6),(1,7),(1,9),(2,5),(2,7),(2,8),(3,4),(3,6),(4,7),(5,6)]\nG = nx.Graph(); G.add_nodes_from(range(10)); G.add_edges_from(sol_edges)\nadj = {i: set(G.neighbors(i)) for i in range(10)}\n\ntriangles = [(u,v,w) for u,v,w in itertools.combinations(range(10),3)\n             if v in adj[u] and w in adj[u] and w in adj[v]]\n\nfour_cycles = []\nfor combo in itertools.combinations(range(10), 4):\n    a,b,c,d = combo\n    for (p,q,r,s) in [(a,b,c,d),(a,b,d,c),(a,c,b,d)]:\n        if q in adj[p] and r in adj[q] and s in adj[r] and p in adj[s]:\n            four_cycles.append((p,q,r,s))\n\nprint(\"Girth:\", nx.girth(G))\nprint(\"Degrees:\", sorted(d for _,d in G.degree()))\nprint(\"Triangles:\", triangles)\nprint(\"4-cycles:\", four_cycles)\nprint(\"\u2713 All constraints satisfied!\" if not triangles and not four_cycles else \"\u2717 Violated!\")\n\nprint(\"\\nFinal answer edges:\")\nfor e in sorted(sol_edges): print(e)\n"
+      },
+      "ok": true,
+      "latency_ms": 809.03
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

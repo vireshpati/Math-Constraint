@@ -1,0 +1,71 @@
+{
+  "problem_name": "low_autocorrelation_n19__v10_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 19
+  },
+  "difficulty": {
+    "solve_time_ms": 2829.7,
+    "search_space": 524288,
+    "num_variables": 37,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 95.3,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "UNSATISFIABLE: C_2 is the sum of n-2 = 17 products, each equal to \u00b11. A sum of 17 odd \u00b11 terms must be odd, so it cannot equal the fixed value c[2]=0.",
+  "raw_response": null,
+  "cot_trace": "**Solving CSP Constraints**\n\nI need to solve a Constraint Satisfaction Problem (CSP) involving a binary sequence of length 19. The sequence has certain autocorrelation constraints, specifically a sum of squares less than or equal to 46. I'll fix some values, like seq[4]=-1, seq[12]=1, and seq[13]=-1. The output should be in JSON format. I\u2019m considering brute-forcing this since 2^19 equals 524,288 possibilities, but first, I should verify the definitions I need for the calculation of C_k.\n---\n**Deciding on satisfiability**\n\nI'm looking at a brute force approach and pondering whether it's UNSAT. I realize I need to check if fixing c[2]=0 is possible. For n=19, C_k has n-k terms, and C_2 has 17 terms. The sum can't equal zero if it's odd. So, it's definitely UNSAT. I also need to verify indexing with the user's values. In the end, I should call submit_answer to finalize this.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "claimed UNSAT, expected SAT",
+  "prompt_tokens": 1269,
+  "completion_tokens": 600,
+  "reasoning_tokens": 286,
+  "cached_tokens": 0,
+  "cost_usd": 0.024345,
+  "cost_source": "openrouter",
+  "latency_ms": 14226.074934005737,
+  "tool_dispatch_ms_total": 2260.316848754883,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import product\nn=19\nfixed={4:-1,12:1,13:-1}\nsolutions=[]\nfree=[i for i in range(n) if i not in fixed]\nfor vals in product([-1,1], repeat=len(free)):\n    seq=[None]*n\n    for i,v in fixed.items(): seq[i]=v\n    for i,v in zip(free, vals): seq[i]=v\n    C=[]\n    ok=True\n    for k in range(1,n):\n        c=sum(seq[i]*seq[i+k] for i in range(n-k))\n        C.append(c)\n    if C[0]!=-1 or C[1]!=0 or C[6]!=-3: continue\n    energy=sum(c*c for c in C)\n    if energy<=46:\n        print('FOUND', energy, seq, C)\n        raise SystemExit\nprint('none')",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 2260.32
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": false,
+        "solution": null,
+        "reasoning": "UNSATISFIABLE: C_2 is the sum of n-2 = 17 products, each equal to \u00b11. A sum of 17 odd \u00b11 terms must be odd, so it cannot equal the fixed value c[2]=0."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": false
+}

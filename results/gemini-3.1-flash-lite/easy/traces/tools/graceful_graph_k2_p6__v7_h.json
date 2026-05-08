@@ -1,0 +1,105 @@
+{
+  "problem_name": "graceful_graph_k2_p6__v7_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1225.8,
+    "search_space": 582622237229761,
+    "num_variables": 28,
+    "num_constraints": 20,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 79.14,
+    "solve_pct_type": 31.25
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    6,
+    11,
+    14,
+    4,
+    5,
+    8,
+    16,
+    2,
+    0,
+    15,
+    1,
+    3
+  ],
+  "reasoning": "The problem was solved using a constraint satisfaction solver. The vertex labels were found to be [6, 11, 14, 4, 5, 8, 16, 2, 0, 15, 1, 3], which satisfy all conditions: all vertex labels are unique and in the range [0, 16], and all edge labels are unique and in the range [1, 16]. The fixed values were also respected.",
+  "raw_response": null,
+  "cot_trace": "**Analyzing Graph Properties**\n\nI've been analyzing the properties of the graph $G_{2,6}$. I've identified that it has 12 vertices and 16 edges. I've broken it down to six disjoint $K_2$ cliques, numbered 0 to 5. Each clique has two vertices, denoted as $v_{g,0}$ and $v_{g,1}$.\n\n\n**Refining Edge Count & Labeling**\n\nI've carefully recounted the edges, confirming the 16 edges in $G_{2,6}$ are comprised of intra-clique and inter-clique connections, ensuring I have no duplicates or omissions. I then double-checked the labeling requirement for graceful labeling, and confirmed that edges are determined by the absolute difference of vertex labels. I am now certain the edge labeling constraint is the correct requirement to meet.\n\n\n**Mapping Vertex Labels**\n\nI've established a concrete mapping between the vertices and label variables, from x0 to x11. I've also assigned x0 = 6 and x3 = 4 as fixed values. Now, I'm defining the edges within each clique using the absolute difference of their corresponding labels. I am planning to represent the edge relationships as a list, to determine if graceful labeling is feasible.\n\n\n**Defining Edge Constraints**\n\nI've formulated edge equations using the absolute differences of vertex labels within and between cliques, expressing them as |x_i - x_j|. I'm currently cross-referencing these equations against fixed edge values: e10 = 11, e14 = 1, and e15 = 12, to ensure proper indexing. I'm double-checking the indexing again, as it's critical for evaluating graceful labeling feasibility.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 4808,
+  "completion_tokens": 3246,
+  "reasoning_tokens": 1617,
+  "cached_tokens": 0,
+  "cost_usd": 0.006071000000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 24109.811305999756,
+  "tool_dispatch_ms_total": 7464.852333068848,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef solve():\n    # Vertices: x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11\n    # Edges:\n    # e0 = |x0 - x1|\n    # e1 = |x2 - x3|\n    # e2 = |x4 - x5|\n    # e3 = |x6 - x7|\n    # e4 = |x8 - x9|\n    # e5 = |x10 - x11|\n    # e6 = |x0 - x2|\n    # e7 = |x1 - x3|\n    # e8 = |x2 - x4|\n    # e9 = |x3 - x5|\n    # e10 = |x4 - x6| = 11\n    # e11 = |x5 - x7|\n    # e12 = |x6 - x8|\n    # e13 = |x7 - x9|\n    # e14 = |x8 - x10| = 1\n    # e15 = |x9 - x11| = 12\n\n    # Fixed:\n    # x0 = 6\n    # x3 = 4\n    # e10 = 11\n    # e14 = 1\n    # e15 = 12\n\n    # Constraints:\n    # x in {0, ..., 16}\n    # All x distinct\n    # All e distinct\n    # e in {1, ..., 16}\n\n    # Let's use backtracking\n    import constraint\n    problem = constraint.Problem()\n    problem.addVariables(range(12), range(17))\n    problem.addConstraint(constraint.AllDifferentConstraint(), range(12))\n\n    # Fixed values\n    problem.addConstraint(lambda x0: x0 == 6, [0])\n    problem.addConstraint(lambda x3: x3 == 4, [3])\n\n    # Edges\n    def edge_constraint(x_a, x_b, e_val):\n        return abs(x_a - x_b) == e_val\n\n    # e10 = |x4 - x6| = 11\n    problem.addConstraint(lambda x4, x6: abs(x4 - x6) == 11, [4, 6])\n    # e14 = |x8 - x10| = 1\n    problem.addConstraint(lambda x8, x10: abs(x8 - x10) == 1, [8, 10])\n    # e15 = |x9 - x11| = 12\n    problem.addConstraint(lambda x9, x11: abs(x9 - x11) == 12, [9, 11])\n\n    # All edges must be distinct and in {1, ..., 16}\n    def all_edges_distinct(*vars):\n        x0, x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11 = vars\n        edges = [\n            abs(x0 - x1), abs(x2 - x3), abs(x4 - x5), abs(x6 - x7), abs(x8 - x9), abs(x10 - x11),\n            abs(x0 - x2), abs(x1 - x3), abs(x2 - x4), abs(x3 - x5), abs(x4 - x6), abs(x5 - x7),\n            abs(x6 - x8), abs(x7 - x9), abs(x8 - x10), abs(x9 - x11)\n        ]\n        if len(set(edges)) != 16:\n            return False\n        if any(e < 1 or e > 16 for e in edges):\n            return False\n        return True\n\n    problem.addConstraint(all_edges_distinct, range(12))\n\n    solution = problem.getSolution()\n    return solution\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 7427.37
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check_solution(sol):\n    x = [sol[i] for i in range(12)]\n    edges = [\n        abs(x[0] - x[1]), abs(x[2] - x[3]), abs(x[4] - x[5]), abs(x[6] - x[7]), abs(x[8] - x[9]), abs(x[10] - x[11]),\n        abs(x[0] - x[2]), abs(x[1] - x[3]), abs(x[2] - x[4]), abs(x[3] - x[5]), abs(x[4] - x[6]), abs(x[5] - x[7]),\n        abs(x[6] - x[8]), abs(x[7] - x[9]), abs(x[8] - x[10]), abs(x[9] - x[11])\n    ]\n    print(f\"Vertices: {x}\")\n    print(f\"Edges: {edges}\")\n    print(f\"All distinct: {len(set(edges)) == 16}\")\n    print(f\"All in range: {all(e >= 1 and e <= 16 for e in edges)}\")\n    print(f\"All vertices distinct: {len(set(x)) == 12}\")\n    print(f\"All vertices in range: {all(v >= 0 and v <= 16 for v in x)}\")\n\nsol = {4: 5, 6: 16, 8: 0, 10: 1, 9: 15, 11: 3, 0: 6, 3: 4, 1: 11, 2: 14, 5: 8, 7: 2}\n# Reorder to 0..11\nordered_sol = [sol[i] for i in range(12)]\ncheck_solution(ordered_sol)\n"
+      },
+      "ok": true,
+      "latency_ms": 37.48
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "The problem was solved using a constraint satisfaction solver. The vertex labels were found to be [6, 11, 14, 4, 5, 8, 16, 2, 0, 15, 1, 3], which satisfy all conditions: all vertex labels are unique and in the range [0, 16], and all edge labels are unique and in the range [1, 16]. The fixed values were also respected.",
+        "satisfiable": true,
+        "solution": [
+          6,
+          11,
+          14,
+          4,
+          5,
+          8,
+          16,
+          2,
+          0,
+          15,
+          1,
+          3
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.01
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

@@ -1,0 +1,122 @@
+{
+  "problem_name": "low_autocorrelation_n19__v10_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 19
+  },
+  "difficulty": {
+    "solve_time_ms": 2829.7,
+    "search_space": 524288,
+    "num_variables": 37,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 95.3,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "The fixed autocorrelation constraints c[1]=-1, c[2]=0, c[7]=-3 are mutually inconsistent. An exhaustive search over all 2^19 possible binary sequences of length 19 over {-1, +1} found zero sequences satisfying these three constraints simultaneously, regardless of the fixed sequence values at positions 4, 12, and 13. Therefore no sequence exists that meets all the given requirements.",
+  "raw_response": "{\"satisfiable\": false, \"solution\": null, \"reasoning\": \"The fixed autocorrelation constraints c[1]=-1, c[2]=0, c[7]=-3 are mutually inconsistent. An exhaustive search over all 2^19 possible binary sequences of length 19 over {-1, +1} found zero sequences satisfying these three constraints simultaneously, regardless of the fixed sequence values at positions 4, 12, and 13. Therefore no sequence exists that meets all the given requirements.\"}",
+  "cot_trace": "We need to find a binary sequence of length 19 over {-1, +1} with low aperiodic autocorrelation. The sum over k=1..18 of C_k^2 must be at most 46, where C_k = sum_{i=0}^{n-k-1} seq[i]*seq[i+k].\n\nWe have partial assignments:\n- seq[4] = -1 (index 4, 0-indexed)\n- seq[12] = 1\n- seq[13] = -1\n- c[1] = -1\n- c[2] = 0\n- c[7] = -3\n\nWe need to find a sequence satisfying these constraints.\n\nLet's think about this. This is a classic problem of finding sequences with low aperiodic autocorrelation (merit factor). The sum of squares of off-peak correlations is the \"demerit factor\" or \"energy\" of sidelobes. For length 19, the maximum possible sum? Actually, for binary sequences, the sum of squares of aperiodic autocorrelations is related to the L4 norm of the polynomial. There are known optimal sequences (Barker sequences have all |C_k| <= 1, but Barker sequences exist only for lengths 2,3,4,5,7,11,13). For length 19, no Barker sequence exists. But we want sum C_k^2 <= 46.\n\nLet's compute: For any binary sequence of length n, the sum over k=1..n-1 of C_k^2 has a known lower bound? Actually, there is a known identity: sum_{k=1}^{n-1} C_k^2 = something like (n^2 - sum_{f} |A(f)|^4)/2? Not exactly.\n\nWe can try to search using SAT or constraint programming. Let's use Python with some search or SAT solver.\n\nWe have 19 variables, each -1 or +1. We can encode as Boolean variables (0/1) and use a SAT solver, or we can use brute force with pruning? 2^19 = 524288, which is manageable for brute force in Python if we prune early using the constraints. But we also have the sum of squares constraint which is global. However, we can compute C_k incrementally and prune if partial sum exceeds 46.\n\nLet's write a Python script to search.\n\nBut first, let's understand the constraints:\n- seq[4] = -1\n- seq[12] = 1\n- seq[13] = -1\n- c[1] = -1\n- c[2] = 0\n- c[7] = -3\n\nc[1] = sum_{i=0}^{17} seq[i]*seq[i+1] = -1\nc[2] = sum_{i=0}^{16} seq[i]*seq[i+2] = 0\nc[7] = sum_{i=0}^{11} seq[i]*seq[i+7] = -3\n\nThese are linear constraints over products of variables. Since variables are \u00b11, product seq[i]*seq[j] = 1 if equal, -1 if different. So we can think in terms of relative signs.\n\nLet's try to solve using a SAT solver or backtracking.\n\nI'll write a Python script using backtracking with constraint propagation.\n\nBut first, maybe we can use known sequences. There are known sequences with low autocorrelation, e.g., Legendre sequences, m-sequences, etc. For length 19, 19 is prime. Legendre sequence of length 19 (prime) has good autocorrelation. Let's check: Legendre sequence for prime p \u2261 3 mod 4 (19 \u2261 3 mod 4) has aperiodic autocorrelation values? Actually, Legendre sequences have periodic autocorrelation with two-level (ideal), but aperiodic may not be optimal.\n\nBut we have fixed values that may not match Legendre.\n\nLet's just search.\n\nI'll use Python with recursion and pruning.\n\nLet me write code.\n---\nThe code had an issue with the parameter tags being included. Let me fix that.\n---\nThe simple DFS didn't find a solution. But maybe the search space is large and my pruning is insufficient, or maybe the problem is UNSAT. Let me try a more systematic approach using SAT solver or constraint programming.\n\nLet me try using python's z3 or pysat. Actually I can use pysat if available. Let me check.\n\nBut first, let me think about the problem. We need a binary sequence of length 19 with low aperiodic autocorrelation. The sum of squares of off-peak correlations (k=1..18) must be <= 46.\n\nGiven fixed values:\n- seq[4] = -1\n- seq[12] = 1\n- seq[13] = -1\n- c[1] = -1\n- c[2] = 0\n- c[7] = -3\n\nLet me try to formulate as SAT or use a more efficient search.\n\nLet me try using pysat.\n---\nThe simple DFS didn't find a solution. Let me try a more systematic approach. Maybe I need to use SAT solver or better search. Let me first check if the problem is satisfiable at all with these constraints. Let me try to use pysat or just do a more clever search.\n\nActually, the search space is 2^19 = 524288, but with 3 fixed values, it's 2^16 = 65536. That's small enough for brute force. Let me just brute force all possibilities and check constraints.\n---\nThe brute force search over all 2^16 = 65536 possibilities found no solution. But wait, I only checked first 5 solutions; maybe there are none at all. Let me verify by counting all solutions without early break.\n---\nThe brute force search over all 2^16 = 65536 possibilities found no solution. But maybe my code has a bug? Let me double-check the constraints.\n\nFixed:\n- seq[4] = -1\n- seq[12] = 1\n- seq[13] = -1\n- c[1] = -1\n- c[2] = 0\n- c[7] = -3\n\nLet me verify the c constraints are correctly computed.\n\nC_k = sum_{i=0}^{n-k-1} seq[i]*seq[i+k]\n\nFor n=19:\n- C_1 = sum_{i=0}^{17} seq[i]*seq[i+1]\n- C_2 = sum_{i=0}^{16} seq[i]*seq[i+2]\n- C_7 = sum_{i=0}^{11} seq[i]*seq[i+7]\n\nLet me double-check by writing a small script to verify the constraints are consistent with each other.\n\nActually, maybe the problem is that my brute force didn't find any because the constraints are unsatisfiable? Let me check if there is any sequence satisfying just the fixed c constraints (ignoring the sum of squares bound).\n---\nThe fixed constraints alone are unsatisfiable? Let me check more carefully. Maybe I made an error in the constraints. Let me verify the fixed c constraints.\n\nc[1] = -1 means sum_{i=0}^{17} seq[i]*seq[i+1] = -1\nc[2] = 0 means sum_{i=0}^{16} seq[i]*seq[i+2] = 0\nc[7] = -3 means sum_{i=0}^{11} seq[i]*seq[i+7] = -3\n\nAnd seq[4]=-1, seq[12]=1, seq[13]=-1.\n\nLet me double-check by enumerating all possibilities for a smaller set to see if there's any solution at all.\n---\nThe fixed constraints themselves seem unsatisfiable. Let me verify by analyzing the constraints more carefully.\n\nWe have:\n- seq[4] = -1\n- seq[12] = 1\n- seq[13] = -1\n- C_1 = sum_{i=0}^{17} seq[i]*seq[i+1] = -1\n- C_2 = sum_{i=0}^{16} seq[i]*seq[i+2] = 0\n- C_7 = sum_{i=0}^{11} seq[i]*seq[i+7] = -3\n\nLet me check if these are indeed inconsistent. Maybe I made an error in the exhaustive search (though 2^16 = 65536 is small). Let me double-check.\n\nActually, wait: the free indices are 16 variables, 2^16 = 65536, which is small. The search should have found if any exists. But it found 0. Let me verify by checking each constraint individually.\n\nLet me also check if maybe the indices are 0-based or 1-based? The problem says seq[4]=-1, seq[12]=1, seq[13]=-1. Usually in such problems, indexing is 0-based. But let me confirm.\n\nAlso, c[1], c[2], c[7] - these are C_k for k=1,2,7.\n\nLet me write a more careful check.\n---\nThe problem asks for a binary sequence of length 19 over {-1, +1} with low aperiodic autocorrelation. The sum over k=1..18 of C_k^2 must be at most 46. There are fixed values: seq[4]=-1, seq[12]=1, seq[13]=-1, and fixed autocorrelation values: c[1]=-1, c[2]=0, c[7]=-3.\n\nMy exhaustive search found that there are NO sequences satisfying even just the fixed c constraints (c[1]=-1, c[2]=0, c[7]=-3), regardless of the fixed seq values. This means the constraints are inherently contradictory.\n\nLet me double-check: c[1] = sum_{i=0}^{17} seq[i]*seq[i+1] = -1\nc[2] = sum_{i=0}^{16} seq[i]*seq[i+2] = 0\nc[7] = sum_{i=0}^{11} seq[i]*seq[i+7] = -3\n\nI searched all 2^19 = 524,288 sequences and found none satisfying these three constraints. Therefore the problem is UNSATISFIABLE.\n\nWait, but I should verify this is correct. Let me think about whether these constraints could be mutually exclusive.\n\nActually, I should be more careful. The search over 2^19 sequences is exhaustive and found 0 solutions. So the constraints are unsatisfiable.\n\nThus the answer is UNSATISFIABLE.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "claimed UNSAT, expected SAT",
+  "prompt_tokens": 30538,
+  "completion_tokens": 6192,
+  "reasoning_tokens": 2037,
+  "cached_tokens": 512,
+  "cost_usd": 0.08829972000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 601636.6240978241,
+  "tool_dispatch_ms_total": 3877.927780151367,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport time\n\nn = 19\nfixed_seq = {4: -1, 12: 1, 13: -1}\nfixed_c = {1: -1, 2: 0, 7: -3}\n\n# We'll do backtracking with pruning.\n# Represent seq as list of ints (-1 or 1), initially None for unknown.\n\ndef compute_c(seq, k):\n    # compute C_k from current partial seq (some may be None)\n    # but we need to check if all needed indices are known\n    total = 0\n    for i in range(n - k):\n        if seq[i] is None or seq[i+k] is None:\n            return None\n        total += seq[i] * seq[i+k]\n    return total\n\ndef check_partial_c(seq, k, target):\n    # check if it's possible to achieve target given current assignments\n    # For each term, if both known, add; if one unknown, we can potentially adjust.\n    # But we need to see if target is reachable.\n    # We'll compute current sum and min/max possible additions.\n    current = 0\n    unknown_terms = 0\n    for i in range(n - k):\n        a = seq[i]\n        b = seq[i+k]\n        if a is not None and b is not None:\n            current += a * b\n        else:\n            unknown_terms += 1\n    # Each unknown term can be -1 or +1, so possible range is [current - unknown_terms, current + unknown_terms]\n    min_possible = current - unknown_terms\n    max_possible = current + unknown_terms\n    return min_possible <= target <= max_possible\n\ndef check_sum_squares_bound(seq, max_sum=46):\n    # Compute partial sum of squares for k where all terms known, plus lower bound for others.\n    # Actually we need to ensure final sum <= 46.\n    # We can compute known C_k and for unknown ones, the minimum possible square is 0 (if we can achieve 0).\n    # But we need an upper bound on sum of squares? Actually we want to ensure there exists completion with sum <= 46.\n    # Lower bound on sum of squares given partial assignments: for each k, we can compute min possible C_k^2.\n    # But that's complex. Simpler: just compute sum of squares of known C_k, and if it already exceeds 46, prune.\n    # For unknown C_k, we can't prune yet.\n    s = 0\n    for k in range(1, n):\n        c = compute_c(seq, k)\n        if c is not None:\n            s += c * c\n            if s > max_sum:\n                return False\n    return True\n\n# Let's just do DFS with ordering heuristics.\n# We'll first assign variables that are involved in fixed c constraints.\n\n# Let's list all constraints.\n\n# We'll use recursion with constraint propagation via lookahead.\n\ndef search(seq, idx):\n    if idx == n:\n        # check all constraints\n        for k, target in fixed_c.items():\n            if compute_c(seq, k) != target:\n                return None\n        # compute sum of squares\n        s = sum(compute_c(seq, k)**2 for k in range(1, n))\n        if s <= 46:\n            return seq[:]\n        return None\n    \n    # If already fixed, skip\n    if seq[idx] is not None:\n        return search(seq, idx+1)\n    \n    for val in [-1, 1]:\n        seq[idx] = val\n        # Prune: check fixed c constraints that are fully determined\n        ok = True\n        for k, target in fixed_c.items():\n            c = compute_c(seq, k)\n            if c is not None and c != target:\n                ok = False\n                break\n            # Also check if target still reachable\n            if not check_partial_c(seq, k, target):\n                ok = False\n                break\n        if ok:\n            # Check sum of squares bound\n            if check_sum_squares_bound(seq):\n                res = search(seq, idx+1)\n                if res is not None:\n                    return res\n        seq[idx] = None\n    return None\n\n# Initialize seq\nseq = [None]*n\nfor i, v in fixed_seq.items():\n    seq[i] = v\n\n# Let's try to search\nstart = time.time()\nresult = search(seq, 0)\nprint(\"Time:\", time.time() - start)\nprint(\"Result:\", result)\nif result:\n    # compute c's\n    for k in range(1, n):\n        c = sum(result[i]*result[i+k] for i in range(n-k))\n        print(f\"c[{k}]={c}\")\n    s = sum(sum(result[i]*result[i+k] for i in range(n-k))**2 for k in range(1, n))\n    print(\"Sum squares:\", s)\n</parameter>\n<parameter name=\"timeout_seconds\" string=\"true\">60</parameter>\n</invoke>\n</tool_calls>"
+      },
+      "ok": false,
+      "latency_ms": 37.71
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport time\n\nn = 19\nfixed_seq = {4: -1, 12: 1, 13: -1}\nfixed_c = {1: -1, 2: 0, 7: -3}\n\ndef compute_c(seq, k):\n    total = 0\n    for i in range(n - k):\n        if seq[i] is None or seq[i+k] is None:\n            return None\n        total += seq[i] * seq[i+k]\n    return total\n\ndef check_partial_c(seq, k, target):\n    current = 0\n    unknown_terms = 0\n    for i in range(n - k):\n        a = seq[i]\n        b = seq[i+k]\n        if a is not None and b is not None:\n            current += a * b\n        else:\n            unknown_terms += 1\n    min_possible = current - unknown_terms\n    max_possible = current + unknown_terms\n    return min_possible <= target <= max_possible\n\ndef check_sum_squares_bound(seq, max_sum=46):\n    s = 0\n    for k in range(1, n):\n        c = compute_c(seq, k)\n        if c is not None:\n            s += c * c\n            if s > max_sum:\n                return False\n    return True\n\ndef search(seq, idx):\n    if idx == n:\n        for k, target in fixed_c.items():\n            if compute_c(seq, k) != target:\n                return None\n        s = sum(compute_c(seq, k)**2 for k in range(1, n))\n        if s <= 46:\n            return seq[:]\n        return None\n    \n    if seq[idx] is not None:\n        return search(seq, idx+1)\n    \n    for val in [-1, 1]:\n        seq[idx] = val\n        ok = True\n        for k, target in fixed_c.items():\n            c = compute_c(seq, k)\n            if c is not None and c != target:\n                ok = False\n                break\n            if not check_partial_c(seq, k, target):\n                ok = False\n                break\n        if ok:\n            if check_sum_squares_bound(seq):\n                res = search(seq, idx+1)\n                if res is not None:\n                    return res\n        seq[idx] = None\n    return None\n\nseq = [None]*n\nfor i, v in fixed_seq.items():\n    seq[i] = v\n\nstart = time.time()\nresult = search(seq, 0)\nprint(\"Time:\", time.time() - start)\nprint(\"Result:\", result)\nif result:\n    for k in range(1, n):\n        c = sum(result[i]*result[i+k] for i in range(n-k))\n        print(f\"c[{k}]={c}\")\n    s = sum(sum(result[i]*result[i+k] for i in range(n-k))**2 for k in range(1, n))\n    print(\"Sum squares:\", s)",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 248.25
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys\ntry:\n    import pysat\n    print(\"pysat available\")\nexcept:\n    print(\"pysat not available\")\ntry:\n    import z3\n    print(\"z3 available\")\nexcept:\n    print(\"z3 not available\")"
+      },
+      "ok": true,
+      "latency_ms": 34.76
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport time\n\nn = 19\nfixed_seq = {4: -1, 12: 1, 13: -1}\nfixed_c = {1: -1, 2: 0, 7: -3}\n\n# Generate all sequences consistent with fixed_seq\n# We'll iterate over all assignments to the 16 free variables.\n\nfree_indices = [i for i in range(n) if i not in fixed_seq]\n\ncount = 0\nsolutions = []\nstart = time.time()\n\nfor bits in itertools.product([-1, 1], repeat=len(free_indices)):\n    seq = [0]*n\n    for i, v in fixed_seq.items():\n        seq[i] = v\n    for idx, val in zip(free_indices, bits):\n        seq[idx] = val\n    \n    # Check fixed c constraints\n    ok = True\n    for k, target in fixed_c.items():\n        c = sum(seq[i]*seq[i+k] for i in range(n-k))\n        if c != target:\n            ok = False\n            break\n    if not ok:\n        continue\n    \n    # Compute sum of squares\n    s = 0\n    for k in range(1, n):\n        c = sum(seq[i]*seq[i+k] for i in range(n-k))\n        s += c*c\n        if s > 46:\n            break\n    if s <= 46:\n        solutions.append((seq[:], s))\n        if len(solutions) >= 5:\n            break\n\nprint(\"Time:\", time.time() - start)\nprint(\"Number of solutions found:\", len(solutions))\nfor seq, s in solutions:\n    print(\"Seq:\", seq)\n    print(\"Sum squares:\", s)\n    # print c's\n    for k in range(1, n):\n        c = sum(seq[i]*seq[i+k] for i in range(n-k))\n        print(f\"c[{k}]={c}\", end=\" \")\n    print()",
+        "timeout_seconds": 120
+      },
+      "ok": true,
+      "latency_ms": 452.57
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport time\n\nn = 19\nfixed_seq = {4: -1, 12: 1, 13: -1}\nfixed_c = {1: -1, 2: 0, 7: -3}\n\nfree_indices = [i for i in range(n) if i not in fixed_seq]\n\ncount = 0\nsolutions = []\nstart = time.time()\n\nfor bits in itertools.product([-1, 1], repeat=len(free_indices)):\n    seq = [0]*n\n    for i, v in fixed_seq.items():\n        seq[i] = v\n    for idx, val in zip(free_indices, bits):\n        seq[idx] = val\n    \n    # Check fixed c constraints\n    ok = True\n    for k, target in fixed_c.items():\n        c = sum(seq[i]*seq[i+k] for i in range(n-k))\n        if c != target:\n            ok = False\n            break\n    if not ok:\n        continue\n    \n    # Compute sum of squares\n    s = 0\n    for k in range(1, n):\n        c = sum(seq[i]*seq[i+k] for i in range(n-k))\n        s += c*c\n        if s > 46:\n            break\n    if s <= 46:\n        solutions.append((seq[:], s))\n\nprint(\"Time:\", time.time() - start)\nprint(\"Number of solutions found:\", len(solutions))\nfor seq, s in solutions[:5]:\n    print(\"Seq:\", seq)\n    print(\"Sum squares:\", s)\n    for k in range(1, n):\n        c = sum(seq[i]*seq[i+k] for i in range(n-k))\n        print(f\"c[{k}]={c}\", end=\" \")\n    print()",
+        "timeout_seconds": 120
+      },
+      "ok": true,
+      "latency_ms": 503.26
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 19\nfixed_seq = {4: -1, 12: 1, 13: -1}\nfixed_c = {1: -1, 2: 0, 7: -3}\n\nfree_indices = [i for i in range(n) if i not in fixed_seq]\n\ncount = 0\nfor bits in itertools.product([-1, 1], repeat=len(free_indices)):\n    seq = [0]*n\n    for i, v in fixed_seq.items():\n        seq[i] = v\n    for idx, val in zip(free_indices, bits):\n        seq[idx] = val\n    \n    ok = True\n    for k, target in fixed_c.items():\n        c = sum(seq[i]*seq[i+k] for i in range(n-k))\n        if c != target:\n            ok = False\n            break\n    if ok:\n        count += 1\n        if count <= 3:\n            print(\"Found:\", seq)\n            for k in range(1, n):\n                c = sum(seq[i]*seq[i+k] for i in range(n-k))\n                print(f\"c[{k}]={c}\", end=\" \")\n            print()\n            s = sum(sum(seq[i]*seq[i+k] for i in range(n-k))**2 for k in range(1, n))\n            print(\"Sum squares:\", s)\n\nprint(\"Total satisfying fixed constraints:\", count)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 459.29
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 19\nfixed_seq = {4: -1, 12: 1, 13: -1}\nfixed_c = {1: -1, 2: 0, 7: -3}\n\n# Let's check if the fixed c constraints are mutually consistent.\n# We'll try to find any sequence satisfying just the fixed c constraints.\n\nfree_indices = [i for i in range(n) if i not in fixed_seq]\n\ncount = 0\nfor bits in itertools.product([-1, 1], repeat=len(free_indices)):\n    seq = [0]*n\n    for i, v in fixed_seq.items():\n        seq[i] = v\n    for idx, val in zip(free_indices, bits):\n        seq[idx] = val\n    \n    ok = True\n    for k, target in fixed_c.items():\n        c = sum(seq[i]*seq[i+k] for i in range(n-k))\n        if c != target:\n            ok = False\n            break\n    if ok:\n        count += 1\n        print(\"Found:\", seq)\n        break\n\nprint(\"Count:\", count)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 456.62
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 19\n# Let's check if there is any sequence at all satisfying the fixed c constraints, ignoring fixed seq values.\n\nfixed_c = {1: -1, 2: 0, 7: -3}\n\ncount = 0\nfor bits in itertools.product([-1, 1], repeat=n):\n    seq = list(bits)\n    ok = True\n    for k, target in fixed_c.items():\n        c = sum(seq[i]*seq[i+k] for i in range(n-k))\n        if c != target:\n            ok = False\n            break\n    if ok:\n        count += 1\n        if count <= 3:\n            print(\"Found:\", seq)\n            for k in range(1, n):\n                c = sum(seq[i]*seq[i+k] for i in range(n-k))\n                print(f\"c[{k}]={c}\", end=\" \")\n            print()\n\nprint(\"Total satisfying fixed c constraints:\", count)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 1685.46
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": true
+}

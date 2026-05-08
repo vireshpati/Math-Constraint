@@ -1,0 +1,108 @@
+{
+  "problem_name": "all_interval_n14__v1_h",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 993.6,
+    "search_space": 87178291200,
+    "num_variables": 27,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 69.74,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    13,
+    1,
+    12,
+    2,
+    11,
+    3,
+    10,
+    4,
+    9,
+    5,
+    8,
+    6,
+    7
+  ],
+  "reasoning": "Found via backtracking: the classic zigzag all-interval series [0,13,1,12,2,11,3,10,4,9,5,8,6,7] satisfies x[6]=3, x[12]=6, d[3]=10, d[11]=2, with differences forming a permutation of 1..13.",
+  "raw_response": null,
+  "cot_trace": " I'm working through a constraint satisfaction problem where I need to find a permutation of 0 through 13 such that the absolute differences between consecutive elements form a permutation of 1 through 13. Given the fixed positions and difference constraints, I'm narrowing down that x[11] must be either 4 or 8 based on the requirement that |x[12]-x[11]|=2 with x[12]=6.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 6595,
+  "completion_tokens": 1341,
+  "reasoning_tokens": 93,
+  "cached_tokens": 0,
+  "cost_usd": 0.0665,
+  "cost_source": "openrouter",
+  "latency_ms": 27733.998775482178,
+  "tool_dispatch_ms_total": 84.8844051361084,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\ndef solve():\n    # backtracking\n    n = 14\n    x = [-1]*n\n    x[6] = 3\n    x[12] = 6\n    used = [False]*14\n    used[3] = True\n    used[6] = True\n    used_d = [False]*14  # differences 1..13\n    \n    # We need |x[4]-x[3]|=10, |x[12]-x[11]|=2\n    \n    # fill in order 0..13 but respect fixed\n    # Use backtracking on position\n    \n    def bt(i):\n        if i == n:\n            # check all diffs are permutation of 1..13\n            diffs = sorted(abs(x[k+1]-x[k]) for k in range(n-1))\n            if diffs == list(range(1,14)):\n                return True\n            return False\n        if x[i] != -1:\n            # check diff constraint\n            if i > 0:\n                d = abs(x[i]-x[i-1])\n                if d == 0 or used_d[d]:\n                    return False\n                # check d[3]=10 and d[11]=2\n                if i-1 == 3 and d != 10: return False\n                if i-1 == 11 and d != 2: return False\n                used_d[d] = True\n                if bt(i+1): return True\n                used_d[d] = False\n                return False\n            else:\n                return bt(i+1)\n        for v in range(14):\n            if used[v]: continue\n            if i > 0:\n                d = abs(v - x[i-1])\n                if d == 0 or used_d[d]: continue\n                if i-1 == 3 and d != 10: continue\n                if i-1 == 11 and d != 2: continue\n                x[i] = v\n                used[v] = True\n                used_d[d] = True\n                if bt(i+1): return True\n                used_d[d] = False\n                used[v] = False\n                x[i] = -1\n            else:\n                x[i] = v\n                used[v] = True\n                if bt(i+1): return True\n                used[v] = False\n                x[i] = -1\n        return False\n    \n    if bt(0):\n        return x\n    return None\n\nprint(solve())\n"
+      },
+      "ok": true,
+      "latency_ms": 51.17
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nx = [0, 13, 1, 12, 2, 11, 3, 10, 4, 9, 5, 8, 6, 7]\nprint(\"x[6]=\", x[6], \"x[12]=\", x[12])\ndiffs = [abs(x[i+1]-x[i]) for i in range(13)]\nprint(\"diffs:\", diffs)\nprint(\"d[3]=\", diffs[3], \"d[11]=\", diffs[11])\nprint(\"sorted diffs:\", sorted(diffs))\nprint(\"sorted x:\", sorted(x))\n"
+      },
+      "ok": true,
+      "latency_ms": 33.71
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Found via backtracking: the classic zigzag all-interval series [0,13,1,12,2,11,3,10,4,9,5,8,6,7] satisfies x[6]=3, x[12]=6, d[3]=10, d[11]=2, with differences forming a permutation of 1..13.",
+        "satisfiable": true,
+        "solution": [
+          0,
+          13,
+          1,
+          12,
+          2,
+          11,
+          3,
+          10,
+          4,
+          9,
+          5,
+          8,
+          6,
+          7
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

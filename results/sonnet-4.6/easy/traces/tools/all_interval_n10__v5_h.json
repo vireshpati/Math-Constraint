@@ -1,0 +1,101 @@
+{
+  "problem_name": "all_interval_n10__v5_h",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 1020.9,
+    "search_space": 3628800,
+    "num_variables": 19,
+    "num_constraints": 13,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 71.99,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    9,
+    1,
+    8,
+    2,
+    7,
+    3,
+    6,
+    4,
+    5
+  ],
+  "reasoning": "The solution [0, 9, 1, 8, 2, 7, 3, 6, 4, 5] satisfies all constraints:\n1. It is a permutation of 0\u20139 \u2713\n2. Consecutive absolute differences are [9, 8, 7, 6, 5, 4, 3, 2, 1] \u2014 a permutation of 1\u20139 \u2713\n3. x[0] = 0 \u2713\n4. x[3] = 8 \u2713\n5. d[1] = |x[2] - x[1]| = |1 - 9| = 8 \u2713\nThis is in fact the unique solution under these constraints \u2014 a beautifully symmetric \"zigzag\" pattern.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 5797,
+  "completion_tokens": 1525,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.040265999999999996,
+  "cost_source": "openrouter",
+  "latency_ms": 48424.84164237976,
+  "tool_dispatch_ms_total": 212.39328384399414,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\ndef solve_all_interval():\n    # We need a permutation x[0..9] of 0..9\n    # such that |x[i+1] - x[i]| for i=0..8 is a permutation of 1..9\n    # Fixed: x[0]=0, x[3]=8\n    # d[1] = |x[2] - x[1]| = 8 (note: d[i] = |x[i] - x[i-1]|, so d[1] = |x[1]-x[0]|)\n    # Wait, let me clarify: d[1] could mean the difference at index 1\n    # d[i] = |x[i+1] - x[i]| or d[i] = |x[i] - x[i-1]|?\n    # Most likely d[i] = |x[i] - x[i-1]|, so d[1] = |x[1] - x[0]| = |x[1] - 0| = x[1] = 8\n    # OR d[i] = |x[i+1] - x[i]|, so d[1] = |x[2] - x[1]| = 8\n    \n    # Let's try both interpretations\n    # Interpretation 1: d[i] = |x[i] - x[i-1]|, d[1] = |x[1] - x[0]| = 8, so x[1] = 8\n    # But x[3] = 8, so x[1] can't also be 8. So this interpretation leads to conflict.\n    \n    # Interpretation 2: d[i] = |x[i+1] - x[i]|, d[1] = |x[2] - x[1]| = 8\n    \n    print(\"Trying interpretation: d[i] = |x[i+1] - x[i]|, so d[1] = |x[2] - x[1]| = 8\")\n    \n    results = []\n    # x[0]=0, x[3]=8, |x[2]-x[1]|=8\n    remaining = list(range(1, 10))  # 1..9, excluding 0 (already placed at x[0])\n    \n    for perm in permutations(remaining):\n        x = [0] + list(perm)\n        if x[3] != 8:\n            continue\n        if abs(x[2] - x[1]) != 8:\n            continue\n        # Check all differences are permutation of 1..9\n        diffs = [abs(x[i+1] - x[i]) for i in range(9)]\n        if sorted(diffs) == list(range(1, 10)):\n            results.append(x)\n            if len(results) <= 3:\n                print(f\"Solution: {x}\")\n                print(f\"Diffs: {diffs}\")\n    \n    print(f\"Total solutions: {len(results)}\")\n    return results\n\nsolutions = solve_all_interval()\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 179.15
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nx = [0, 9, 1, 8, 2, 7, 3, 6, 4, 5]\ndiffs = [abs(x[i+1] - x[i]) for i in range(9)]\n\nprint(f\"Sequence: {x}\")\nprint(f\"Differences: {diffs}\")\nprint(f\"x is permutation of 0-9: {sorted(x) == list(range(10))}\")\nprint(f\"diffs is permutation of 1-9: {sorted(diffs) == list(range(1,10))}\")\nprint(f\"x[0] = {x[0]} (required: 0) \u2713\" if x[0]==0 else \"FAIL x[0]\")\nprint(f\"x[3] = {x[3]} (required: 8) \u2713\" if x[3]==8 else \"FAIL x[3]\")\nprint(f\"d[1] = |x[2]-x[1]| = |{x[2]}-{x[1]}| = {diffs[1]} (required: 8) \u2713\" if diffs[1]==8 else \"FAIL d[1]\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.25
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          9,
+          1,
+          8,
+          2,
+          7,
+          3,
+          6,
+          4,
+          5
+        ],
+        "reasoning": "The solution [0, 9, 1, 8, 2, 7, 3, 6, 4, 5] satisfies all constraints:\n1. It is a permutation of 0\u20139 \u2713\n2. Consecutive absolute differences are [9, 8, 7, 6, 5, 4, 3, 2, 1] \u2014 a permutation of 1\u20139 \u2713\n3. x[0] = 0 \u2713\n4. x[3] = 8 \u2713\n5. d[1] = |x[2] - x[1]| = |1 - 9| = 8 \u2713\nThis is in fact the unique solution under these constraints \u2014 a beautifully symmetric \"zigzag\" pattern."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

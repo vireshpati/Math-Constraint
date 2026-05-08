@@ -1,0 +1,187 @@
+{
+  "problem_name": "pysms_independent_connectivity_max_independent_set4_min_connectivity1_vertices9__v5_nh",
+  "problem_type": "pysms_independent_connectivity",
+  "params": {
+    "max_independent_set": 4,
+    "min_connectivity": 1,
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 80.9,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 36,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 26.13,
+    "solve_pct_type": 12.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      4,
+      8
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      5,
+      8
+    ]
+  ],
+  "reasoning": "I use the complete tripartite graph K_{3,3,3} with parts A={0,1,2}, B={3,4,5}, C={6,7,8}. Every vertex in one part is connected to all vertices in the other two parts. (1) Vertex-connectivity = 6 \u2265 1 \u2713. (2) Any independent set can only contain vertices from a single part (since all cross-part edges exist), so the maximum independent set size is 3 \u2264 4 \u2713.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,3],[0,4],[0,5],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5],[0,6],[0,7],[0,8],[1,6],[1,7],[1,8],[2,6],[2,7],[2,8],[3,6],[3,7],[3,8],[4,6],[4,7],[4,8],[5,6],[5,7],[5,8]],\n    \"reasoning\": \"I use the complete tripartite graph K_{3,3,3} with parts A={0,1,2}, B={3,4,5}, C={6,7,8}. Every vertex in one part is connected to all vertices in the other two parts. (1) Vertex-connectivity = 6 \u2265 1 \u2713. (2) Any independent set can only contain vertices from a single part (since all cross-part edges exist), so the maximum independent set size is 3 \u2264 4 \u2713.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 11768,
+  "completion_tokens": 2525,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.07317900000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 37157.66167640686,
+  "tool_dispatch_ms_total": 2499.5687007904053,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations, product\nimport networkx as nx\n\ndef max_independent_set_size(G):\n    \"\"\"Compute maximum independent set size via brute force for small graphs.\"\"\"\n    n = G.number_of_nodes()\n    nodes = list(G.nodes())\n    best = 0\n    for r in range(n, 0, -1):\n        found = False\n        for subset in combinations(nodes, r):\n            # Check if subset is independent\n            is_indep = True\n            for u, v in combinations(subset, 2):\n                if G.has_edge(u, v):\n                    is_indep = False\n                    break\n            if is_indep:\n                best = r\n                found = True\n                break\n        if found:\n            break\n    return best\n\ndef check_graph(edges, n=9):\n    G = nx.Graph()\n    G.add_nodes_from(range(n))\n    G.add_edges_from(edges)\n    \n    # Check connectivity (vertex-connectivity >= 1 means connected)\n    if not nx.is_connected(G):\n        return False, \"Not connected\"\n    \n    # Check max independent set size <= 4\n    mis = max_independent_set_size(G)\n    if mis > 4:\n        return False, f\"Max independent set = {mis} > 4\"\n    \n    return True, f\"Max independent set = {mis}, connected\"\n\n# Strategy: Use a Tur\u00e1n-like graph or a well-known dense graph\n# Tur\u00e1n graph T(9,4) has no independent set of size > 4... wait\n# Actually Tur\u00e1n T(n,r) has no clique of size r+1, not independent set\n# For independent set: complement of Tur\u00e1n\n\n# Let's think: we want alpha(G) <= 4 with 9 vertices\n# By Ramsey/Tur\u00e1n: if we want alpha(G) <= 4, we need enough edges\n# The complement graph must have clique number <= 4\n# Tur\u00e1n number: ex(9, K5) - max edges with no K5\n\n# Simple approach: try a cycle + chords or complete multipartite graph\n# Complete 3-partite graph K_{3,3,3}: partition into 3 groups of 3\n# Independent sets can only be within a partition class, so alpha = 3 <= 4 \u2713\n# And it's connected \u2713\n\n# Let's try K_{3,3,3}\nparts = [[0,1,2], [3,4,5], [6,7,8]]\nedges_k333 = []\nfor i, p1 in enumerate(parts):\n    for j, p2 in enumerate(parts):\n        if i < j:\n            for u in p1:\n                for v in p2:\n                    edges_k333.append((u, v))\n\nprint(\"K_{3,3,3} edges:\", edges_k333)\nok, msg = check_graph(edges_k333)\nprint(f\"Valid: {ok}, {msg}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 868.23
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport networkx as nx\n\nedges = [(0,3),(0,4),(0,5),(1,3),(1,4),(1,5),(2,3),(2,4),(2,5),\n         (0,6),(0,7),(0,8),(1,6),(1,7),(1,8),(2,6),(2,7),(2,8),\n         (3,6),(3,7),(3,8),(4,6),(4,7),(4,8),(5,6),(5,7),(5,8)]\n\nG = nx.Graph()\nG.add_nodes_from(range(9))\nG.add_edges_from(edges)\n\nprint(f\"Vertices: {G.number_of_nodes()}\")\nprint(f\"Edges: {G.number_of_edges()}\")\nprint(f\"Connected: {nx.is_connected(G)}\")\nprint(f\"Vertex connectivity: {nx.node_connectivity(G)}\")\nprint(f\"Max independent set size: {max_independent_set_size(G)}\")\nprint()\nprint(\"Structure: K_{{3,3,3}} \u2014 complete tripartite\")\nprint(\"  Part A = {0,1,2}, Part B = {3,4,5}, Part C = {6,7,8}\")\nprint(\"  Every vertex in one part is connected to ALL vertices in the other two parts.\")\nprint(\"  Independent sets can only lie within one part \u2192 max size = 3 \u2264 4 \u2713\")\nprint(\"  Graph is highly connected (vertex-connectivity = 6 \u2265 1) \u2713\")\n"
+      },
+      "ok": false,
+      "latency_ms": 815.44
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\nimport networkx as nx\n\ndef max_independent_set_size(G):\n    nodes = list(G.nodes())\n    for r in range(len(nodes), 0, -1):\n        for subset in combinations(nodes, r):\n            if all(not G.has_edge(u,v) for u,v in combinations(subset,2)):\n                return r\n    return 0\n\nedges = [(0,3),(0,4),(0,5),(1,3),(1,4),(1,5),(2,3),(2,4),(2,5),\n         (0,6),(0,7),(0,8),(1,6),(1,7),(1,8),(2,6),(2,7),(2,8),\n         (3,6),(3,7),(3,8),(4,6),(4,7),(4,8),(5,6),(5,7),(5,8)]\n\nG = nx.Graph()\nG.add_nodes_from(range(9))\nG.add_edges_from(edges)\n\nmis = max_independent_set_size(G)\nvc  = nx.node_connectivity(G)\n\nprint(f\"Vertices:            {G.number_of_nodes()}\")\nprint(f\"Edges:               {G.number_of_edges()}\")\nprint(f\"Connected:           {nx.is_connected(G)}\")\nprint(f\"Vertex-connectivity: {vc}  (\u2265 1 \u2713)\")\nprint(f\"Max indep. set size: {mis}  (\u2264 4 \u2713)\")\nprint()\nprint(\"All constraints satisfied!\")\n"
+      },
+      "ok": true,
+      "latency_ms": 815.9
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

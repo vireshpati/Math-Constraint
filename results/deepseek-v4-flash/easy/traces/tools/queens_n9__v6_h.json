@@ -1,0 +1,100 @@
+{
+  "problem_name": "queens_n9__v6_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 1089.7,
+    "search_space": 387420489,
+    "num_variables": 9,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 76.13,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    6,
+    1,
+    7,
+    4,
+    8,
+    3,
+    5
+  ],
+  "reasoning": "The 9-queens problem with a fixed queen at row 3, column 1 (0-indexed) is satisfiable. Using backtracking search, we found a valid solution: [0, 2, 6, 1, 7, 4, 8, 3, 5]. This means queen at row 0 col 0, row 1 col 2, row 2 col 6, row 3 col 1 (fixed), row 4 col 7, row 5 col 4, row 6 col 8, row 7 col 3, row 8 col 5. No two queens share a row, column, or diagonal.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3502,
+  "completion_tokens": 937,
+  "reasoning_tokens": 0,
+  "cached_tokens": 2560,
+  "cost_usd": 0.00046592,
+  "cost_source": "openrouter",
+  "latency_ms": 65095.41893005371,
+  "tool_dispatch_ms_total": 74.67341423034668,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef solve_n_queens(n=9, fixed=None):\n    # fixed: dict row->col\n    # backtracking\n    cols = set()\n    diag1 = set()  # r + c\n    diag2 = set()  # r - c\n    \n    board = [None] * n\n    \n    # apply fixed\n    if fixed:\n        for r, c in fixed.items():\n            if c in cols or (r+c) in diag1 or (r-c) in diag2:\n                return None\n            board[r] = c\n            cols.add(c)\n            diag1.add(r+c)\n            diag2.add(r-c)\n    \n    def backtrack(r):\n        if r == n:\n            return board[:]\n        if board[r] is not None:\n            return backtrack(r+1)\n        for c in range(n):\n            if c in cols or (r+c) in diag1 or (r-c) in diag2:\n                continue\n            board[r] = c\n            cols.add(c)\n            diag1.add(r+c)\n            diag2.add(r-c)\n            res = backtrack(r+1)\n            if res:\n                return res\n            board[r] = None\n            cols.remove(c)\n            diag1.remove(r+c)\n            diag2.remove(r-c)\n        return None\n    \n    return backtrack(0)\n\nsol = solve_n_queens(9, {3: 1})\nprint(sol)",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 41.53
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check(board):\n    n = len(board)\n    for i in range(n):\n        for j in range(i+1, n):\n            if board[i] == board[j]:\n                return False, f\"same col {i},{j}\"\n            if abs(board[i] - board[j]) == abs(i - j):\n                return False, f\"diag {i},{j}\"\n    return True, \"ok\"\n\nsol = [0, 2, 6, 1, 7, 4, 8, 3, 5]\nprint(check(sol))\nprint(\"q[3]=\", sol[3])",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 33.14
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          6,
+          1,
+          7,
+          4,
+          8,
+          3,
+          5
+        ],
+        "reasoning": "The 9-queens problem with a fixed queen at row 3, column 1 (0-indexed) is satisfiable. Using backtracking search, we found a valid solution: [0, 2, 6, 1, 7, 4, 8, 3, 5]. This means queen at row 0 col 0, row 1 col 2, row 2 col 6, row 3 col 1 (fixed), row 4 col 7, row 5 col 4, row 6 col 8, row 7 col 3, row 8 col 5. No two queens share a row, column, or diagonal."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,142 @@
+{
+  "problem_name": "graceful_graph_k4_p4__v3_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 4,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 34417.4,
+    "search_space": 12337511914217166362274241,
+    "num_variables": 52,
+    "num_constraints": 40,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 95.95,
+    "solve_pct_type": 78.57
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    36,
+    35,
+    2,
+    32,
+    5,
+    9,
+    27,
+    3,
+    33,
+    23,
+    16,
+    19,
+    25,
+    4,
+    28
+  ],
+  "reasoning": "A valid labeling was found. The 16 vertex labels are all distinct and in the range 0..36. Computing the absolute differences over the 24 clique edges and 12 inter-clique matching edges gives exactly the set {1,2,...,36}, so all 36 edge labels are distinct.",
+  "raw_response": null,
+  "cot_trace": "**Exploring Graph Labeling Solutions**\n\nI\u2019ve hit a timeout with Z3 and need to solve this problem using SAT encoding. I\u2019m considering graceful labeling for a graph featuring four K4 cliques in a chain, totaling 16 vertices and 36 edges that need unique labels from 1 to 36. It\u2019s a challenge to find a solution or prove it\u2019s UNSAT, but I wonder if it\u2019s likely SAT. I\u2019ll also think about automorphisms and how to permute columns and edges effectively. Let's see where this goes!**Formulating Exact Covers with Labels**\n\nI need to reverse the clique order with g -> 3 - g. It\u2019s essential to find a way to formulate an exact cover using AllDifferent labels and differences. I think I should explore using cp-sat, but I\u2019m not sure if it\u2019s installed right now. Maybe I should check ortools for the necessary tools. Let\u2019s dive into this and see how I can set everything up effectively!\n---\n**Evaluating graph labeling**\n\nI need to choose a graph edge (u,v) for each d and label the pair (a,a+d) while matching existing labels whenever possible. It's important to remember that each edge gets assigned only once, and each edge needs a different label. I have to maintain partial vertex labels and track used labels carefully. However, there could be potential issues, like not using the same edge for multiple differences and ensuring labels are assigned uniquely per vertex.**Considering orientation and solutions**\n\nI'm thinking about how the complement can orient labels, so maybe I should set the selected first endpoint as 0 and the second one as 36. Since the complement swaps those values globally, if there's a solution with opposite labels, that would give me the selected first endpoint as 0. I might run SAT to enumerate 5 cases, but I'm worried about Z3 timing out because it seems too generic. I need a better constraint programming approach with symmetry. Using Python's Z3 with a fixed edge of 36 and an objective could work. Perhaps I should try cases with a bit-vector table?**Exploring DFS and MRV**\n\nI'm thinking about coding Depth-First Search (DFS) with Minimum Remaining Values (MRV). At each step, I could choose the largest or most constrained unprocessed difference. If it's not descending, I need to consider assigned edge differences. Maybe I should process all differences and pick MRV among unassigned ones. It's tricky handling edges with both endpoints assigned, making sure that every difference ends up assigned correctly eventually. The goal is to ensure all edges are addressed.\n---\n**Verifying and submitting JSON**\n\nI found the solution quickly, which is great! Now, I need to verify and submit the final JSON. However, I want to ensure that I thoroughly check the edge differences from 1 to 36. The solution list is [0,36,35,2,32,5,9,27,3,33,23,16,19,25,4,28]. I also need to check the graph edges, making sure each clique is complete K4. I should compute the sorted differences for thoroughness.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 11872,
+  "completion_tokens": 6275,
+  "reasoning_tokens": 3019,
+  "cached_tokens": 3584,
+  "cost_usd": 0.23148200000000002,
+  "cost_source": "openrouter",
+  "latency_ms": 183085.90602874756,
+  "tool_dispatch_ms_total": 55909.59572792053,
+  "tool_calls_made": 6,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "try:\n import z3\n print('z3 ok', z3.get_version_string())\nexcept Exception as e: print('z3 err', e)\ntry:\n import pycosat\n print('pycosat ok')\nexcept Exception as e: print('pycosat err', e)\ntry:\n import pysat\n print('pysat ok')\nexcept Exception as e: print('pysat err', e)\n",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 320.78
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\n# build graph\nncl=4;k=4;m=36\nN=ncl*k\nedges=[]\nfor g in range(ncl):\n    for i in range(k):\n        for j in range(i+1,k):\n            edges.append((g*k+i,g*k+j))\nfor g in range(ncl-1):\n    for i in range(k):\n        edges.append((g*k+i,(g+1)*k+i))\nprint(len(edges))\nL=[Int(f'L{i}') for i in range(N)]\nD=[Int(f'D{e}') for e in range(len(edges))]\ns=Solver()\ns.set('timeout', 55000)\nfor x in L: s.add(x>=0,x<=m)\ns.add(Distinct(L))\nfor idx,(u,v) in enumerate(edges):\n    s.add(D[idx]==If(L[u]>=L[v],L[u]-L[v],L[v]-L[u]))\n    s.add(D[idx]>=1,D[idx]<=m)\ns.add(Distinct(D))\n# distinct 36 range implies all, maybe add Sum(D)=666\ns.add(Sum(D)==m*(m+1)//2)\n# Sym: complement set L0 < 18 maybe not always can complement to ensure label at vertex0 <=18\ns.add(L[0] <= 18)\nprint('solving')\nres=s.check()\nprint(res)\nif res==sat:\n    mod=s.model()\n    sol=[mod.evaluate(x).as_long() for x in L]\n    print(sol)\n    ds=[abs(sol[u]-sol[v]) for u,v in edges]\n    print(sorted(ds), len(set(ds)))\nelse:\n    print(s.reason_unknown())\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 55349.99
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "try:\n import ortools\n print('ortools ok')\nexcept Exception as e: print('ortools err', e)\n",
+        "timeout_seconds": 5
+      },
+      "ok": false,
+      "latency_ms": 0.14
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from functools import lru_cache\nncl=4;k=4;N=16;m=36\nedges=[]\nedge_index={}\nfor g in range(ncl):\n    for i in range(k):\n        for j in range(i+1,k):\n            edge_index[(g*k+i,g*k+j)]=len(edges); edges.append((g*k+i,g*k+j))\nfor g in range(ncl-1):\n    for i in range(k):\n        edge_index[(g*k+i,(g+1)*k+i)]=len(edges); edges.append((g*k+i,(g+1)*k+i))\nadj_edges=[[] for _ in range(N)]\nfor ei,(u,v) in enumerate(edges):\n    adj_edges[u].append((ei,v)); adj_edges[v].append((ei,u))\n\n# bit helpers\nALL_LABELS=(1<<(m+1))-1\n\ndef search_case(init_assign, max_nodes=1000000, verbose=False):\n    labels=[-1]*N\n    used_labels=0\n    edge_diff=[0]*len(edges)  # assigned diff or 0\n    diff_edge=[-1]*(m+1)\n    assigned_edges=0\n    nodes=0\n    # assign initial labels and diff 36 if edge pair\n    for v,l in init_assign.get('labels',[]):\n        labels[v]=l; used_labels |= 1<<l\n    for ei,d in init_assign.get('edges',[]):\n        edge_diff[ei]=d; diff_edge[d]=ei; assigned_edges |= 1<<ei\n    # validate init\n    def validate():\n        # label uniqueness assumed; fully assigned edge diffs distinct and consistent with assignments\n        seen={} # d->ei for fully assigned edges\n        for ei,(u,v) in enumerate(edges):\n            if labels[u]!=-1 and labels[v]!=-1:\n                d=abs(labels[u]-labels[v])\n                if d==0: return False\n                ae=diff_edge[d]\n                if ae!=-1 and ae!=ei:\n                    return False\n                if d in seen and seen[d]!=ei:\n                    return False\n                seen[d]=ei\n                if edge_diff[ei]!=0 and edge_diff[ei]!=d:\n                    return False\n            # if edge assigned, endpoints should be assigned? In our placements always assign endpoints if needed.\n            if edge_diff[ei]!=0:\n                if labels[u]==-1 or labels[v]==-1: return False\n                if abs(labels[u]-labels[v])!=edge_diff[ei]: return False\n        return True\n    if not validate(): return None, nodes\n    \n    # candidate gen returns list of (ei, assignlist[(v,l),...])\n    def candidates_for_diff(d):\n        if diff_edge[d]!=-1: return None\n        c=[]\n        for ei,(u,v) in enumerate(edges):\n            if edge_diff[ei]!=0: continue\n            lu,lv=labels[u],labels[v]\n            if lu!=-1 and lv!=-1:\n                if abs(lu-lv)==d:\n                    c.append((ei,()))\n            elif lu!=-1 or lv!=-1:\n                if lu==-1:\n                    # v assigned lv; u = lv +/- d\n                    for val in (lv-d, lv+d):\n                        if 0<=val<=m and not (used_labels>>val)&1:\n                            c.append((ei,((u,val),)))\n                else:\n                    for val in (lu-d, lu+d):\n                        if 0<=val<=m and not (used_labels>>val)&1:\n                            c.append((ei,((v,val),)))\n            else:\n                # both unassigned: any pair a,a+d, two orientations\n                avail_pairs=[]\n                mask=used_labels\n                for a in range(0,m-d+1):\n                    b=a+d\n                    if ((mask>>a)&1)==0 and ((mask>>b)&1)==0:\n                        c.append((ei,((u,a),(v,b))))\n                        c.append((ei,((u,b),(v,a))))\n        return c\n    \n    def global_prune():\n        # Validate fully assigned duplicate diffs and used conflict. Also count forced maybe.\n        # For every fully assigned unassigned edge, diff must be unused and unique among such.\n        seen=[] # not set? use dict list\n        seen_by={}\n        for ei,(u,v) in enumerate(edges):\n            lu,lv=labels[u],labels[v]\n            if lu!=-1 and lv!=-1:\n                d=abs(lu-lv)\n                if d==0: return False\n                ae=diff_edge[d]\n                if ae!=-1 and ae!=ei: return False\n                if d in seen_by and seen_by[d]!=ei: return False\n                seen_by[d]=ei\n                if edge_diff[ei]!=0 and edge_diff[ei]!=d: return False\n        # each unused diff must have at least one candidate? maybe do for constrained d only via selection\n        return True\n    \n    def dfs(depth=0):\n        nonlocal nodes, used_labels, assigned_edges\n        nodes+=1\n        if nodes%100000==0 and verbose:\n            print('nodes',nodes,'depth',depth,'assigned edges',assigned_edges.bit_count(),'used labels',used_labels.bit_count(),'labels',labels, flush=True)\n        if nodes>max_nodes:\n            raise TimeoutError\n        if assigned_edges.bit_count()==len(edges):\n            if len(set(labels))==N and min(labels)>=0 and validate():\n                return labels.copy()\n            return None\n        if not global_prune():\n            return None\n        # forced assignment for any unassigned edge fully labeled? Instead maybe assign its diff immediately? We can propagate deterministic if diff unused.\n        # Let's not mutate here? Could recursively place all forced edge labels with fixed diff to reduce.\n        forced=[]\n        for ei,(u,v) in enumerate(edges):\n            if edge_diff[ei]==0 and labels[u]!=-1 and labels[v]!=-1:\n                d=abs(labels[u]-labels[v])\n                if diff_edge[d]!=-1: return None\n                forced.append((d,ei))\n        if forced:\n            # If multiple, assign all (diffs unique checked)\n            changed=[]\n            for d,ei in forced:\n                if edge_diff[ei]!=0: continue\n                if diff_edge[d]!=-1: # may have assigned by earlier forced? duplicate\n                    # if same edge impossible since edge was unassigned\n                    for dd,ee in reversed(changed):\n                        edge_diff[ee]=0; diff_edge[dd]=-1; assigned_edges &= ~(1<<ee)\n                    return None\n                edge_diff[ei]=d; diff_edge[d]=ei; assigned_edges |= 1<<ei; changed.append((d,ei))\n            res=dfs(depth+len(changed))\n            for d,ei in reversed(changed):\n                edge_diff[ei]=0; diff_edge[d]=-1; assigned_edges &= ~(1<<ei)\n            return res\n        # select unused diff with min candidates; maybe only diffs possible. prioritize high? compute all until min low.\n        best_d=None; best_c=None; best_len=10**9\n        # first check assigned fully none.\n        # Use high-to-low and break if candidate count 1; skip very small? no need.\n        for d in range(m,0,-1):\n            if diff_edge[d]!=-1: continue\n            c=candidates_for_diff(d)\n            clen=len(c)\n            if clen==0:\n                return None\n            # scoring: min candidates, tie bigger d\n            if clen<best_len:\n                best_len=clen; best_c=c; best_d=d\n                if clen==1: break\n        d=best_d; cands=best_c\n        # order cands: prefer assignments involving existing labels, high labels? and edges near assigned vertices.\n        def score(c):\n            ei, assigns=c\n            # fewer new vertices first\n            s=len(assigns)*100\n            # prefer edge with many adjacent assigned? maybe\n            u,v=edges[ei]\n            s-=sum(labels[w]!=-1 for _,w in adj_edges[u]+adj_edges[v])\n            return s\n        cands.sort(key=score)\n        for ei,assigns in cands:\n            # apply: check labels still consistent and unique\n            new=[]; old_used=used_labels\n            ok=True\n            # assign labels\n            for v,l in assigns:\n                if labels[v]!=-1:\n                    if labels[v]!=l: ok=False; break\n                elif (used_labels>>l)&1:\n                    ok=False; break\n                else:\n                    labels[v]=l; used_labels |= 1<<l; new.append(v)\n            if ok:\n                # set edge diff\n                edge_diff[ei]=d; diff_edge[d]=ei; assigned_edges |= 1<<ei\n                # optional local prune: new vertex edges duplicate\n                if global_prune():\n                    res=dfs(depth+1)\n                    if res is not None: return res\n                edge_diff[ei]=0; diff_edge[d]=-1; assigned_edges &= ~(1<<ei)\n            # undo labels\n            for v in reversed(new): labels[v]=-1\n            used_labels=old_used\n        return None\n    try:\n        res=dfs()\n        return res,nodes\n    except TimeoutError:\n        return 'timeout', nodes\n\n# cases\nreps={\n 'intra_end': (0,1),\n 'intra_mid': (4,5),\n 'vert_end': (0,4),\n 'vert_mid': (4,8),\n}\nfor name,(u,v) in reps.items():\n    ei=edges.index((min(u,v),max(u,v))) if (min(u,v),max(u,v)) in edges else None\n    print('case',name,ei,edges[ei])\n    res,nodes=search_case({'labels':[(u,0),(v,36)], 'edges':[(ei,36)]}, max_nodes=200000, verbose=True)\n    print('result',res,'nodes',nodes, flush=True)\n    if isinstance(res,list):\n        break\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 201.36
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "sol=[0,36,35,2,32,5,9,27,3,33,23,16,19,25,4,28]\nedges=[]\nfor g in range(4):\n for i in range(4):\n  for j in range(i+1,4):\n   edges.append((g*4+i,g*4+j))\nfor g in range(3):\n for i in range(4):\n  edges.append((g*4+i,(g+1)*4+i))\nds=[abs(sol[u]-sol[v]) for u,v in edges]\nprint(len(edges),len(set(ds)),sorted(ds))\nfor e,d in zip(edges,ds): print(e,d)\n",
+        "timeout_seconds": 5
+      },
+      "ok": true,
+      "latency_ms": 37.32
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          36,
+          35,
+          2,
+          32,
+          5,
+          9,
+          27,
+          3,
+          33,
+          23,
+          16,
+          19,
+          25,
+          4,
+          28
+        ],
+        "reasoning": "A valid labeling was found. The 16 vertex labels are all distinct and in the range 0..36. Computing the absolute differences over the 24 clique edges and 12 inter-clique matching edges gives exactly the set {1,2,...,36}, so all 36 edge labels are distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.01
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

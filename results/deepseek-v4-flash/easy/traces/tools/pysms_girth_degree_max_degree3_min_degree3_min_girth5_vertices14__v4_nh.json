@@ -1,0 +1,253 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree3_min_degree3_min_girth5_vertices14__v4_nh",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 3,
+    "min_degree": 3,
+    "min_girth": 5,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 23.1,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 21,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 13.35,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      0,
+      13
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      1,
+      13
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      12
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      4,
+      10
+    ],
+    [
+      5,
+      11
+    ],
+    [
+      6,
+      11
+    ],
+    [
+      6,
+      13
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      8,
+      11
+    ],
+    [
+      8,
+      12
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      9,
+      12
+    ]
+  ],
+  "reasoning": "A 3-regular graph on 14 vertices with girth \u2265 5 exists. The solution found has 21 edges (14*3/2 = 21), all vertices have degree exactly 3, and the shortest cycle length is 5 (verified by networkx girth computation and manual cycle checking). No 3-cycles or 4-cycles are present.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 6894,
+  "completion_tokens": 2607,
+  "reasoning_tokens": 0,
+  "cached_tokens": 3072,
+  "cost_usd": 0.001351056,
+  "cost_source": "openrouter",
+  "latency_ms": 143920.93896865845,
+  "tool_dispatch_ms_total": 5898.577690124512,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport random\nfrom collections import defaultdict\n\n# Let's try to construct a 3-regular graph on 14 vertices with girth >= 5\n# We can use a SAT solver approach or try constructive methods\n\n# First, let's check necessary conditions:\n# - 3-regular on 14 vertices => 14*3/2 = 21 edges\n# - Girth >= 5 means no triangles (3-cycles) and no 4-cycles\n\n# Let's try using networkx if available, or implement a search\ntry:\n    import networkx as nx\n    print(\"networkx available\")\nexcept:\n    print(\"no networkx\")\n\n# Let's try a simple backtracking approach\n# We'll try to add edges one by one, maintaining degree constraints and girth constraint\n\ndef has_cycle_of_length_at_most(edges, n, max_len):\n    \"\"\"Check if graph has a cycle of length <= max_len\"\"\"\n    adj = defaultdict(set)\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # BFS from each vertex to find shortest cycle\n    for start in range(n):\n        # BFS\n        dist = {start: 0}\n        parent = {start: -1}\n        queue = [start]\n        for u in queue:\n            for v in adj[u]:\n                if v not in dist:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    queue.append(v)\n                elif v != parent[u]:\n                    # Found a cycle\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len <= max_len:\n                        return True\n    return False\n\ndef check_girth(edges, n):\n    \"\"\"Check if girth >= 5 (no cycles of length 3 or 4)\"\"\"\n    return not has_cycle_of_length_at_most(edges, n, 4)\n\n# Let's try a more systematic approach\n# We know the Petersen graph is a (3,5)-cage on 10 vertices\n# For 14 vertices, let's try to find one\n\n# Let's use a SAT-based approach with python's built-in tools\n# Or we can try to use known constructions\n\n# Actually, let me check if such a graph is known to exist\n# The (3,5)-cage is Petersen (10 vertices)\n# The next (3,5) graph... there's the (3,5)-graph on 14 vertices?\n\n# Let me try a randomized search with backtracking\n\ndef find_3regular_girth5(n_vertices, max_attempts=100000):\n    n = n_vertices\n    target_degree = 3\n    \n    for attempt in range(max_attempts):\n        # Start with empty graph\n        edges = []\n        degree = [0] * n\n        \n        # Try to build a 3-regular graph\n        # Use a heuristic: connect vertices with lowest degree first\n        vertices = list(range(n))\n        \n        # Random order of vertices to process\n        random.shuffle(vertices)\n        \n        possible = True\n        for v in vertices:\n            while degree[v] < target_degree:\n                # Find candidates: vertices with degree < target_degree, not already connected to v\n                candidates = [u for u in range(n) if u != v and degree[u] < target_degree and (v, u) not in edges and (u, v) not in edges]\n                if not candidates:\n                    possible = False\n                    break\n                \n                # Pick a candidate that doesn't create short cycles\n                best_candidates = []\n                for u in candidates:\n                    test_edges = edges + [(min(v, u), max(v, u))]\n                    if check_girth(test_edges, n):\n                        best_candidates.append(u)\n                \n                if not best_candidates:\n                    # Try any candidate\n                    u = random.choice(candidates)\n                else:\n                    u = random.choice(best_candidates)\n                \n                edges.append((min(v, u), max(v, u)))\n                degree[v] += 1\n                degree[u] += 1\n            \n            if not possible:\n                break\n        \n        if possible and all(d == target_degree for d in degree):\n            if check_girth(edges, n):\n                return edges\n    \n    return None\n\n# Try multiple times\nfor i in range(20):\n    result = find_3regular_girth5(14, 5000)\n    if result:\n        print(f\"Found solution on attempt {i}:\")\n        print(sorted(result))\n        print(f\"Number of edges: {len(result)}\")\n        # Verify\n        deg = defaultdict(int)\n        for u,v in result:\n            deg[u] += 1\n            deg[v] += 1\n        print(f\"Degrees: {dict(deg)}\")\n        print(f\"Girth check: {check_girth(result, 14)}\")\n        break\nelse:\n    print(\"No solution found in 20 attempts\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 5124.9
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\nfrom collections import defaultdict\n\nedges = [(0, 5), (0, 7), (0, 13), (1, 8), (1, 10), (1, 13), (2, 4), (2, 5), (2, 12), (3, 4), (3, 6), (3, 7), (4, 10), (5, 11), (6, 11), (6, 13), (7, 9), (8, 11), (8, 12), (9, 10), (9, 12)]\n\nG = nx.Graph()\nG.add_edges_from(edges)\n\nprint(f\"Number of vertices: {G.number_of_nodes()}\")\nprint(f\"Number of edges: {G.number_of_edges()}\")\nprint(f\"Degree sequence: {sorted(dict(G.degree()).values())}\")\n\n# Check girth\ntry:\n    girth = nx.girth(G)\n    print(f\"Girth: {girth}\")\nexcept nx.NetworkXNoCycle:\n    print(\"No cycles (tree)\")\nexcept Exception as e:\n    print(f\"Error: {e}\")\n\n# Let's also find all cycles up to length 6 to verify\ncycles = list(nx.simple_cycles(G))\nprint(f\"Number of cycles found: {len(cycles)}\")\nfor c in cycles:\n    if len(c) <= 6:\n        print(f\"  Cycle of length {len(c)}: {c}\")\n\n# Verify 3-regular\ndegrees = dict(G.degree())\nprint(f\"All degrees: {sorted(degrees.values())}\")\nprint(f\"Min degree: {min(degrees.values())}, Max degree: {max(degrees.values())}\")\n\n# Check for any self-loops or duplicate edges\nprint(f\"Has self loops: {any(u==v for u,v in edges)}\")\nprint(f\"All edges unique: {len(set(edges)) == len(edges)}\")\nprint(f\"All vertices 0-13 present: {set(range(14)) == set(degrees.keys())}\")\n\n# Let's also verify no 3-cycles or 4-cycles manually\ndef has_short_cycle(edges, n, max_len):\n    adj = defaultdict(set)\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    for start in range(n):\n        dist = {start: 0}\n        parent = {start: -1}\n        queue = [start]\n        for u in queue:\n            for v in adj[u]:\n                if v not in dist:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    queue.append(v)\n                elif v != parent[u]:\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len <= max_len:\n                        return True, (start, u, v, cycle_len)\n    return False, None\n\nprint(f\"Has cycle <=4: {has_short_cycle(edges, 14, 4)}\")\nprint(f\"Has cycle <=5: {has_short_cycle(edges, 14, 5)}\")\n\n# Let's find the actual shortest cycle\ndef shortest_cycle(edges, n):\n    adj = defaultdict(set)\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    min_cycle = float('inf')\n    for start in range(n):\n        dist = {start: 0}\n        parent = {start: -1}\n        queue = [start]\n        for u in queue:\n            for v in adj[u]:\n                if v not in dist:\n                    dist[v] = dist[u] + 1\n                    parent[v] = u\n                    queue.append(v)\n                elif v != parent[u]:\n                    cycle_len = dist[u] + dist[v] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    return min_cycle\n\nprint(f\"Shortest cycle length: {shortest_cycle(edges, 14)}\")",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 773.68
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            13
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            1,
+            13
+          ],
+          [
+            2,
+            4
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            2,
+            12
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            4,
+            10
+          ],
+          [
+            5,
+            11
+          ],
+          [
+            6,
+            11
+          ],
+          [
+            6,
+            13
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            8,
+            11
+          ],
+          [
+            8,
+            12
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            9,
+            12
+          ]
+        ],
+        "reasoning": "A 3-regular graph on 14 vertices with girth \u2265 5 exists. The solution found has 21 edges (14*3/2 = 21), all vertices have degree exactly 3, and the shortest cycle length is 5 (verified by networkx girth computation and manual cycle checking). No 3-cycles or 4-cycles are present."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

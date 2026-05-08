@@ -1,0 +1,104 @@
+{
+  "problem_name": "all_interval_n11__v8_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 1020.3,
+    "search_space": 39916800,
+    "num_variables": 21,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 71.62,
+    "solve_pct_type": 70.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    10,
+    1,
+    9,
+    2,
+    8,
+    3,
+    7,
+    4,
+    6,
+    5
+  ],
+  "reasoning": "The all-interval series of size 11 is satisfiable. The sequence [0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5] is a permutation of 0..10, and the consecutive absolute differences are [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1..10. This is a classic construction: start at 0, then alternate between the largest remaining number and the smallest remaining number.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3516,
+  "completion_tokens": 873,
+  "reasoning_tokens": 0,
+  "cached_tokens": 512,
+  "cost_usd": 0.000729936,
+  "cost_source": "openrouter",
+  "latency_ms": 105660.25018692017,
+  "tool_dispatch_ms_total": 124.76849555969238,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport sys\n\n# Let's try to find an all-interval series of size 11\n# We need a permutation of 0..10 such that consecutive absolute differences are a permutation of 1..10\n\nn = 11\nvalues = list(range(n))\n\n# Let's use backtracking with pruning\ndef solve():\n    # We'll try to build the sequence\n    used_values = [False] * n\n    used_diffs = [False] * (n)  # diffs 1..10\n    \n    seq = []\n    \n    def backtrack(pos):\n        if pos == n:\n            # Check all diffs used\n            if all(used_diffs[1:]):\n                return True\n            return False\n        \n        for v in range(n):\n            if used_values[v]:\n                continue\n            if pos == 0:\n                # First element, no diff to check\n                used_values[v] = True\n                seq.append(v)\n                if backtrack(pos + 1):\n                    return True\n                seq.pop()\n                used_values[v] = False\n            else:\n                diff = abs(v - seq[-1])\n                if diff < 1 or diff > n-1 or used_diffs[diff]:\n                    continue\n                used_values[v] = True\n                used_diffs[diff] = True\n                seq.append(v)\n                if backtrack(pos + 1):\n                    return True\n                seq.pop()\n                used_diffs[diff] = False\n                used_values[v] = False\n        return False\n    \n    if backtrack(0):\n        return seq\n    return None\n\nresult = solve()\nprint(\"Result:\", result)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 90.8
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = [0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5]\ndiffs = [abs(seq[i+1] - seq[i]) for i in range(len(seq)-1)]\nprint(\"Sequence:\", seq)\nprint(\"Diffs:\", diffs)\nprint(\"Sorted diffs:\", sorted(diffs))\nprint(\"Expected diffs:\", list(range(1, 11)))\nprint(\"Is permutation of 1..10?\", sorted(diffs) == list(range(1, 11)))\nprint(\"Is permutation of 0..10?\", sorted(seq) == list(range(11)))",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 33.96
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          10,
+          1,
+          9,
+          2,
+          8,
+          3,
+          7,
+          4,
+          6,
+          5
+        ],
+        "reasoning": "The all-interval series of size 11 is satisfiable. The sequence [0, 10, 1, 9, 2, 8, 3, 7, 4, 6, 5] is a permutation of 0..10, and the consecutive absolute differences are [10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1..10. This is a classic construction: start at 0, then alternate between the largest remaining number and the smallest remaining number."
+      },
+      "ok": true,
+      "latency_ms": 0.01
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

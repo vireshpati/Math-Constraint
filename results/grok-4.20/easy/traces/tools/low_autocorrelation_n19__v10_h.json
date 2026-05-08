@@ -1,0 +1,86 @@
+{
+  "problem_name": "low_autocorrelation_n19__v10_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 19
+  },
+  "difficulty": {
+    "solve_time_ms": 2829.7,
+    "search_space": 524288,
+    "num_variables": 37,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 95.3,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "No sequence satisfies the fixed C_k values (c1=-1, c2=0, c7=-3) along with the fixed sequence positions, as exhaustive search over the 2^16 possibilities shows zero matches for the C constraints. Thus the problem is unsatisfiable under the given partial assignment.",
+  "raw_response": null,
+  "cot_trace": "The problem asks to find a binary sequence of length 19 over {-1, +1} with low aperiodic autocorrelation. Specifically, the sum over k=1 to 18 of C_k\u00b2 should be at most 46, where C_k is the sum over i...I need to find a binary sequence of length 19 using -1 and +1, with the sum of the squares of its aperiodic autocorrelations C_k from k=1 to 18 being at most 46.\n---\nThe brute force didn't find anything, but there are 16 free variables, 2^16=65536, that's feasible but maybe the tool timed out or something? No, it says False, so no solution found. But it printed on...",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "claimed UNSAT, expected SAT",
+  "prompt_tokens": 4658,
+  "completion_tokens": 1748,
+  "reasoning_tokens": 938,
+  "cached_tokens": 2432,
+  "cost_usd": 0.015426399999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 27043.307304382324,
+  "tool_dispatch_ms_total": 2571.57039642334,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport numpy as np\n\nn = 19\nfixed = {4: -1, 12: 1, 13: -1}\nc_fixed = {1: -1, 2: 0, 7: -3}\n\nfree_positions = [i for i in range(n) if i not in fixed]\n\ndef check_sequence(seq):\n    for k, val in c_fixed.items():\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        if ck != val:\n            return False\n    merit = sum(sum(seq[i]*seq[i+k] for i in range(n-k))**2 for k in range(1,n))\n    return merit <= 46\n\nfound = False\nsolution = None\nfor combo in itertools.product([-1,1], repeat=len(free_positions)):\n    seq = [0]*n\n    for pos, val in fixed.items():\n        seq[pos] = val\n    for pos, val in zip(free_positions, combo):\n        seq[pos] = val\n    if check_sequence(seq):\n        found = True\n        solution = seq\n        break\n\nprint(found)\nif found:\n    print(solution)\n    print(sum(sum(seq[i]*seq[i+k] for i in range(n-k))**2 for k in range(1,n)))"
+      },
+      "ok": true,
+      "latency_ms": 853.68
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 19\nfixed = {4: -1, 12: 1, 13: -1}\nc_fixed = {1: -1, 2: 0, 7: -3}\n\nfree_positions = [i for i in range(n) if i not in fixed]\n\ndef compute_c(seq, k):\n    return sum(seq[i] * seq[i+k] for i in range(n - k))\n\nfound = False\nfor combo in itertools.product([-1, 1], repeat=len(free_positions)):\n    seq = [0] * n\n    for pos, val in fixed.items():\n        seq[pos] = val\n    for pos, val in zip(free_positions, combo):\n        seq[pos] = val\n    if all(compute_c(seq, k) == val for k, val in c_fixed.items()):\n        found = True\n        print(seq)\n        break\n\nprint(\"Found any satisfying C:\", found)"
+      },
+      "ok": true,
+      "latency_ms": 486.1
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import numpy as np\nfrom itertools import product\n\nn=19\nfixed_seq = {4:-1,12:1,13:-1}\nfixed_c = {1:-1,2:0,7:-3}\nfree = [i for i in range(n) if i not in fixed_seq]\n\ndef c_k(s, k):\n    return sum(s[i]*s[i+k] for i in range(n-k))\n\ncount = 0\nfor vals in product([-1,1], repeat=len(free)):\n    s = np.zeros(n, dtype=int)\n    for p,v in fixed_seq.items():\n        s[p] = v\n    for p,v in zip(free, vals):\n        s[p] = v\n    if all(c_k(s,k)==v for k,v in fixed_c.items()):\n        count += 1\n        merit = sum(c_k(s,k)**2 for k in range(1,n))\n        if merit <= 46:\n            print(\"Found good one:\", s.tolist(), \"merit=\", merit)\n            break\nprint(\"Total with fixed C:\", count)"
+      },
+      "ok": true,
+      "latency_ms": 1231.79
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": false,
+        "solution": null,
+        "reasoning": "No sequence satisfies the fixed C_k values (c1=-1, c2=0, c7=-3) along with the fixed sequence positions, as exhaustive search over the 2^16 possibilities shows zero matches for the C constraints. Thus the problem is unsatisfiable under the given partial assignment."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": false
+}

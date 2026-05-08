@@ -1,0 +1,108 @@
+{
+  "problem_name": "pysms_mtf_vertices9__v2_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 21.4,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 14,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 11.84,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      2,
+      4
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      4,
+      8
+    ]
+  ],
+  "reasoning": "A complete bipartite graph K_{7,2} with partitions {0,4} and {1,2,3,5,6,7,8} is triangle-free and maximal. It includes the fixed edges (4,7) and (0,7).",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,1],[0,2],[0,3],[0,5],[0,6],[0,7],[0,8],[1,4],[2,4],[3,4],[4,5],[4,6],[4,7],[4,8]],\n    \"reasoning\": \"A complete bipartite graph K_{7,2} with partitions {0,4} and {1,2,3,5,6,7,8} is triangle-free and maximal. It includes the fixed edges (4,7) and (0,7).\"\n}",
+  "cot_trace": "We need to generate a maximal triangle-free graph with 9 vertices. It must be triangle-free (no three vertices pairwise adjacent). Maximal means that adding any missing edge would create a triangle. We are given partial assignment: known present edges: (4,7), (0,7). We must return a complete solution consistent with these fixed edges.\n\nSo we need to construct a triangle-free graph on vertices 0..8 that includes edges (4,7) and (0,7), and is maximal (no edge can be added without creating a triangle).\n\nFirst, recall that triangle-free graphs are 2-colorable? No, bipartite graphs are triangle-free, but not all triangle-free graphs are bipartite (e.g., odd cycle of length 5 is triangle-free but not bipartite). But bipartite graphs are triangle-free. Maximal triangle-free graphs often have certain structures, like complete bipartite graphs. But maximal means we can't add any edge without forming a triangle. A complete bipartite graph K_{a,b} with a+b=9 is maximal triangle-free (since any missing edge within the same part would create a triangle? Wait: In a complete bipartite graph, all edges between parts exist, and no edges within parts. Adding any edge within a part would create a triangle? Not necessarily: if we add an edge between two vertices in the same part, they already have all neighbors in the other part. If those two vertices share a common neighbor, they form a triangle. In a complete bipartite graph, any two vertices in the same part have all vertices in the other part as common neighbors. So adding an intra-part edge would create many triangles. Therefore complete bipartite graphs are maximal triangle-free. Also, there are other constructions like blow-up of a 5-cycle (which is triangle-free but not bipartite) could also be maximal.\n\nBut with 9 vertices, we can simply use a complete bipartite graph. We need to assign vertices to two partitions such that there are no internal edges, and all cross edges exist. Maximality: no edge can be added without creating a triangle. This holds as long as each part has at least 2 vertices? Actually if one part has size 1, then adding an edge within the other part: two vertices in the large part both connect to the single vertex? No, they have no common neighbor because the single vertex is only one, but they might not share a neighbor? In K_{1,8}, the single vertex is connected to all 8 others. Those 8 have no edges among themselves. Adding an edge between two of the 8: they both are connected to the single vertex, so they would form a triangle with it. So K_{1,8} is also maximal triangle-free. So any complete bipartite graph with partitions of sizes k and 9-k is triangle-free and maximal. So we can pick any such partition. However we must include edges (4,7) and (0,7). So vertices 4,7,0 all have edge with 7. In a bipartite graph, that means 7 must be in one partition, and 0 and 4 in the other. So partition A contains 7, partition B contains 0 and 4. Edges are all between A and B. So it's a complete bipartite graph between sets A and B. We need to assign the remaining vertices 1,2,3,5,6,8 to A or B. Any assignment works as long as we don't put 0,4 in the same partition as 7? Wait: we already have edges (0,7) and (4,7). So 0 and 7 are adjacent, so they must be in different partitions. Same for 4 and 7. So 0 and 4 can be in the same partition (since no edge between them is required, and if they are in same partition, no edge is present). That's consistent. So we can assign 7 to one side, 0 and 4 to the other side. The remaining vertices can be anywhere. That yields a complete bipartite graph.\n\nBut is this the only solution? The problem says \"Generate a maximal triangle-free graph with 9 vertices.\" And we have partial assignment: fixed present edges: (4,7), (0,7). We just need to provide one complete solution. Return as list of edges (u, v) with 0 <= u < v < 9.\n\nLet's produce a solution using a complete bipartite graph. To make it simple, put 7 in partition A, 0 and 4 in partition B. Then we need to partition the rest. Let's put all other vertices (1,2,3,5,6,8) into partition A? Or some mix. If we put them all into A, then partition A = {7,1,2,3,5,6,8} (size 7), partition B = {0,4} (size 2). That graph is K_{7,2}. Edges: all pairs between A and B. That is triangle-free and maximal. Check: (4,7) is present (4 in B, 7 in A). (0,7) present. That works. Let's verify triangle-free: any triangle requires three vertices. In complete bipartite, there are no edges within A or within B, so a triangle would need three vertices all pairwise adjacent, but any edge connects A-B, so to have three vertices, by pigeonhole two must be in the same partition, and they have no edge. So no triangle. Maximal: Adding any missing edge: all missing edges are within A or within B. If we add edge within A (say between 1 and 7? 1 and 7 are both in A, so missing edge. If we add it, then 1 and 7 both connect to 0 (in B), so triangle (1,7,0). If we add edge within B (between 0 and 4), then 0 and 4 both connect to all in A, e.g., 7, so triangle (0,4,7). So it's maximal.\n\nThus a valid solution is K_{7,2} with partitions {1,2,3,5,6,7,8} and {0,4}. Let's list edges: all pairs with one from A and one from B.\n\nA = {1,2,3,5,6,7,8}\nB = {0,4}\n\nEdges: (0,1), (0,2), (0,3), (0,5), (0,6), (0,7) [fixed], (0,8), (4,1), (4,2), (4,3), (4,5), (4,6), (4,7) [fixed], (4,8).\n\nList sorted: (0,1), (0,2), (0,3), (0,5), (0,6), (0,7), (0,8), (1,4), (2,4), (3,4), (4,5), (4,6), (4,7), (4,8). Note u < v. So (1,4) etc.\n\nAlternatively we could also use K_{6,3} with partitions having 7 and 0,4 separated. But the above is fine.\n\nNow, check if any other maximal triangle-free graphs exist? For example, a 5-cycle blow-up? But we just need one valid solution. I'll provide the edges.\n\nWe need to return JSON with satisfiable=true, solution as list of edges? The instruction says: \"Return the graph as a list of edges (u, v) with 0 <= u < v < 9\". So the solution field should be a list of pairs, or list of lists? The prompt says: \"solution\": [list of values] or null if unsatisfiable. For graph problems, they likely expect list of edges. Let's interpret: \"Return a complete solution consistent with these fixed assignments.\" And the original request: \"Generate a maximal triangle-free graph with 9 vertices. Return the graph as a list of edges (u, v) with 0 <= u < v < 9\". So the solution list will be a list of edges, each edge is a pair. In JSON, we can represent as list of two-element lists. Or maybe they expect just a flat list of integers? Typically for graph problems, edges are pairs. Let's look at the partial assignment: \"Known present edges: (4,7), (0,7)\". So they give them as tuples. So I'll output list of lists.\n\nThus: satisfiable: true, solution: list of edges.\n\nI'll produce the edges for the K_{7,2} case.\n\nEdges: [0,1], [0,2], [0,3], [0,5], [0,6], [0,7], [0,8], [1,4], [2,4], [3,4], [4,5], [4,6], [4,7], [4,8]. Sorted.\n\nDouble-check triangle-free: no edges among {0,4} and no edges among {1,2,3,5,6,7,8}. So okay.\n\nMaximal: adding (0,4) gives triangle 0-4-7? Actually 0-4 would connect two in B, they both connect to 7, triangle 0-4-7. Adding any within A, say (1,7): they both connect to 0, triangle 1-7-0. So cannot add any edge. Good.\n\nThus I'll output that.\n\nI'll also include reasoning.\n\nSo final JSON:\n{\n    \"satisfiable\": true,\n    \"solution\": [[0,1],[0,2],[0,3],[0,5],[0,6],[0,7],[0,8],[1,4],[2,4],[3,4],[4,5],[4,6],[4,7],[4,8]],\n    \"reasoning\": \"A complete bipartite graph K_{7,2} with partitions {0,4} and {1,2,3,5,6,7,8} is triangle-free and maximal. It includes the fixed edges (4,7) and (0,7).\"\n}",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 223,
+  "completion_tokens": 2330,
+  "reasoning_tokens": 2195,
+  "cached_tokens": 128,
+  "cost_usd": 0.00829226,
+  "cost_source": "openrouter",
+  "latency_ms": 67224.87378120422,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

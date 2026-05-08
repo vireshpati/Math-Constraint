@@ -1,0 +1,99 @@
+{
+  "problem_name": "graceful_graph_k3_p4__v7_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 2420.7,
+    "search_space": 12855002631049216,
+    "num_variables": 33,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "easy",
+    "solve_pct_global": 14.86,
+    "solve_pct_type": 21.43
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[14, 3, 8, 2, 19, 21, 9, 1, 0, 6, 16, 20]",
+  "reasoning": "Found a valid graceful labeling using backtracking search. The solution assigns labels [14, 3, 8, 2, 19, 21, 9, 1, 0, 6, 16, 20] to the 12 vertices (ordered by clique then vertex within clique). All 21 edge differences are distinct and cover the range 1 to 21, confirming this is a valid graceful labeling.",
+  "raw_response": null,
+  "cot_trace": "Let me understand the problem:\n\n1. We have 4 disjoint K_3 cliques (triangles), numbered 0 through 3.\n2. Each clique has 3 vertices, numbered 0, 1, 2.\n3. Consecutive cliques (g, g+1) are connected by 3 edges: vertex i of clique g connects to vertex i of clique g+1, for i in 0..2.\n4. Total vertices: 4 * 3 = 12\n5. Total edges: 4 * 3 (edges within cliques) + 3 * 3 (edges between consecutive cliques) = 12 + 9 = 21\n\nWait, let me recount:\n- Each K_3 has 3 edges, so 4 K_3's have 12 edges.\n- Between consecutive cliques (0-1, 1-2, 2-3), there are 3 edges each, so 3 * 3 = 9 edges.\n- Total: 12 + 9 = 21 edges.\n\nA graceful labeling assigns labels 0 to 21 to the 12 vertices such that all edge labels (absolute differences) are distinct and cover 1 to 21.\n\nLet me denote the vertices as (g, i) where g is the clique number (0-3) and i is the vertex within the clique (0-2).\n\nEdges:\n- Within clique g: (g,0)-(g,1), (g,0)-(g,2), (g,1)-(g,2) for g = 0,1,2,3\n- Between cliques: (g,i)-(g+1,i) for g = 0,1,2 and i = 0,1,2\n\nLet me try to solve this using a constraint solver.\n\nI'll use Python with a SAT solver or backtracking approach.\n\n---\nThe Z3 approach timed out. Let me try a more efficient approach - perhaps using a SAT solver with better encoding, or a backtracking search with good heuristics.\n---\nThere's a bug in my backtracking code - the issue is that when we unassign, we might be removing a diff that was already added by another edge. Let me fix this.\n\nActually, the issue is more subtle. When we assign a label to vertex v, we compute diffs for all edges connecting v to already-assigned neighbors. But when we backtrack, we need to only remove the diffs we added. The problem is that `new_diffs` might have duplicates if two edges have the same diff (which shouldn't happen in a valid assignment, but during backtracking we might encounter this).\n\nWait, actually the issue is that I'm checking `if diff in used_diffs` before adding, so if it's already used, I skip. But then when backtracking, I try to remove it from used_diffs even though I didn't add it. Let me fix this.\n\nActually, looking more carefully: if `diff in used_diffs`, I set `consistent = False` and break. So I never add it to `new_diffs`. The issue must be something else.\n\nOh wait, I see the issue. When I backtrack, I'm removing from `used_diffs` but the diff might have been added by a different edge in a different branch. No, that's not right either because we're doing depth-first search.\n\nLet me re-examine: the error is `KeyError: 9` when trying to remove from `used_diffs`. This means that diff 9 was not in `used_diffs` when we tried to remove it. This could happen if:\n1. We added diff 9 to `new_diffs` but it was already in `used_diffs` (but we check for this)\n2. Some other issue\n\nActually, I think the issue is that when we have multiple edges from v to already-assigned neighbors, and two of them produce the same diff, we'd add it to `new_diffs` twice but only once to `used_diffs`. Then when removing, we try to remove it twice.\n\nLet me fix this by using a set for new_diffs or by checking before adding to used_diffs.\n---\nThe solver found a solution. Let me verify it and format the answer correctly.\n\nThe solution is: [14, 3, 8, 2, 19, 21, 9, 1, 0, 6, 16, 20]\n\nThis is ordered by clique then vertex within clique:\n- Clique 0: [14, 3, 8]\n- Clique 1: [2, 19, 21]\n- Clique 2: [9, 1, 0]\n- Clique 3: [6, 16, 20]\n\nLet me verify this is correct by checking all edges and their differences.\n---\nThe solution has been verified. The graceful labeling is:\n[14, 3, 8, 2, 19, 21, 9, 1, 0, 6, 16, 20]\n\nThis gives all edge differences from 1 to 21, all distinct. The solution is correct.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 13157,
+  "completion_tokens": 3876,
+  "reasoning_tokens": 1133,
+  "cached_tokens": 0,
+  "cost_usd": 0.011834225,
+  "cost_source": "openrouter",
+  "latency_ms": 139610.08644104004,
+  "tool_dispatch_ms_total": 62563.416957855225,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\nfrom pysat.solvers import Glucose3\nfrom pysat.card import *\n\n# Let's model this as a constraint satisfaction problem\n# We have 12 vertices, each gets a unique label from 0 to 21\n# 21 edges, each edge gets a label = |label(u) - label(v)|\n# All edge labels must be distinct and cover 1 to 21\n\n# Let's use a backtracking approach with constraint propagation\n\n# Vertices: (g, i) for g in 0..3, i in 0..2\n# Let's flatten to 0..11: vertex (g, i) -> 3*g + i\n\n# Edges:\n# Within clique g: (3g, 3g+1), (3g, 3g+2), (3g+1, 3g+2)\n# Between cliques: (3g+i, 3(g+1)+i) for g in 0..2, i in 0..2\n\nedges = []\nfor g in range(4):\n    edges.append((3*g, 3*g+1))\n    edges.append((3*g, 3*g+2))\n    edges.append((3*g+1, 3*g+2))\nfor g in range(3):\n    for i in range(3):\n        edges.append((3*g+i, 3*(g+1)+i))\n\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Edges: {edges}\")\n\n# Let's try using z3 for this constraint problem\ntry:\n    from z3 import *\n    \n    # Create variables for vertex labels\n    labels = [Int(f'v{i}') for i in range(12)]\n    \n    solver = Optimize()\n    \n    # Each label is between 0 and 21\n    for v in labels:\n        solver.add(v >= 0, v <= 21)\n    \n    # All labels are distinct\n    solver.add(Distinct(labels))\n    \n    # Edge labels are distinct\n    edge_labels = []\n    for u, v in edges:\n        diff = If(labels[u] > labels[v], labels[u] - labels[v], labels[v] - labels[u])\n        edge_labels.append(diff)\n    \n    # All edge labels are distinct\n    solver.add(Distinct(edge_labels))\n    \n    # Edge labels must be between 1 and 21\n    for el in edge_labels:\n        solver.add(el >= 1, el <= 21)\n    \n    print(\"Solving...\")\n    if solver.check() == sat:\n        m = solver.model()\n        solution = [m[v].as_long() for v in labels]\n        print(f\"Solution: {solution}\")\n        \n        # Verify\n        edge_diffs = []\n        for u, v in edges:\n            diff = abs(solution[u] - solution[v])\n            edge_diffs.append(diff)\n        print(f\"Edge differences: {sorted(edge_diffs)}\")\n        print(f\"All distinct: {len(set(edge_diffs)) == len(edge_diffs)}\")\n        print(f\"Range: {min(edge_diffs)} to {max(edge_diffs)}\")\n    else:\n        print(\"UNSATISFIABLE\")\nexcept Exception as e:\n    print(f\"Error with z3: {e}\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 60068.16
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's try a smarter backtracking approach\n# We'll assign labels to vertices one at a time and check constraints\n\nedges = []\nfor g in range(4):\n    edges.append((3*g, 3*g+1))\n    edges.append((3*g, 3*g+2))\n    edges.append((3*g+1, 3*g+2))\nfor g in range(3):\n    for i in range(3):\n        edges.append((3*g+i, 3*(g+1)+i))\n\n# Build adjacency info\nadj = [[] for _ in range(12)]\nfor idx, (u, v) in enumerate(edges):\n    adj[u].append((v, idx))\n    adj[v].append((u, idx))\n\n# Try backtracking with constraint propagation\nimport random\n\ndef solve():\n    labels = [-1] * 12\n    used_labels = set()\n    edge_diffs = {}  # edge_idx -> diff\n    used_diffs = set()\n    \n    # Order vertices by degree (most constrained first)\n    degrees = [(len(adj[i]), i) for i in range(12)]\n    degrees.sort(reverse=True)\n    order = [i for _, i in degrees]\n    \n    def backtrack(pos):\n        if pos == 12:\n            return True\n        \n        v = order[pos]\n        \n        # Try each possible label\n        for label in range(22):\n            if label in used_labels:\n                continue\n            \n            # Check if this label is consistent with already-assigned neighbors\n            consistent = True\n            new_diffs = []\n            for neighbor, edge_idx in adj[v]:\n                if labels[neighbor] != -1:\n                    diff = abs(label - labels[neighbor])\n                    if diff in used_diffs or diff == 0:\n                        consistent = False\n                        break\n                    new_diffs.append((edge_idx, diff))\n            \n            if not consistent:\n                continue\n            \n            # Assign\n            labels[v] = label\n            used_labels.add(label)\n            for edge_idx, diff in new_diffs:\n                edge_diffs[edge_idx] = diff\n                used_diffs.add(diff)\n            \n            if backtrack(pos + 1):\n                return True\n            \n            # Unassign\n            labels[v] = -1\n            used_labels.remove(label)\n            for edge_idx, diff in new_diffs:\n                del edge_diffs[edge_idx]\n                used_diffs.remove(diff)\n        \n        return False\n    \n    if backtrack(0):\n        return labels\n    return None\n\nresult = solve()\nif result:\n    print(f\"Solution: {result}\")\n    # Verify\n    edge_diffs = []\n    for u, v in edges:\n        diff = abs(result[u] - result[v])\n        edge_diffs.append(diff)\n    print(f\"Edge differences: {sorted(edge_diffs)}\")\n    print(f\"All distinct: {len(set(edge_diffs)) == len(edge_diffs)}\")\nelse:\n    print(\"UNSATISFIABLE\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 51.23
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Fix the backtracking approach\nedges = []\nfor g in range(4):\n    edges.append((3*g, 3*g+1))\n    edges.append((3*g, 3*g+2))\n    edges.append((3*g+1, 3*g+2))\nfor g in range(3):\n    for i in range(3):\n        edges.append((3*g+i, 3*(g+1)+i))\n\nadj = [[] for _ in range(12)]\nfor idx, (u, v) in enumerate(edges):\n    adj[u].append((v, idx))\n    adj[v].append((u, idx))\n\ndef solve():\n    labels = [-1] * 12\n    used_labels = set()\n    used_diffs = set()\n    \n    # Order vertices by degree (most constrained first)\n    degrees = [(len(adj[i]), i) for i in range(12)]\n    degrees.sort(reverse=True)\n    order = [i for _, i in degrees]\n    \n    def backtrack(pos):\n        if pos == 12:\n            return True\n        \n        v = order[pos]\n        \n        for label in range(22):\n            if label in used_labels:\n                continue\n            \n            consistent = True\n            new_diffs = []\n            for neighbor, edge_idx in adj[v]:\n                if labels[neighbor] != -1:\n                    diff = abs(label - labels[neighbor])\n                    if diff == 0 or diff in used_diffs:\n                        consistent = False\n                        break\n                    new_diffs.append(diff)\n            \n            if not consistent:\n                continue\n            \n            # Check for duplicate diffs among new edges\n            if len(new_diffs) != len(set(new_diffs)):\n                continue\n            \n            # Assign\n            labels[v] = label\n            used_labels.add(label)\n            for diff in new_diffs:\n                used_diffs.add(diff)\n            \n            if backtrack(pos + 1):\n                return True\n            \n            # Unassign\n            labels[v] = -1\n            used_labels.remove(label)\n            for diff in new_diffs:\n                used_diffs.remove(diff)\n        \n        return False\n    \n    if backtrack(0):\n        return labels\n    return None\n\nresult = solve()\nif result:\n    print(f\"Solution: {result}\")\n    edge_diffs = []\n    for u, v in edges:\n        diff = abs(result[u] - result[v])\n        edge_diffs.append(diff)\n    print(f\"Edge differences: {sorted(edge_diffs)}\")\n    print(f\"All distinct: {len(set(edge_diffs)) == len(edge_diffs)}\")\nelse:\n    print(\"UNSATISFIABLE\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 2411.74
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution thoroughly\nsolution = [14, 3, 8, 2, 19, 21, 9, 1, 0, 6, 16, 20]\n\nedges = []\nfor g in range(4):\n    edges.append((3*g, 3*g+1))\n    edges.append((3*g, 3*g+2))\n    edges.append((3*g+1, 3*g+2))\nfor g in range(3):\n    for i in range(3):\n        edges.append((3*g+i, 3*(g+1)+i))\n\nprint(f\"Number of vertices: {len(solution)}\")\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Labels used: {sorted(solution)}\")\nprint(f\"All labels unique: {len(set(solution)) == len(solution)}\")\nprint(f\"Labels in range 0-21: {all(0 <= x <= 21 for x in solution)}\")\n\nedge_diffs = []\nfor u, v in edges:\n    diff = abs(solution[u] - solution[v])\n    edge_diffs.append(diff)\n    print(f\"Edge ({u},{v}): |{solution[u]}-{solution[v]}| = {diff}\")\n\nprint(f\"\\nEdge differences: {sorted(edge_diffs)}\")\nprint(f\"All distinct: {len(set(edge_diffs)) == len(edge_diffs)}\")\nprint(f\"Min: {min(edge_diffs)}, Max: {max(edge_diffs)}\")\nprint(f\"Expected: {set(range(1, 22)) == set(edge_diffs)}\")\n",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 32.29
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[14, 3, 8, 2, 19, 21, 9, 1, 0, 6, 16, 20]",
+        "reasoning": "Found a valid graceful labeling using backtracking search. The solution assigns labels [14, 3, 8, 2, 19, 21, 9, 1, 0, 6, 16, 20] to the 12 vertices (ordered by clique then vertex within clique). All 21 edge differences are distinct and cover the range 1 to 21, confirming this is a valid graceful labeling."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

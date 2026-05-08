@@ -1,0 +1,100 @@
+{
+  "problem_name": "langford_n7__v11_nh",
+  "problem_type": "langford",
+  "params": {
+    "n": 7
+  },
+  "difficulty": {
+    "solve_time_ms": 1875.0,
+    "search_space": 87178291200,
+    "num_variables": 14,
+    "num_constraints": 110,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.79,
+    "solve_pct_type": 56.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    7,
+    4,
+    1,
+    5,
+    1,
+    6,
+    4,
+    3,
+    7,
+    5,
+    2,
+    3,
+    6,
+    2
+  ],
+  "reasoning": "Found via backtracking search. Verified: each number 1..7 appears twice, with occurrences spaced v+1 apart.",
+  "raw_response": null,
+  "cot_trace": "We need to construct a Langford sequence L(2,7): length 14, two copies of each number 1..7, with the two occurrences of v separated by exactly v+1 positions (i.e., there are v numbers between them). So for v=1, they are adjacent (distance 1 apart, meaning positions i and i+1). For v=2, they are 2 apart (positions i and i+3? Actually \"v+1 positions apart\" means the difference in indices is v+1. So if first occurrence at position i, second at i+v+1. So there are v positions between them.\n\nWe need to find a sequence of length 14 satisfying these constraints.\n\nThis is a known problem: Langford pairing. L(2,n) exists iff n \u2261 0 or 3 mod 4. For n=7, 7 mod 4 = 3, so it should be satisfiable. Let's find a solution.\n\nWe can use SAT solver or backtracking. Let's write Python to find a solution.\n\nWe need to output a list of 14 integers.\n\nLet's use a constraint solver or backtracking.\n---\nThe backtracking found a solution: [7, 4, 1, 5, 1, 6, 4, 3, 7, 5, 2, 3, 6, 2]. Let me verify it's correct.\n\nCheck:\n- 1's: positions 2 and 4 (0-indexed: 2 and 4), difference = 2? Actually 1+1=2, so they should be 2 apart. Positions: index 2 (value 1) and index 4 (value 1) -> difference = 2. Yes.\n- 2's: positions 10 and 13, difference = 3? Actually 2+1=3. Positions: 10 and 13, diff=3. Yes.\n- 3's: positions 7 and 11, diff=4? 3+1=4. Positions: 7 and 11, diff=4. Yes.\n- 4's: positions 1 and 6, diff=5? 4+1=5. Positions: 1 and 6, diff=5. Yes.\n- 5's: positions 3 and 9, diff=6? 5+1=6. Positions: 3 and 9, diff=6. Yes.\n- 6's: positions 5 and 12, diff=7? 6+1=7. Positions: 5 and 12, diff=7. Yes.\n- 7's: positions 0 and 8, diff=8? 7+1=8. Positions: 0 and 8, diff=8. Yes.\n\nAll good. Let me also verify that each number appears exactly twice.\n\nSo it's satisfiable.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2070,
+  "completion_tokens": 1056,
+  "reasoning_tokens": 454,
+  "cached_tokens": 0,
+  "cost_usd": 0.008993399999999999,
+  "cost_source": "openrouter",
+  "latency_ms": 102632.80010223389,
+  "tool_dispatch_ms_total": 33.9813232421875,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef langford(n):\n    # We need to place pairs for numbers 1..n\n    # length = 2n\n    length = 2 * n\n    # We'll use backtracking\n    seq = [0] * length  # 0 means empty\n    \n    # Order: try larger numbers first (common heuristic)\n    def backtrack(pos):\n        if pos == length:\n            return True\n        if seq[pos] != 0:\n            return backtrack(pos + 1)\n        # Try numbers from n down to 1\n        for v in range(n, 0, -1):\n            # Check if v already placed\n            if v in seq:\n                continue\n            # Try placing first occurrence at pos\n            second_pos = pos + v + 1\n            if second_pos < length and seq[second_pos] == 0:\n                seq[pos] = v\n                seq[second_pos] = v\n                if backtrack(pos + 1):\n                    return True\n                seq[pos] = 0\n                seq[second_pos] = 0\n        return False\n    \n    if backtrack(0):\n        return seq\n    return None\n\nprint(langford(7))"
+      },
+      "ok": true,
+      "latency_ms": 33.98
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          7,
+          4,
+          1,
+          5,
+          1,
+          6,
+          4,
+          3,
+          7,
+          5,
+          2,
+          3,
+          6,
+          2
+        ],
+        "reasoning": "Found via backtracking search. Verified: each number 1..7 appears twice, with occurrences spaced v+1 apart."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

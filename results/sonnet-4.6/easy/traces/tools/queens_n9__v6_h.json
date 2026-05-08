@@ -1,0 +1,90 @@
+{
+  "problem_name": "queens_n9__v6_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 1089.7,
+    "search_space": 387420489,
+    "num_variables": 9,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 76.13,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    6,
+    1,
+    7,
+    4,
+    8,
+    3,
+    5
+  ],
+  "reasoning": "Found a valid 9-queens solution with q[3]=1 using backtracking. The solution [0,2,6,1,7,4,8,3,5] places queens such that no two share a row, column, or diagonal, and respects the fixed constraint q[3]=1.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 3097,
+  "completion_tokens": 863,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.022236,
+  "cost_source": "openrouter",
+  "latency_ms": 13983.735084533691,
+  "tool_dispatch_ms_total": 32.93442726135254,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef solve_nqueens():\n    n = 9\n    fixed = {3: 1}  # q[3] = 1\n    \n    solution = []\n    \n    def is_safe(placement, row, col):\n        for r, c in enumerate(placement):\n            if c == col:\n                return False\n            if abs(r - row) == abs(c - col):\n                return False\n        return True\n    \n    def backtrack(row, placement):\n        if row == n:\n            return placement[:]\n        \n        # If this row has a fixed value, try only that\n        if row in fixed:\n            col = fixed[row]\n            if is_safe(placement, row, col):\n                placement.append(col)\n                result = backtrack(row + 1, placement)\n                if result:\n                    return result\n                placement.pop()\n            return None\n        \n        for col in range(n):\n            if is_safe(placement, row, col):\n                placement.append(col)\n                result = backtrack(row + 1, placement)\n                if result:\n                    return result\n                placement.pop()\n        return None\n    \n    result = backtrack(0, [])\n    return result\n\nsolution = solve_nqueens()\nprint(\"Solution:\", solution)\n\nif solution:\n    # Verify\n    n = 9\n    print(\"\\nBoard visualization:\")\n    for r in range(n):\n        row_str = \"\"\n        for c in range(n):\n            row_str += \"Q \" if solution[r] == c else \". \"\n        print(f\"Row {r}: {row_str}  (col={solution[r]})\")\n    \n    # Check constraints\n    print(\"\\nVerification:\")\n    print(f\"q[3] = {solution[3]} (should be 1): {'\u2713' if solution[3]==1 else '\u2717'}\")\n    \n    valid = True\n    for i in range(n):\n        for j in range(i+1, n):\n            if solution[i] == solution[j]:\n                print(f\"CONFLICT: rows {i},{j} same column\")\n                valid = False\n            if abs(i-j) == abs(solution[i]-solution[j]):\n                print(f\"CONFLICT: rows {i},{j} on diagonal\")\n                valid = False\n    print(f\"All constraints satisfied: {'\u2713' if valid else '\u2717'}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 32.93
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          6,
+          1,
+          7,
+          4,
+          8,
+          3,
+          5
+        ],
+        "reasoning": "Found a valid 9-queens solution with q[3]=1 using backtracking. The solution [0,2,6,1,7,4,8,3,5] places queens such that no two share a row, column, or diagonal, and respects the fixed constraint q[3]=1."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

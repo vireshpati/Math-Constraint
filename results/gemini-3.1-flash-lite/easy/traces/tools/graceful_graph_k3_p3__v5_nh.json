@@ -1,0 +1,107 @@
+{
+  "problem_name": "graceful_graph_k3_p3__v5_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 1302.4,
+    "search_space": 68719476736,
+    "num_variables": 24,
+    "num_constraints": 19,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 81.77,
+    "solve_pct_type": 43.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    14,
+    15,
+    3,
+    6,
+    8,
+    13,
+    2
+  ],
+  "reasoning": "The graph G_{3,3} has 9 vertices and 15 edges. A graceful labeling requires assigning 9 distinct labels from {0, ..., 15} such that the absolute differences of the 15 edges are all distinct and range from 1 to 15. Using a backtracking search, I found the labeling [0, 1, 14, 15, 3, 6, 8, 13, 2]. Verifying this:\nEdges:\n(0,1) -> 1\n(1,14) -> 13\n(14,0) -> 14\n(15,3) -> 12\n(3,6) -> 3\n(6,15) -> 9\n(8,13) -> 5\n(13,2) -> 11\n(2,8) -> 6\n(0,15) -> 15\n(1,3) -> 2\n(14,6) -> 8\n(15,8) -> 7\n(3,13) -> 10\n(6,2) -> 4\nThe set of differences is {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, which are all distinct and cover all values from 1 to 15. Thus, the labeling is graceful.",
+  "raw_response": null,
+  "cot_trace": "**Defining the Graph Structure**\n\nI'm now focusing on $G_{3,3}$, which I see as three disjoint $K_3$ cliques: $C_0$, $C_1$, and $C_2$. I'm labeling the vertices, defining $V_{g,i}$ for the $i$-th vertex in clique $g$. I intend to use this to more specifically classify certain properties.\n\n\n**Calculating Edge Totals**\n\nI've carefully calculated the total vertices (9) and edges (15) for this graph. I've broken down edge counts, distinguishing internal clique edges and connections between cliques. My next step involves assigning labels to vertices to explore graceful labeling, ensuring unique edges spanning 1 to 15. I am defining and listing all the vertices and edges for the graph now.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6412,
+  "completion_tokens": 2835,
+  "reasoning_tokens": 839,
+  "cached_tokens": 0,
+  "cost_usd": 0.0058555,
+  "cost_source": "openrouter",
+  "latency_ms": 31981.363773345947,
+  "tool_dispatch_ms_total": 15280.062913894653,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef is_graceful(labels):\n    # labels is a list of 9 integers\n    # V00, V01, V02, V10, V11, V12, V20, V21, V22\n    edges = [\n        (labels[0], labels[1]), (labels[1], labels[2]), (labels[2], labels[0]), # C0\n        (labels[3], labels[4]), (labels[4], labels[5]), (labels[5], labels[3]), # C1\n        (labels[6], labels[7]), (labels[7], labels[8]), (labels[8], labels[6]), # C2\n        (labels[0], labels[3]), (labels[1], labels[4]), (labels[2], labels[5]), # C0-C1\n        (labels[3], labels[6]), (labels[4], labels[7]), (labels[5], labels[8])  # C1-C2\n    ]\n    diffs = [abs(u - v) for u, v in edges]\n    if len(set(diffs)) == 15 and all(1 <= d <= 15 for d in diffs):\n        return True\n    return False\n\n# The number of labels is 16 (0 to 15), we need to choose 9.\n# 16P9 = 16! / 7! = 41,513,472. This is small enough to search.\n# Wait, 16P9 is 41 million, which might be a bit slow for a simple loop.\n# Let's use a backtracking approach.\n\ndef solve():\n    import itertools\n    \n    # We need to assign 9 distinct values from {0, ..., 15} to the 9 vertices.\n    # Let's use backtracking.\n    \n    labels = [None] * 9\n    used = [False] * 16\n    \n    def backtrack(idx):\n        if idx == 9:\n            if is_graceful(labels):\n                return labels\n            return None\n        \n        for val in range(16):\n            if not used[val]:\n                labels[idx] = val\n                used[val] = True\n                res = backtrack(idx + 1)\n                if res:\n                    return res\n                used[val] = False\n                labels[idx] = None\n        return None\n\n    return backtrack(0)\n\n# This might still be slow. Let's try a more efficient approach.\n# Maybe use a constraint solver or optimize the backtracking.\nprint(solve())\n"
+      },
+      "ok": false,
+      "latency_ms": 15018.36
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef solve_graceful():\n    # The graph has 9 vertices and 15 edges.\n    # Labels are from 0 to 15.\n    # Let's use a backtracking approach with pruning.\n    \n    # Edges:\n    # (0,1), (1,2), (2,0)\n    # (3,4), (4,5), (5,3)\n    # (6,7), (7,8), (8,6)\n    # (0,3), (1,4), (2,5)\n    # (3,6), (4,7), (5,8)\n    \n    # Let's try to fix some labels to reduce the search space.\n    # A graceful labeling can be reversed (x -> 15-x), so we can fix one label.\n    # Let's fix labels[0] = 0.\n    \n    labels = [None] * 9\n    used = [False] * 16\n    \n    # Edges to check\n    edges = [\n        (0, 1), (1, 2), (2, 0),\n        (3, 4), (4, 5), (5, 3),\n        (6, 7), (7, 8), (8, 6),\n        (0, 3), (1, 4), (2, 5),\n        (3, 6), (4, 7), (5, 8)\n    ]\n    \n    def is_valid(idx, current_labels):\n        # Check if all edges formed by the current_labels are valid\n        # An edge is valid if both endpoints are assigned and the difference is not already used.\n        # Also, the difference must be <= 15.\n        \n        diffs = set()\n        for u, v in edges:\n            if current_labels[u] is not None and current_labels[v] is not None:\n                d = abs(current_labels[u] - current_labels[v])\n                if d in diffs or d == 0:\n                    return False\n                diffs.add(d)\n        return True\n\n    def backtrack(idx):\n        if idx == 9:\n            return labels\n        \n        for val in range(16):\n            if not used[val]:\n                labels[idx] = val\n                used[val] = True\n                if is_valid(idx, labels):\n                    res = backtrack(idx + 1)\n                    if res:\n                        return res\n                used[val] = False\n                labels[idx] = None\n        return None\n\n    labels[0] = 0\n    used[0] = True\n    return backtrack(1)\n\nprint(solve_graceful())\n"
+      },
+      "ok": true,
+      "latency_ms": 225.71
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def check_graceful(labels):\n    edges = [\n        (labels[0], labels[1]), (labels[1], labels[2]), (labels[2], labels[0]), # C0\n        (labels[3], labels[4]), (labels[4], labels[5]), (labels[5], labels[3]), # C1\n        (labels[6], labels[7]), (labels[7], labels[8]), (labels[8], labels[6]), # C2\n        (labels[0], labels[3]), (labels[1], labels[4]), (labels[2], labels[5]), # C0-C1\n        (labels[3], labels[6]), (labels[4], labels[7]), (labels[5], labels[8])  # C1-C2\n    ]\n    diffs = [abs(u - v) for u, v in edges]\n    print(f\"Labels: {labels}\")\n    print(f\"Edges: {edges}\")\n    print(f\"Diffs: {sorted(diffs)}\")\n    return len(set(diffs)) == 15 and all(1 <= d <= 15 for d in diffs)\n\nlabels = [0, 1, 14, 15, 3, 6, 8, 13, 2]\nprint(check_graceful(labels))\n"
+      },
+      "ok": true,
+      "latency_ms": 35.99
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          14,
+          15,
+          3,
+          6,
+          8,
+          13,
+          2
+        ],
+        "reasoning": "The graph G_{3,3} has 9 vertices and 15 edges. A graceful labeling requires assigning 9 distinct labels from {0, ..., 15} such that the absolute differences of the 15 edges are all distinct and range from 1 to 15. Using a backtracking search, I found the labeling [0, 1, 14, 15, 3, 6, 8, 13, 2]. Verifying this:\nEdges:\n(0,1) -> 1\n(1,14) -> 13\n(14,0) -> 14\n(15,3) -> 12\n(3,6) -> 3\n(6,15) -> 9\n(8,13) -> 5\n(13,2) -> 11\n(2,8) -> 6\n(0,15) -> 15\n(1,3) -> 2\n(14,6) -> 8\n(15,8) -> 7\n(3,13) -> 10\n(6,2) -> 4\nThe set of differences is {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}, which are all distinct and cover all values from 1 to 15. Thus, the labeling is graceful."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

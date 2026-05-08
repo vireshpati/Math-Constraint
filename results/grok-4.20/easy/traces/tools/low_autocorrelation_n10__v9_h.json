@@ -1,0 +1,116 @@
+{
+  "problem_name": "low_autocorrelation_n10__v9_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 1343.9,
+    "search_space": 1024,
+    "num_variables": 19,
+    "num_constraints": 16,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 83.27,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": "{\n    \"satisfiable\": false,\n    \"solution\": null,\n    \"reasoning\": \"C_6 is sum of 4 values of \\pm 1, which must be even, but fixed to -1 (odd): impossible\"\n}",
+  "cot_trace": "The problem asks to find a binary sequence of length 10 over {-1, +1} with low aperiodic autocorrelation. Specifically, the sum over k=1 to 9 of C_k\u00b2 should be at most 20, where C_k is the sum over i ...\n---\nThe brute force didn't find any. It says False. But maybe I need to check if the code is correct.\n\n---\nThe problem is to find a binary sequence of length 10 with values -1 or +1, with seq[0]=-1, seq[8]=1, and c[6]=-1, such that the sum of C_k^2 for k=1 to 9 is at most 20.\n",
+  "finish_reason": "stop",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 14094,
+  "completion_tokens": 1599,
+  "reasoning_tokens": 760,
+  "cached_tokens": 6784,
+  "cost_usd": 0.0255708,
+  "cost_source": "openrouter",
+  "latency_ms": 28935.653924942017,
+  "tool_dispatch_ms_total": 1034.0609550476074,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 8,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport numpy as np\n\ndef compute_aperiodic_autocorr(seq):\n    n = len(seq)\n    merit = 0\n    for k in range(1, n):\n        Ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        merit += Ck**2\n    return merit\n\nfixed = {0: -1, 8: 1}\nc6_fixed = -1\n\nfound = False\nsolution = None\nfor bits in itertools.product([-1,1], repeat=10):\n    seq = list(bits)\n    if seq[0] != fixed[0] or seq[8] != fixed[8]:\n        continue\n    # compute C6\n    C6 = sum(seq[i] * seq[i+6] for i in range(10-6))\n    if C6 != c6_fixed:\n        continue\n    merit = compute_aperiodic_autocorr(seq)\n    if merit <= 20:\n        found = True\n        solution = seq\n        break\n\nprint(found)\nif found:\n    print(solution)\n    print(compute_aperiodic_autocorr(solution))"
+      },
+      "ok": true,
+      "latency_ms": 428.51
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport numpy as np\n\ndef compute_aperiodic_autocorr(seq):\n    n = len(seq)\n    merit = 0\n    Cs = []\n    for k in range(1, n):\n        Ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        Cs.append(Ck)\n        merit += Ck**2\n    return merit, Cs\n\nfixed = {0: -1, 8: 1}\nc6_fixed = -1\n\nmin_merit = float('inf')\nbest_seq = None\nbest_cs = None\ncount = 0\nfor bits in itertools.product([-1,1], repeat=10):\n    seq = list(bits)\n    if seq[0] != fixed[0] or seq[8] != fixed[8]:\n        continue\n    # compute C6\n    C6 = sum(seq[i] * seq[i+6] for i in range(10-6))\n    if C6 != c6_fixed:\n        continue\n    count += 1\n    merit, Cs = compute_aperiodic_autocorr(seq)\n    if merit < min_merit:\n        min_merit = merit\n        best_seq = seq\n        best_cs = Cs\n\nprint(\"Min merit found:\", min_merit)\nprint(\"Best seq:\", best_seq)\nprint(\"Cs:\", best_cs)\nprint(\"Num sequences checked:\", count)"
+      },
+      "ok": true,
+      "latency_ms": 404.9
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "print(sum([-1,1][i] * [-1,1][i+6] for i in range(4)))"
+      },
+      "ok": false,
+      "latency_ms": 33.84
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq0 = [-1,1]\nprint(sum(seq0[i] * seq0[i+6] for i in range(4)))"
+      },
+      "ok": false,
+      "latency_ms": 33.9
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "print(4 % 2)"
+      },
+      "ok": true,
+      "latency_ms": 33.03
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = [-1, 1] * 5\nprint(seq)\nC6 = sum(seq[i] * seq[i+6] for i in range(4))\nprint(C6)"
+      },
+      "ok": true,
+      "latency_ms": 32.91
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = [1, -1] * 5\nprint(seq)\nC6 = sum(seq[i] * seq[i+6] for i in range(4))\nprint(C6)"
+      },
+      "ok": true,
+      "latency_ms": 33.85
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq = [-1, -1] * 5\nprint(seq)\nC6 = sum(seq[i] * seq[i+6] for i in range(4))\nprint(C6)"
+      },
+      "ok": true,
+      "latency_ms": 33.12
+    }
+  ],
+  "error": "max_tool_rounds=8 exceeded",
+  "failure_bucket": "max_rounds",
+  "forced_submit": false
+}

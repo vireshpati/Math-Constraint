@@ -1,0 +1,136 @@
+{
+  "problem_name": "magic_sequence_n12__v0_h",
+  "problem_type": "magic_sequence",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 1063.0,
+    "search_space": 8916100448256,
+    "num_variables": 12,
+    "num_constraints": 24,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 75.38,
+    "solve_pct_type": 95.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    8,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "reasoning": "The sequence [8,2,1,0,0,0,0,0,1,0,0,0] satisfies the magic sequence property: each x[i] equals the count of i in the sequence. There are eight 0s (positions 3,4,5,6,7,9,10,11), two 1s (positions 2,8), one 2 (position 1), one 8 (position 0), and zero of all other values. The fixed assignments x[7]=0 and x[8]=1 are respected.",
+  "raw_response": null,
+  "cot_trace": "We need to find a magic sequence of length 12. A magic sequence (also known as a self-descriptive sequence) of length n is a sequence x[0], x[1], ..., x[n-1] such that for each i, x[i] equals the number of times i appears in the sequence.\n\nWe have fixed values: x[7] = 0, x[8] = 1.\n\nWe need to find a sequence of length 12 satisfying these constraints.\n\nLet's think about the properties of magic sequences.\n\nFor a sequence of length n, we have:\n- Sum of all x[i] = n (since each position counts occurrences of some number, and total occurrences sum to n)\n- Sum of i * x[i] = n (since the sum of all numbers in the sequence equals the sum of indices times their counts, which also equals n because each position contributes its index value? Wait, let's check: The sum of the elements of the sequence is sum_{i} x[i] = n. Also, the sum of the values in the sequence is sum_{i} i * (number of times i appears) = sum_{i} i * x[i]. But also the sum of the sequence elements is sum_{i} x[i] = n. So we have two equations:\n  (1) sum_i x[i] = n\n  (2) sum_i i * x[i] = n\n\nActually, the second equation: The sum of all numbers in the sequence equals the sum over i of i * (count of i) = sum_i i * x[i]. But also, the sum of the sequence is just the sum of its elements, which is sum_i x[i] = n. Wait, that's not correct: The sum of the sequence elements is sum_{j=0}^{n-1} x[j]. But each x[j] is some integer. The sum of the sequence is not necessarily n. Let's re-evaluate.\n\nLet the sequence be a[0..n-1]. Each a[i] is the count of occurrences of i in the sequence. So the total number of occurrences of all numbers is sum_i a[i] = n (since there are n positions). That's equation (1).\n\nNow, what is the sum of the values of the sequence? It's sum_i a[i] = n. But also, we can compute the sum by counting each occurrence: each occurrence of value i contributes i to the sum. So sum_i i * (number of occurrences of i) = sum_i i * a[i]. Therefore, sum_i i * a[i] = sum_i a[i] = n.\n\nSo we have:\n(1) sum_i a[i] = n\n(2) sum_i i * a[i] = n\n\nFrom these, we can derive: sum_i (i-1) * a[i] = 0.\n\nSince a[i] >= 0, and for i >= 2, (i-1) > 0, so a[i] must be 0 for i >= 2? Not necessarily, because a[0] and a[1] could be large. Let's see: sum_i (i-1) a[i] = 0 => sum_{i>=2} (i-1) a[i] = a[0] - a[1]? Wait: For i=0: (0-1)*a[0] = -a[0]; for i=1: (1-1)*a[1] = 0; for i>=2: (i-1)*a[i] >= 0. So sum_{i>=2} (i-1) a[i] = a[0]. So a[0] = sum_{i>=2} (i-1) a[i].\n\nThis is a known property.\n\nAlso, a[0] cannot be 0 because if a[0]=0, then there are no zeros in the sequence, but then a[0] would have to be 0, which is consistent? Actually, if a[0]=0, that means there are no zeros in the sequence. But a[0] itself is 0, which is a zero, contradiction. So a[0] > 0.\n\nSimilarly, a[1] is the number of 1's.\n\nFor n=12, we need to find a sequence.\n\nLet's try to solve using Python with constraint satisfaction or search.\n\nWe can use a SAT solver or just brute force with constraints.\n\nLet's write Python code to search for magic sequences of length 12 with given fixed values.\n---\nGreat, pysat is available. Let's use it to solve the magic sequence problem.\n\nWe need to find a sequence x[0..11] such that for each i, x[i] = count of i in the sequence.\n\nWe can encode this as a SAT problem using cardinality constraints or by enumerating possible values.\n\nLet's think about how to encode \"x[i] = count of i in x\". This is a bit tricky for SAT.\n\nAlternative: we can use integer variables and constraint programming. But we only have pysat (SAT solver). We can encode integer variables in binary.\n\nLet's use 4 bits for each variable (0..12, but max is 12, so 4 bits suffice for 0..15). Actually max count is 12, so 4 bits (0..15) is fine.\n\nFor each i, we need to count how many variables equal i. That's a cardinality constraint: among the 12 variables, exactly x[i] of them equal i.\n\nWe can encode \"x[j] == i\" for each j, then sum these booleans to get x[i].\n\nLet's write a Python script using pysat.\n\nBut wait, pysat might have cardinality constraints built-in.\n\nLet's write code.\n---\nLet me check the pysat package structure.\n---\nLet's use pysat to encode the magic sequence problem. We need to find a sequence of length 12 where each x[i] is the count of i in the sequence.\n\nWe have fixed: x[7]=0, x[8]=1.\n\nLet's encode this as a SAT problem. Each variable x[i] can take values 0..12. We can use binary encoding or one-hot encoding. Since the domain is small (0..12), we can use one-hot encoding: for each i and each possible value v, a Boolean variable meaning x[i] = v.\n\nBut we also need to count how many times value v appears across all positions. That's a cardinality constraint: exactly x[v] positions have value v.\n\nThis is a bit tricky because x[v] is itself a variable. We need to encode: for each v, the number of i such that x[i] = v equals x[v].\n\nWe can use cardinality constraints with a variable bound.\n\nAlternatively, we can use a simpler approach: since n=12 is not huge, we can write a custom backtracking search with constraint propagation.\n\nLet me try to write a Python script that uses backtracking with pruning using the sum constraints.\n\nActually, let's think about the mathematical properties.\n\nLet a[0..n-1] be the sequence. We have:\n1. For each i, a[i] = count of i in a.\n2. Sum_i a[i] = n (since there are n positions, each contributes 1 to some count).\n3. Sum_i i * a[i] = n (since sum of all values equals sum of counts times their value = total sum of all elements; but also sum of all elements = sum_i i * (number of times i appears) = sum_i i * a[i]; and also sum of all elements = sum_i a[i] = n? Wait, sum of all elements is sum over positions of a[i]. But a[i] is the value at position i. So sum_i a[i] = total sum of values. But also sum_i i * a[i] = sum over values v of v * (count of v) = sum over positions of value at that position = sum_i a[i]. So indeed sum_i a[i] = sum_i i * a[i] = n.\n\nWait, is that correct? Let's check with n=4: [1,2,1,0]. Sum a[i] = 1+2+1+0 = 4 = n. Sum i*a[i] = 0*1 + 1*2 + 2*1 + 3*0 = 0+2+2+0 = 4 = n. Yes.\n\nSo we have:\n- sum_i a[i] = n\n- sum_i i * a[i] = n\n\nFrom these, sum_i (i-1) * a[i] = 0 => a[0] = sum_{i>=2} (i-1) * a[i].\n\nAlso, a[0] is the number of zeros. So a[0] = number of i such that a[i] = 0.\n\nLet's try to search using these constraints.\n\nWe can iterate over possible values of a[0] (which must be > 0). Then a[0] tells us how many zeros there are. The positions that are zero are exactly those i where a[i] = 0. So there are a[0] zeros.\n\nAlso, a[1] is the number of ones. Since a[0] > 0, there is at least one zero, so a[0] >= 1.\n\nLet's try to write a backtracking solver.\n\nActually, I recall that magic sequences are also called \"self-descriptive sequences\" or \"autobiographical numbers\". There is known classification: for n >= 4, there is exactly one solution (or two for n=4?). Let's check known results.\n\nFor n=4: [1,2,1,0] and [2,0,2,0] are both solutions? Let's verify [2,0,2,0]: a[0]=2 (zeros at 1,3), a[1]=0, a[2]=2 (twos at 0,2), a[3]=0. Works.\nSo there are two for n=4.\n\nFor n=5: [2,1,2,0,0] works. Is there another? Let's check.\n\nFor n=6: ? Let's search.\n\nActually, I think the general solution for n >= 4 is:\n- a[0] = n - 4\n- a[1] = 2\n- a[2] = 1\n- a[n-4] = 1\n- all others 0\n\nLet's test for n=4: n-4=0, a[0]=0, a[1]=2, a[2]=1, a[0]=1? Wait n-4=0, so a[0]=1? But a[0] is also n-4=0. Contradiction. So this pattern doesn't hold for n=4.\n\nLet's test for n=5: n-4=1, a[0]=1, a[1]=2, a[2]=1, a[1]=1? Again conflict.\n\nMaybe the pattern is:\n- a[0] = n - 4\n- a[1] = 2\n- a[2] = 1\n- a[n-4] = 1\nBut for n=5: a[0]=1, a[1]=2, a[2]=1, a[1]=1 (since n-4=1). So a[1] would be both 2 and 1. Not valid.\n\nLet's check known sequence for n=5: [2,1,2,0,0]. Here a[0]=2, a[1]=1, a[2]=2, a[3]=0, a[4]=0.\nSo pattern: a[0]=2, a[1]=1, a[2]=2, rest 0? But for n=4: [2,0,2,0] fits a[0]=2, a[1]=0, a[2]=2, a[3]=0. And [1,2,1,0] is different.\n\nFor n=6: Let's search manually.\n\nLet me write a quick search.\n---\nThe backtracking is too slow for n=12. Let's use a smarter approach.\n\nWe know the constraints:\n- sum a[i] = n\n- sum i*a[i] = n\n- a[i] >= 0 integers\n- a[i] = count of i in the sequence\n\nFrom these, we can derive:\n- a[0] = number of zeros = n - (number of non-zero entries)\n- Also, a[0] = sum_{i>=2} (i-1)*a[i] (from sum i*a[i] = sum a[i])\n\nLet's use a SAT solver or integer programming.\n\nActually, let's use the pysat library properly.\n---\nThe pattern works for n >= 7 (and n=4). For n=12, the pattern gives:\n[8, 2, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0]\n\nBut we have fixed assignments: x[7]=0, x[8]=1. Let's check if this pattern satisfies them:\n- x[7] = 0 (matches)\n- x[8] = 1 (matches)\n\nSo the pattern solution satisfies the fixed assignments.\n\nBut wait, we need to verify that this is indeed a valid magic sequence. Let's double-check.\n\nFor n=12, pattern: [8, 2, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0]\nCounts:\n- 0 appears at indices 3,4,5,6,7,9,10,11 => 8 times => a[0]=8 correct.\n- 1 appears at indices 2,8 => 2 times => a[1]=2 correct.\n- 2 appears at index 1 => 1 time => a[2]=1 correct.\n- 3 appears 0 times => a[3]=0 correct.\n- 4 appears 0 times => a[4]=0 correct.\n- 5 appears 0 times => a[5]=0 correct.\n- 6 appears 0 times => a[6]=0 correct.\n- 7 appears 0 times => a[7]=0 correct.\n- 8 appears at index 0 => 1 time => a[8]=1 correct.\n- 9 appears 0 times => a[9]=0 correct.\n- 10 appears 0 times => a[10]=0 correct.\n- 11 appears 0 times => a[11]=0 correct.\n\nYes, it works.\n\nBut is this the only solution? The problem says \"Find a magic sequence\" and gives partial assignment. The pattern satisfies the partial assignment, so it's a valid solution.\n\nHowever, we should also check if there are other solutions that satisfy the fixed assignments. But we just need one.\n\nLet's confirm with a more exhaustive search for n=12 with the fixed assignments to ensure no conflict.\n\nActually, let's also check if the pattern is the only solution for n=12. But we just need one.\n\nLet's submit this solution.\n---\nThe solution [8, 2, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0] satisfies all constraints:\n- x[7]=0 \u2713\n- x[8]=1 \u2713\n- It's a valid magic sequence: each x[i] equals the count of i in the sequence.\n\nLet's double-check:\n- x[0]=8: there are eight 0's (positions 3,4,5,6,7,9,10,11) \u2192 8 \u2713\n- x[1]=2: there are two 1's (positions 2 and 8) \u2192 2 \u2713\n- x[2]=1: there is one 2 (position 1) \u2192 1 \u2713\n- x[3]=0: there are zero 3's \u2192 0 \u2713\n- x[4]=0: zero 4's \u2192 0 \u2713\n- x[5]=0: zero 5's \u2192 0 \u2713\n- x[6]=0: zero 6's \u2192 0 \u2713\n- x[7]=0: zero 7's \u2192 0 \u2713\n- x[8]=1: there is one 8 (position 0) \u2192 1 \u2713\n- x[9]=0: zero 9's \u2192 0 \u2713\n- x[10]=0: zero 10's \u2192 0 \u2713\n- x[11]=0: zero 11's \u2192 0 \u2713\n\nThis works.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 22345,
+  "completion_tokens": 6856,
+  "reasoning_tokens": 2806,
+  "cached_tokens": 4352,
+  "cost_usd": 0.06882210000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 722986.5589141846,
+  "tool_dispatch_ms_total": 6286.261796951294,
+  "tool_calls_made": 7,
+  "tool_rounds": 7,
+  "n_execute_python": 6,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 12\nfixed = {7: 0, 8: 1}\n\n# We need to find a sequence a[0..11] such that for each i, a[i] = count of i in a.\n# Constraints:\n# - sum a[i] = n\n# - sum i*a[i] = n\n# - a[i] >= 0 integers\n\n# Let's search using constraint propagation.\n\n# Known properties: a[0] > 0.\n# Also, a[i] <= n for all i.\n\n# Let's brute force with some pruning.\n\n# We can iterate over possible values for a[0], a[1], etc.\n# But 12 variables each up to 12 is huge. We need smarter search.\n\n# Let's use the equations to reduce search space.\n\n# From sum i*a[i] = sum a[i] = n, we have sum (i-1)*a[i] = 0.\n# So a[0] = sum_{i>=2} (i-1)*a[i].\n\n# Also, a[0] is the number of zeros. Since a[0] > 0, there is at least one zero.\n# The positions that are zero: those i where a[i] = 0.\n# So a[0] = number of i such that a[i] = 0.\n\n# Let's try to use a SAT solver or integer programming.\n\n# We can use python's itertools for small search with pruning.\n\n# Let's think about typical magic sequences.\n# For n=4: [2,0,2,0] or [1,2,1,0]? Actually known: [2,0,2,0] is magic for n=4? Let's check: \n# a[0]=2 (there are two 0's: positions 1 and 3), a[1]=0 (no 1's), a[2]=2 (two 2's: positions 0 and 2), a[3]=0. Works.\n# For n=5: [2,1,2,0,0]? Check: a[0]=2 (zeros at 3,4), a[1]=1 (one 1 at position 1), a[2]=2 (two 2's at 0,2), a[3]=0, a[4]=0. Sum=5, sum i*a[i]=0*2+1*1+2*2+3*0+4*0=5. Works.\n\n# General pattern: For n>=4, there is a known solution: \n# a[0] = n-4, a[1] = 2, a[2] = 1, a[n-4] = 1, others 0? Let's check.\n# For n=4: n-4=0, a[0]=0? But we know a[0]=2. So not that.\n# Actually known: for n>=4, a[0]=n-4, a[1]=2, a[2]=1, a[n-4]=1, rest 0.\n# Check n=5: a[0]=1, a[1]=2, a[2]=1, a[1]=1? Wait n-4=1, so a[1]=1? But a[1] already 2. So not.\n# Let's recall: For n=4: [2,0,2,0] (or [1,2,1,0]? Actually [1,2,1,0] sum=4, sum i*a[i]=0*1+1*2+2*1+3*0=4. Check counts: a[0]=1 (one 0 at pos 3), a[1]=2 (two 1's at pos 0 and 2? Wait a[0]=1, a[2]=1, so 1 appears at positions 0 and 2? Actually a[0]=1, a[2]=1, so there is one 1? No, a[1]=2 means there are two 1's. The sequence is [1,2,1,0]; values: 1,2,1,0. Count of 0: one (at pos 3) -> a[0]=1 correct. Count of 1: two (at pos 0 and 2) -> a[1]=2 correct. Count of 2: one (at pos 1) -> a[2]=1 correct. Count of 3: zero -> a[3]=0 correct. So [1,2,1,0] works for n=4.\n# For n=5: [2,1,2,0,0] works as above.\n# For n=6: ? Let's search.\n\n# Let's write a search using constraint satisfaction.\n\ndef is_valid(seq):\n    n = len(seq)\n    for i, val in enumerate(seq):\n        if seq.count(i) != val:\n            return False\n    return True\n\n# Let's try to use backtracking with pruning.\n\ndef search(n, fixed):\n    seq = [None] * n\n    for i, v in fixed.items():\n        seq[i] = v\n    \n    # We'll use recursion with constraint propagation.\n    # Variables: indices 0..n-1.\n    # Domains: 0..n initially.\n    \n    # We can use the sum constraints to prune.\n    \n    # Let's use a simple backtracking with heuristics.\n    \n    from functools import lru_cache\n    \n    # Actually, let's use python-constraint or just brute force with itertools for small n?\n    # n=12 is too large for brute force.\n    \n    # Let's use a SAT solver via pysat if available.\n    pass\n\n# Let's check if pysat is available.\ntry:\n    import pysat\n    print(\"pysat available\")\nexcept ImportError:\n    print(\"pysat not available\")\n\n# Let's try to use z3 if available?\ntry:\n    import z3\n    print(\"z3 available\")\nexcept ImportError:\n    print(\"z3 not available\")"
+      },
+      "ok": true,
+      "latency_ms": 95.44
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import pysat\nfrom pysat import SATSolver\nfrom pysat.card import CardEnc\n\n# Let's check pysat version and available modules\nprint(dir(pysat))\nprint(pysat.__version__ if hasattr(pysat, '__version__') else 'no version')"
+      },
+      "ok": false,
+      "latency_ms": 33.93
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import pysat\nprint(dir(pysat))\n# Try importing from pysat.solvers\nfrom pysat.solvers import Solver\nprint(\"Solver imported\")\nprint(dir(Solver))"
+      },
+      "ok": true,
+      "latency_ms": 708.08
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def find_magic_sequence(n, fixed=None):\n    \"\"\"Search for magic sequence of length n using backtracking.\"\"\"\n    if fixed is None:\n        fixed = {}\n    \n    seq = [None] * n\n    for i, v in fixed.items():\n        seq[i] = v\n    \n    # Precompute: we need sum_i seq[i] = n and sum_i i*seq[i] = n\n    # Also seq[i] is count of i.\n    \n    # We'll use recursion with constraint propagation.\n    \n    # For each index, the possible values are 0..n, but we can prune.\n    \n    # Let's use a simple approach: iterate over possible values for indices with most constraints first.\n    \n    # Actually, let's use the fact that seq[0] is number of zeros.\n    # seq[0] must be > 0 (since if seq[0]=0, then there are no zeros, but seq[0]=0 is a zero, contradiction).\n    # So seq[0] >= 1.\n    \n    # Also, seq[i] <= n - seq[0] for i>0? Not necessarily.\n    \n    # Let's just do a recursive search with pruning using current partial sums.\n    \n    solutions = []\n    \n    # We'll assign variables in order of index, but we can use constraint propagation.\n    \n    # Let's use a dictionary to track current counts.\n    # Actually, we can use the fact that the sequence is self-descriptive: \n    # For any partial assignment, we can check consistency.\n    \n    def backtrack(idx):\n        if idx == n:\n            # Check full consistency\n            if all(seq[i] == seq.count(i) for i in range(n)):\n                solutions.append(seq.copy())\n            return\n        \n        if seq[idx] is not None:\n            backtrack(idx + 1)\n            return\n        \n        # Determine possible values for seq[idx]\n        # We can use current partial counts to bound.\n        # But for simplicity, try all 0..n and prune.\n        for val in range(n + 1):\n            # Quick prune: if we set seq[idx] = val, then the count of idx in the whole sequence will be val.\n            # Currently, we have some assigned positions. The count of idx among assigned positions must be <= val.\n            # Also, the number of remaining positions is n - (number of assigned positions).\n            # The count of idx can increase by at most remaining positions.\n            current_count_idx = sum(1 for i in range(n) if seq[i] is not None and seq[i] == idx)\n            if current_count_idx > val:\n                continue\n            # Also, if we set this position to val, then the count of val increases.\n            current_count_val = sum(1 for i in range(n) if seq[i] is not None and seq[i] == val)\n            # But we don't know seq[val] yet necessarily.\n            \n            # Let's just assign and check later.\n            seq[idx] = val\n            backtrack(idx + 1)\n            seq[idx] = None\n    \n    backtrack(0)\n    return solutions\n\n# Test for small n\nfor n in range(4, 8):\n    sols = find_magic_sequence(n)\n    print(f\"n={n}: {len(sols)} solutions\")\n    for s in sols:\n        print(f\"  {s}\")"
+      },
+      "ok": true,
+      "latency_ms": 5362.2
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's use pysat to encode the problem.\n# We need to encode that for each i, a[i] equals the count of i in the sequence.\n# This is a cardinality constraint: a[i] = sum_{j} (a[j] == i)\n\n# We can use boolean variables: x_{i,v} meaning a[i] = v.\n# Then we need:\n# - Exactly one value for each i: sum_v x_{i,v} = 1\n# - For each i, the count of positions with value i equals a[i]:\n#   sum_j x_{j,i} = a[i] = sum_v v * x_{i,v}\n\n# This is a bit complex. Let's try a simpler approach: use integer variables and constraint solving.\n\n# Let's try using python's itertools with smarter pruning.\n\n# Known results: magic sequences (also called \"self-descriptive sequences\") exist only for n >= 4, and there are known solutions.\n# For n=4: [1,2,1,0] and [2,0,2,0]\n# For n=5: [2,1,2,0,0]\n# For n=7: [3,2,1,1,0,0,0]\n# For n=8: [4,2,1,0,1,0,0,0]? Let's check.\n# Actually, there is a known pattern: for n >= 7, there is a solution:\n# a[0] = n-4, a[1] = 2, a[2] = 1, a[n-4] = 1, others 0.\n# Let's test this pattern.\n\ndef pattern(n):\n    a = [0]*n\n    a[0] = n-4\n    a[1] = 2\n    a[2] = 1\n    a[n-4] = 1\n    return a\n\ndef check(seq):\n    n = len(seq)\n    for i in range(n):\n        if seq.count(i) != seq[i]:\n            return False\n    return True\n\nfor n in range(4, 15):\n    a = pattern(n)\n    print(f\"n={n}: {a} valid={check(a)}\")"
+      },
+      "ok": true,
+      "latency_ms": 52.23
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify the solution\nseq = [8, 2, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0]\nn = 12\nvalid = all(seq[i] == seq.count(i) for i in range(n))\nprint(\"Valid:\", valid)\nprint(\"Fixed x[7]=0:\", seq[7]==0)\nprint(\"Fixed x[8]=1:\", seq[8]==1)\nprint(\"Sum:\", sum(seq))\nprint(\"Weighted sum:\", sum(i*seq[i] for i in range(n)))"
+      },
+      "ok": true,
+      "latency_ms": 34.37
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          8,
+          2,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "reasoning": "The sequence [8,2,1,0,0,0,0,0,1,0,0,0] satisfies the magic sequence property: each x[i] equals the count of i in the sequence. There are eight 0s (positions 3,4,5,6,7,9,10,11), two 1s (positions 2,8), one 2 (position 1), one 8 (position 0), and zero of all other values. The fixed assignments x[7]=0 and x[8]=1 are respected."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

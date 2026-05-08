@@ -1,0 +1,89 @@
+{
+  "problem_name": "pysms_mtf_vertices17__v3_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 17
+  },
+  "difficulty": {
+    "solve_time_ms": 110.2,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 30,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 45.68,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[(0, 1), (0, 2), (0, 4), (0, 5), (0, 7), (0, 8), (0, 14), (0, 15), (1, 3), (1, 6), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 16), (2, 3), (2, 6), (2, 9), (2, 10), (2, 11), (2, 12), (2, 13), (2, 16), (3, 4), (3, 5), (3, 7), (3, 8), (3, 14), (3, 15), (4, 6), (4, 9), (4, 10), (4, 11), (4, 12), (4, 13), (4, 16), (5, 6), (5, 9), (5, 10), (5, 11), (5, 12), (5, 13), (5, 16), (6, 7), (6, 8), (6, 14), (6, 15), (7, 9), (7, 10), (7, 11), (7, 12), (7, 13), (7, 16), (8, 9), (8, 10), (8, 11), (8, 12), (8, 13), (8, 16), (9, 14), (9, 15), (10, 14), (10, 15), (11, 14), (11, 15), (12, 14), (12, 15), (13, 14), (13, 15), (14, 16), (15, 16)]",
+  "reasoning": "The complete bipartite graph K_{8,9} on 17 vertices is triangle-free (bipartite graphs have no odd cycles) and maximal (adding any edge within a partition creates a triangle since both endpoints share all vertices in the opposite partition as common neighbors). The partition is Set0 = {1,2,4,5,7,8,14,15} and Set1 = {0,3,6,9,10,11,12,13,16}, which respects all fixed edges: (0,15), (3,15), (6,15), (9,15), (11,15) go between partitions (15 in Set0, others in Set1), and (14,16) goes between partitions (14 in Set0, 16 in Set1). The graph has 8\u00d79 = 72 edges, which is the maximum possible for a triangle-free graph on 17 vertices by Tur\u00e1n's theorem.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: unsupported submitted-solution shape",
+  "prompt_tokens": 12365,
+  "completion_tokens": 3895,
+  "reasoning_tokens": 0,
+  "cached_tokens": 7424,
+  "cost_usd": 0.001990212,
+  "cost_source": "openrouter",
+  "latency_ms": 213265.80452919006,
+  "tool_dispatch_ms_total": 138.59081268310547,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# We need a maximal triangle-free graph on 17 vertices.\n# Fixed edges: (0,15), (3,15), (6,15), (9,15), (11,15), (14,16)\n\nn = 17\nfixed_edges = [(0,15), (3,15), (6,15), (9,15), (11,15), (14,16)]\n\n# Let's try to find a bipartite graph that is maximal triangle-free.\n# First, let's see if we can partition vertices into two sets such that\n# all fixed edges go across the partition.\n\n# Try all possible partitions (2^17 is too large, but we can use constraints)\n\n# From fixed edges:\n# 15 is connected to 0,3,6,9,11 -> 15 must be opposite to these\n# 14 is connected to 16 -> 14 opposite to 16\n\n# Let's try to find a partition that works and then check maximality.\n\ndef check_partition(part):\n    \"\"\"part[v] = 0 or 1 for each vertex\"\"\"\n    # Check fixed edges go across\n    for u,v in fixed_edges:\n        if part[u] == part[v]:\n            return False\n    return True\n\n# Let's try to find a valid partition\n# We can set part[15] = 0, then part[0]=part[3]=part[6]=part[9]=part[11]=1\n# part[14] and part[16] must differ\n\n# Let's search systematically\nfrom itertools import product\n\n# Fix some variables to reduce search\n# Let part[15] = 0\n# Then part[0]=part[3]=part[6]=part[9]=part[11]=1\n# part[14] != part[16]\n\n# Remaining vertices: 1,2,4,5,7,8,10,12,13\n# And we need to assign part[14], part[16]\n\nremaining = [1,2,4,5,7,8,10,12,13,14,16]\n\nsolutions = []\nfor bits in product([0,1], repeat=len(remaining)):\n    part = {}\n    part[15] = 0\n    for v in [0,3,6,9,11]:\n        part[v] = 1\n    for i, v in enumerate(remaining):\n        part[v] = bits[i]\n    \n    if check_partition(part):\n        # Count sizes\n        size0 = sum(1 for v in range(n) if part[v] == 0)\n        size1 = sum(1 for v in range(n) if part[v] == 1)\n        solutions.append((part.copy(), size0, size1))\n\nprint(f\"Found {len(solutions)} valid partitions\")\n# Show a few\nfor part, s0, s1 in solutions[:5]:\n    print(f\"Partition sizes: {s0}, {s1}\")\n    set0 = [v for v in range(n) if part[v]==0]\n    set1 = [v for v in range(n) if part[v]==1]\n    print(f\"Set0: {set0}\")\n    print(f\"Set1: {set1}\")\n    print()",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 48.2
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 17\nfixed_edges = [(0,15), (3,15), (6,15), (9,15), (11,15), (14,16)]\n\nremaining = [1,2,4,5,7,8,10,12,13,14,16]\n\nsolutions_8_9 = []\nfor bits in itertools.product([0,1], repeat=len(remaining)):\n    part = {}\n    part[15] = 0\n    for v in [0,3,6,9,11]:\n        part[v] = 1\n    for i, v in enumerate(remaining):\n        part[v] = bits[i]\n    \n    # Check fixed edges go across\n    ok = True\n    for u,v in fixed_edges:\n        if part[u] == part[v]:\n            ok = False\n            break\n    if not ok:\n        continue\n    \n    size0 = sum(1 for v in range(n) if part[v] == 0)\n    size1 = sum(1 for v in range(n) if part[v] == 1)\n    if size0 == 8 and size1 == 9:\n        set0 = [v for v in range(n) if part[v]==0]\n        set1 = [v for v in range(n) if part[v]==1]\n        solutions_8_9.append((set0, set1))\n\nprint(f\"Found {len(solutions_8_9)} partitions with sizes 8 and 9\")\nfor set0, set1 in solutions_8_9[:5]:\n    print(f\"Set0: {sorted(set0)}\")\n    print(f\"Set1: {sorted(set1)}\")\n    print()",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 47.87
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "set0 = [1, 2, 4, 5, 7, 8, 14, 15]\nset1 = [0, 3, 6, 9, 10, 11, 12, 13, 16]\n\nedges = []\nfor u in set0:\n    for v in set1:\n        if u < v:\n            edges.append((u, v))\n        else:\n            edges.append((v, u))\n\nedges.sort()\nprint(f\"Total edges: {len(edges)}\")\nprint(\"Edges:\")\nfor e in edges:\n    print(e)\n\n# Verify fixed edges are present\nfixed = [(0,15), (3,15), (6,15), (9,15), (11,15), (14,16)]\nfor e in fixed:\n    assert e in edges, f\"Missing fixed edge {e}\"\nprint(\"\\nAll fixed edges present!\")\n\n# Verify triangle-free\n# In a bipartite graph, there are no odd cycles, so definitely triangle-free\nprint(\"Graph is bipartite, hence triangle-free\")\n\n# Verify maximality\n# Adding any edge within set0 or set1 would create a triangle\n# because any two vertices in the same partition share all vertices in the other partition as neighbors\nprint(\"Graph is maximal: adding any edge within a partition creates a triangle\")\nprint(f\"Set0 size: {len(set0)}, Set1 size: {len(set1)}\")\nprint(f\"Max edges possible: {len(set0)*len(set1)} = {len(set0)*len(set1)}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 42.51
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[(0, 1), (0, 2), (0, 4), (0, 5), (0, 7), (0, 8), (0, 14), (0, 15), (1, 3), (1, 6), (1, 9), (1, 10), (1, 11), (1, 12), (1, 13), (1, 16), (2, 3), (2, 6), (2, 9), (2, 10), (2, 11), (2, 12), (2, 13), (2, 16), (3, 4), (3, 5), (3, 7), (3, 8), (3, 14), (3, 15), (4, 6), (4, 9), (4, 10), (4, 11), (4, 12), (4, 13), (4, 16), (5, 6), (5, 9), (5, 10), (5, 11), (5, 12), (5, 13), (5, 16), (6, 7), (6, 8), (6, 14), (6, 15), (7, 9), (7, 10), (7, 11), (7, 12), (7, 13), (7, 16), (8, 9), (8, 10), (8, 11), (8, 12), (8, 13), (8, 16), (9, 14), (9, 15), (10, 14), (10, 15), (11, 14), (11, 15), (12, 14), (12, 15), (13, 14), (13, 15), (14, 16), (15, 16)]",
+        "reasoning": "The complete bipartite graph K_{8,9} on 17 vertices is triangle-free (bipartite graphs have no odd cycles) and maximal (adding any edge within a partition creates a triangle since both endpoints share all vertices in the opposite partition as common neighbors). The partition is Set0 = {1,2,4,5,7,8,14,15} and Set1 = {0,3,6,9,10,11,12,13,16}, which respects all fixed edges: (0,15), (3,15), (6,15), (9,15), (11,15) go between partitions (15 in Set0, others in Set1), and (14,16) goes between partitions (14 in Set0, 16 in Set1). The graph has 8\u00d79 = 72 edges, which is the maximum possible for a triangle-free graph on 17 vertices by Tur\u00e1n's theorem."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

@@ -1,0 +1,132 @@
+{
+  "problem_name": "ramsey_n7_r4_s3__v9_h",
+  "problem_type": "ramsey",
+  "params": {
+    "n": 7,
+    "r": 4,
+    "s": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 1283.0,
+    "search_space": 2097152,
+    "num_variables": 21,
+    "num_constraints": 210,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 81.39,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reasoning": "Used SAT solver (Glucose3) to find a valid 2-coloring of K_7 edges. Variables represent edge colors (0=red, 1=blue). Added constraints: (1) for every 4-subset of vertices, at least one edge must be blue (no red K4); (2) for every 3-subset of vertices, at least one edge must be red (no blue K3); (3) fixed assignments c[3]=0, c[7]=0, c[12]=0, c[18]=0. The solver found a satisfying assignment which was verified to contain no red K4 and no blue K3.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 9728,
+  "completion_tokens": 2933,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.07317900000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 38154.380321502686,
+  "tool_dispatch_ms_total": 735.7189655303955,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\nfrom pysat.solvers import Glucose3\n\n# K_7 has 7 vertices (0-6) and 21 edges\n# Edges in lexicographic order of (i,j) for i<j\nvertices = list(range(7))\nedges = [(i,j) for i in range(7) for j in range(i+1,7)]\nprint(f\"Number of edges: {len(edges)}\")\nprint(\"Edges:\", edges)\n\n# Map edge to index\nedge_to_idx = {e: i for i, e in enumerate(edges)}\nprint(\"\\nEdge to index mapping:\")\nfor e, i in edge_to_idx.items():\n    print(f\"  c[{i}] = edge {e}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 220.85
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom pysat.solvers import Glucose3\n\n# Variables: var[i] = i+1 (1-indexed for SAT solver)\n# var = 1 means blue (1), var = -1 means red (0)\n\nsolver = Glucose3()\n\ndef edge_var(i, j):\n    \"\"\"Returns SAT variable (1-indexed) for edge (i,j)\"\"\"\n    if i > j:\n        i, j = j, i\n    return edge_to_idx[(i,j)] + 1\n\n# Fixed assignments: c[3]=0, c[7]=0, c[12]=0, c[18]=0\n# c[3] = edge (0,4) = 0 (red) -> var 4 = False -> clause [-4]\n# c[7] = edge (1,3) = 0 (red) -> var 8 = False -> clause [-8]\n# c[12] = edge (2,4) = 0 (red) -> var 13 = False -> clause [-13]\n# c[18] = edge (4,5) = 0 (red) -> var 19 = False -> clause [-19]\n\nfixed = {3: 0, 7: 0, 12: 0, 18: 0}\nfor idx, val in fixed.items():\n    var = idx + 1\n    if val == 0:  # red -> variable is False\n        solver.add_clause([-var])\n    else:  # blue -> variable is True\n        solver.add_clause([var])\n\n# No monochromatic RED clique of size 4\n# For every 4-subset of vertices, not all edges are red (0)\n# i.e., at least one edge must be blue (1)\nfor clique in combinations(vertices, 4):\n    clause = []\n    for i, j in combinations(clique, 2):\n        clause.append(edge_var(i, j))  # at least one is blue\n    solver.add_clause(clause)\n\n# No monochromatic BLUE clique of size 3\n# For every 3-subset of vertices, not all edges are blue (1)\n# i.e., at least one edge must be red (0)\nfor clique in combinations(vertices, 3):\n    clause = []\n    for i, j in combinations(clique, 2):\n        clause.append(-edge_var(i, j))  # at least one is red\n    solver.add_clause(clause)\n\n# Solve\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    # Convert to 0/1 coloring\n    coloring = []\n    for i in range(21):\n        var = i + 1\n        if var in model:\n            coloring.append(1)  # blue\n        else:\n            coloring.append(0)  # red\n    print(f\"Coloring: {coloring}\")\n    \n    # Verify fixed assignments\n    print(\"\\nVerifying fixed assignments:\")\n    for idx, val in fixed.items():\n        print(f\"  c[{idx}] = {coloring[idx]} (expected {val}) {'OK' if coloring[idx]==val else 'FAIL'}\")\n"
+      },
+      "ok": false,
+      "latency_ms": 220.08
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\nfrom pysat.solvers import Glucose3\n\nvertices = list(range(7))\nedges = [(i,j) for i in range(7) for j in range(i+1,7)]\nedge_to_idx = {e: i for i, e in enumerate(edges)}\n\ndef edge_var(i, j):\n    if i > j:\n        i, j = j, i\n    return edge_to_idx[(i,j)] + 1\n\nsolver = Glucose3()\n\n# Fixed assignments: c[3]=0, c[7]=0, c[12]=0, c[18]=0\nfixed = {3: 0, 7: 0, 12: 0, 18: 0}\nfor idx, val in fixed.items():\n    var = idx + 1\n    if val == 0:\n        solver.add_clause([-var])\n    else:\n        solver.add_clause([var])\n\n# No monochromatic RED clique of size 4\nfor clique in combinations(vertices, 4):\n    clause = [edge_var(i, j) for i, j in combinations(clique, 2)]\n    solver.add_clause(clause)\n\n# No monochromatic BLUE clique of size 3\nfor clique in combinations(vertices, 3):\n    clause = [-edge_var(i, j) for i, j in combinations(clique, 2)]\n    solver.add_clause(clause)\n\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    model_set = set(model)\n    coloring = [1 if (i+1) in model_set else 0 for i in range(21)]\n    print(f\"Coloring: {coloring}\")\n    \n    print(\"\\nVerifying fixed assignments:\")\n    for idx, val in fixed.items():\n        status = 'OK' if coloring[idx]==val else 'FAIL'\n        print(f\"  c[{idx}] = {coloring[idx]} (expected {val}) {status}\")\n    \n    # Verify no red K4\n    print(\"\\nChecking no red K4:\")\n    found_red_k4 = False\n    for clique in combinations(vertices, 4):\n        edge_colors = [coloring[edge_to_idx[(i,j)]] for i,j in combinations(clique, 2)]\n        if all(c == 0 for c in edge_colors):\n            print(f\"  RED K4 found: {clique}\")\n            found_red_k4 = True\n    if not found_red_k4:\n        print(\"  None found - OK\")\n    \n    # Verify no blue K3\n    print(\"\\nChecking no blue K3:\")\n    found_blue_k3 = False\n    for clique in combinations(vertices, 3):\n        edge_colors = [coloring[edge_to_idx[(i,j)]] for i,j in combinations(clique, 2)]\n        if all(c == 1 for c in edge_colors):\n            print(f\"  BLUE K3 found: {clique}\")\n            found_blue_k3 = True\n    if not found_blue_k3:\n        print(\"  None found - OK\")\n"
+      },
+      "ok": true,
+      "latency_ms": 294.79
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          1,
+          1,
+          0,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "reasoning": "Used SAT solver (Glucose3) to find a valid 2-coloring of K_7 edges. Variables represent edge colors (0=red, 1=blue). Added constraints: (1) for every 4-subset of vertices, at least one edge must be blue (no red K4); (2) for every 3-subset of vertices, at least one edge must be red (no blue K3); (3) fixed assignments c[3]=0, c[7]=0, c[12]=0, c[18]=0. The solver found a satisfying assignment which was verified to contain no red K4 and no blue K3."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,137 @@
+{
+  "problem_name": "graceful_graph_k2_p6__v7_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1225.8,
+    "search_space": 582622237229761,
+    "num_variables": 28,
+    "num_constraints": 20,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 79.14,
+    "solve_pct_type": 31.25
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    6,
+    11,
+    14,
+    4,
+    5,
+    8,
+    16,
+    2,
+    0,
+    15,
+    1,
+    3
+  ],
+  "reasoning": "Found a graceful labeling for G_{2,6} using backtracking search. The solution [6, 11, 14, 4, 5, 8, 16, 2, 0, 15, 1, 3] satisfies all constraints:\n- All 12 vertex labels are distinct values from 0 to 16\n- All 16 edge labels |label(u)-label(v)| are distinct and cover exactly {1,2,...,16}\n- Fixed assignments respected: x[0]=6, x[3]=4\n- Fixed edge labels respected: d[10]=|x[4]-x[6]|=|5-16|=11, d[14]=|x[8]-x[10]|=|0-1|=1, d[15]=|x[9]-x[11]|=|15-3|=12\n\nClique assignments:\n- Clique 0: vertices 0,1 \u2192 labels 6,11\n- Clique 1: vertices 2,3 \u2192 labels 14,4\n- Clique 2: vertices 4,5 \u2192 labels 5,8\n- Clique 3: vertices 6,7 \u2192 labels 16,2\n- Clique 4: vertices 8,9 \u2192 labels 0,15\n- Clique 5: vertices 10,11 \u2192 labels 1,3",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 28502,
+  "completion_tokens": 4334,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.150516,
+  "cost_source": "openrouter",
+  "latency_ms": 69860.32199859619,
+  "tool_dispatch_ms_total": 1304.7714233398438,
+  "tool_calls_made": 7,
+  "tool_rounds": 7,
+  "n_execute_python": 6,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\n# Graph G_{2,6}: 6 disjoint K_2 cliques, each with 2 vertices\n# Vertices: clique g has vertices 2g and 2g+1\n# Edges within clique g: (2g, 2g+1) for g in 0..5\n# Edges between consecutive cliques g and g+1: (2g, 2g+2) and (2g+1, 2g+3)\n\n# Total vertices: 12 (labeled 0..11)\n# Total edges: 6 (within) + 5*2 (between) = 6 + 10 = 16\n\n# Build edge list\nedges = []\n# Within-clique edges\nfor g in range(6):\n    edges.append((2*g, 2*g+1))\n# Between consecutive cliques\nfor g in range(5):\n    edges.append((2*g, 2*g+2))      # vertex 0 of clique g to vertex 0 of clique g+1\n    edges.append((2*g+1, 2*g+3))    # vertex 1 of clique g to vertex 1 of clique g+1\n\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Edges: {edges}\")\n\n# Fixed assignments:\n# x[0] = 6 (vertex 0, clique 0, position 0)\n# x[3] = 4 (vertex 3, clique 1, position 1)\n# d[10] = 11, d[14] = 1, d[15] = 12\n# d[i] = |x[u] - x[v]| for edge i\n\n# Edge indices:\nprint(\"\\nEdge list with indices:\")\nfor i, e in enumerate(edges):\n    print(f\"  d[{i}] = |x[{e[0]}] - x[{e[1]}]|\")\n"
+      },
+      "ok": true,
+      "latency_ms": 40.71
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# d[10] = |x[4] - x[6]| = 11\n# d[14] = |x[8] - x[10]| = 1\n# d[15] = |x[9] - x[11]| = 12\n\n# Fixed: x[0] = 6, x[3] = 4\n# d[10] = |x[4] - x[6]| = 11\n# d[14] = |x[8] - x[10]| = 1\n# d[15] = |x[9] - x[11]| = 12\n\n# Use constraint programming with OR-Tools or brute force with pruning\nfrom itertools import permutations\n\ndef solve():\n    n_vertices = 12\n    n_edges = 16\n    \n    edges = []\n    for g in range(6):\n        edges.append((2*g, 2*g+1))\n    for g in range(5):\n        edges.append((2*g, 2*g+2))\n        edges.append((2*g+1, 2*g+3))\n    \n    # Fixed values\n    fixed = {0: 6, 3: 4}\n    \n    # d[10] = |x[4] - x[6]| = 11\n    # d[14] = |x[8] - x[10]| = 1  \n    # d[15] = |x[9] - x[11]| = 12\n    \n    # Labels are 0..16, all distinct\n    # Try with OR-Tools CP-SAT\n    from ortools.sat.python import cp_model\n    \n    model = cp_model.CpModel()\n    \n    # Variables\n    x = [model.NewIntVar(0, 16, f'x{i}') for i in range(12)]\n    d = [model.NewIntVar(1, 16, f'd{i}') for i in range(16)]\n    \n    # All vertex labels distinct\n    model.AddAllDifferent(x)\n    \n    # All edge labels distinct\n    model.AddAllDifferent(d)\n    \n    # Edge label constraints\n    for i, (u, v) in enumerate(edges):\n        model.AddAbsEquality(d[i], x[u] - x[v])\n    \n    # Fixed vertex assignments\n    model.Add(x[0] == 6)\n    model.Add(x[3] == 4)\n    \n    # Fixed edge label constraints\n    model.Add(d[10] == 11)\n    model.Add(d[14] == 1)\n    model.Add(d[15] == 12)\n    \n    solver = cp_model.CpSolver()\n    solver.parameters.max_time_in_seconds = 30.0\n    \n    status = solver.Solve(model)\n    \n    if status == cp_model.FEASIBLE or status == cp_model.OPTIMAL:\n        solution = [solver.Value(x[i]) for i in range(12)]\n        edge_labels = [solver.Value(d[i]) for i in range(16)]\n        return solution, edge_labels\n    else:\n        return None, None\n\nsolution, edge_labels = solve()\nif solution:\n    print(\"Solution found!\")\n    print(f\"Vertex labels: {solution}\")\n    print(f\"Edge labels: {edge_labels}\")\n    print(f\"Edge labels sorted: {sorted(edge_labels)}\")\n    print(f\"All edge labels 1-16: {sorted(edge_labels) == list(range(1, 17))}\")\n    print(f\"All vertex labels distinct: {len(set(solution)) == 12}\")\n    print(f\"Vertex labels range: {min(solution)} to {max(solution)}\")\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": false,
+      "latency_ms": 50.09
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Use pysat or pure Python approach\nimport sys\nprint(sys.path)\n\n# Try with constraint_solver or just brute force with smart pruning\n# Let's use a backtracking approach\n\nedges = []\nfor g in range(6):\n    edges.append((2*g, 2*g+1))\nfor g in range(5):\n    edges.append((2*g, 2*g+2))\n    edges.append((2*g+1, 2*g+3))\n\nprint(\"Edges:\", edges)\nprint(\"Edge 10:\", edges[10])  # |x[4] - x[6]| = 11\nprint(\"Edge 14:\", edges[14])  # |x[8] - x[10]| = 1\nprint(\"Edge 15:\", edges[15])  # |x[9] - x[11]| = 12\n"
+      },
+      "ok": true,
+      "latency_ms": 35.06
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Try pysat\ntry:\n    from pysat.solvers import Glucose3\n    print(\"pysat available\")\nexcept:\n    print(\"pysat not available\")\n\n# Let's try a smart backtracking approach\n# Fixed: x[0]=6, x[3]=4\n# d[10]=|x[4]-x[6]|=11 => (x[4],x[6]) in {(11,0),(0,11),(12,1),(1,12),...} pairs with diff 11\n# d[14]=|x[8]-x[10]|=1\n# d[15]=|x[9]-x[11]|=12\n\n# Let's enumerate systematically\n# Vertices: 0,1,2,3,4,5,6,7,8,9,10,11\n# Labels: 0..16, all distinct\n\n# From fixed constraints:\n# x[0]=6, x[3]=4\n# |x[4]-x[6]|=11: possible pairs (a,b) with |a-b|=11, a,b in 0..16, a!=b, a,b not in {6,4}\n# |x[8]-x[10]|=1\n# |x[9]-x[11]|=12\n\ndef get_pairs_with_diff(diff, used, n=16):\n    pairs = []\n    for a in range(n+1):\n        if a in used:\n            continue\n        b = a + diff\n        if b <= n and b not in used and b != a:\n            pairs.append((a, b))\n        b = a - diff\n        if b >= 0 and b not in used and b != a:\n            pairs.append((a, b))\n    return pairs\n\nused_init = {6, 4}\npairs_10 = get_pairs_with_diff(11, used_init)\nprint(f\"Pairs for d[10]=11 (x[4],x[6]): {pairs_10}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 379.82
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's use a complete backtracking solver\n# Order of assignment: x[0]=6(fixed), x[1], x[2], x[3]=4(fixed), x[4], x[5], x[6], x[7], x[8], x[9], x[10], x[11]\n\nedges = []\nfor g in range(6):\n    edges.append((2*g, 2*g+1))\nfor g in range(5):\n    edges.append((2*g, 2*g+2))\n    edges.append((2*g+1, 2*g+3))\n\n# For each edge, which vertices does it connect?\n# We can check an edge as soon as both endpoints are assigned\n\ndef solve_backtrack():\n    n_vertices = 12\n    n_labels = 16  # labels 0..16\n    \n    # Fixed assignments\n    fixed = {0: 6, 3: 4}\n    fixed_edge_labels = {10: 11, 14: 1, 15: 12}\n    \n    # Order to assign vertices\n    order = list(range(12))\n    \n    labels = [None] * 12\n    for v, val in fixed.items():\n        labels[v] = val\n    \n    used_labels = set(fixed.values())\n    used_edge_labels = set()\n    \n    # Check which edges can be evaluated given current assignment\n    def check_edges(labels, used_edge_labels):\n        \"\"\"Check all edges where both endpoints assigned. Return False if conflict.\"\"\"\n        new_edge_labels = {}\n        for i, (u, v) in enumerate(edges):\n            if labels[u] is not None and labels[v] is not None:\n                d = abs(labels[u] - labels[v])\n                if d == 0:\n                    return False, None\n                # Check fixed edge label constraints\n                if i in fixed_edge_labels and d != fixed_edge_labels[i]:\n                    return False, None\n                if i not in fixed_edge_labels and i in new_edge_labels:\n                    if new_edge_labels[i] != d:\n                        return False, None\n                new_edge_labels[i] = d\n        \n        # Check all computed edge labels are distinct\n        all_d = list(new_edge_labels.values())\n        if len(all_d) != len(set(all_d)):\n            return False, None\n        \n        # Check fixed edge labels are included\n        for i, d in fixed_edge_labels.items():\n            if i in new_edge_labels and new_edge_labels[i] != d:\n                return False, None\n        \n        return True, new_edge_labels\n    \n    solutions = []\n    \n    def backtrack(pos, labels, used_labels):\n        if pos == 12:\n            # All assigned, verify\n            ok, edge_labels = check_edges(labels, set())\n            if ok and len(edge_labels) == 16:\n                all_d = list(edge_labels.values())\n                if sorted(all_d) == list(range(1, 17)):\n                    solutions.append((list(labels), edge_labels))\n            return\n        \n        v = order[pos]\n        \n        if v in fixed:\n            backtrack(pos + 1, labels, used_labels)\n            return\n        \n        for label in range(17):\n            if label in used_labels:\n                continue\n            labels[v] = label\n            used_labels.add(label)\n            \n            ok, _ = check_edges(labels, set())\n            if ok:\n                backtrack(pos + 1, labels, used_labels)\n                if solutions:\n                    return\n            \n            labels[v] = None\n            used_labels.remove(label)\n    \n    backtrack(0, labels, used_labels)\n    return solutions\n\nprint(\"Starting backtracking search...\")\nsolutions = solve_backtrack()\nif solutions:\n    sol, edge_labels = solutions[0]\n    print(f\"Solution: {sol}\")\n    print(f\"Edge labels: {dict(sorted(edge_labels.items()))}\")\nelse:\n    print(\"No solution found\")\n"
+      },
+      "ok": true,
+      "latency_ms": 759.37
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution\nsol = [6, 11, 14, 4, 5, 8, 16, 2, 0, 15, 1, 3]\n\nedges = []\nfor g in range(6):\n    edges.append((2*g, 2*g+1))\nfor g in range(5):\n    edges.append((2*g, 2*g+2))\n    edges.append((2*g+1, 2*g+3))\n\nprint(\"Verification:\")\nprint(f\"Vertex labels: {sol}\")\nprint(f\"All distinct: {len(set(sol)) == 12}\")\nprint(f\"Range 0-16: {min(sol) >= 0 and max(sol) <= 16}\")\n\nedge_labels = []\nfor i, (u, v) in enumerate(edges):\n    d = abs(sol[u] - sol[v])\n    edge_labels.append(d)\n    print(f\"  Edge {i}: ({u},{v}) -> |{sol[u]}-{sol[v]}| = {d}\")\n\nprint(f\"\\nEdge labels: {sorted(edge_labels)}\")\nprint(f\"All edge labels 1-16: {sorted(edge_labels) == list(range(1, 17))}\")\n\n# Check fixed constraints\nprint(f\"\\nFixed constraints:\")\nprint(f\"x[0]=6: {sol[0]==6}\")\nprint(f\"x[3]=4: {sol[3]==4}\")\nprint(f\"d[10]=11: {edge_labels[10]==11}\")\nprint(f\"d[14]=1: {edge_labels[14]==1}\")\nprint(f\"d[15]=12: {edge_labels[15]==12}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 39.72
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          6,
+          11,
+          14,
+          4,
+          5,
+          8,
+          16,
+          2,
+          0,
+          15,
+          1,
+          3
+        ],
+        "reasoning": "Found a graceful labeling for G_{2,6} using backtracking search. The solution [6, 11, 14, 4, 5, 8, 16, 2, 0, 15, 1, 3] satisfies all constraints:\n- All 12 vertex labels are distinct values from 0 to 16\n- All 16 edge labels |label(u)-label(v)| are distinct and cover exactly {1,2,...,16}\n- Fixed assignments respected: x[0]=6, x[3]=4\n- Fixed edge labels respected: d[10]=|x[4]-x[6]|=|5-16|=11, d[14]=|x[8]-x[10]|=|0-1|=1, d[15]=|x[9]-x[11]|=|15-3|=12\n\nClique assignments:\n- Clique 0: vertices 0,1 \u2192 labels 6,11\n- Clique 1: vertices 2,3 \u2192 labels 14,4\n- Clique 2: vertices 4,5 \u2192 labels 5,8\n- Clique 3: vertices 6,7 \u2192 labels 16,2\n- Clique 4: vertices 8,9 \u2192 labels 0,15\n- Clique 5: vertices 10,11 \u2192 labels 1,3"
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

@@ -1,0 +1,96 @@
+{
+  "problem_name": "costas_array_n7__v8_h",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 7
+  },
+  "difficulty": {
+    "solve_time_ms": 897.2,
+    "search_space": 5040,
+    "num_variables": 7,
+    "num_constraints": 8,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 57.33,
+    "solve_pct_type": 38.89
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    5,
+    3,
+    6,
+    2,
+    4
+  ],
+  "reasoning": "A Costas array of order 7 exists with x[1]=1. The solution [0,1,5,3,6,2,4] places marks at columns 0..6 with rows 0,1,5,3,6,2,4 respectively. All 21 displacement vectors (dr, dc) between pairs of marks are pairwise distinct, satisfying the Costas array property.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4064,
+  "completion_tokens": 844,
+  "reasoning_tokens": 0,
+  "cached_tokens": 1792,
+  "cost_usd": 0.000604576,
+  "cost_source": "openrouter",
+  "latency_ms": 46629.929304122925,
+  "tool_dispatch_ms_total": 66.65587425231934,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            if (dr, dc) in vectors:\n                return False\n            vectors.add((dr, dc))\n    return True\n\n# We need x[1]=1, meaning column 1 (0-indexed) has row 1\n# So perm[1] = 1\nn = 7\nfixed_col = 1\nfixed_row = 1\n\nsolutions = []\nfor perm in itertools.permutations(range(n)):\n    if perm[fixed_col] == fixed_row:\n        if is_costas(perm):\n            solutions.append(list(perm))\n            if len(solutions) >= 5:\n                break\n\nprint(f\"Found {len(solutions)} solutions\")\nfor sol in solutions:\n    print(sol)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 33.91
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def verify_costas(perm):\n    n = len(perm)\n    print(f\"Permutation: {perm}\")\n    print(f\"Rows: {list(range(n))}\")\n    print(f\"Cols: {list(range(n))}\")\n    vectors = {}\n    for i in range(n):\n        for j in range(i+1, n):\n            dr = perm[j] - perm[i]\n            dc = j - i\n            if (dr, dc) in vectors:\n                print(f\"Conflict: ({dr},{dc}) from cols ({i},{j}) and {vectors[(dr,dc)]}\")\n                return False\n            vectors[(dr, dc)] = (i, j)\n    print(f\"All {n*(n-1)//2} vectors distinct!\")\n    print(f\"Vectors: {sorted(vectors.keys())}\")\n    return True\n\nsol = [0, 1, 5, 3, 6, 2, 4]\nverify_costas(sol)\nprint()\nsol2 = [0, 1, 6, 3, 5, 4, 2]\nverify_costas(sol2)",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 32.74
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          5,
+          3,
+          6,
+          2,
+          4
+        ],
+        "reasoning": "A Costas array of order 7 exists with x[1]=1. The solution [0,1,5,3,6,2,4] places marks at columns 0..6 with rows 0,1,5,3,6,2,4 respectively. All 21 displacement vectors (dr, dc) between pairs of marks are pairwise distinct, satisfying the Costas array property."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

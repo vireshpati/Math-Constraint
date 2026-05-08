@@ -1,0 +1,71 @@
+{
+  "problem_name": "knight_tour_n7__v2_nh",
+  "problem_type": "knight_tour",
+  "params": {
+    "n": 7
+  },
+  "difficulty": {
+    "solve_time_ms": 2845.5,
+    "search_space": 608281864034267560872252163321295376887552831379210240000000000,
+    "num_variables": 49,
+    "num_constraints": 52,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 95.68,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[0, 9, 4, 13, 26, 41, 46, 33, 48, 39, 34, 47, 38, 43, 28, 15, 2, 7, 22, 35, 44, 29, 42, 37, 24, 11, 6, 19, 10, 1, 14, 23, 8, 3, 12, 17, 32, 27, 18, 5, 20, 25, 16, 21, 30, 45, 36, 31, 40]",
+  "reasoning": "A valid open knight's tour exists on a 7x7 chessboard starting at cell 0. The solution was found using backtracking with Warnsdorff's heuristic (prioritizing moves to cells with fewer onward moves). The tour visits all 49 cells exactly once, starting at cell 0, with each consecutive pair of cells connected by a valid knight move.",
+  "raw_response": null,
+  "cot_trace": "I need to find an open knight's tour on a 7x7 chessboard starting at cell 0 (row 0, column 0). Let me think about this problem.\n\nA knight's tour visits every cell exactly once using knight moves. The board is 7x7 = 49 cells.\n\nLet me first understand the knight moves:\n- From position (r, c), a knight can move to:\n  - (r+1, c+2), (r+1, c-2), (r-1, c+2), (r-1, c-2)\n  - (r+2, c+1), (r+2, c-1), (r-2, c+1), (r-2, c-1)\n\nCells are numbered in row-major order: cell k is at row k//7, column k%7.\n\nI need to find a path of length 49 (visiting all 49 cells) starting from cell 0.\n\nLet me write a Python script to solve this using backtracking or a more efficient algorithm.\n\nActually, let me think about whether this is possible. A 7x7 board has 49 cells. Knight's tours exist on many board sizes. For an m\u00d7n board, a knight's tour exists if:\n- m and n are not both odd (for closed tours)\n- For open tours, the conditions are less restrictive\n\nActually, for a 7x7 board (both odd), a closed knight's tour is impossible, but an open knight's tour might be possible.\n\nLet me write a Python script to find this tour using backtracking with some heuristics (like Warnsdorff's rule).\n---\nThe solver found a valid knight's tour on the 7x7 board starting at cell 0. Let me verify the solution is correct and submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2621,
+  "completion_tokens": 1527,
+  "reasoning_tokens": 400,
+  "cached_tokens": 0,
+  "cost_usd": 0.0038294749999999997,
+  "cost_source": "openrouter",
+  "latency_ms": 31662.508249282837,
+  "tool_dispatch_ms_total": 676.6989231109619,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def solve_knights_tour():\n    n = 7\n    total_cells = n * n\n    \n    # Knight move offsets\n    moves = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]\n    \n    def get_neighbors(r, c):\n        neighbors = []\n        for dr, dc in moves:\n            nr, nc = r + dr, c + dc\n            if 0 <= nr < n and 0 <= nc < n:\n                neighbors.append((nr, nc))\n        return neighbors\n    \n    # Precompute neighbors for each cell\n    cell_neighbors = {}\n    for r in range(n):\n        for c in range(n):\n            cell = r * n + c\n            cell_neighbors[cell] = [nr * n + nc for nr, nc in get_neighbors(r, c)]\n    \n    # Use Warnsdorff's rule heuristic with backtracking\n    def solve():\n        path = [0]  # Start at cell 0\n        visited = {0}\n        \n        def backtrack():\n            if len(path) == total_cells:\n                return True\n            \n            current = path[-1]\n            # Get unvisited neighbors, sorted by number of their unvisited neighbors (Warnsdorff's rule)\n            neighbors = cell_neighbors[current]\n            unvisited = [nb for nb in neighbors if nb not in visited]\n            \n            # Sort by Warnsdorff's heuristic (fewer onward moves first)\n            unvisited.sort(key=lambda x: len([nn for nn in cell_neighbors[x] if nn not in visited]))\n            \n            for next_cell in unvisited:\n                path.append(next_cell)\n                visited.add(next_cell)\n                if backtrack():\n                    return True\n                path.pop()\n                visited.remove(next_cell)\n            \n            return False\n        \n        if backtrack():\n            return path\n        return None\n    \n    result = solve()\n    return result\n\ntour = solve_knights_tour()\nprint(\"Tour found:\", tour is not None)\nif tour:\n    print(\"Tour:\", tour)\n    print(\"Length:\", len(tour))\n    # Verify the tour\n    n = 7\n    moves = [(-2, -1), (-2, 1), (-1, -2), (-1, 2), (1, -2), (1, 2), (2, -1), (2, 1)]\n    \n    def is_valid_knight_move(c1, c2):\n        r1, c1_col = c1 // n, c1 % n\n        r2, c2_col = c2 // n, c2 % n\n        dr, dc = abs(r1 - r2), abs(c1_col - c2_col)\n        return (dr == 1 and dc == 2) or (dr == 2 and dc == 1)\n    \n    # Check all cells visited exactly once\n    assert len(tour) == 49\n    assert set(tour) == set(range(49))\n    assert tour[0] == 0\n    \n    # Check all moves are valid knight moves\n    for i in range(len(tour) - 1):\n        assert is_valid_knight_move(tour[i], tour[i+1]), f\"Invalid move from {tour[i]} to {tour[i+1]}\"\n    \n    print(\"Tour is valid!\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 676.7
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[0, 9, 4, 13, 26, 41, 46, 33, 48, 39, 34, 47, 38, 43, 28, 15, 2, 7, 22, 35, 44, 29, 42, 37, 24, 11, 6, 19, 10, 1, 14, 23, 8, 3, 12, 17, 32, 27, 18, 5, 20, 25, 16, 21, 30, 45, 36, 31, 40]",
+        "reasoning": "A valid open knight's tour exists on a 7x7 chessboard starting at cell 0. The solution was found using backtracking with Warnsdorff's heuristic (prioritizing moves to cells with fewer onward moves). The tour visits all 49 cells exactly once, starting at cell 0, with each consecutive pair of cells connected by a valid knight move."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

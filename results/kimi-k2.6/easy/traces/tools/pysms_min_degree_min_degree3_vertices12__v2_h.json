@@ -1,0 +1,233 @@
+{
+  "problem_name": "pysms_min_degree_min_degree3_vertices12__v2_h",
+  "problem_type": "pysms_min_degree",
+  "params": {
+    "min_degree": 3,
+    "vertices": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 88.1,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 66,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 29.51,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      3,
+      11
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      9
+    ],
+    [
+      4,
+      11
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      5,
+      11
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      6,
+      11
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      9,
+      10
+    ],
+    [
+      10,
+      11
+    ]
+  ],
+  "reasoning": "The fixed edges give degrees [1,3,1,2,2,1,4,1,2,2,2,5]. To raise all degrees to at least 3, we need to add edges covering the deficit vertices {0,2,3,4,5,7,8,9,10}. A set of 7 additional edges suffices: (0,1), (0,2), (2,3), (4,5), (5,7), (7,8), (9,10). The resulting graph has minimum degree 3 (vertex 0 has degree 3, vertex 2 has degree 3, etc.). All 20 edges are listed in lexicographic order.",
+  "raw_response": null,
+  "cot_trace": " We need to generate a graph with 12 vertices (0..11) where minimum degree is at least 3. There are fixed edges that must be present. We need to return a list of edges (u,v) with u<v. The graph must be simple (presumably no multiple edges, no self-loops). We need to find a set of edges containing the given ones, such that each vertex has degree >=3.\n\nWe can solve this via Python, maybe using a SAT solver or just greedy/backtracking. Since 12 vertices, total possible edges = C(12,2)=66. We have 13 fixed edges. We need to add edges to ensure min degree >=3.\n\nLet's compute degrees from fixed edges.\n\nFixed edges:\n(7,9)\n(1,3)\n(0,8)\n(6,11)\n(1,6)\n(3,11)\n(4,9)\n(4,11)\n(6,8)\n(10,11)\n(5,11)\n(1,10)\n(2,6)\n\nLet's compute degrees.\n\nInitialize deg[0..11]=0.\n\n(7,9): deg7=1, deg9=1\n(1,3): deg1=1, deg3=1\n(0,8): deg0=1, deg8=1\n(6,11): deg6=1, deg11=1\n(1,6): deg1=2, deg6=2\n(3,11): deg3=2, deg11=2\n(4,9): deg4=1, deg9=2\n(4,11): deg4=2, deg11=3\n(6,8): deg6=3, deg8=2\n(10,11): deg10=1, deg11=4\n(5,11): deg5=1, deg11=5\n(1,10): deg1=3, deg10=2\n(2,6): deg2=1, deg6=4\n\nSo current degrees:\n0:1\n1:3\n2:1\n3:2\n4:2\n5:1\n6:4\n7:1\n8:2\n9:2\n10:2\n11:5\n\nVertices needing more degree (to reach at least 3):\n0 needs 2\n2 needs 2\n3 needs 1\n4 needs 1\n5 needs 2\n7 needs 2\n8 needs 1\n9 needs 1\n10 needs 1\n\nTotal deficit = 2+2+1+1+2+2+1+1+1 = 13. Since each edge contributes 1 to degree of two vertices, we need at least ceil(13/2)=7 additional edges. But we can add more.\n\nWe need to choose edges among missing pairs (excluding fixed edges and no self-loops) to satisfy deficits.\n\nLet's list all possible missing edges (u<v) not in fixed set.\n\nWe can just brute force search for a set of additional edges of size maybe up to some limit (like 7-10) that satisfies deficits. Since 12 vertices, we can try using Python's itertools or a SAT solver.\n\nLet's use python to find a solution.\n---\n We found a solution with 7 additional edges. Let's verify degrees and that all edges are valid (u<v<12). Then output the complete edge list.\n\nFixed edges:\n(7,9), (1,3), (0,8), (6,11), (1,6), (3,11), (4,9), (4,11), (6,8), (10,11), (5,11), (1,10), (2,6)\n\nAdded edges:\n(0,1), (0,2), (2,3), (4,5), (5,7), (7,8), (9,10)\n\nLet's verify degrees:\n0: edges to 8,1,2 => degree 3\n1: edges to 3,6,10,0 => degree 4\n2: edges to 6,0,3 => degree 3\n3: edges to 11,1,2 => degree 3\n4: edges to 9,11,5 => degree 3\n5: edges to 11,4,7 => degree 3\n6: edges to 11,1,8,2 => degree 4\n7: edges to 9,5,8 => degree 3\n8: edges to 0,6,7 => degree 3\n9: edges to 7,4,10 => degree 3\n10: edges to 11,1,9 => degree 3\n11: edges to 6,3,4,10,5 => degree 5\n\nAll >=3. Good.\n\nNow we need to return the graph as a list of edges (u,v) with 0<=u<v<12. The problem says \"Return the graph as a list of edges (u, v) with 0 <= u < v < 12\". So we should provide the complete list.\n\nLet's sort them lexicographically for clarity.\n\nList:\n(0,1)\n(0,2)\n(0,8)\n(1,3)\n(1,6)\n(1,10)\n(2,3)\n(2,6)\n(3,11)\n(4,5)\n(4,9)\n(4,11)\n(5,7)\n(5,11)\n(6,8)\n(6,11)\n(7,8)\n(7,9)\n(9,10)\n(10,11)\n\nCount: 20 edges. Let's double-check we didn't miss any fixed ones.\n\nFixed:\n(7,9) - yes\n(1,3) - yes\n(0,8) - yes\n(6,11) - yes\n(1,6) - yes\n(3,11) - yes\n(4,9) - yes\n(4,11) - yes\n(6,8) - yes\n(10,11) - yes\n(5,11) - yes\n(1,10) - yes\n(2,6) - yes\n\nAdded:\n(0,1) - yes\n(0,2) - yes\n(2,3) - yes\n(4,5) - yes\n(5,7) - yes\n(7,8) - yes\n(9,10) - yes\n\nTotal 20. Good.\n\nNow submit.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 1601,
+  "completion_tokens": 2056,
+  "reasoning_tokens": 944,
+  "cached_tokens": 832,
+  "cost_usd": 0.007977600000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 68357.41591453552,
+  "tool_dispatch_ms_total": 3543.05100440979,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nfixed = {(7,9),(1,3),(0,8),(6,11),(1,6),(3,11),(4,9),(4,11),(6,8),(10,11),(5,11),(1,10),(2,6)}\nvertices = list(range(12))\n# compute current degrees\ndeg = [0]*12\nfor u,v in fixed:\n    deg[u]+=1\n    deg[v]+=1\n\nprint(\"Current degrees:\", deg)\n\n# vertices needing more degree\nneed = [max(0, 3-d) for d in deg]\nprint(\"Need:\", need)\nprint(\"Total deficit:\", sum(need))\n\n# all possible missing edges\nmissing = []\nfor u in range(12):\n    for v in range(u+1,12):\n        if (u,v) not in fixed:\n            missing.append((u,v))\nprint(\"Missing edges count:\", len(missing))\n\n# Let's try adding edges greedily or via brute force for small k.\n# Since deficit is 13, need at least 7 edges.\n\ndef solve(k):\n    # try all combinations of k missing edges\n    for combo in itertools.combinations(missing, k):\n        # compute new degrees\n        new_deg = deg[:]\n        for u,v in combo:\n            new_deg[u]+=1\n            new_deg[v]+=1\n        if all(d>=3 for d in new_deg):\n            return combo\n    return None\n\nfor k in range(7, 20):\n    sol = solve(k)\n    if sol:\n        print(\"Found solution with\", k, \"additional edges\")\n        print(sol)\n        break\nelse:\n    print(\"No solution found up to 19\")\n"
+      },
+      "ok": true,
+      "latency_ms": 3543.05
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            1,
+            10
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            6
+          ],
+          [
+            3,
+            11
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            9
+          ],
+          [
+            4,
+            11
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            11
+          ],
+          [
+            6,
+            8
+          ],
+          [
+            6,
+            11
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            9,
+            10
+          ],
+          [
+            10,
+            11
+          ]
+        ],
+        "reasoning": "The fixed edges give degrees [1,3,1,2,2,1,4,1,2,2,2,5]. To raise all degrees to at least 3, we need to add edges covering the deficit vertices {0,2,3,4,5,7,8,9,10}. A set of 7 additional edges suffices: (0,1), (0,2), (2,3), (4,5), (5,7), (7,8), (9,10). The resulting graph has minimum degree 3 (vertex 0 has degree 3, vertex 2 has degree 3, etc.). All 20 edges are listed in lexicographic order."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

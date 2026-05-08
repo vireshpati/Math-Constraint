@@ -1,0 +1,174 @@
+{
+  "problem_name": "pysms_chromatic_girth_max_chromatic_number5_min_edges9_min_girth5_vertices9__v9_h",
+  "problem_type": "pysms_chromatic_girth",
+  "params": {
+    "max_chromatic_number": 5,
+    "min_edges": 9,
+    "min_girth": 5,
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 13.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 9,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 7.52,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      8,
+      0
+    ],
+    [
+      4,
+      8
+    ]
+  ],
+  "reasoning": "The graph is a 9-cycle (0-1-2-3-4-5-6-7-8-0) plus the required edge (4,8). This gives 10 edges. The girth is 5 (the shortest cycle is 4-5-6-7-8-4 of length 5). The graph is 3-colorable (hence 5-colorable) with coloring [0,1,0,1,0,1,0,1,2]. All constraints are satisfied.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 8999,
+  "completion_tokens": 2893,
+  "reasoning_tokens": 0,
+  "cached_tokens": 5632,
+  "cost_usd": 0.0014391159999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 136232.18488693237,
+  "tool_dispatch_ms_total": 135.26535034179688,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport random\n\n# We need to find a graph with 9 vertices, girth >= 5, at least 9 edges, 5-colorable\n# Edge (4,8) must be present.\n\n# Let's try to construct one systematically.\n# Girth >= 5 means no 3-cycles and no 4-cycles.\n# With 9 vertices, we can try to build a graph that is bipartite or has long cycles.\n\n# Let's try a brute force search for small edge counts first.\n\nvertices = list(range(9))\nall_possible_edges = [(i,j) for i in range(9) for j in range(i+1,9)]\n\n# Remove (4,8) from the pool since it's fixed\nfixed_edge = (4,8)\nother_edges = [e for e in all_possible_edges if e != fixed_edge]\n\ndef has_cycle_of_length_at_most(edges, max_len):\n    \"\"\"Check if graph has a cycle of length <= max_len\"\"\"\n    adj = {i: set() for i in range(9)}\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # BFS/DFS to find cycles\n    for start in range(9):\n        # BFS to find shortest cycle through start\n        dist = {start: 0}\n        parent = {start: -1}\n        queue = [start]\n        while queue:\n            v = queue.pop(0)\n            for nb in adj[v]:\n                if nb not in dist:\n                    dist[nb] = dist[v] + 1\n                    parent[nb] = v\n                    queue.append(nb)\n                elif nb != parent[v]:\n                    # Found a cycle\n                    cycle_len = dist[v] + dist[nb] + 1\n                    if cycle_len <= max_len:\n                        return True\n    return False\n\ndef is_5_colorable(edges):\n    \"\"\"Check if graph is 5-colorable using brute force (9^5 is too big, use backtracking)\"\"\"\n    adj = {i: set() for i in range(9)}\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # Greedy coloring with backtracking\n    colors = [-1] * 9\n    \n    def backtrack(v):\n        if v == 9:\n            return True\n        used = set()\n        for nb in adj[v]:\n            if colors[nb] != -1:\n                used.add(colors[nb])\n        for c in range(5):\n            if c not in used:\n                colors[v] = c\n                if backtrack(v+1):\n                    return True\n                colors[v] = -1\n        return False\n    \n    return backtrack(0)\n\n# Let's try to construct a graph with girth >= 5\n# One approach: start with a cycle of length 5 or more, then add edges carefully\n\n# Let's try a systematic search with increasing number of edges\nfound = False\nfor num_extra in range(1, len(other_edges)+1):\n    if found:\n        break\n    # Try random combinations first\n    for _ in range(50000):\n        extra = random.sample(other_edges, num_extra)\n        edges = [fixed_edge] + extra\n        if not has_cycle_of_length_at_most(edges, 4):\n            if is_5_colorable(edges):\n                print(f\"Found! Edges: {edges}\")\n                found = True\n                break\n    if not found:\n        print(f\"No solution with {num_extra+1} edges (tried 50000 random samples)\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 51.09
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport random\n\nvertices = list(range(9))\nfixed_edge = (4,8)\nother_edges = [(i,j) for i in range(9) for j in range(i+1,9) if (i,j) != fixed_edge]\n\ndef has_cycle_of_length_at_most(edges, max_len):\n    adj = {i: set() for i in range(9)}\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    for start in range(9):\n        dist = {start: 0}\n        parent = {start: -1}\n        queue = [start]\n        while queue:\n            v = queue.pop(0)\n            for nb in adj[v]:\n                if nb not in dist:\n                    dist[nb] = dist[v] + 1\n                    parent[nb] = v\n                    queue.append(nb)\n                elif nb != parent[v]:\n                    cycle_len = dist[v] + dist[nb] + 1\n                    if cycle_len <= max_len:\n                        return True\n    return False\n\ndef is_5_colorable(edges):\n    adj = {i: set() for i in range(9)}\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    colors = [-1] * 9\n    \n    def backtrack(v):\n        if v == 9:\n            return True\n        used = set()\n        for nb in adj[v]:\n            if colors[nb] != -1:\n                used.add(colors[nb])\n        for c in range(5):\n            if c not in used:\n                colors[v] = c\n                if backtrack(v+1):\n                    return True\n                colors[v] = -1\n        return False\n    \n    return backtrack(0)\n\n# Let's try a more targeted approach.\n# Girth >= 5 means the graph is triangle-free and 4-cycle-free.\n# Let's try to build a graph that is essentially a cycle of length 9 (9 edges) plus maybe more.\n\n# A 9-cycle has girth 9, which is >= 5. And it's 2-colorable (bipartite? No, odd cycle needs 3 colors).\n# But 3 <= 5, so it's fine.\n\n# Let's try the 9-cycle: 0-1-2-3-4-5-6-7-8-0\n# But we need edge (4,8). In a 9-cycle, 4 and 8 are not adjacent (4-5, 7-8, 8-0).\n# So we can add (4,8) as a chord? That would create a cycle 4-5-6-7-8-4 which is length 5. That's fine (girth >= 5).\n# But also 4-8-0-1-2-3-4 is length 6. Also fine.\n\n# Let's try: 9-cycle + edge (4,8)\ncycle = [(0,1),(1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,8),(8,0)]\nedges = cycle + [fixed_edge]\nprint(f\"Edges: {edges}\")\nprint(f\"Has cycle <=4: {has_cycle_of_length_at_most(edges, 4)}\")\nprint(f\"5-colorable: {is_5_colorable(edges)}\")\nprint(f\"Number of edges: {len(edges)}\")\n\n# That's 10 edges, girth should be 5 (the cycle 4-5-6-7-8-4 is length 5).\n# Let's verify the girth more carefully.",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 51.19
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def compute_girth(edges):\n    adj = {i: set() for i in range(9)}\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    min_cycle = float('inf')\n    for start in range(9):\n        dist = {start: 0}\n        parent = {start: -1}\n        queue = [start]\n        while queue:\n            v = queue.pop(0)\n            for nb in adj[v]:\n                if nb not in dist:\n                    dist[nb] = dist[v] + 1\n                    parent[nb] = v\n                    queue.append(nb)\n                elif nb != parent[v]:\n                    cycle_len = dist[v] + dist[nb] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    return min_cycle\n\nedges = [(0,1),(1,2),(2,3),(3,4),(4,5),(5,6),(6,7),(7,8),(8,0),(4,8)]\nprint(f\"Girth: {compute_girth(edges)}\")\nprint(f\"Number of edges: {len(edges)}\")\n\n# Also verify 5-colorability with a concrete coloring\ndef find_coloring(edges):\n    adj = {i: set() for i in range(9)}\n    for u,v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    colors = [-1] * 9\n    \n    def backtrack(v):\n        if v == 9:\n            return True\n        used = set()\n        for nb in adj[v]:\n            if colors[nb] != -1:\n                used.add(colors[nb])\n        for c in range(5):\n            if c not in used:\n                colors[v] = c\n                if backtrack(v+1):\n                    return True\n                colors[v] = -1\n        return False\n    \n    if backtrack(0):\n        return colors\n    return None\n\nprint(f\"Coloring: {find_coloring(edges)}\")",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 32.99
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            8,
+            0
+          ],
+          [
+            4,
+            8
+          ]
+        ],
+        "reasoning": "The graph is a 9-cycle (0-1-2-3-4-5-6-7-8-0) plus the required edge (4,8). This gives 10 edges. The girth is 5 (the shortest cycle is 4-5-6-7-8-4 of length 5). The graph is 3-colorable (hence 5-colorable) with coloring [0,1,0,1,0,1,0,1,2]. All constraints are satisfied."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

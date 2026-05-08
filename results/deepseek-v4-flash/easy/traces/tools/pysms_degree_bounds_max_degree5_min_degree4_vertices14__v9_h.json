@@ -1,0 +1,100 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree5_min_degree4_vertices14__v9_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 4,
+    "vertices": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 16.2,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 33,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 8.08,
+    "solve_pct_type": 12.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[(0, 8), (0, 9), (0, 10), (0, 11), (0, 13), (1, 8), (1, 9), (1, 11), (1, 12), (1, 13), (2, 6), (2, 8), (2, 9), (2, 10), (2, 12), (3, 7), (3, 8), (3, 11), (3, 12), (3, 13), (4, 7), (4, 10), (4, 11), (4, 12), (4, 13), (5, 7), (5, 10), (5, 11), (5, 12), (5, 13), (6, 7), (6, 8), (6, 9), (6, 10), (7, 9)]",
+  "reasoning": "The problem asks for a graph with 14 vertices where each vertex has degree 4 or 5, with 6 fixed edges that must be present. Using a SAT solver (PySAT with Glucose3), I encoded the constraints: each vertex's incident edges must have between 4 and 5 true variables. The solver found a solution with 35 edges where all 14 vertices have degree exactly 5, and all 6 fixed edges are included.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: unsupported submitted-solution shape",
+  "prompt_tokens": 11808,
+  "completion_tokens": 2744,
+  "reasoning_tokens": 0,
+  "cached_tokens": 7936,
+  "cost_usd": 0.001532608,
+  "cost_source": "openrouter",
+  "latency_ms": 153500.84400177002,
+  "tool_dispatch_ms_total": 1573.8451480865479,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat import CNF, Solver\n\nn = 14\nfixed_edges = [(1,11), (0,13), (7,9), (1,13), (4,11), (6,9)]\n\n# All possible edges (undirected, u < v)\nall_edges = [(i,j) for i in range(n) for j in range(i+1, n)]\n\n# Map each edge to a SAT variable\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\n\ncnf = CNF()\n\n# Fixed edges must be present\nfor e in fixed_edges:\n    cnf.add_clause([edge_to_var[e]])\n\n# For each vertex, degree must be 4 or 5\n# We can encode: degree >= 4 AND degree <= 5\n# degree >= 4: at least 4 of the incident edges are true\n# degree <= 5: at most 5 of the incident edges are true\n\n# For each vertex, get incident edges\nincident = {v: [] for v in range(n)}\nfor e in all_edges:\n    i,j = e\n    incident[i].append(e)\n    incident[j].append(e)\n\n# At most 5: for each vertex, no 6 edges can be simultaneously true\n# So for each combination of 6 incident edges, at least one must be false\nfor v in range(n):\n    edges_v = incident[v]\n    # At most 5: for any 6 edges, not all can be true\n    for combo in itertools.combinations(edges_v, 6):\n        cnf.add_clause([-edge_to_var[e] for e in combo])\n    \n    # At least 4: for any (len-3) edges, not all can be false\n    # i.e., for any set of (len-3) edges, at least one must be true\n    # Actually, degree >= 4 means we cannot have (len-4) edges all false\n    # So for any combination of (len-4) edges, not all can be false\n    # Which means: for any set of (len-4) edges, at least one is true\n    k = len(edges_v) - 4\n    if k > 0:\n        for combo in itertools.combinations(edges_v, k):\n            cnf.add_clause([edge_to_var[e] for e in combo])\n\nprint(f\"Variables: {len(all_edges)}, Clauses: {len(cnf.clauses)}\")\n\nsolver = Solver(bootstrap_with=cnf)\nif solver.solve():\n    model = solver.get_model()\n    solution_edges = [var_to_edge[abs(v)] for v in model if v > 0]\n    print(f\"Solution found with {len(solution_edges)} edges\")\n    print(\"Edges:\", sorted(solution_edges))\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"All between 4 and 5?\", all(4 <= d <= 5 for d in deg))\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 34.2
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Check what's available in pysat\nimport pysat\nprint(dir(pysat))\nprint(pysat.__version__ if hasattr(pysat, '__version__') else 'no version')",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 33.74
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's use a different approach - use python-constraint or just brute force with itertools\n# Or use the SAT solver differently\nfrom pysat.formula import CNF\nfrom pysat.solvers import Glucose3\n\nn = 14\nfixed_edges = [(1,11), (0,13), (7,9), (1,13), (4,11), (6,9)]\n\n# All possible edges (undirected, u < v)\nall_edges = [(i,j) for i in range(n) for j in range(i+1, n)]\n\n# Map each edge to a SAT variable\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\n\ncnf = CNF()\n\n# Fixed edges must be present\nfor e in fixed_edges:\n    cnf.append([edge_to_var[e]])\n\n# For each vertex, get incident edges\nincident = {v: [] for v in range(n)}\nfor e in all_edges:\n    i,j = e\n    incident[i].append(e)\n    incident[j].append(e)\n\nimport itertools\n\n# At most 5: for each vertex, no 6 edges can be simultaneously true\nfor v in range(n):\n    edges_v = incident[v]\n    for combo in itertools.combinations(edges_v, 6):\n        cnf.append([-edge_to_var[e] for e in combo])\n    \n    # At least 4: for any (len-3) edges, not all can be false\n    # degree >= 4 means we cannot have (len-4) edges all false\n    k = len(edges_v) - 4\n    if k > 0:\n        for combo in itertools.combinations(edges_v, k):\n            cnf.append([edge_to_var[e] for e in combo])\n\nprint(f\"Variables: {len(all_edges)}, Clauses: {len(cnf.clauses)}\")\n\nsolver = Glucose3(bootstrap_with=cnf)\nif solver.solve():\n    model = solver.get_model()\n    solution_edges = [var_to_edge[abs(v)] for v in model if v > 0]\n    print(f\"Solution found with {len(solution_edges)} edges\")\n    print(\"Edges:\", sorted(solution_edges))\n    \n    # Verify degrees\n    deg = [0]*n\n    for u,v in solution_edges:\n        deg[u] += 1\n        deg[v] += 1\n    print(\"Degrees:\", deg)\n    print(\"All between 4 and 5?\", all(4 <= d <= 5 for d in deg))\nelse:\n    print(\"UNSATISFIABLE\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 1460.89
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0, 8), (0, 9), (0, 10), (0, 11), (0, 13), (1, 8), (1, 9), (1, 11), (1, 12), (1, 13), (2, 6), (2, 8), (2, 9), (2, 10), (2, 12), (3, 7), (3, 8), (3, 11), (3, 12), (3, 13), (4, 7), (4, 10), (4, 11), (4, 12), (4, 13), (5, 7), (5, 10), (5, 11), (5, 12), (5, 13), (6, 7), (6, 8), (6, 9), (6, 10), (7, 9)]\n\nfixed = [(1,11), (0,13), (7,9), (1,13), (4,11), (6,9)]\nfor e in fixed:\n    assert e in edges, f\"Missing fixed edge {e}\"\nprint(\"All fixed edges present\")\n\ndeg = [0]*14\nfor u,v in edges:\n    deg[u] += 1\n    deg[v] += 1\nprint(\"Degrees:\", deg)\nprint(\"All 4 or 5:\", all(4 <= d <= 5 for d in deg))\nprint(\"Number of edges:\", len(edges))",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 45.02
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[(0, 8), (0, 9), (0, 10), (0, 11), (0, 13), (1, 8), (1, 9), (1, 11), (1, 12), (1, 13), (2, 6), (2, 8), (2, 9), (2, 10), (2, 12), (3, 7), (3, 8), (3, 11), (3, 12), (3, 13), (4, 7), (4, 10), (4, 11), (4, 12), (4, 13), (5, 7), (5, 10), (5, 11), (5, 12), (5, 13), (6, 7), (6, 8), (6, 9), (6, 10), (7, 9)]",
+        "reasoning": "The problem asks for a graph with 14 vertices where each vertex has degree 4 or 5, with 6 fixed edges that must be present. Using a SAT solver (PySAT with Glucose3), I encoded the constraints: each vertex's incident edges must have between 4 and 5 true variables. The solver found a solution with 35 edges where all 14 vertices have degree exactly 5, and all 6 fixed edges are included."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

@@ -1,0 +1,102 @@
+{
+  "problem_name": "ramsey_n5_r3_s3__v0_h",
+  "problem_type": "ramsey",
+  "params": {
+    "n": 5,
+    "r": 3,
+    "s": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 935.0,
+    "search_space": 1024,
+    "num_variables": 10,
+    "num_constraints": 60,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 61.09,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    0,
+    1,
+    1,
+    1,
+    0,
+    1,
+    1,
+    0,
+    0
+  ],
+  "reasoning": "Found a valid 2-coloring avoiding monochromatic K3 by exhaustive search on 10 edges, respecting fixed c[3]=1, c[9]=0; verified no triple of edges in any triangle are all same color.",
+  "raw_response": null,
+  "cot_trace": "The problem asks to find a 2-coloring of the edges of the complete graph K_5 such that there is no monochromatic red clique of size 3 and no monochromatic blue clique of size 3. Each edge is colored e...I need to find a 2-coloring of the edges in K_5 without monochromatic triangles, respecting the fixed colors: edge (0,4) is blue (1), and edge (3,4) is red (0).\n---\nThe edges are indexed as:\n\n---\nThe problem is satisfiable. One solution is [0, 0, 1, 1, 1, 0, 1, 1, 0, 0]. This respects c[3]=1 and c[9]=0.\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2969,
+  "completion_tokens": 1892,
+  "reasoning_tokens": 1431,
+  "cached_tokens": 1536,
+  "cost_usd": 0.014525200000000002,
+  "cost_source": "openrouter",
+  "latency_ms": 21187.59059906006,
+  "tool_dispatch_ms_total": 67.13223457336426,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0,1),(0,2),(0,3),(0,4),(1,2),(1,3),(1,4),(2,3),(2,4),(3,4)]\nprint(len(edges))\ntriangles = []\nfrom itertools import combinations\nfor comb in combinations(range(5),3):\n    tri = list(comb)\n    e1 = tuple(sorted([tri[0],tri[1]]))\n    e2 = tuple(sorted([tri[0],tri[2]]))\n    e3 = tuple(sorted([tri[1],tri[2]]))\n    idx1 = edges.index(e1)\n    idx2 = edges.index(e2)\n    idx3 = edges.index(e3)\n    triangles.append((idx1,idx2,idx3))\nprint(triangles)"
+      },
+      "ok": true,
+      "latency_ms": 32.78
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import product\n\nfixed = {3:1, 9:0}\ntriples = [(0,1,4),(0,2,5),(0,3,6),(1,2,7),(1,3,8),(2,3,9),(4,5,7),(4,6,8),(5,6,9),(7,8,9)]\n\ndef is_good(coloring):\n    for a,b,c in triples:\n        if coloring[a] == coloring[b] == coloring[c]:\n            return False\n    return True\n\nsolutions = []\nfor vals in product([0,1], repeat=10):\n    coloring = list(vals)\n    if all(coloring[k] == v for k,v in fixed.items()):\n        if is_good(coloring):\n            solutions.append(coloring)\n\nprint(len(solutions))\nif solutions:\n    print(solutions[0])"
+      },
+      "ok": true,
+      "latency_ms": 34.35
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          0,
+          1,
+          1,
+          1,
+          0,
+          1,
+          1,
+          0,
+          0
+        ],
+        "reasoning": "Found a valid 2-coloring avoiding monochromatic K3 by exhaustive search on 10 edges, respecting fixed c[3]=1, c[9]=0; verified no triple of edges in any triangle are all same color."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

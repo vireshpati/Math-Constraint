@@ -1,0 +1,70 @@
+{
+  "problem_name": "pysms_mtf_vertices8__v9_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 9.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 12,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 3.76,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": null,
+  "reasoning": "A maximal triangle-free graph on 8 vertices with required edges (0,6) and (2,6) exists. The graph has 16 edges and is triangle-free. For every non-edge, there is a common neighbor, so adding any missing edge would create a triangle, making it maximal.",
+  "raw_response": null,
+  "cot_trace": "We need to generate a maximal triangle-free graph with 8 vertices. A maximal triangle-free graph means a triangle-free graph to which no edge can be added without creating a triangle. It doesn't necessarily mean maximum (i.e., with the maximum possible number of edges), just maximal. But the problem says \"Generate a maximal triangle-free graph with 8 vertices.\" Usually in such problems, they might want a maximal triangle-free graph, meaning we need to find a graph that is triangle-free and adding any missing edge creates a triangle. There may be many such graphs. We also have fixed edges: (0,6) and (2,6) must be present.\n\nWe need to return the graph as a list of edges (u,v) with 0 <= u < v < 8. So we need to output a set of edges that forms a maximal triangle-free graph on 8 vertices, containing (0,6) and (2,6).\n\nWe need to check if such a graph exists. Since there are triangle-free maximal graphs on 8 vertices (e.g., a complete bipartite graph is triangle-free but not maximal unless it's a complete bipartite graph with partition sizes that make it maximal? Actually a complete bipartite graph is triangle-free, but it's not maximal if there are non-edges within a part? Wait: In a complete bipartite graph K_{a,b}, any missing edge is either within the same part. Adding an edge within a part does not create a triangle because there is no edge within the other part? Actually adding an edge within a part could create a triangle if there is a vertex in the other part connected to both endpoints. In K_{a,b}, every vertex in the other part is connected to both endpoints. So adding an edge within a part creates a triangle with any vertex in the other part. So K_{a,b} is maximal triangle-free if both a,b >= 1? Let's check: In K_{a,b}, the missing edges are exactly those within each part. If we add an edge within a part, say between u and v in part A, then any vertex w in part B is adjacent to both u and v (since it's complete bipartite), so u-v-w forms a triangle. So yes, K_{a,b} is maximal triangle-free for a,b >= 1. However, if one part has size 1, say K_{1,7}, adding an edge within the part of size 7: pick two vertices u,v in the size-7 part, they are both adjacent to the single vertex in the other part, so adding edge (u,v) creates a triangle. So K_{1,7} is also maximal triangle-free. But K_{1,7} is a star, which is triangle-free and maximal? Let's verify: In a star K_{1,7}, the center is connected to all leaves. The leaves have degree 1. If we add an edge between two leaves, they share the center as common neighbor, so that creates a triangle. So yes, star is maximal triangle-free. But is it maximal? Are there any other missing edges? The only missing edges are leaf-leaf edges. Adding any of them creates a triangle. So yes, star is maximal triangle-free.\n\nBut the problem says \"Generate a maximal triangle-free graph with 8 vertices.\" It might be that they want a graph with the maximum number of edges (i.e., extremal) but the wording \"maximal\" usually means not extendable. However, in many SAT/constraint contexts, \"maximal\" might mean \"maximum\" but they are distinct. Let's read carefully: \"Generate a maximal triangle-free graph with 8 vertices.\" Usually in graph theory, \"maximal\" means cannot add any edge without violating the property. \"Maximum\" means has the most edges. The problem says \"maximal\". So we need a graph that is triangle-free and maximal.\n\nBut we also need to ensure that the fixed edges (0,6) and (2,6) are present. So we need to find a maximal triangle-free graph on vertices {0,...,7} containing those edges.\n\nOne simple approach: Use a complete bipartite graph with partition depending on the fixed edges. For instance, put vertex 6 in one part, and vertices 0 and 2 in the other part. Then we need to assign the remaining vertices 1,3,4,5,7 to parts such that the graph is complete bipartite. But we also need to ensure that the fixed edges are present. In a complete bipartite graph, edges only go across parts. So if 6 is in part A, and 0,2 are in part B, then edges (0,6) and (2,6) are across parts, so they are present. Good.\n\nNow, can we assign the rest arbitrarily? Let's try to make a balanced complete bipartite graph, say K_{4,4}. Let part A = {6,1,3,5}, part B = {0,2,4,7}. Then edges are all pairs across parts. That includes (0,6), (2,6). The graph is K_{4,4}, which is triangle-free and maximal. So that would be a valid solution.\n\nBut wait: Is K_{4,4} maximal? Yes, as argued above. So we can just output all edges across the partition.\n\nLet's list them:\n\nPart A: {1,3,5,6}\nPart B: {0,2,4,7}\n\nEdges (u<v):\nFrom 0 to A: (0,1), (0,3), (0,5), (0,6)\nFrom 2 to A: (2,1), (2,3), (2,5), (2,6)\nFrom 4 to A: (4,1), (4,3), (4,5), (4,6)\nFrom 7 to A: (7,1), (7,3), (7,5), (7,6)\n\nTotal edges: 16.\n\nCheck that (0,6) and (2,6) are included. Yes.\n\nIs there any triangle? No, because it's bipartite.\n\nIs it maximal? Adding any missing edge (i.e., within a part) would create a triangle because the other part has at least 2 vertices? Wait, for K_{4,4}, each part has size 4. If we add an edge within part A, say between 1 and 3, then any vertex in part B (e.g., 0) is adjacent to both 1 and 3, so {1,3,0} is a triangle. So yes, it's maximal.\n\nBut is there any requirement that the graph must be maximal in the sense of \"maximum number of edges\"? The problem says \"maximal triangle-free graph\". In extremal graph theory, the maximum number of edges in a triangle-free graph on n vertices is given by Tur\u00e1n's theorem: ex(n, K_3) = floor(n^2/4). For n=8, that's 16. And the extremal graphs are complete bipartite graphs with partition sizes floor(n/2) and ceil(n/2), i.e., K_{4,4}. So K_{4,4} is actually a maximum triangle-free graph, which is also maximal. So it's perfect.\n\nBut we need to be careful: The problem might be from a SAT competition where they ask for a maximal triangle-free graph, meaning a graph that is triangle-free and adding any missing edge creates a triangle. K_{4,4} satisfies that. And it has the maximum possible edges, which is nice.\n\nHowever, we need to ensure that the fixed edges are present. In our partition, 6 is in part A, 0 and 2 are in part B. So edges (0,6) and (2,6) are cross edges, present. Good.\n\nBut is there any other constraint? The problem says \"Return a complete solution consistent with these fixed assignments.\" So we just need to list all edges.\n\nLet's double-check that K_{4,4} is indeed maximal triangle-free. Yes.\n\nBut wait: Could there be a subtlety? Some definitions of maximal triangle-free require that the graph is triangle-free and for every non-edge {u,v}, there exists a vertex w such that {u,w,v} is a triangle in G+{u,v}. In K_{4,4}, for any non-edge within a part, any vertex in the other part forms a triangle. So it's maximal.\n\nThus the answer is the edge list of K_{4,4} with partition {0,2,4,7} and {1,3,5,6}.\n\nLet's list edges in sorted order:\n\n(0,1)\n(0,3)\n(0,5)\n(0,6)\n(2,1) -> (1,2)\n(2,3)\n(2,5)\n(2,6)\n(4,1) -> (1,4)\n(4,3) -> (3,4)\n(4,5)\n(4,6)\n(7,1) -> (1,7)\n(7,3) -> (3,7)\n(7,5)\n(7,6)\n\nLet's sort them properly:\n\n(0,1)\n(0,3)\n(0,5)\n(0,6)\n(1,2)\n(1,4)\n(1,7)\n(2,3)\n(2,5)\n(2,6)\n(3,4)\n(3,7)\n(4,5)\n(4,6)\n(5,7)\n(6,7)\n\nWait, check (7,5): 5<7 so (5,7). (7,6): 6<7 so (6,7). (4,3): 3<4 so (3,4). (2,1): 1<2 so (1,2). (4,1): (1,4). (7,1): (1,7). (7,3): (3,7).\n\nLet's list all cross edges systematically:\n\nPart B = {0,2,4,7}, Part A = {1,3,5,6}.\n\nEdges:\n0-1, 0-3, 0-5, 0-6\n2-1, 2-3, 2-5, 2-6\n4-1, 4-3, 4-5, 4-6\n7-1, 7-3, 7-5, 7-6\n\nNow sort each edge (u<v):\n\n(0,1)\n(0,3)\n(0,5)\n(0,6)\n(1,2)\n(1,4)\n(1,7)\n(2,3)\n(2,5)\n(2,6)\n(3,4)\n(3,7)\n(4,5)\n(4,6)\n(5,7)\n(6,7)\n\nCount: 16 edges. Good.\n\nCheck that (0,6) and (2,6) are present. Yes.\n\nNow, is there any possibility that the problem expects a graph that is maximal but not necessarily complete bipartite? It doesn't matter; any valid solution works.\n\nBut let's think: Is K_{4,4} the only maximal triangle-free graph with 16 edges? No, but it's one. And it satisfies constraints.\n\nHowever, we need to be absolutely sure that the problem doesn't require something else. Let's re-read: \"Generate a maximal triangle-free graph with 8 vertices. Return the graph as a list of edges (u, v) with 0 <= u < v < 8, or state \"UNSATISFIABLE\" if no graph exists. Partial assignment (fixed values that must be respected): - Known present edges: (0,6), (2,6) Return a complete solution consistent with these fixed assignments.\"\n\nSo yes, just output the edge list.\n\nBut wait: The phrase \"maximal triangle-free graph\" might be interpreted as \"a triangle-free graph that is maximal with respect to inclusion\". K_{4,4} is indeed maximal. But also any complete bipartite graph with both parts nonempty is maximal. So K_{4,4} is fine.\n\nOne thing: In K_{4,4}, the complement consists of two disjoint K_4's. Adding any edge from the complement (i.e., within a part) creates a triangle because the other part has size 4. So it's maximal.\n\nThus the answer is SAT, with the edge list above.\n\nBut before finalizing, let's consider if there is any hidden constraint that the graph must be maximal but not necessarily complete bipartite, and maybe the fixed edges force some structure that makes K_{4,4} invalid? No, K_{4,4} is valid.\n\nBut let's double-check: Are there any triangles? Let's verify with Python quickly.\n---\nThe graph I found is triangle-free, maximal, has 8 vertices, and includes the required edges (0,6) and (2,6). Let me verify the edge list once more and submit.\n\nEdges:\n(0,1), (0,3), (0,5), (0,6),\n(1,2), (1,4), (1,7),\n(2,3), (2,5), (2,6),\n(3,4), (3,7),\n(4,5), (4,6),\n(5,7),\n(6,7)\n\nThat's 16 edges. Let me double-check by listing them in order.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Claimed SAT but no solution provided",
+  "prompt_tokens": 1464,
+  "completion_tokens": 3369,
+  "reasoning_tokens": 2512,
+  "cached_tokens": 0,
+  "cost_usd": 0.0147936,
+  "cost_source": "openrouter",
+  "latency_ms": 348854.1576862335,
+  "tool_dispatch_ms_total": 32.74989128112793,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [\n    (0,1), (0,3), (0,5), (0,6),\n    (1,2), (1,4), (1,7),\n    (2,3), (2,5), (2,6),\n    (3,4), (3,7),\n    (4,5), (4,6),\n    (5,7),\n    (6,7)\n]\n\n# Check triangle-free\nn = 8\nadj = [set() for _ in range(n)]\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\ntriangles = []\nfor u in range(n):\n    for v in adj[u]:\n        if v > u:\n            for w in adj[v]:\n                if w > v and w in adj[u]:\n                    triangles.append((u,v,w))\n\nprint(\"Triangles:\", triangles)\n\n# Check maximal: for every non-edge, adding it creates a triangle\nnon_edges = []\nfor u in range(n):\n    for v in range(u+1, n):\n        if v not in adj[u]:\n            non_edges.append((u,v))\n\nprint(\"Non-edges:\", non_edges)\n\nmaximal = True\nfor u,v in non_edges:\n    # check if there is w adjacent to both u and v\n    common = adj[u].intersection(adj[v])\n    if len(common) == 0:\n        print(f\"Adding ({u},{v}) does NOT create a triangle\")\n        maximal = False\n        \nprint(\"Maximal:\", maximal)\nprint(\"Edge count:\", len(edges))\nprint(\"Has (0,6):\", (0,6) in edges)\nprint(\"Has (2,6):\", (2,6) in edges)\n"
+      },
+      "ok": true,
+      "latency_ms": 32.75
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": null,
+        "reasoning": "A maximal triangle-free graph on 8 vertices with required edges (0,6) and (2,6) exists. The graph has 16 edges and is triangle-free. For every non-edge, there is a common neighbor, so adding any missing edge would create a triangle, making it maximal."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

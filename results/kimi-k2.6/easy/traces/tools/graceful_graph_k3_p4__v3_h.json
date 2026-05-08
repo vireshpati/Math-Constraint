@@ -1,0 +1,105 @@
+{
+  "problem_name": "graceful_graph_k3_p4__v3_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1447.9,
+    "search_space": 12855002631049216,
+    "num_variables": 33,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 86.28,
+    "solve_pct_type": 68.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    3,
+    21,
+    15,
+    20,
+    0,
+    1,
+    7,
+    2,
+    17,
+    16,
+    5,
+    9
+  ],
+  "reasoning": "Found a graceful labeling using OR-Tools CP-SAT solver. The 12 vertices are labeled [3,21,15,20,0,1,7,2,17,16,5,9] (grouped by cliques). All 21 edge differences are distinct and cover 1..21: [18,12,6,20,19,1,5,10,15,11,7,4,17,21,14,13,2,16,9,3,8]. The fixed partial assignments are satisfied: x[2]=15, x[4]=0, d[6]=|7-2|=5, d[9]=|16-5|=11, d[15]=|20-7|=13, d[18]=|7-16|=9.",
+  "raw_response": null,
+  "cot_trace": " We need to find a graceful labeling for a specific graph G_{3,4}: 4 disjoint K_3 cliques (numbered 0 through 3), where each pair of consecutive cliques (g, g+1) is connected by 3 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..2. The graph has 12 vertices and 21 edges in total.\n\nA graceful labeling assigns each vertex a unique label from 0 to 21 such that all edge labels |label(u) - label(v)| are distinct.\n\nReturn a list of 12 integers giving the vertex labels, ordered by clique then vertex within clique (so the i-th block of 3 consecutive entries gives the labels for clique i), or state \"UNSATISFIABLE\" if no such labeling exists.\n\nPartial assignment (fixed values that must be respected):\n- x[2]=15, x[4]=0\n- d[6]=5, d[9]=11, d[15]=13, d[18]=9\nReturn a complete solution consistent with these fixed assignments.\n\nWe need to understand the indexing. The graph has 12 vertices. Let's denote vertices as x[0]...x[11] maybe. The partial assignment says x[2]=15, x[4]=0. So vertex indices 2 and 4 are fixed.\n\nAlso there are edge labels d[0]...d[20] maybe. The partial assignment says d[6]=5, d[9]=11, d[15]=13, d[18]=9. So some edge labels are fixed.\n\nWe need to find a graceful labeling consistent with these.\n\nWe need to know the edge indexing. The problem statement says \"d[6]=5, d[9]=11, d[15]=13, d[18]=9\". We need to infer which edges correspond to which d indices.\n\nThe graph: 4 cliques (groups) of 3 vertices each. Within each clique, edges between all pairs: each K_3 has 3 edges. So 4*3 = 12 internal edges.\n\nBetween consecutive cliques, there are 3 edges linking vertex i of clique g to vertex i of clique g+1. There are 3 such pairs of consecutive cliques (0-1, 1-2, 2-3). So 3*3 = 9 inter-clique edges.\n\nTotal edges = 12 + 9 = 21. Good.\n\nWe need to assign labels to vertices. Let's define vertices as:\n\nClique 0: v0, v1, v2\nClique 1: v3, v4, v5\nClique 2: v6, v7, v8\nClique 3: v9, v10, v11\n\nThe edges:\n\nInternal edges:\nClique 0: (v0,v1), (v0,v2), (v1,v2)\nClique 1: (v3,v4), (v3,v5), (v4,v5)\nClique 2: (v6,v7), (v6,v8), (v7,v8)\nClique 3: (v9,v10), (v9,v11), (v10,v11)\n\nInter-clique edges:\nBetween 0 and 1: (v0,v3), (v1,v4), (v2,v5)\nBetween 1 and 2: (v3,v6), (v4,v7), (v5,v8)\nBetween 2 and 3: (v6,v9), (v7,v10), (v8,v11)\n\nNow, the edge labels d[k] for k=0..20. We need to know the mapping from edges to d indices. The problem statement gives d[6]=5, d[9]=11, d[15]=13, d[18]=9. We need to infer the ordering. Possibly the edges are listed in some order: maybe first all internal edges in clique order, then inter-clique edges? Or maybe some other order.\n\nLet's think: The problem might be from a specific benchmark or dataset where edges are indexed in a particular way. We need to figure it out.\n\nThe partial assignment also gives x[2]=15, x[4]=0. So vertex 2 is in clique 0 (if 0-indexed within clique: v2 = x[2]). Vertex 4 is x[4] which is the second vertex of clique 1 (since clique 1 has vertices x[3], x[4], x[5]). So x[4] = v4 = 0.\n\nSo v2 = 15, v4 = 0.\n\nNow, d[6]=5, d[9]=11, d[15]=13, d[18]=9.\n\nIf edges are indexed as:\n0: (v0,v1)\n1: (v0,v2)\n2: (v1,v2)\n3: (v3,v4)\n4: (v3,v5)\n5: (v4,v5)\n6: (v6,v7)\n7: (v6,v8)\n8: (v7,v8)\n9: (v9,v10)\n10: (v9,v11)\n11: (v10,v11)\n12: (v0,v3)\n13: (v1,v4)\n14: (v2,v5)\n15: (v3,v6)\n16: (v4,v7)\n17: (v5,v8)\n18: (v6,v9)\n19: (v7,v10)\n20: (v8,v11)\n\nThis is a plausible ordering: internal edges first, clique by clique, then inter-clique edges, group by group.\n\nUnder this ordering:\nd[6] = |v6 - v7| = 5\nd[9] = |v9 - v10| = 11\nd[15] = |v3 - v6| = 13\nd[18] = |v6 - v9| = 9\n\nAlternatively, edges could be indexed differently. But this seems natural.\n\nWe need to find a graceful labeling. Let's try to solve this constraint satisfaction problem using Python, maybe with OR-Tools or pysat or brute force with pruning. Since there are 12 vertices and labels 0..21, but 12 labels must be distinct. The search space is large (22 choose 12 * 12! ~ huge). But with constraints, we can use a SAT solver or CP-SAT.\n\nWe have partial assignments: x[2]=15, x[4]=0. And edge constraints.\n\nWe need to be careful about the edge indexing. If we assume the above indexing, we can try to solve. If no solution, maybe the indexing is different.\n\nLet's try to solve with OR-Tools CP-SAT. We have 12 integer variables x[0..11] in [0,21], all different. For each edge e=(u,v), we have d_e = |x[u] - x[v]|, and all d_e must be all different and in [1,21] (since 21 edges, distinct differences from 1 to 21). Actually, the set of edge labels must be exactly {1,2,...,21} because there are 21 edges and each edge label is a positive integer \u226421, and they must be distinct. So the edge labels are a permutation of 1..21.\n\nThus we can model: for each edge e, d_e is an integer variable in [1,21], all different. And d_e = |x[u]-x[v]|.\n\nBut absolute value in CP-SAT can be modeled with d_e = x[u] - x[v] or x[v] - x[u], etc. Or we can use AddAbsEquality.\n\nLet's try with OR-Tools CP-SAT. We need to install? OR-Tools might be available. Let's check.\n---\n We have a graph G_{3,4}: 4 disjoint K_3 cliques (numbered 0 through 3), where each pair of consecutive cliques (g, g+1) is connected by 3 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..2. The graph has 12 vertices and 21 edges in total.\n\nA graceful labeling assigns each vertex a unique label from 0 to 21 such that all edge labels |label(u) - label(v)| are distinct.\n\nReturn a list of 12 integers giving the vertex labels, ordered by clique then vertex within clique (so the i-th block of 3 consecutive entries gives the labels for clique i), or state \"UNSATISFIABLE\" if no such labeling exists.\n\nPartial assignment (fixed values that must be respected):\n- x[2]=15, x[4]=0\n- d[6]=5, d[9]=11, d[15]=13, d[18]=9\nReturn a complete solution consistent with these fixed assignments.\n\nWe need to understand the indexing. There are 12 vertices, indexed 0..11. The graph is 4 cliques of size 3, with edges between consecutive cliques linking same index vertices.\n\nSo vertices: clique 0: v0,v1,v2; clique1: v3,v4,v5; clique2: v6,v7,v8; clique3: v9,v10,v11.\n\nEdges:\n- Within each clique: all pairs. So clique 0: (0,1),(0,2),(1,2); clique1: (3,4),(3,5),(4,5); clique2: (6,7),(6,8),(7,8); clique3: (9,10),(9,11),(10,11). That's 4*3 = 12 edges.\n- Between cliques: for each g=0..2, for each i=0..2, edge between vertex i of clique g and vertex i of clique g+1. So edges: (0,3),(1,4),(2,5) [g=0]; (3,6),(4,7),(5,8) [g=1]; (6,9),(7,10),(8,11) [g=2]. That's 3*3 = 9 edges.\nTotal edges = 12+9 = 21. Good.\n\nWe need a graceful labeling: assign distinct labels from 0..21 to the 12 vertices, such that the 21 edge labels (absolute differences) are all distinct (so they must be exactly 1..21 in some order).\n\nPartial assignment:\n- x[2]=15, x[4]=0. So vertex 2 (clique0, vertex2) label is 15. Vertex 4 (clique1, vertex1) label is 0.\n- d[6]=5, d[9]=11, d[15]=13, d[18]=9.\n\nWhat is d? Usually in graceful labeling, d[k] denotes the edge label k (i.e., the edge with difference k). But here they say d[6]=5, d[9]=11, d[15]=13, d[18]=9. That suggests d is an array of size 21 (or 22) mapping edge index to difference? Or maybe d[i] is the edge label for the i-th edge? Let's think.\n\nThe problem statement says \"Partial assignment (fixed values that must be respected): - x[2]=15, x[4]=0 - d[6]=5, d[9]=11, d[15]=13, d[18]=9\". So x is vertex labels, d is edge labels. But which edge corresponds to which index in d? We need to infer the edge ordering.\n\nPossibly edges are ordered in some canonical way. Let's try to deduce. The edges are 21. Maybe they are ordered as: first the 12 intra-clique edges, then the 9 inter-clique edges. Or maybe they are ordered by clique then by vertex pairs. We need to figure out the indexing of d.\n\nAlternatively, maybe d[k] means the edge with label k is assigned to some specific edge? But d[6]=5 would mean edge label 6 is assigned to edge index 5? That seems odd.\n\nWait, maybe d is the edge label array where d[e] is the absolute difference for edge e. So d[6]=5 means the 6th edge (in some ordering) has difference 5. Similarly d[9]=11 means edge 9 has difference 11, etc.\n\nWe need to know the edge ordering. Let's think about typical conventions. The graph has 12 vertices and 21 edges. The edges could be enumerated in many ways. Perhaps the problem uses a specific ordering: for each clique g from 0 to 3, for each pair of vertices (i,j) with i<j within the clique, add edge. Then for each g from 0 to 2, for each i from 0 to 2, add edge between clique g vertex i and clique g+1 vertex i.\n\nLet's enumerate edges in that order and see if the partial assignments make sense.\n\nEdge list (using 0-based vertex indices):\nIntra-clique edges:\nClique 0 (vertices 0,1,2): e0=(0,1), e1=(0,2), e2=(1,2)\nClique 1 (vertices 3,4,5): e3=(3,4), e4=(3,5), e5=(4,5)\nClique 2 (vertices 6,7,8): e6=(6,7), e7=(6,8), e8=(7,8)\nClique 3 (vertices 9,10,11): e9=(9,10), e10=(9,11), e11=(10,11)\n\nInter-clique edges:\ng=0: e12=(0,3), e13=(1,4), e14=(2,5)\ng=1: e15=(3,6), e16=(4,7), e17=(5,8)\ng=2: e18=(6,9), e19=(7,10), e20=(8,11)\n\nSo d[6]=5 means edge e6=(6,7) has difference 5. d[9]=11 means edge e9=(9,10) has difference 11. d[15]=13 means edge e15=(3,6) has difference 13. d[18]=9 means edge e18=(6,9) has difference 9.\n\nLet's see if this is plausible. We have x[2]=15, x[4]=0. Vertex 2 is in clique0, vertex2. Vertex 4 is in clique1, vertex1 (index 1). x[4]=0.\n\nEdge e1=(0,2) involves vertex 2. Edge e2=(1,2) involves vertex 2. Edge e14=(2,5) involves vertex 2. Edge e5=(4,5) involves vertex 4? Wait vertex 4 is clique1 vertex1. Edges involving vertex 4: intra-clique: e3=(3,4), e5=(4,5). Inter-clique: e13=(1,4) (but that's vertex 1 to vertex 4), e16=(4,7). So vertex 4 is involved in edges e3, e5, e13, e16.\n\nGiven x[4]=0, the differences on edges incident to vertex 4 are just the labels of the neighbor vertices. So x[3], x[5], x[1], x[7] must be distinct edge labels (since all edge labels are distinct). But we don't know which edges they correspond to.\n\nGiven d[6]=5, edge (6,7) diff=5. d[9]=11, edge (9,10) diff=11. d[15]=13, edge (3,6) diff=13. d[18]=9, edge (6,9) diff=9.\n\nThis seems plausible. Let's try to solve with CP-SAT using this edge ordering.\n\nWe have 12 variables x[0..11] in {0..21}, all-different.\n21 edge variables d[0..20] in {1..21}, all-different.\nFor each edge e=(u,v), d[e] = |x[u] - x[v]|.\nPartial assignments: x[2]=15, x[4]=0.\nd[6]=5, d[9]=11, d[15]=13, d[18]=9.\n\nLet's code this in OR-Tools CP-SAT and see if it finds a solution.\n---\n The solver found a solution:\nx = [3, 21, 15, 20, 0, 1, 7, 2, 17, 16, 5, 9]\n\nLet's verify the partial assignments:\n- x[2] = 15 \u2713\n- x[4] = 0 \u2713\n- d[6] = 5: edge (6,7) -> |7-2| = 5 \u2713\n- d[9] = 11: edge (9,10) -> |16-5| = 11 \u2713\n- d[15] = 13: edge (3,6) -> |20-7| = 13 \u2713\n- d[18] = 9: edge (6,9) -> |7-16| = 9 \u2713\n\nAll edge differences are distinct and cover 1..21.\n\nThe solution is:\nClique 0: [3, 21, 15]\nClique 1: [20, 0, 1]\nClique 2: [7, 2, 17]\nClique 3: [16, 5, 9]\n\nI should submit this.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 3163,
+  "completion_tokens": 4947,
+  "reasoning_tokens": 2887,
+  "cached_tokens": 672,
+  "cost_usd": 0.019441700000000003,
+  "cost_source": "openrouter",
+  "latency_ms": 311154.64091300964,
+  "tool_dispatch_ms_total": 4106.106996536255,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys, subprocess, json, math, itertools, random, time, os, collections, functools, heapq\n\n# Check if ortools is available\ntry:\n    from ortools.sat.python import cp_model\n    print(\"ortools available\")\nexcept Exception as e:\n    print(\"ortools not available:\", e)\n"
+      },
+      "ok": true,
+      "latency_ms": 2945.82
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\ndef solve():\n    model = cp_model.CpModel()\n    n = 12\n    m = 21\n    x = [model.NewIntVar(0, 21, f'x{i}') for i in range(n)]\n    # all-different vertices\n    model.AddAllDifferent(x)\n    \n    # edges list as hypothesized\n    edges = []\n    # intra-clique\n    for g in range(4):\n        base = g*3\n        for i in range(3):\n            for j in range(i+1, 3):\n                edges.append((base+i, base+j))\n    # inter-clique\n    for g in range(3):\n        for i in range(3):\n            edges.append((g*3+i, (g+1)*3+i))\n    print(\"Number of edges:\", len(edges))\n    for idx, e in enumerate(edges):\n        print(idx, e)\n    \n    d = [model.NewIntVar(1, 21, f'd{idx}') for idx in range(len(edges))]\n    model.AddAllDifferent(d)\n    \n    for idx, (u,v) in enumerate(edges):\n        # d[idx] = |x[u] - x[v]|\n        # Use allowed assignments or linear constraints\n        # Since domain is small, we can use AddAbsEquality\n        diff = model.NewIntVar(-21, 21, f'diff{idx}')\n        model.Add(diff == x[u] - x[v])\n        model.AddAbsEquality(d[idx], diff)\n    \n    # partial assignments\n    model.Add(x[2] == 15)\n    model.Add(x[4] == 0)\n    model.Add(d[6] == 5)\n    model.Add(d[9] == 11)\n    model.Add(d[15] == 13)\n    model.Add(d[18] == 9)\n    \n    solver = cp_model.CpSolver()\n    solver.parameters.max_time_in_seconds = 30.0\n    solver.parameters.num_search_workers = 8\n    # Optional: log\n    # solver.parameters.log_search_progress = True\n    \n    status = solver.Solve(model)\n    print(\"Status:\", solver.StatusName(status))\n    if status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n        sol = [solver.Value(x[i]) for i in range(n)]\n        dvals = [solver.Value(d[i]) for i in range(len(edges))]\n        print(\"Solution x:\", sol)\n        print(\"Edge diffs:\", dvals)\n        # verify\n        ok = True\n        diffs = []\n        for idx, (u,v) in enumerate(edges):\n            diff = abs(sol[u]-sol[v])\n            diffs.append(diff)\n            if diff != dvals[idx]:\n                print(f\"Mismatch edge {idx}: computed {diff}, d {dvals[idx]}\")\n                ok = False\n        if len(set(diffs)) != len(diffs):\n            print(\"Duplicate diffs!\")\n            ok = False\n        if len(set(sol)) != len(sol):\n            print(\"Duplicate labels!\")\n            ok = False\n        print(\"Verification:\", ok)\n        return sol, dvals, edges\n    else:\n        return None, None, edges\n\nsol, dvals, edges = solve()\n"
+      },
+      "ok": true,
+      "latency_ms": 1160.28
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          3,
+          21,
+          15,
+          20,
+          0,
+          1,
+          7,
+          2,
+          17,
+          16,
+          5,
+          9
+        ],
+        "reasoning": "Found a graceful labeling using OR-Tools CP-SAT solver. The 12 vertices are labeled [3,21,15,20,0,1,7,2,17,16,5,9] (grouped by cliques). All 21 edge differences are distinct and cover 1..21: [18,12,6,20,19,1,5,10,15,11,7,4,17,21,14,13,2,16,9,3,8]. The fixed partial assignments are satisfied: x[2]=15, x[4]=0, d[6]=|7-2|=5, d[9]=|16-5|=11, d[15]=|20-7|=13, d[18]=|7-16|=9."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

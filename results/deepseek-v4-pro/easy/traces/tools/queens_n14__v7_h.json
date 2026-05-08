@@ -1,0 +1,108 @@
+{
+  "problem_name": "queens_n14__v7_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 1143.3,
+    "search_space": 11112006825558016,
+    "num_variables": 14,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 78.01,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    2,
+    0,
+    7,
+    10,
+    4,
+    9,
+    1,
+    13,
+    11,
+    6,
+    8,
+    12,
+    5,
+    3
+  ],
+  "reasoning": "Found via backtracking with the fixed assignments q[4]=4 and q[6]=1. Verified no two queens share a row, column, or diagonal.",
+  "raw_response": null,
+  "cot_trace": "We need to solve the N-Queens problem for N=14 with two fixed positions: row 4 column 4, row 6 column 1. We need to find a solution (list of 14 integers) or determine unsatisfiable.\n\nWe can use Python with backtracking or SAT solver. Let's try using python-constraint or just backtracking with heuristics. Since N=14 is moderate, backtracking should work.\n\nLet's write a Python script to solve it.\n---\nThe solution found: [2, 0, 7, 10, 4, 9, 1, 13, 11, 6, 8, 12, 5, 3]\n\nLet me verify the fixed assignments:\n- q[4] = 4 (row 4, col 4) \u2713\n- q[6] = 1 (row 6, col 1) \u2713\n\nCheck no attacks:\n- All columns distinct? 2,0,7,10,4,9,1,13,11,6,8,12,5,3 - all distinct \u2713\n- Diagonals: check differences.\n\nLet me double-check with a quick script.\n---\nThe solution satisfies the constraints: q[4]=4, q[6]=1, and no two queens attack each other. Let me submit.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4170,
+  "completion_tokens": 1262,
+  "reasoning_tokens": 222,
+  "cached_tokens": 512,
+  "cost_usd": 0.013336999999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 110835.92462539673,
+  "tool_dispatch_ms_total": 68.48931312561035,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import sys\n\n# N-Queens backtracking with forward checking / minimum remaining values\nn = 14\nfixed = {4: 4, 6: 1}\n\n# We'll use backtracking with bitwise operations for speed.\n\ndef solve_nqueens(n, fixed):\n    # fixed: dict row->col\n    # We'll place queens row by row.\n    # Use arrays for columns, diag1 (row+col), diag2 (row-col+n-1)\n    cols = [False] * n\n    diag1 = [False] * (2*n - 1)  # row+col\n    diag2 = [False] * (2*n - 1)  # row-col + n-1\n    \n    solution = [None] * n\n    \n    # Pre-place fixed queens\n    for r, c in fixed.items():\n        if cols[c] or diag1[r+c] or diag2[r-c + n-1]:\n            return None  # conflict\n        cols[c] = True\n        diag1[r+c] = True\n        diag2[r-c + n-1] = True\n        solution[r] = c\n    \n    # Order rows: start with rows that have no fixed queen, but we can use MRV\n    # Actually we just go row by row, skipping fixed rows.\n    \n    def backtrack(row):\n        if row == n:\n            return True\n        if solution[row] is not None:\n            return backtrack(row + 1)\n        # Try columns in order; could use heuristic\n        for col in range(n):\n            if not cols[col] and not diag1[row+col] and not diag2[row-col + n-1]:\n                cols[col] = True\n                diag1[row+col] = True\n                diag2[row-col + n-1] = True\n                solution[row] = col\n                if backtrack(row + 1):\n                    return True\n                cols[col] = False\n                diag1[row+col] = False\n                diag2[row-col + n-1] = False\n                solution[row] = None\n        return False\n    \n    if backtrack(0):\n        return solution\n    return None\n\nsol = solve_nqueens(n, fixed)\nif sol:\n    print(\"Solution:\", sol)\n    # Verify\n    ok = True\n    for i in range(n):\n        for j in range(i+1, n):\n            if sol[i] == sol[j] or abs(sol[i]-sol[j]) == abs(i-j):\n                ok = False\n                print(f\"Conflict: ({i},{sol[i]}) and ({j},{sol[j]})\")\n    print(\"Valid:\", ok)\nelse:\n    print(\"UNSAT\")"
+      },
+      "ok": true,
+      "latency_ms": 34.65
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "sol = [2, 0, 7, 10, 4, 9, 1, 13, 11, 6, 8, 12, 5, 3]\nn = 14\nok = True\nfor i in range(n):\n    for j in range(i+1, n):\n        if sol[i] == sol[j] or abs(sol[i]-sol[j]) == abs(i-j):\n            print(f\"Conflict: ({i},{sol[i]}) and ({j},{sol[j]})\")\n            ok = False\nprint(\"All good:\", ok)\nprint(\"Fixed: q[4]=\", sol[4], \"q[6]=\", sol[6])"
+      },
+      "ok": true,
+      "latency_ms": 33.84
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          2,
+          0,
+          7,
+          10,
+          4,
+          9,
+          1,
+          13,
+          11,
+          6,
+          8,
+          12,
+          5,
+          3
+        ],
+        "reasoning": "Found via backtracking with the fixed assignments q[4]=4 and q[6]=1. Verified no two queens share a row, column, or diagonal."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

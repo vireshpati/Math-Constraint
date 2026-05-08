@@ -1,0 +1,176 @@
+{
+  "problem_name": "pysms_chromatic_girth_max_chromatic_number2_min_edges8_min_girth5_vertices13__v2_h",
+  "problem_type": "pysms_chromatic_girth",
+  "params": {
+    "max_chromatic_number": 2,
+    "min_edges": 8,
+    "min_girth": 5,
+    "vertices": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 91.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 12,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 32.89,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      0,
+      9
+    ]
+  ],
+  "reasoning": "A star graph centered at vertex 0 with leaves {1,3,4,5,6,7,8,9} works. It has 8 edges (meeting the minimum), is bipartite (2-colorable with center in one part and all leaves in the other), has no cycles so girth is infinite (\u22655), and includes the required edges (0,1) and (0,8).",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 28863,
+  "completion_tokens": 7024,
+  "reasoning_tokens": 0,
+  "cached_tokens": 14080,
+  "cost_usd": 0.004430580000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 375826.76219940186,
+  "tool_dispatch_ms_total": 1065.5999183654785,
+  "tool_calls_made": 6,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat import CNF\nfrom pysat.solvers import Glucose3\n\n# We have 13 vertices, need bipartite graph with girth >= 5, at least 8 edges\n# Must include edges (0,1) and (0,8)\n\n# Let's use a SAT approach\n# Variables: for each possible edge (i,j) with i<j, variable x_{i,j} indicates if edge is present\n# Also need coloring variables: for each vertex v, color[v] in {0,1}\n\nn = 13\nedges = [(i,j) for i in range(n) for j in range(i+1, n)]\nedge_var = {e: idx+1 for idx, e in enumerate(edges)}\nnum_edge_vars = len(edges)\n\n# Color variables: for each vertex v, we have a boolean variable c_v (0 or 1)\n# We'll use variables after edge vars\ncolor_var = {v: num_edge_vars + 1 + v for v in range(n)}\nnum_vars = num_edge_vars + n\n\ncnf = CNF()\n\n# Fixed edges\ncnf.add_clause([edge_var[(0,1)]])\ncnf.add_clause([edge_var[(0,8)]])\n\n# At least 8 edges: we need a cardinality constraint\n# Let's use sequential counter encoding for at least 8 edges\n# Or we can just try to find a graph with many edges and check\n\n# For bipartiteness: for each edge (i,j), if edge present then color[i] != color[j]\n# color[i] XOR color[j] = 1 when edge present\n# (edge_present) -> (color_i != color_j)\n# Equivalent to: (not edge_present) OR (color_i != color_j)\n# color_i != color_j means (color_i AND not color_j) OR (not color_i AND color_j)\n# In CNF: (not edge_present OR color_i OR color_j) AND (not edge_present OR not color_i OR not color_j)\n\nfor (i,j) in edges:\n    e = edge_var[(i,j)]\n    ci = color_var[i]\n    cj = color_var[j]\n    # If edge present, colors must differ\n    # (e -> (ci != cj))\n    # (not e OR ci OR cj) AND (not e OR not ci OR not cj)\n    cnf.add_clause([-e, ci, cj])\n    cnf.add_clause([-e, -ci, -cj])\n\n# Girth >= 5: no cycles of length 3 or 4\n# In bipartite graph, no odd cycles, so only need to forbid 4-cycles\n# A 4-cycle is: i-j-k-l-i where i,k in one part and j,l in the other\n# For any 4 vertices a,b,c,d with edges (a,b),(b,c),(c,d),(d,a), we cannot have all 4 edges present\n\n# Check all possible 4-cycles\nfor a in range(n):\n    for b in range(a+1, n):\n        for c in range(b+1, n):\n            for d in range(c+1, n):\n                # Check if these 4 vertices can form a 4-cycle\n                # Possible 4-cycles: a-b-c-d-a, a-b-d-c-a, a-c-b-d-a\n                cycles = [\n                    [(a,b),(b,c),(c,d),(d,a)],\n                    [(a,b),(b,d),(d,c),(c,a)],\n                    [(a,c),(c,b),(b,d),(d,a)],\n                ]\n                for cycle in cycles:\n                    # Check all edges are valid (i<j)\n                    valid = True\n                    for (u,v) in cycle:\n                        if u > v:\n                            u,v = v,u\n                        if (u,v) not in edges:\n                            valid = False\n                            break\n                    if valid:\n                        # Cannot have all 4 edges present\n                        cnf.add_clause([-edge_var[(min(u,v),max(u,v))] for (u,v) in cycle])\n\nprint(f\"Variables: {num_vars}, Clauses so far: {len(cnf.clauses)}\")\n\n# Now we need at least 8 edges. Let's use a simple approach: try different k values\n# Or use a cardinality constraint\n\n# Let's use the sequential counter encoding for >= 8\n# We have num_edge_vars variables, we want at least 8 true\n# Sequential counter: s_{i,j} for i=1..num_edge_vars, j=1..7 (since we need at least 8, we track up to 7)\n# Actually for >= k, we track up to k-1\n\nk = 8\n# s_{i,j} for i in 1..num_edge_vars, j in 1..k-1\n# We'll use new variables\ns_vars = {}\nidx = num_vars + 1\nfor i in range(1, num_edge_vars + 1):\n    for j in range(1, k):\n        s_vars[(i,j)] = idx\n        idx += 1\n\ntotal_vars = idx - 1\n\n# Add sequential counter clauses\n# For i=1: s_{1,1} = x_1, s_{1,j} = 0 for j>1\n# Actually: s_{1,1} <-> x_1\ncnf.add_clause([-s_vars[(1,1)], edge_var[edges[0]]])\ncnf.add_clause([s_vars[(1,1)], -edge_var[edges[0]]])\nfor j in range(2, k):\n    cnf.add_clause([-s_vars[(1,j)]])\n\n# For i>1:\n# s_{i,1} = x_i OR s_{i-1,1}\n# s_{i,j} = (x_i AND s_{i-1,j-1}) OR s_{i-1,j} for j>1\n# In CNF:\n# (not s_{i-1,1} OR s_{i,1})\n# (not x_i OR s_{i,1})\n# (not s_{i,1} OR x_i OR s_{i-1,1})\n# For j>1:\n# (not s_{i-1,j} OR s_{i,j})\n# (not x_i OR not s_{i-1,j-1} OR s_{i,j})\n# (not s_{i,j} OR s_{i-1,j} OR x_i)\n# (not s_{i,j} OR s_{i-1,j} OR s_{i-1,j-1})\n\nfor i in range(2, num_edge_vars + 1):\n    xi = edge_var[edges[i-1]]\n    # j=1\n    cnf.add_clause([-s_vars[(i-1,1)], s_vars[(i,1)]])\n    cnf.add_clause([-xi, s_vars[(i,1)]])\n    cnf.add_clause([-s_vars[(i,1)], xi, s_vars[(i-1,1)]])\n    # j>1\n    for j in range(2, k):\n        cnf.add_clause([-s_vars[(i-1,j)], s_vars[(i,j)]])\n        cnf.add_clause([-xi, -s_vars[(i-1,j-1)], s_vars[(i,j)]])\n        cnf.add_clause([-s_vars[(i,j)], s_vars[(i-1,j)], xi])\n        cnf.add_clause([-s_vars[(i,j)], s_vars[(i-1,j)], s_vars[(i-1,j-1)]])\n\n# Finally, we need at least k true, so s_{num_edge_vars, k-1} must be true\n# Wait, s_{i,j} means at least j of the first i variables are true\n# So s_{num_edge_vars, k-1} means at least k-1 are true... no\n# Actually s_{i,j} means at least j of the first i variables are true\n# So s_{num_edge_vars, k-1} means at least k-1 are true\n# For at least k, we need s_{num_edge_vars, k} but we only track up to k-1\n# Hmm, let me reconsider.\n\n# Actually the standard encoding: s_{i,j} means at least j of first i are true\n# We want at least k true, so we need s_{num_edge_vars, k} to be true\n# But we only defined up to k-1. Let me redefine.\n\n# Let me just use a simpler approach: try to find a solution with a specific number of edges\n# by adding a constraint that exactly k edges are present, using a different encoding\n\nprint(\"Trying a different approach...\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 35.7
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import pysat\nprint(dir(pysat))\nfrom pysat.solvers import Glucose3\nprint(\"Glucose3 available\")\n# Check what's in pysat\nimport pysat.formula\nprint(dir(pysat.formula))",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 220.21
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Glucose3\n\n# Let me try a simpler approach: brute force search for a bipartite graph\n# with girth >= 5 and at least 8 edges\n\n# Since we need bipartite, let's try different partitions\n# and search for edges\n\nimport itertools\n\nn = 13\nfixed_edges = [(0,1), (0,8)]\n\n# Let's try to construct a graph manually\n# We need bipartite, so let's assign colors first\n# Then add edges respecting bipartiteness and no 4-cycles\n\n# Let's try a systematic search using SAT\n\n# Variables: for each possible edge (i,j) with i<j\nall_edges = [(i,j) for i in range(n) for j in range(i+1, n)]\nedge_to_idx = {e: idx+1 for idx, e in enumerate(all_edges)}\nnum_edge_vars = len(all_edges)\n\n# Color variables\ncolor_vars = {v: num_edge_vars + 1 + v for v in range(n)}\nnum_vars = num_edge_vars + n\n\ncnf = CNF()\n\n# Fixed edges\ncnf.add_clause([edge_to_idx[(0,1)]])\ncnf.add_clause([edge_to_idx[(0,8)]])\n\n# Bipartiteness: for each edge, colors must differ\nfor (i,j) in all_edges:\n    e = edge_to_idx[(i,j)]\n    ci = color_vars[i]\n    cj = color_vars[j]\n    cnf.add_clause([-e, ci, cj])\n    cnf.add_clause([-e, -ci, -cj])\n\n# No 4-cycles\n# For any 4 distinct vertices a,b,c,d, we cannot have a 4-cycle\n# A 4-cycle in bipartite graph: a-b-c-d-a where a,c in one part, b,d in other\n# Since we don't know the partition, we need to forbid any 4-cycle\n# A 4-cycle is any set of 4 edges forming a cycle of length 4\n\n# Let's enumerate all possible 4-cycles\n# A 4-cycle is defined by 4 distinct vertices and 4 edges\n# The cycle is a-b-c-d-a where edges are (a,b), (b,c), (c,d), (d,a)\n# All 4 vertices must be distinct\n\nfor a in range(n):\n    for b in range(a+1, n):\n        for c in range(b+1, n):\n            for d in range(c+1, n):\n                # Check all possible 4-cycles among these 4 vertices\n                # There are 3 ways to arrange them in a cycle\n                # But we need to check if the edges exist in our edge set\n                # The 4-cycle patterns:\n                # a-b-c-d-a: edges (a,b),(b,c),(c,d),(d,a)\n                # a-b-d-c-a: edges (a,b),(b,d),(d,c),(c,a)\n                # a-c-b-d-a: edges (a,c),(c,b),(b,d),(d,a)\n                \n                patterns = [\n                    [(a,b),(b,c),(c,d),(d,a)],\n                    [(a,b),(b,d),(d,c),(c,a)],\n                    [(a,c),(c,b),(b,d),(d,a)],\n                ]\n                \n                for pattern in patterns:\n                    # Normalize edges to (min, max)\n                    norm_edges = []\n                    valid = True\n                    for (u,v) in pattern:\n                        if u == v:\n                            valid = False\n                            break\n                        norm_edges.append((min(u,v), max(u,v)))\n                    if not valid:\n                        continue\n                    \n                    # Check all edges are valid (in our edge list)\n                    if all(e in edge_to_idx for e in norm_edges):\n                        # Cannot have all 4 edges present\n                        cnf.add_clause([-edge_to_idx[e] for e in norm_edges])\n\nprint(f\"Variables: {num_vars}, Clauses: {len(cnf.clauses)}\")\n\n# Now add at-least-8 constraint using a simple encoding\n# Let's use the built-in cardinality constraint if available, or implement manually\n\n# Actually, let me try a different approach: use the solver incrementally\n# First, let's see if there's any solution with at least some edges\n\n# Let me use a simpler cardinality encoding\n# I'll add variables for \"at least k edges\" using a sorting network or sequential counter\n\n# Let me implement a proper sequential counter for >= 8\n\nk = 8\n# We need new variables s_{i,j} for i=1..num_edge_vars, j=1..k\n# s_{i,j} means at least j of first i variables are true\ns_idx = num_vars + 1\ns = {}\nfor i in range(1, num_edge_vars + 1):\n    for j in range(1, k + 1):\n        s[(i,j)] = s_idx\n        s_idx += 1\n\ntotal_vars = s_idx - 1\n\n# Initialize\n# For i=1: s_{1,1} = x_1, s_{1,j} = 0 for j>1\ncnf.add_clause([-s[(1,1)], edge_to_idx[all_edges[0]]])\ncnf.add_clause([s[(1,1)], -edge_to_idx[all_edges[0]]])\nfor j in range(2, k+1):\n    cnf.add_clause([-s[(1,j)]])\n\n# For i>1:\nfor i in range(2, num_edge_vars + 1):\n    xi = edge_to_idx[all_edges[i-1]]\n    # j=1: s_{i,1} = x_i OR s_{i-1,1}\n    cnf.add_clause([-s[(i-1,1)], s[(i,1)]])\n    cnf.add_clause([-xi, s[(i,1)]])\n    cnf.add_clause([-s[(i,1)], xi, s[(i-1,1)]])\n    \n    # j>1: s_{i,j} = (x_i AND s_{i-1,j-1}) OR s_{i-1,j}\n    for j in range(2, k+1):\n        # s_{i-1,j} -> s_{i,j}\n        cnf.add_clause([-s[(i-1,j)], s[(i,j)]])\n        # x_i AND s_{i-1,j-1} -> s_{i,j}\n        cnf.add_clause([-xi, -s[(i-1,j-1)], s[(i,j)]])\n        # s_{i,j} -> s_{i-1,j} OR (x_i AND s_{i-1,j-1})\n        # Actually: s_{i,j} -> s_{i-1,j} OR x_i\n        # and: s_{i,j} -> s_{i-1,j} OR s_{i-1,j-1}\n        cnf.add_clause([-s[(i,j)], s[(i-1,j)], xi])\n        cnf.add_clause([-s[(i,j)], s[(i-1,j)], s[(i-1,j-1)]])\n\n# At least k edges: s_{num_edge_vars, k} must be true\ncnf.add_clause([s[(num_edge_vars, k)]])\n\nprint(f\"Total variables: {total_vars}, Total clauses: {len(cnf.clauses)}\")\n\n# Solve\nsolver = Glucose3()\nfor clause in cnf.clauses:\n    solver.add_clause(clause)\n\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    # Extract edges\n    solution_edges = []\n    for e, idx in edge_to_idx.items():\n        if model[idx-1] > 0:  # variable is true\n            solution_edges.append(e)\n    \n    print(f\"Number of edges: {len(solution_edges)}\")\n    print(f\"Edges: {sorted(solution_edges)}\")\n    \n    # Extract colors\n    colors = {}\n    for v in range(n):\n        if model[color_vars[v]-1] > 0:\n            colors[v] = 1\n        else:\n            colors[v] = 0\n    print(f\"Colors: {colors}\")\n    \n    # Verify bipartiteness\n    for (u,v) in solution_edges:\n        if colors[u] == colors[v]:\n            print(f\"ERROR: Edge ({u},{v}) has same color!\")\n    \n    # Verify girth\n    # Check for 4-cycles\n    adj = {v: set() for v in range(n)}\n    for (u,v) in solution_edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # Check for 4-cycles\n    found_4cycle = False\n    for a in range(n):\n        for b in adj[a]:\n            if b <= a: continue\n            for c in adj[b]:\n                if c <= b or c == a: continue\n                for d in adj[c]:\n                    if d <= c or d == a or d == b: continue\n                    if d in adj[a] and a != d:\n                        print(f\"Found 4-cycle: {a}-{b}-{c}-{d}-{a}\")\n                        found_4cycle = True\n    \n    if not found_4cycle:\n        print(\"No 4-cycles found!\")\n    \n    # Check for triangles (shouldn't exist in bipartite)\n    for a in range(n):\n        for b in adj[a]:\n            if b <= a: continue\n            for c in adj[b]:\n                if c <= b or c == a: continue\n                if c in adj[a]:\n                    print(f\"Found triangle: {a}-{b}-{c}\")\nelse:\n    print(\"UNSAT\")\n    # Let's try with fewer edges requirement\n    # Maybe the constraints are too tight",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 229.41
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nhelp(CNF.__init__)\nhelp(CNF.append)",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 329.27
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Glucose3\n\nn = 13\nall_edges = [(i,j) for i in range(n) for j in range(i+1, n)]\nedge_to_idx = {e: idx+1 for idx, e in enumerate(all_edges)}\nnum_edge_vars = len(all_edges)\n\n# Color variables\ncolor_vars = {v: num_edge_vars + 1 + v for v in range(n)}\nnum_vars = num_edge_vars + n\n\ncnf = CNF()\n\n# Fixed edges\ncnf.append([edge_to_idx[(0,1)]])\ncnf.append([edge_to_idx[(0,8)]])\n\n# Bipartiteness: for each edge, colors must differ\nfor (i,j) in all_edges:\n    e = edge_to_idx[(i,j)]\n    ci = color_vars[i]\n    cj = color_vars[j]\n    cnf.append([-e, ci, cj])\n    cnf.append([-e, -ci, -cj])\n\n# No 4-cycles\nfor a in range(n):\n    for b in range(a+1, n):\n        for c in range(b+1, n):\n            for d in range(c+1, n):\n                patterns = [\n                    [(a,b),(b,c),(c,d),(d,a)],\n                    [(a,b),(b,d),(d,c),(c,a)],\n                    [(a,c),(c,b),(b,d),(d,a)],\n                ]\n                \n                for pattern in patterns:\n                    norm_edges = []\n                    valid = True\n                    for (u,v) in pattern:\n                        if u == v:\n                            valid = False\n                            break\n                        norm_edges.append((min(u,v), max(u,v)))\n                    if not valid:\n                        continue\n                    \n                    if all(e in edge_to_idx for e in norm_edges):\n                        cnf.append([-edge_to_idx[e] for e in norm_edges])\n\nprint(f\"Variables: {num_vars}, Clauses: {len(cnf.clauses)}\")\n\n# At-least-8 constraint using sequential counter\nk = 8\ns_idx = num_vars + 1\ns = {}\nfor i in range(1, num_edge_vars + 1):\n    for j in range(1, k + 1):\n        s[(i,j)] = s_idx\n        s_idx += 1\n\ntotal_vars = s_idx - 1\n\n# Initialize i=1\ncnf.append([-s[(1,1)], edge_to_idx[all_edges[0]]])\ncnf.append([s[(1,1)], -edge_to_idx[all_edges[0]]])\nfor j in range(2, k+1):\n    cnf.append([-s[(1,j)]])\n\n# For i>1:\nfor i in range(2, num_edge_vars + 1):\n    xi = edge_to_idx[all_edges[i-1]]\n    # j=1\n    cnf.append([-s[(i-1,1)], s[(i,1)]])\n    cnf.append([-xi, s[(i,1)]])\n    cnf.append([-s[(i,1)], xi, s[(i-1,1)]])\n    \n    # j>1\n    for j in range(2, k+1):\n        cnf.append([-s[(i-1,j)], s[(i,j)]])\n        cnf.append([-xi, -s[(i-1,j-1)], s[(i,j)]])\n        cnf.append([-s[(i,j)], s[(i-1,j)], xi])\n        cnf.append([-s[(i,j)], s[(i-1,j)], s[(i-1,j-1)]])\n\n# At least k edges\ncnf.append([s[(num_edge_vars, k)]])\n\nprint(f\"Total variables: {total_vars}, Total clauses: {len(cnf.clauses)}\")\n\n# Solve\nsolver = Glucose3()\nfor clause in cnf.clauses:\n    solver.add_clause(clause)\n\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = []\n    for e, idx in edge_to_idx.items():\n        if model[idx-1] > 0:\n            solution_edges.append(e)\n    \n    print(f\"Number of edges: {len(solution_edges)}\")\n    print(f\"Edges: {sorted(solution_edges)}\")\n    \n    colors = {}\n    for v in range(n):\n        if model[color_vars[v]-1] > 0:\n            colors[v] = 1\n        else:\n            colors[v] = 0\n    print(f\"Colors: {colors}\")\n    \n    # Verify\n    adj = {v: set() for v in range(n)}\n    for (u,v) in solution_edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # Check bipartiteness\n    ok = True\n    for (u,v) in solution_edges:\n        if colors[u] == colors[v]:\n            print(f\"ERROR: Edge ({u},{v}) has same color!\")\n            ok = False\n    \n    # Check 4-cycles\n    found_4cycle = False\n    for a in range(n):\n        for b in adj[a]:\n            if b <= a: continue\n            for c in adj[b]:\n                if c <= b or c == a: continue\n                for d in adj[c]:\n                    if d <= c or d == a or d == b: continue\n                    if d in adj[a]:\n                        print(f\"Found 4-cycle: {a}-{b}-{c}-{d}-{a}\")\n                        found_4cycle = True\n    \n    if not found_4cycle:\n        print(\"No 4-cycles found!\")\n    \n    if ok and not found_4cycle:\n        print(\"Solution is valid!\")\nelse:\n    print(\"UNSAT\")\n    # Let's try with k=7\n    print(\"\\nTrying with k=7...\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 251.0
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            0,
+            9
+          ]
+        ],
+        "reasoning": "A star graph centered at vertex 0 with leaves {1,3,4,5,6,7,8,9} works. It has 8 edges (meeting the minimum), is bipartite (2-colorable with center in one part and all leaves in the other), has no cycles so girth is infinite (\u22655), and includes the required edges (0,1) and (0,8)."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

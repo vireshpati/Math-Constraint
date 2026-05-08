@@ -1,0 +1,92 @@
+{
+  "problem_name": "low_autocorrelation_n10__v9_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 1343.9,
+    "search_space": 1024,
+    "num_variables": 19,
+    "num_constraints": 16,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 83.27,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    -1,
+    -1,
+    -1,
+    -1,
+    1,
+    1,
+    -1,
+    -1,
+    1,
+    -1
+  ],
+  "reasoning": "The problem is satisfiable. With fixed values seq[0]=-1, seq[6]=-1, seq[8]=1, there are 8 valid sequences of length 10 over {-1,+1} whose sum of squared aperiodic autocorrelations (C_k^2 for k=1..9) is 13, which is \u2264 20. One example is [-1, -1, -1, -1, 1, 1, -1, -1, 1, -1].",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 2344,
+  "completion_tokens": 678,
+  "reasoning_tokens": 0,
+  "cached_tokens": 1280,
+  "cost_usd": 0.00037464,
+  "cost_source": "openrouter",
+  "latency_ms": 34841.84145927429,
+  "tool_dispatch_ms_total": 34.36923027038574,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef compute_cost(seq):\n    n = len(seq)\n    total = 0\n    for k in range(1, n):\n        Ck = 0\n        for i in range(n - k):\n            Ck += seq[i] * seq[i + k]\n        total += Ck * Ck\n    return total\n\n# Fixed values: seq[0]=-1, seq[8]=1, seq[6]=-1\nfixed = {0: -1, 8: 1, 6: -1}\n\n# Generate all possibilities for the remaining 7 positions\nremaining_indices = [i for i in range(10) if i not in fixed]\nsolutions = []\nfor bits in itertools.product([-1, 1], repeat=len(remaining_indices)):\n    seq = [0] * 10\n    for idx, val in fixed.items():\n        seq[idx] = val\n    for i, idx in enumerate(remaining_indices):\n        seq[idx] = bits[i]\n    \n    cost = compute_cost(seq)\n    if cost <= 20:\n        solutions.append((seq, cost))\n\nprint(f\"Found {len(solutions)} solutions\")\nfor seq, cost in solutions[:20]:\n    print(f\"seq={seq}, cost={cost}\")"
+      },
+      "ok": true,
+      "latency_ms": 34.37
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          -1,
+          -1,
+          -1,
+          -1,
+          1,
+          1,
+          -1,
+          -1,
+          1,
+          -1
+        ],
+        "reasoning": "The problem is satisfiable. With fixed values seq[0]=-1, seq[6]=-1, seq[8]=1, there are 8 valid sequences of length 10 over {-1,+1} whose sum of squared aperiodic autocorrelations (C_k^2 for k=1..9) is 13, which is \u2264 20. One example is [-1, -1, -1, -1, 1, 1, -1, -1, 1, -1]."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

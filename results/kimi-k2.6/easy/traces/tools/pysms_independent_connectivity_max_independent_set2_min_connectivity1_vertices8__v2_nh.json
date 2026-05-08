@@ -1,0 +1,178 @@
+{
+  "problem_name": "pysms_independent_connectivity_max_independent_set2_min_connectivity1_vertices8__v2_nh",
+  "problem_type": "pysms_independent_connectivity",
+  "params": {
+    "max_independent_set": 2,
+    "min_connectivity": 1,
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 46.4,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 28,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 21.8,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      6,
+      7
+    ]
+  ],
+  "reasoning": "The graph consists of two K4 cliques on vertices {0,1,2,3} and {4,5,6,7}, connected by a single edge (0,4). Since each clique has independence number 1 and the two cliques are connected, the maximum independent set size is 2 (one vertex from each clique). The graph is connected, so vertex-connectivity is at least 1. Removing vertex 0 or vertex 4 disconnects the graph, so vertex-connectivity is exactly 1.",
+  "raw_response": null,
+  "cot_trace": " We need to generate a graph with 8 vertices such that:\n\n1. The maximum independent set size is at most 2. That means the independence number \u03b1(G) \u2264 2.\n2. The vertex-connectivity is at least 1. That means the graph is connected (vertex-connectivity \u2265 1 means it's connected; actually vertex-connectivity 0 means disconnected, so \u22651 means connected).\n\nWe need to return the graph as a list of edges (u, v) with 0 <= u < v < 8.\n\nWe need to determine if such a graph exists. If yes, provide a valid edge list.\n\nFirst, let's think about the constraints.\n\nA graph with 8 vertices and independence number \u2264 2 means that any set of 3 vertices must contain at least one edge. In other words, the graph is K_8 minus some edges, but with no independent set of size 3.\n\nThe complement graph \\bar{G} has no triangle (no K_3), because an independent set of size 3 in G corresponds to a triangle in \\bar{G}. So \\bar{G} must be triangle-free.\n\nBy Tur\u00e1n's theorem, the maximum number of edges in a triangle-free graph on 8 vertices is floor(8^2/4) = 16. This is achieved by the complete bipartite graph K_{4,4}. So the complement \\bar{G} can have at most 16 edges.\n\nTherefore, G must have at least \\binom{8}{2} - 16 = 28 - 16 = 12 edges.\n\nSo we need a graph with at least 12 edges, independence number \u2264 2, and connected.\n\nIs there such a graph? Yes, for example, the complement of a triangle-free graph with 16 edges (K_{4,4}) would have 12 edges. But is the complement of K_{4,4} connected? Let's check.\n\nIf \\bar{G} = K_{4,4} with partitions A = {0,1,2,3} and B = {4,5,6,7}, then G consists of two disjoint cliques: K_4 on A and K_4 on B. This graph has independence number 2 (since each clique has size 4, the maximum independent set picks at most one from each clique, so size 2). But the graph is disconnected! It has two components. So vertex-connectivity is 0, not \u2265 1.\n\nSo we need to modify this. We need G to be connected but still have \u03b1(G) \u2264 2.\n\nOne approach: Start with two cliques of size 4, but add some edges between them to make it connected. However, adding edges between the cliques might create an independent set of size 3? Let's see.\n\nIf we have two cliques A and B, each of size 4. Currently, any independent set can have at most one vertex from A and at most one from B, so size at most 2. If we add edges between A and B, we are only adding edges, which cannot increase the size of an independent set. So \u03b1(G) remains \u2264 2. So we can add edges between A and B to make the graph connected.\n\nIn fact, we just need to add enough edges so that the graph is connected. For example, add a single edge between a vertex in A and a vertex in B. Then the graph is connected. But wait: is the vertex-connectivity at least 1? Yes, because it's connected. Actually, vertex-connectivity \u2265 1 means the graph is connected. So adding just one edge between the two cliques makes it connected.\n\nBut wait: does adding one edge between A and B make the graph connected? Yes, because each clique is internally connected, and now there's a bridge between them. So the whole graph is connected.\n\nBut is the independence number still \u2264 2? Let's check. An independent set cannot contain two vertices from A (since A is a clique), cannot contain two vertices from B (since B is a clique). So it can contain at most one from A and at most one from B. If it contains one from A and one from B, are they non-adjacent? They might be non-adjacent if we only added one edge between A and B. For example, if we add edge (0,4), then the pair (1,5) is non-adjacent (since no edge between 1 and 5). So {1,5} is an independent set of size 2. Can we add a third vertex? Any third vertex would be either in A or B. If we add a vertex from A, say 2, then 2 is adjacent to 1 (since A is a clique), so not independent. Similarly for B. So the maximum independent set size is still 2.\n\nWait, but what about {1,5,6}? 5 and 6 are both in B, and B is a clique, so 5 and 6 are adjacent. So not independent. What about {1,2,5}? 1 and 2 are in A, adjacent. So no. So indeed, any independent set has at most one from each clique, so size at most 2.\n\nBut is there a possibility of an independent set of size 3 using vertices from both sides? No, because you can have at most one from A and at most one from B. So size at most 2.\n\nWait, that's only true if A and B are cliques. Yes. So the graph consisting of two K_4's plus a single edge between them has \u03b1 = 2 and is connected.\n\nBut wait, is the vertex-connectivity at least 1? Yes, it's connected, so vertex-connectivity is at least 1. Actually, the vertex-connectivity of this graph is 1, because the edge (0,4) is a bridge? Wait, vertex-connectivity is about vertices, not edges. The graph has a cut-vertex? Let's see. If we remove vertex 0, is the graph still connected? The remaining vertices in A are {1,2,3}, which form a K_3, connected. Vertex 4 is connected to B (which is a K_4 on {4,5,6,7}), so 4 is connected to 5,6,7. But is 4 connected to {1,2,3}? The only edge between A and B was (0,4). So after removing 0, there is no edge between A\\{0} and B. So the graph becomes disconnected: component {1,2,3} and component {4,5,6,7}. So vertex-connectivity is 1 (since removing vertex 0 disconnects the graph). Actually, vertex-connectivity is the minimum number of vertices whose removal disconnects the graph. Here, removing 0 disconnects it, so vertex-connectivity is 1. So it satisfies \u2265 1.\n\nBut the problem says \"vertex-connectivity is at least 1\". So 1 is fine.\n\nHowever, we need to be careful: is there any independent set of size 3? Let's double-check. The graph is: A = {0,1,2,3} all pairwise connected. B = {4,5,6,7} all pairwise connected. Plus edge (0,4). So edges are all pairs within A, all pairs within B, and (0,4).\n\nIndependent set: a set of vertices with no edges between them.\n\n- Within A: max independent set size is 1.\n- Within B: max independent set size is 1.\n- Between A and B: if we pick a vertex a in A and b in B, they are non-adjacent unless (a,b) = (0,4). So most pairs are non-adjacent. So we can pick a from A\\{0} and b from B\\{4}, and they are non-adjacent. That's size 2. Can we add a third vertex c? c must be from A or B. If c is from A, then c is adjacent to a (since A is a clique). If c is from B, then c is adjacent to b (since B is a clique). So cannot add a third vertex. So \u03b1 = 2.\n\nThus this graph works.\n\nBut wait, is there any subtlety? The problem says \"maximum independent set size is at most 2\". So \u03b1 \u2264 2. Our graph has \u03b1 = 2, which is fine.\n\nVertex-connectivity at least 1: connected. Our graph is connected.\n\nSo the answer is satisfiable, and we can provide the edge list.\n\nBut let's verify with Python to be safe. Also, we might want to check if there is any requirement that the graph be simple (no multiple edges, no loops). Yes, standard simple graph.\n\nEdge list:\n\nWithin A (0,1,2,3):\n(0,1), (0,2), (0,3), (1,2), (1,3), (2,3)\n\nWithin B (4,5,6,7):\n(4,5), (4,6), (4,7), (5,6), (5,7), (6,7)\n\nBetween A and B:\n(0,4)\n\nTotal edges: 6 + 6 + 1 = 13 edges.\n\nLet's verify with Python that \u03b1 \u2264 2 and the graph is connected.\n\nWe can also think about whether there is a graph with fewer edges, but the problem just asks to generate a graph, not necessarily minimal.\n\nLet's use Python to verify.\n---\n The graph I constructed works:\n- Two cliques of size 4: {0,1,2,3} and {4,5,6,7}\n- One edge connecting them: (0,4)\n- Independence number is 2 (at most 2) \u2713\n- Vertex connectivity is 1 (at least 1) \u2713\n\nThe graph is connected and satisfies both constraints. Let me format the edges properly.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 1674,
+  "completion_tokens": 3064,
+  "reasoning_tokens": 1968,
+  "cached_tokens": 672,
+  "cost_usd": 0.011659999999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 179071.94781303406,
+  "tool_dispatch_ms_total": 34.062862396240234,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Define the graph\nedges = [\n    # Clique on {0,1,2,3}\n    (0,1), (0,2), (0,3), (1,2), (1,3), (2,3),\n    # Clique on {4,5,6,7}\n    (4,5), (4,6), (4,7), (5,6), (5,7), (6,7),\n    # One edge connecting the cliques\n    (0,4)\n]\n\n# Build adjacency set\nn = 8\nadj = [set() for _ in range(n)]\nfor u, v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# Check independence number\ndef max_independent_set_size(adj):\n    n = len(adj)\n    max_size = 0\n    # Check all subsets\n    for r in range(1, n+1):\n        for subset in itertools.combinations(range(n), r):\n            # Check if independent\n            is_independent = True\n            for i in range(r):\n                for j in range(i+1, r):\n                    if subset[j] in adj[subset[i]]:\n                        is_independent = False\n                        break\n                if not is_independent:\n                    break\n            if is_independent:\n                max_size = max(max_size, r)\n    return max_size\n\nalpha = max_independent_set_size(adj)\nprint(f\"Independence number: {alpha}\")\n\n# Check vertex connectivity using Menger's theorem / networkx style\n# Compute minimum vertex cut\n# We can use brute force: try removing k vertices and check connectivity\n\ndef is_connected(adj, removed=set()):\n    n = len(adj)\n    start = None\n    for i in range(n):\n        if i not in removed:\n            start = i\n            break\n    if start is None:\n        return False\n    visited = set()\n    stack = [start]\n    while stack:\n        u = stack.pop()\n        if u in visited:\n            continue\n        visited.add(u)\n        for v in adj[u]:\n            if v not in removed and v not in visited:\n                stack.append(v)\n    # Check all non-removed are visited\n    for i in range(n):\n        if i not in removed and i not in visited:\n            return False\n    return True\n\n# Check connectivity\nprint(f\"Connected: {is_connected(adj)}\")\n\n# Check vertex connectivity\nvertex_conn = 0\nfor k in range(1, n):\n    found_cut = False\n    for removed in itertools.combinations(range(n), k):\n        if not is_connected(adj, set(removed)):\n            found_cut = True\n            break\n    if found_cut:\n        vertex_conn = k\n        break\n    else:\n        # If no cut of size k, then connectivity > k\n        vertex_conn = k + 1\n\nprint(f\"Vertex connectivity: {vertex_conn}\")\n\n# Also verify no independent set of size 3\nprint(f\"Alpha <= 2: {alpha <= 2}\")\nprint(f\"Vertex connectivity >= 1: {vertex_conn >= 1}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 34.06
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            6,
+            7
+          ]
+        ],
+        "reasoning": "The graph consists of two K4 cliques on vertices {0,1,2,3} and {4,5,6,7}, connected by a single edge (0,4). Since each clique has independence number 1 and the two cliques are connected, the maximum independent set size is 2 (one vertex from each clique). The graph is connected, so vertex-connectivity is at least 1. Removing vertex 0 or vertex 4 disconnects the graph, so vertex-connectivity is exactly 1."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,103 @@
+{
+  "problem_name": "costas_array_n11__v1_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 1035.3,
+    "search_space": 39916800,
+    "num_variables": 11,
+    "num_constraints": 12,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 73.12,
+    "solve_pct_type": 61.11
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    4,
+    8,
+    3,
+    10,
+    9,
+    6,
+    2,
+    7,
+    5
+  ],
+  "reasoning": "Found a valid Costas array of order 11 using backtracking search. The permutation [0, 1, 4, 8, 3, 10, 9, 6, 2, 7, 5] places one mark per row and column, and all 55 = 11*10/2 displacement vectors between pairs of marks are pairwise distinct. Verified: it's a valid permutation of 0..10 and all displacement vectors are unique.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6149,
+  "completion_tokens": 1700,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.043947,
+  "cost_source": "openrouter",
+  "latency_ms": 27324.682474136353,
+  "tool_dispatch_ms_total": 82.04388618469238,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\ndef is_costas(perm):\n    n = len(perm)\n    vectors = set()\n    for i in range(n):\n        for j in range(i+1, n):\n            dc = j - i\n            dr = perm[j] - perm[i]\n            v = (dr, dc)\n            if v in vectors:\n                return False\n            vectors.add(v)\n    return True\n\n# Try known Costas arrays for order 11\n# Use Welch construction and Lempel-Golomb construction\n# Also try backtracking search\n\ndef find_costas(n):\n    \"\"\"Backtracking search for Costas array of order n\"\"\"\n    perm = [-1] * n\n    used_rows = set()\n    \n    def backtrack(col):\n        if col == n:\n            return True\n        for row in range(n):\n            if row in used_rows:\n                continue\n            # Check if adding (col, row) creates duplicate displacement vector\n            valid = True\n            for prev_col in range(col):\n                dc = col - prev_col\n                dr = row - perm[prev_col]\n                # Check against all previous pairs with same dc\n                for c2 in range(prev_col):\n                    dc2 = col - c2  # This would be dc for (c2, col)\n                    # Actually need to check all pairs (i,j) where j=col\n                    pass\n            \n            # Simpler check: collect all vectors so far and check new ones\n            new_vectors = []\n            valid = True\n            existing_vectors = set()\n            for i in range(col):\n                for j in range(i+1, col):\n                    dc = j - i\n                    dr = perm[j] - perm[i]\n                    existing_vectors.add((dr, dc))\n            \n            for prev_col in range(col):\n                dc = col - prev_col\n                dr = row - perm[prev_col]\n                v = (dr, dc)\n                if v in existing_vectors or v in new_vectors:\n                    valid = False\n                    break\n                new_vectors.append(v)\n            \n            if valid:\n                perm[col] = row\n                used_rows.add(row)\n                if backtrack(col + 1):\n                    return True\n                perm[col] = -1\n                used_rows.remove(row)\n        return False\n    \n    if backtrack(0):\n        return perm\n    return None\n\n# This naive approach is too slow, let's use a smarter one\ndef find_costas_fast(n):\n    \"\"\"Faster backtracking with incremental vector checking\"\"\"\n    perm = [-1] * n\n    used_rows = [False] * n\n    # vectors[dc] = set of dr values used for that dc\n    vectors = [set() for _ in range(n)]\n    \n    def backtrack(col):\n        if col == n:\n            return True\n        for row in range(n):\n            if used_rows[row]:\n                continue\n            # Check new displacement vectors (prev_col, col) for all prev_col < col\n            new_vecs = []\n            valid = True\n            for prev_col in range(col):\n                dc = col - prev_col\n                dr = row - perm[prev_col]\n                if dr in vectors[dc]:\n                    valid = False\n                    break\n                if dr in [v[1] for v in new_vecs if v[0] == dc]:\n                    valid = False\n                    break\n                new_vecs.append((dc, dr))\n            \n            if valid:\n                perm[col] = row\n                used_rows[row] = True\n                for dc, dr in new_vecs:\n                    vectors[dc].add(dr)\n                \n                if backtrack(col + 1):\n                    return True\n                \n                perm[col] = -1\n                used_rows[row] = False\n                for dc, dr in new_vecs:\n                    vectors[dc].remove(dr)\n        return False\n    \n    if backtrack(0):\n        return perm\n    return None\n\nimport time\nstart = time.time()\nresult = find_costas_fast(11)\nelapsed = time.time() - start\nprint(f\"Result: {result}\")\nprint(f\"Time: {elapsed:.2f}s\")\nif result:\n    print(f\"Valid: {is_costas(result)}\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 48.3
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nresult = [0, 1, 4, 8, 3, 10, 9, 6, 2, 7, 5]\nn = 11\n\n# Full verification\nvectors = []\nfor i in range(n):\n    for j in range(i+1, n):\n        dc = j - i\n        dr = result[j] - result[i]\n        vectors.append((dr, dc))\n\nprint(f\"Number of displacement vectors: {len(vectors)}\")\nprint(f\"Expected: {n*(n-1)//2}\")\nprint(f\"All unique: {len(vectors) == len(set(vectors))}\")\nprint(f\"Permutation check (all rows 0-10 used): {sorted(result) == list(range(11))}\")\nprint(f\"\\nSolution: {result}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.75
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          4,
+          8,
+          3,
+          10,
+          9,
+          6,
+          2,
+          7,
+          5
+        ],
+        "reasoning": "Found a valid Costas array of order 11 using backtracking search. The permutation [0, 1, 4, 8, 3, 10, 9, 6, 2, 7, 5] places one mark per row and column, and all 55 = 11*10/2 displacement vectors between pairs of marks are pairwise distinct. Verified: it's a valid permutation of 0..10 and all displacement vectors are unique."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

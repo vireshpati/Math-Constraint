@@ -1,0 +1,124 @@
+{
+  "problem_name": "ramsey_n7_r4_s3__v9_h",
+  "problem_type": "ramsey",
+  "params": {
+    "n": 7,
+    "r": 4,
+    "s": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 1283.0,
+    "search_space": 2097152,
+    "num_variables": 21,
+    "num_constraints": 210,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 81.39,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    1,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0
+  ],
+  "reasoning": "Found by brute force enumeration respecting fixed assignments. Verified no red K4 and no blue K3.",
+  "raw_response": null,
+  "cot_trace": " I'm checking the Ramsey number R(4,3)=9, which means any 2-coloring of K_9 contains either a red K_4 or blue K_3. Since I want to avoid both a red K_4 and blue K_3, this tells me K_8 can be colored this way, and therefore K_7 can too.\n\nNow I'm setting up the edge enumeration for K_7 in lexicographic order and fixing certain edges to 0 based on constraints, then applying a SAT solver to find a valid coloring.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 5946,
+  "completion_tokens": 1312,
+  "reasoning_tokens": 105,
+  "cached_tokens": 0,
+  "cost_usd": 0.06253,
+  "cost_source": "openrouter",
+  "latency_ms": 18628.852367401123,
+  "tool_dispatch_ms_total": 1050.5218505859375,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations, product\n\nedges = list(combinations(range(1,8), 2))\nidx = {e:i for i,e in enumerate(edges)}\n\nfixed = {3:0, 7:0, 12:0, 18:0}\n\nfor assign in product([0,1], repeat=21):\n    ok = all(assign[k]==v for k,v in fixed.items())\n    if not ok: continue\n    # no red K4\n    bad = False\n    for quad in combinations(range(1,8),4):\n        if all(assign[idx[(a,b)]]==0 for a,b in combinations(quad,2)):\n            bad=True; break\n    if bad: continue\n    for tri in combinations(range(1,8),3):\n        if all(assign[idx[(a,b)]]==1 for a,b in combinations(tri,2)):\n            bad=True; break\n    if bad: continue\n    print(list(assign))\n    break\n"
+      },
+      "ok": true,
+      "latency_ms": 586.78
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let me verify - R(3,4)=9, so K_7 should allow this. Also check fixed indices.\n# Edges in lex order, indices 0-20. Fixed: c[3]=0, c[7]=0, c[12]=0, c[18]=0\nsol = [0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0]\nprint(sol[3], sol[7], sol[12], sol[18])\nfrom itertools import combinations\nedges = list(combinations(range(1,8),2))\nprint([edges[i] for i in [3,7,12,18]])\n"
+      },
+      "ok": true,
+      "latency_ms": 463.74
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "Found by brute force enumeration respecting fixed assignments. Verified no red K4 and no blue K3.",
+        "satisfiable": true,
+        "solution": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          1,
+          0,
+          1,
+          0,
+          1,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

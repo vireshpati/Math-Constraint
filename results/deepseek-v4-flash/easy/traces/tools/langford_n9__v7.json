@@ -1,0 +1,89 @@
+{
+  "problem_name": "langford_n9__v7",
+  "problem_type": "langford",
+  "params": {
+    "n": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 2919.6,
+    "search_space": 6402373705728000,
+    "num_variables": 18,
+    "num_constraints": 176,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 96.05,
+    "solve_pct_type": 93.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": false,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "Langford sequences L(2,n) exist if and only if n \u2261 0 or 3 (mod 4). Since 9 \u2261 1 (mod 4), no Langford sequence of length 18 with numbers 1-9 exists. This is a well-known necessary and sufficient condition for the existence of Langford pairings. Backtracking search also confirms no solution exists.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Correct UNSAT",
+  "prompt_tokens": 5676,
+  "completion_tokens": 1326,
+  "reasoning_tokens": 0,
+  "cached_tokens": 3840,
+  "cost_usd": 0.00073584,
+  "cost_source": "openrouter",
+  "latency_ms": 72444.75960731506,
+  "tool_dispatch_ms_total": 250.75316429138184,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's solve Langford pairing L(2,9) using backtracking with constraint propagation\n\ndef solve_langford(n):\n    \"\"\"Find a Langford sequence for L(2, n)\"\"\"\n    length = 2 * n\n    seq = [0] * length\n    \n    # positions where each value v can be placed\n    # For value v, the two copies are at positions i and i+v+1\n    # where 0 <= i < i+v+1 < length\n    \n    def backtrack(v):\n        if v == 0:\n            return True\n        \n        # Try to place value v\n        for i in range(length - v - 1):\n            j = i + v + 1\n            if seq[i] == 0 and seq[j] == 0:\n                seq[i] = v\n                seq[j] = v\n                if backtrack(v - 1):\n                    return True\n                seq[i] = 0\n                seq[j] = 0\n        return False\n    \n    if backtrack(n):\n        return seq\n    return None\n\n# Try to solve for n=9\nresult = solve_langford(9)\nprint(result)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 84.7
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Known theorem: Langford pairing L(2,n) exists iff n \u2261 0 or 3 (mod 4)\n# 9 mod 4 = 1, so it should be UNSATISFIABLE\n\n# Let's double-check with a more systematic search or constraint solver\n# to be absolutely sure\n\nimport itertools\n\ndef check_langford_exists(n):\n    \"\"\"Check if Langford sequence exists for given n using known necessary condition\"\"\"\n    # Known necessary and sufficient condition: n \u2261 0 or 3 (mod 4)\n    return n % 4 == 0 or n % 4 == 3\n\nfor n in range(1, 13):\n    print(f\"n={n}: n%4={n%4}, exists={check_langford_exists(n)}\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 32.41
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's also try a more optimized search to confirm\n# Using a constraint satisfaction approach\n\ndef langford_backtracking_optimized(n):\n    \"\"\"Optimized backtracking with heuristics\"\"\"\n    length = 2 * n\n    seq = [0] * length\n    \n    # Precompute possible positions for each value\n    # For value v, first position i, second at i+v+1\n    # where 0 <= i < i+v+1 < length\n    \n    def backtrack(v):\n        if v == 0:\n            return True\n        \n        # Try to place value v - try positions from left to right\n        for i in range(length - v - 1):\n            j = i + v + 1\n            if seq[i] == 0 and seq[j] == 0:\n                seq[i] = v\n                seq[j] = v\n                if backtrack(v - 1):\n                    return True\n                seq[i] = 0\n                seq[j] = 0\n        return False\n    \n    if backtrack(n):\n        return seq\n    return None\n\n# Try with a timeout\nimport signal\n\nclass TimeoutError(Exception):\n    pass\n\ndef handler(signum, frame):\n    raise TimeoutError()\n\nsignal.signal(signal.SIGALRM, handler)\nsignal.alarm(10)\n\ntry:\n    result = langford_backtracking_optimized(9)\n    print(f\"Result: {result}\")\nexcept TimeoutError:\n    print(\"Timed out - likely UNSAT\")\nexcept Exception as e:\n    print(f\"Error: {e}\")\nfinally:\n    signal.alarm(0)",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 133.65
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": false,
+        "solution": null,
+        "reasoning": "Langford sequences L(2,n) exist if and only if n \u2261 0 or 3 (mod 4). Since 9 \u2261 1 (mod 4), no Langford sequence of length 18 with numbers 1-9 exists. This is a well-known necessary and sufficient condition for the existence of Langford pairings. Backtracking search also confirms no solution exists."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

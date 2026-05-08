@@ -1,0 +1,356 @@
+{
+  "problem_name": "pysms_chromatic_girth_max_chromatic_number5_min_edges25_min_girth5_vertices19__v15_nh",
+  "problem_type": "pysms_chromatic_girth",
+  "params": {
+    "max_chromatic_number": 5,
+    "min_edges": 25,
+    "min_girth": 5,
+    "vertices": 19
+  },
+  "difficulty": {
+    "solve_time_ms": 479.2,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 27,
+    "backend": "pysms"
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      15
+    ],
+    [
+      0,
+      16
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      6
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      3,
+      13
+    ],
+    [
+      3,
+      18
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      12
+    ],
+    [
+      4,
+      13
+    ],
+    [
+      4,
+      15
+    ],
+    [
+      6,
+      14
+    ],
+    [
+      7,
+      16
+    ],
+    [
+      8,
+      11
+    ],
+    [
+      8,
+      13
+    ],
+    [
+      8,
+      14
+    ],
+    [
+      8,
+      16
+    ],
+    [
+      9,
+      15
+    ],
+    [
+      9,
+      17
+    ],
+    [
+      9,
+      18
+    ],
+    [
+      10,
+      11
+    ],
+    [
+      10,
+      12
+    ],
+    [
+      10,
+      17
+    ],
+    [
+      11,
+      15
+    ],
+    [
+      12,
+      16
+    ],
+    [
+      12,
+      18
+    ],
+    [
+      13,
+      17
+    ],
+    [
+      14,
+      18
+    ]
+  ],
+  "reasoning": "A Z3 solver found a graph with 19 vertices and 32 edges that is 5-colorable, triangle-free, and 4-cycle-free (girth >= 5). All constraints are satisfied.",
+  "raw_response": null,
+  "cot_trace": "We need to generate a graph with 19 vertices, chromatic number <= 5 (colorable with at most 5 colors), girth at least 5 (no cycles of length 3 or 4), and at least 25 edges.\n\nWe need to find such a graph or prove unsatisfiability. Let's think about this.\n\nWe need a graph on 19 vertices, girth >= 5 (so no triangles, no 4-cycles), and at least 25 edges. It must be 5-colorable.\n\nFirst, is it possible? The maximum number of edges in a graph with girth > 3 (no triangles or 4-cycles) on n vertices is known from the Zarankiewicz problem. For girth at least 5, the maximum number of edges is bounded by O(n^{3/2}) roughly. Specifically, ex(n, C_4) = maximum edges with no 4-cycle. It's known that ex(n, C_4) ~ (1/2) n^{3/2} + O(n). For n=19, n^{3/2} = 19^1.5 \u2248 82.8, so max edges around maybe 41? But we also need to avoid triangles. However, triangle-free + C4-free is stronger, but still the bound is similar.\n\nBut we only need 25 edges, which seems plausible.\n\nAlso, we need 5-colorable. Since 19 vertices, 5 colors is enough. But we need to ensure the graph doesn't require more than 5 colors (no K_6, etc.). We can try to construct a bipartite graph (which is 2-colorable, so certainly 5-colorable). Bipartite graphs have no odd cycles, so girth at least 5 means no C_3 (automatic) and no C_4. So we need a bipartite graph with no 4-cycles, with at least 25 edges, on 19 vertices.\n\nA bipartite graph with parts of sizes a and b, with no C_4, has at most a*b edges? Actually the maximum edges in a bipartite graph with no C_4 (i.e., ex(n, C_4) bipartite) is known: if we have parts of size a and b, the maximum edges without C_4 is at most a*sqrt(b) + b? Wait, there's the F\u00fcredi bound.\n\nBut perhaps we can just construct one. Let's think of known graphs: The Petersen graph has 10 vertices, 15 edges, girth 5, 3-colorable. But we need 19 vertices and at least 25 edges.\n\nWe could try a cage-like graph. The (5,5)-cage is the Robertson graph? Actually the (3,5)-cage is the Petersen (10 vertices, 3-regular, girth 5). The (4,5)-cage has 19 vertices! Yes, the (4,5)-cage (the Robertson graph) is a 4-regular graph on 19 vertices with girth 5. It has 19 * 4 / 2 = 38 edges. That's plenty.\n\nWhat is the chromatic number of the Robertson graph? It's known to be 4? Let's check: The Robertson graph is the unique (4,5)-cage. It's known to have chromatic number 4? Actually I think it's 4-colorable. Let's verify.\n\nThe Robertson graph (also known as the (4,5)-cage) has 19 vertices, degree 4, girth 5. It is known to be 4-chromatic. Since 4 <= 5, it satisfies the condition.\n\nBut we need to list the edges. Let me see if I can construct or find the Robertson graph.\n\nAlternatively, we could use a simpler construction: just take a bipartite graph with no 4-cycles. For example, the incidence graph of a projective plane of order q gives a (q+1)-regular bipartite graph with girth 6 (no 4-cycles). For q=4, the projective plane of order 4 has 21 points and 21 lines (total 42 vertices). That's too large.\n\nFor q=3, incidence graph has 13+13=26 vertices, too large.\n\nMaybe we can just use a simpler construction. Let's try to use Python to find a graph via search or by constructing known graphs.\n\nLet me write Python code to either generate the Robertson graph or search for a graph satisfying constraints.\n\nFirst, let's see if I can find the Robertson graph edges online or compute them.\n\nThe Robertson graph is the unique (4,5)-cage. I can try to construct it. It is also the Kneser graph KG(6,2)? No, KG(6,2) has 15 vertices. The Robertson graph is related to the Steiner system S(2,3,9) maybe? Actually the Robertson graph can be constructed from the affine plane of order 3? Let's think.\n\nThe (4,5)-cage has 19 vertices. One construction: take the 19 triples of a 5-element set? No, that's 10.\n\nWait, let me recall: the Moore bound for d=4, girth 5 is 1 + d + d(d-1) + d(d-1)^2? Actually for odd girth 5, Moore bound is 1 + d + d(d-1) + d(d-1)^2? Let's compute: starting from a vertex, at distance 0: 1, distance 1: d, distance 2: d(d-1). For girth 5, we need that there are no cycles of length < 5, so the tree up to distance 2 is unique. The bound is 1 + d + d(d-1) = 1 + 4 + 12 = 17. But the actual (4,5)-cage has 19 vertices, which is more than the Moore bound (so it's not Moore graph). The Moore graph for d=4, girth 5 would have 17 vertices, but it doesn't exist (the Hoffman\u2013Singleton theorem says Moore graphs with girth 5 exist only for d=2,3,7,57). So the smallest regular graph of degree 4 and girth 5 has 19 vertices, which is the Robertson graph.\n\nI can try to find the adjacency matrix or edge list of the Robertson graph. Let me search via Python.\n\nAlternatively, I could use a constraint solver to find any graph with these properties. But graph search for 19 vertices is large.\n\nLet me try to construct the Robertson graph. I recall it can be described as: vertices are the 19 elements of Z_19, and edges connect i to i+1, i+7, i+8, i+11? Not sure.\n\nActually, there's a known construction: The Robertson graph is the unique (4,5)-cage. One description: vertices are the elements of Z_17 plus two extra vertices? Hmm.\n\nLet me just try to use Python with networkx? But we probably don't have networkx. Let's try to implement a SAT solver or use pysat to find a graph.\n\nGiven the constraints:\n- 19 vertices\n- No cycles of length < 5: i.e., no triangles, no 4-cycles.\n- At least 25 edges.\n- 5-colorable.\n\n5-colorable is usually easy to satisfy unless the graph has a K_6 or high chromatic number. If we construct a graph with girth 5, it might have chromatic number 4 or 5. But we just need <=5.\n\nLet's try to use a SAT solver (pysat) or just search heuristically.\n\nMaybe we can use the Clebsch graph? No, that's 16 vertices, 5-regular, girth 4? Actually Clebsch has girth 4.\n\nAnother approach: construct a bipartite graph with parts of size 10 and 9, with no C_4, and degree at least something to get 25 edges.\n\nActually, ex(19, C_4) is the maximum number of edges in a graph on 19 vertices with no 4-cycle. The bipartite version: we can use a polarity graph from a projective plane. For q=4, projective plane has 21 points; maybe we can delete some vertices.\n\nLet me try Python to search.\n\nFirst, let me try to find the Robertson graph edges via known sources or generate it using a known construction.\n\nI'll write Python code that either:\n1. Constructs the Robertson graph from a known labeling.\n2. Or uses a SAT solver to find some graph.\n\nLet's try to use the Python itertools and constraint checking. But the search space is huge (C(19,2) = 171 possible edges, each can be present or not => 2^171). We need smarter methods.\n\nLet's try to use pysat (Python SAT solver) to encode the problem.\n\nActually, the problem is from some benchmark. It might be satisfiable. Let's try to construct a known graph.\n\nLet me try to find the Robertson graph edges.\n\nFrom Wikipedia: The Robertson graph is the unique (4,5)-cage. It has 19 vertices and 38 edges. It can be constructed as follows: take the 19 vertices of the form (a,b) where a is in GF(5) and b is in GF(5)? Hmm, that would be 25.\n\nActually, I recall a construction: vertices are the 19 quadratic residues modulo something? Let me just search by trying to build it.\n\nI could also try to use the fact that the (4,5)-cage is the incidence graph of the points and lines of the affine plane of order 3 minus something? No.\n\nLet me just use Python to try to find a graph via constraint programming.\n\nBut first, let me think about whether the Robertson graph is 5-colorable. Since it's 4-chromatic, it's definitely 5-colorable.\n\nBut maybe there's a simpler graph. We just need 25 edges, girth >= 5, 19 vertices. Let's try to find any such graph.\n\nLet me write a Python script using Z3 or pysat.\n\nActually, I'll try using pysat. Let me encode the constraints:\n\n- Variables e_{i,j} for each pair (i,j) with i<j.\n- No triangle: for each triple i,j,k, not (e_{i,j} and e_{j,k} and e_{i,k}) i.e., at most 2 of the three edges.\n- No 4-cycle: for each quadruple i,j,k,l (distinct), not (e_{i,j} and e_{j,k} and e_{k,l} and e_{l,i}) and also other 4-cycles like e_{i,j}, e_{j,k}, e_{k,l}, e_{i,l}? Actually a 4-cycle is a sequence of 4 distinct vertices v1-v2-v3-v4-v1 where edges are {v1,v2}, {v2,v3}, {v3,v4}, {v4,v1}. So for any set of 4 distinct vertices, we need to avoid any 4 edges that form a cycle. There are 3 possible 4-cycles on 4 vertices (the cycle can go in 3 different orders). But we can just forbid all 4-cycles.\n\nThis is a lot of constraints. But 19 vertices is manageable for SAT.\n\n- Sum of edges >= 25.\n- 5-colorability: we can either not enforce it (since we can later check) or encode colors. But 5-coloring might be automatically satisfied for many graphs. However, to be safe, we can either add coloring variables or just check at the end.\n\nActually, the problem asks for a graph that is 5-colorable. If we find a graph with girth >=5 and >=25 edges, it might be 5-colorable. But we should ensure it.\n\nLet's try to construct a bipartite graph. Bipartite graphs have no odd cycles, so girth is at least 4 (no triangles). We need to avoid 4-cycles. A bipartite graph with parts X and Y, no 4-cycles, means that no two vertices in X share two common neighbors in Y. This is equivalent to the incidence matrix being a C_4-free bipartite graph.\n\nMaximum edges for C_4-free bipartite with parts of sizes a,b is known to be at most a*sqrt(b) + b (or similar). For a=10, b=9, maximum might be around 10*sqrt(9) + 9 = 39. So 25 edges should be achievable.\n\nLet me try to use a simple construction: a polarity graph from a finite projective plane of order 4 minus some vertices? Or just use the incidence graph of the Fano plane (7 points, 7 lines, girth 6, 21 edges)? The incidence graph of the Fano plane (order 2) has 14 vertices, 21 edges. That has 14 vertices, we need 19. We could add some isolated vertices? But we need edges. We can add 5 isolated vertices and we'd have 14 vertices with 21 edges, need 4 more edges. But adding edges might create 4-cycles. We could just take the incidence graph of Fano plus a disjoint graph? But adding edges between the Fano incidence graph and new vertices might create cycles.\n\nActually, we could just take the incidence graph of a larger structure. The incidence graph of the 3-4 biplane? There are known (v,k,\u03bb) symmetric designs. The incidence graph of a symmetric (v,k,\u03bb) design is a bipartite graph with girth at least 6 (no 4-cycles) if \u03bb <= 1. For \u03bb=1, it's a projective plane, girth 6. For \u03bb=2, there might be 4-cycles.\n\nBut we can also just construct a C_4-free bipartite graph directly using a known construction: let vertices be elements of a finite field, edges defined by some function.\n\nFor example, for a prime p, define a bipartite graph with parts X = GF(p) \u00d7 {0}, Y = GF(p) \u00d7 {1}, and connect (x,0) to (y,1) if y = x + a for some a, or y = x^2? Actually the incidence graph of the affine plane: points (x,y) and lines (slope m, intercept b) with incidence. That gives p^2+p vertices and p^2+p vertices? Wait.\n\nLet me just try to use a SAT solver to find a small graph.\n\nGiven time, let's try Python with pysat.\n\nActually, I can also try to find the Robertson graph edges from known repositories. Let me write Python that tries to find a graph using heuristic search (greedy) or uses the Robertson graph from a known construction.\n\nLet me try to generate the Robertson graph using the construction from \"The Robertson graph is the unique (4,5)-cage\" - one construction: take Z_19 and edges {i, i+2^k mod 19} for some set of k? Actually there's a circulant graph construction.\n\nI recall that the Robertson graph can be constructed as a Cayley graph of Z_19? If it's a Cayley graph of a group of order 19, then the connection set must be symmetric and have size 4 (since 4-regular). The group Z_19 has no non-trivial automorphism that gives a graph with girth 5? Let's check: For a circulant graph on 19 vertices with connection set S = {\u00b1a, \u00b1b} (four distinct elements), we need the graph to have girth 5. This means no solutions to x + y + z = 0 with x,y,z in S (triangle free) and no solutions to w + x + y + z = 0 with w,x,y,z in S (no 4-cycles). Actually for circulant graphs, a 4-cycle corresponds to a+b = c+d with distinct pairs.\n\nThere is known work on circulant cages. The (4,5)-cage is not circulant? Actually I think the Robertson graph is not a circulant graph. Let me check.\n\nThe Robertson graph has automorphism group of order 24? Actually its automorphism group is of order 36? I'm not sure.\n\nLet's just try to code a search using Python's constraint libraries or SAT.\n\nGiven the time, let me write a Python script to:\n1. Try to find a graph using a greedy approach: start with empty graph, add edges as long as they don't create cycles of length <5.\n2. Or use pysat's SAT solver.\n\nBut first, let me check if maybe the answer is simply UNSAT? No, the Robertson graph exists and satisfies all conditions (19 vertices, girth 5, 38 edges, 4-colorable). So it's satisfiable.\n\nThe challenge is to produce the edge list. Let me try to find the Robertson graph edges.\n\nI can try to find it from networkx if it's installed... but we might not have it.\n\nLet me just try to search for the Robertson graph adjacency list online from memory.\n\nAlternatively, I can try to construct a different graph that's simpler: maybe take a bipartite graph with parts 0-9 and 10-18, with some regular structure.\n\nLet me try using Python with pysat.\n---\nLet's approach this problem systematically. We need a graph with:\n- n = 19 vertices\n- Girth >= 5 (no cycles of length 3 or 4)\n- Chromatic number <= 5\n- At least 25 edges\n\nFirst, let's think about what's known. The Robertson graph is the (5,5)-cage which has order 19 with girth 5. Wait, the Robertson graph (also known as the (5,5)-cage) has 19 vertices, is 5-regular, and has girth 5. Let me verify.\n\nThe Robertson graph is the unique (5,5)-cage. It has 19 vertices, 5-regular, girth 5. It is 5-colorable? Actually, the Robertson graph is the (5,5)-cage, also known as the Robertson-Wegner graph. Let me check its chromatic number.\n\nThe Robertson graph is 5-regular on 19 vertices, girth 5. Its chromatic number... I think it's 4 or 5. Let's check.\n\nActually, wait. The (5,5)-cage is the Robertson graph, which is the graph of the 19-hole. It is 5-regular and has girth 5. But I'm not sure if it's 5-colorable.\n\nLet me try to construct it or find its edges.\n\nActually, the Robertson graph is the graph where vertices are elements of Z_19, and edges are pairs (i, i+1), (i, i+7), (i, i+8), (i, i+11), (i, i+12) maybe? Let me search my memory.\n\nThe Robertson graph can be constructed as the Cayley graph of Z_19 with generators {1, 7, 8, 11, 12}? Wait, that would be 5 generators, but since each generates an edge in both directions, that's 5 edges per vertex, total 19*5/2 = 47.5 which is not integer. So that's not right.\n\nActually, Cayley graphs on cyclic groups need generators that come in pairs (g, -g). But if generators are self-inverse mod 19, that's different. In a cyclic group of odd order, no element is its own inverse except 0. So we'd need 10 generators to get 5-regular.\n\nHmm, actually for the Robertson graph, the standard construction uses the group PGL(2, 19) or something. Let me just try to find it by constraint solving.\n\nLet me try a Z3 approach to find a graph with n=19, girth >= 5, and colorable with 5 colors, with at least 25 edges.\n\nActually, let me first think about whether the Robertson graph works. The Robertson graph is 5-regular with 19 vertices, so it has 19*5/2 = 47.5 edges? That's not integer. So it can't be 5-regular.\n\nWait, maybe the Robertson graph is 5-regular? 19*5 = 95, 95/2 = 47.5, not integer. So it can't be 5-regular on 19 vertices. Let me recheck.\n\nActually, the (5,5)-cage is the Robertson graph (or perhaps the Robertson-Wegner graph). It is 5-regular. But 5-regular on 19 vertices would have 47.5 edges - impossible.\n\nHmm, wait. Let me check: maybe the (5,5)-cage has 30 vertices? No.\n\nLet me look up: \"The Robertson graph is the unique (4,5)-cage\" - no.\n\nMaybe I'm confusing things. Let me think again.\n\nThe (k,g)-cage is a k-regular graph with girth g and minimum number of vertices.\n\nKnown cages:\n- (3,5) cage: Petersen graph, 10 vertices\n- (3,6) cage: Heawood graph, 14 vertices\n- (3,7) cage: McGee graph, 24 vertices\n- (3,8) cage: Tutte-Coxeter graph, 30 vertices\n- (4,5) cage: Robertson graph, 19 vertices\n- (5,5) cage: Robertson-Wegner graph, 30 vertices? Or maybe (5,5) cage has more.\n\nWait, the Robertson graph is the (4,5)-cage, with 19 vertices, 4-regular, girth 5. Then edges = 19*4/2 = 38 edges. It's 4-regular, so it has 38 edges. \n\nNow, is the Robertson graph 5-colorable? I think it might be. Let me check its chromatic number. Actually, the Robertson graph is known to be 4-colorable (it's a subgraph of something?) Let me try to verify.\n\nBut the problem asks for at least 25 edges and at most 5 colors. The Robertson graph has 38 edges, girth 5, and likely chromatic number <= 5. Let me verify.\n\nLet me try to construct the Robertson graph using Z3 or look up its definition.\n\nThe Robertson graph can be defined as follows: vertices are the 19 triples (x,y,z) from some set... Actually, there's a well-known construction:\n\nThe Robertson graph is the graph on the 19 points of the projective plane of order 3 (PG(2,3)) minus a line? No...\n\nAnother definition: The Robertson graph is the incidence graph of the 19 points and 19 lines of the projective plane of order 3 (the Fano plane is order 2). PG(2,3) has 13 points and 13 lines, so that's not 19.\n\nWait, maybe it's related to the Steiner system S(2,3,19)?\n\nLet me search my knowledge. The (4,5)-cage (Robertson graph) can be constructed as follows: take the 19 vertices as elements of Z_19, and connect i to i+1, i+7, i+8, i+11, i+12? No that would be 5 edges per vertex. For 4-regular we need 4 edges per vertex.\n\nLet me try: Take Z_19. Connect i to i\u00b11, i\u00b17? That's 4 edges per vertex (since 1 and -1=18, 7 and -7=12). But wait, does this Cayley graph have girth 5? Let me check.\n\nFor the Cayley graph on Z_19 with generators S = {1, 7, 12, 18} (which is {\u00b11, \u00b17}), we can check the girth. A cycle of length 3 would mean a+b+c \u2261 0 mod 19 with a,b,c \u2208 S. A cycle of length 4 would mean a+b+c+d \u2261 0 with a,b,c,d \u2208 S, not using an edge twice.\n\nLet me just compute this.\n\nActually, the Robertson graph is known to be the (4,5)-cage and can be constructed as the Cayley graph of Z_19 with generators {1, 7, 8, 11, 12, 18}? No, that's 6 generators = 6-regular.\n\nLet me look this up properly. I'll use Python to try various constructions.\n---\nThe issue: I have (k, j) but I only defined edges for (i, j) where i < j. I need to use a helper function or just sort keys. Let me fix this.\n---\nWe found a graph quickly! Let me verify the properties:\n\n- 19 vertices \u2713\n- 32 edges \u2713 (>=25)\n- No triangles (girth >= 5) - need to verify\n- No 4-cycles (girth >= 5) - need to verify\n- 5-colorable \u2713\n\nBut wait, the colors show many adjacent vertices with same color? Let me check: the model colors show vertex 1 (color 0) and vertex 2 (color 3) are different, so edge (1,2) is fine. But let me verify more carefully.\n\nActually, I should verify that the graph is indeed triangle-free, 4-cycle-free, and 5-colorable.\n\nLet me run verification code.\n---\nThe graph is valid:\n- 19 vertices (0-18)\n- 32 edges (>= 25)\n- Triangle-free (no 3-cycles)\n- 4-cycle-free\n- 5-colorable\n- Girth >= 5 (since both 3-cycles and 4-cycles are absent)\n\nThis is a valid solution. Let me submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by SAT solver (constraints satisfied)",
+  "prompt_tokens": 10183,
+  "completion_tokens": 8300,
+  "reasoning_tokens": 5583,
+  "cached_tokens": 6784,
+  "cost_usd": 0.03578194,
+  "cost_source": "openrouter",
+  "latency_ms": 237205.83963394165,
+  "tool_dispatch_ms_total": 3580.099105834961,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport sys\n\n# Try to find the Robertson graph or construct a girth >=5 graph with 19 vertices\n\n# First, let's try to use pysat to find a graph\ntry:\n    from pysat.solvers import Solver\n    from pysat.card import CardEnc\nexcept ImportError:\n    print(\"pysat not available\")\n    sys.exit(1)\n\n# Actually, let's try a different approach: use Z3 if available\ntry:\n    import z3\n    print(\"Z3 available\")\nexcept ImportError:\n    print(\"Z3 not available\")\n\n# Let's check what's available\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 331.98
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Try to find a graph using Z3 with constraints\nimport z3\nimport time\n\nn = 19\nmin_edges = 25\nmax_colors = 5\ngirth_min = 5  # no cycles of length 3 or 4\n\n# We'll encode adjacency matrix\nedges = {}\nfor i in range(n):\n    for j in range(i+1, n):\n        edges[(i,j)] = z3.Bool(f\"e_{i}_{j}\")\n\ns = z3.Solver()\n\n# Count edges\nedge_sum = sum([z3.If(edges[(i,j)], 1, 0) for (i,j) in edges])\ns.add(edge_sum >= min_edges)\n\n# Girth constraint: no cycles of length 3\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(j+1, n):\n            s.add(z3.Not(z3.And(edges[(i,j)], edges[(j,k)], edges[(i,k)])))\n\n# Girth constraint: no cycles of length 4\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(j+1, n):\n            for l in range(k+1, n):\n                # cycle i-j-k-l-i or i-k-j-l-i or i-j-l-k-i\n                s.add(z3.Not(z3.And(edges[(i,j)], edges[(j,k)], edges[(k,l)], edges[(i,l)])))\n                s.add(z3.Not(z3.And(edges[(i,k)], edges[(k,j)], edges[(j,l)], edges[(i,l)])))\n                s.add(z3.Not(z3.And(edges[(i,j)], edges[(j,l)], edges[(l,k)], edges[(i,k)])))\n\n# Colorability: at most 5 colors\n# Each vertex has a color (0-4)\ncolors = [z3.Int(f\"c_{i}\") for i in range(n)]\nfor i in range(n):\n    s.add(colors[i] >= 0, colors[i] < max_colors)\n\n# Adjacent vertices must have different colors\nfor (i,j) in edges:\n    s.add(z3.Implies(edges[(i,j)], colors[i] != colors[j]))\n\nprint(\"Setting up constraints done. Solving...\")\nstart = time.time()\nresult = s.check()\nprint(f\"Result: {result}, time: {time.time()-start:.1f}s\")\n\nif result == z3.sat:\n    model = s.model()\n    edge_list = []\n    for (i,j), b in edges.items():\n        if model.evaluate(b, model_completion=True):\n            edge_list.append((i,j))\n    print(f\"Number of edges: {len(edge_list)}\")\n    print(\"Edges:\", edge_list)\n    \n    # Check coloring\n    col = [model.evaluate(colors[i]).as_long() for i in range(n)]\n    print(\"Colors:\", col)\n",
+        "timeout_seconds": 120
+      },
+      "ok": false,
+      "latency_ms": 453.83
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport z3\nimport time\n\nn = 19\nmin_edges = 25\nmax_colors = 5\n\n# Helper to get edge variable\nedge_vars = {}\ndef get_edge(i, j):\n    if (i, j) in edge_vars:\n        return edge_vars[(i, j)]\n    if (j, i) in edge_vars:\n        return edge_vars[(j, i)]\n    raise KeyError(f\"No edge for {i}, {j}\")\n\nfor i in range(n):\n    for j in range(i+1, n):\n        edge_vars[(i, j)] = z3.Bool(f\"e_{i}_{j}\")\n\ns = z3.Solver()\ns.set(\"timeout\", 300000)  # 5 min timeout in ms\n\n# Count edges\nedge_sum = sum([z3.If(edge_vars[(i,j)], 1, 0) for (i,j) in edge_vars])\ns.add(edge_sum >= min_edges)\n\nprint(\"Adding triangle constraints...\")\n# No cycles of length 3\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(j+1, n):\n            s.add(z3.Not(z3.And(get_edge(i,j), get_edge(j,k), get_edge(i,k))))\n\nprint(\"Adding 4-cycle constraints...\")\n# No cycles of length 4\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(j+1, n):\n            for l in range(k+1, n):\n                # All possible 4-cycles on these vertices:\n                # i-j-k-l-i\n                s.add(z3.Not(z3.And(get_edge(i,j), get_edge(j,k), get_edge(k,l), get_edge(i,l))))\n                # i-k-j-l-i\n                s.add(z3.Not(z3.And(get_edge(i,k), get_edge(k,j), get_edge(j,l), get_edge(i,l))))\n                # i-j-l-k-i\n                s.add(z3.Not(z3.And(get_edge(i,j), get_edge(j,l), get_edge(l,k), get_edge(i,k))))\n\nprint(\"Adding coloring constraints...\")\n# Colorability: at most 5 colors\ncolors = [z3.Int(f\"c_{i}\") for i in range(n)]\nfor i in range(n):\n    s.add(colors[i] >= 0, colors[i] < max_colors)\n\n# Adjacent vertices must have different colors\nfor (i,j) in edge_vars:\n    s.add(z3.Implies(edge_vars[(i,j)], colors[i] != colors[j]))\n\nprint(\"Solving...\")\nstart = time.time()\nresult = s.check()\nprint(f\"Result: {result}, time: {time.time()-start:.1f}s\")\n\nif result == z3.sat:\n    model = s.model()\n    edge_list = []\n    for (i,j) in edge_vars:\n        if model.evaluate(edge_vars[(i,j)], model_completion=True):\n            edge_list.append((i,j))\n    print(f\"Number of edges: {len(edge_list)}\")\n    print(\"Edges:\", sorted(edge_list))\n    \n    col = [model.evaluate(colors[i]).as_long() for i in range(n)]\n    print(\"Colors:\", col)\n",
+        "timeout_seconds": 300
+      },
+      "ok": true,
+      "latency_ms": 2465.16
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport z3\n\n# Verify the graph\nedges = [(0, 15), (0, 16), (1, 2), (1, 6), (2, 5), (2, 7), (2, 10), (3, 7), (3, 13), (3, 18), (4, 5), (4, 6), (4, 12), (4, 13), (4, 15), (6, 14), (7, 16), (8, 11), (8, 13), (8, 14), (8, 16), (9, 15), (9, 17), (9, 18), (10, 11), (10, 12), (10, 17), (11, 15), (12, 16), (12, 18), (13, 17), (14, 18)]\n\n# Build adjacency list\nadj = [[] for _ in range(19)]\nfor u, v in edges:\n    adj[u].append(v)\n    adj[v].append(u)\n\n# Check triangle-free\nhas_triangle = False\nfor i in range(19):\n    for j in range(i+1, 19):\n        if j not in adj[i]:\n            continue\n        for k in range(j+1, 19):\n            if k in adj[i] and k in adj[j]:\n                has_triangle = True\n                print(f\"Triangle: {i}-{j}-{k}\")\n\nprint(f\"Triangle-free: {not has_triangle}\")\n\n# Check 4-cycle-free\nhas_4cycle = False\nfor i in range(19):\n    for j in range(i+1, 19):\n        if j not in adj[i]:\n            continue\n        for k in range(19):\n            if k == i or k == j:\n                continue\n            if k not in adj[j]:\n                continue\n            for l in range(k+1, 19):\n                if l == i or l == j or l == k:\n                    continue\n                if l in adj[k] and l in adj[i]:\n                    has_4cycle = True\n                    print(f\"4-cycle: {i}-{j}-{k}-{l}\")\n                    \nprint(f\"4-cycle-free: {not has_4cycle}\")\n\n# Check 5-colorable\n# Find a 5-coloring via Z3\ns = z3.Solver()\ncolors = [z3.Int(f\"c_{i}\") for i in range(19)]\nfor i in range(19):\n    s.add(colors[i] >= 0, colors[i] < 5)\nfor u, v in edges:\n    s.add(colors[u] != colors[v])\nr = s.check()\nprint(f\"5-colorable: {r == z3.sat}\")\nif r == z3.sat:\n    m = s.model()\n    col = [m.evaluate(colors[i]).as_long() for i in range(19)]\n    print(\"Coloring:\", col)\n\n# Count edges\nprint(f\"Number of edges: {len(edges)}\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 329.13
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            15
+          ],
+          [
+            0,
+            16
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            6
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            10
+          ],
+          [
+            3,
+            7
+          ],
+          [
+            3,
+            13
+          ],
+          [
+            3,
+            18
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            12
+          ],
+          [
+            4,
+            13
+          ],
+          [
+            4,
+            15
+          ],
+          [
+            6,
+            14
+          ],
+          [
+            7,
+            16
+          ],
+          [
+            8,
+            11
+          ],
+          [
+            8,
+            13
+          ],
+          [
+            8,
+            14
+          ],
+          [
+            8,
+            16
+          ],
+          [
+            9,
+            15
+          ],
+          [
+            9,
+            17
+          ],
+          [
+            9,
+            18
+          ],
+          [
+            10,
+            11
+          ],
+          [
+            10,
+            12
+          ],
+          [
+            10,
+            17
+          ],
+          [
+            11,
+            15
+          ],
+          [
+            12,
+            16
+          ],
+          [
+            12,
+            18
+          ],
+          [
+            13,
+            17
+          ],
+          [
+            14,
+            18
+          ]
+        ],
+        "reasoning": "A Z3 solver found a graph with 19 vertices and 32 edges that is 5-colorable, triangle-free, and 4-cycle-free (girth >= 5). All constraints are satisfied."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

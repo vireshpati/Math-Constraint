@@ -1,0 +1,96 @@
+{
+  "problem_name": "all_interval_n12__v9_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 12
+  },
+  "difficulty": {
+    "solve_time_ms": 997.3,
+    "search_space": 479001600,
+    "num_variables": 23,
+    "num_constraints": 15,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 70.11,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    11,
+    1,
+    10,
+    2,
+    9,
+    3,
+    8,
+    4,
+    7,
+    5,
+    6
+  ],
+  "reasoning": "This is a classic all-interval series construction: start with 0, then alternate between the largest unused number and the smallest unused number. The differences are 11, 10, 9, ..., 1, each appearing exactly once.",
+  "raw_response": null,
+  "cot_trace": "We need to find an all-interval series of size 12. This is a permutation of numbers 0..11 such that the absolute differences between consecutive elements are all distinct and cover 1..11. This is a known problem: \"all-interval series\" or \"all-interval rows\" in music theory. For n=12, there are known solutions. Let's try to find one.\n\nWe can use SAT solver or backtracking. Let's write Python to search.\n\nWe need a permutation p[0..11] of 0..11. Differences d_i = |p_{i+1} - p_i| for i=0..10 must be a permutation of 1..11.\n\nWe can use constraint satisfaction. Let's try using Python with backtracking or using pysat.\n\nLet's first try simple backtracking with pruning.\n---\nThe backtracking found a solution: [0, 11, 1, 10, 2, 9, 3, 8, 4, 7, 5, 6]. Let me verify:\n\nDifferences:\n|11-0| = 11\n|1-11| = 10\n|10-1| = 9\n|2-10| = 8\n|9-2| = 7\n|3-9| = 6\n|8-3| = 5\n|4-8| = 4\n|7-4| = 3\n|5-7| = 2\n|6-5| = 1\n\nYes, differences are 1 through 11, each exactly once. The permutation is 0..11 each exactly once.\n\nThis is a valid all-interval series of size 12.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1950,
+  "completion_tokens": 834,
+  "reasoning_tokens": 279,
+  "cached_tokens": 1280,
+  "cost_usd": 0.0053326,
+  "cost_source": "openrouter",
+  "latency_ms": 83453.71532440186,
+  "tool_dispatch_ms_total": 419.89660263061523,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\ndef check(perm):\n    diffs = set()\n    for i in range(len(perm)-1):\n        d = abs(perm[i+1] - perm[i])\n        if d in diffs or d < 1 or d > 11:\n            return False\n        diffs.add(d)\n    return len(diffs) == 11\n\n# Try backtracking\ndef backtrack(n=12):\n    used = [False]*n\n    seq = []\n    diffs_used = set()\n    \n    def dfs():\n        if len(seq) == n:\n            return True\n        for v in range(n):\n            if not used[v]:\n                if seq:\n                    d = abs(seq[-1] - v)\n                    if d in diffs_used or d < 1 or d > n-1:\n                        continue\n                    diffs_used.add(d)\n                used[v] = True\n                seq.append(v)\n                if dfs():\n                    return True\n                seq.pop()\n                used[v] = False\n                if seq:\n                    diffs_used.discard(d)\n        return False\n    \n    if dfs():\n        return seq\n    return None\n\nsol = backtrack(12)\nprint(sol)\nif sol:\n    print(check(sol))"
+      },
+      "ok": true,
+      "latency_ms": 419.9
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          11,
+          1,
+          10,
+          2,
+          9,
+          3,
+          8,
+          4,
+          7,
+          5,
+          6
+        ],
+        "reasoning": "This is a classic all-interval series construction: start with 0, then alternate between the largest unused number and the smallest unused number. The differences are 11, 10, 9, ..., 1, each appearing exactly once."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,145 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree5_min_degree2_min_girth6_vertices11__v0_nh",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 2,
+    "min_girth": 6,
+    "vertices": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 19.7,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 13,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 10.34,
+    "solve_pct_type": 37.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    3,
+    4,
+    12,
+    14,
+    25,
+    35,
+    59,
+    510,
+    67,
+    610,
+    78,
+    89
+  ],
+  "reasoning": "Found via SAT encoding with Glucose3. The graph on 11 vertices with edges (0,3),(0,4),(1,2),(1,4),(2,5),(3,5),(5,9),(5,10),(6,7),(6,10),(7,8),(8,9) has all degrees in [2,5] (degrees are [2,2,2,2,2,4,2,2,2,2,2]) and girth exactly 6 (no triangles, 4-cycles, or 5-cycles). Verified by BFS shortest-cycle detection.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Invalid edge format: 3",
+  "prompt_tokens": 32776,
+  "completion_tokens": 6911,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.20199299999999998,
+  "cost_source": "openrouter",
+  "latency_ms": 121557.24453926086,
+  "tool_dispatch_ms_total": 31164.321899414062,
+  "tool_calls_made": 7,
+  "tool_rounds": 7,
+  "n_execute_python": 6,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\ndef check_girth(edges, n, min_girth=6):\n    \"\"\"Check that the shortest cycle has length >= min_girth\"\"\"\n    # Build adjacency list\n    adj = [set() for _ in range(n)]\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # BFS from each vertex to find shortest cycle\n    for start in range(n):\n        # BFS to find shortest cycle through start\n        dist = [-1] * n\n        parent = [-1] * n\n        dist[start] = 0\n        queue = [start]\n        qi = 0\n        while qi < len(queue):\n            u = queue[qi]; qi += 1\n            for w in adj[u]:\n                if dist[w] == -1:\n                    dist[w] = dist[u] + 1\n                    parent[w] = u\n                    queue.append(w)\n                elif parent[u] != w:\n                    # Found a cycle of length dist[u] + dist[w] + 1\n                    cycle_len = dist[u] + dist[w] + 1\n                    if cycle_len < min_girth:\n                        return False\n    return True\n\ndef check_degrees(edges, n, min_deg=2, max_deg=5):\n    deg = [0] * n\n    for u, v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    return all(min_deg <= d <= max_deg for d in deg)\n\n# Try using a SAT/constraint approach via backtracking\n# with pruning\n\nn = 11\nall_possible_edges = [(u, v) for u in range(n) for v in range(u+1, n)]\n\nprint(f\"Total possible edges: {len(all_possible_edges)}\")\nprint(\"Searching for valid graph...\")\n\n# Use a smarter approach: try known constructions first\n# The Petersen graph has girth 5, not enough\n# The incidence graph of PG(2,2) = Heawood graph has 14 vertices, girth 6\n# Let's try the McGee graph or other known cages\n\n# Actually let's try a direct search with backtracking + pruning\nbest = None\n\ndef backtrack(idx, current_edges, degrees):\n    global best\n    if best is not None:\n        return\n    \n    # Check if current degrees can still be satisfied\n    # Each vertex needs at least 2 edges total\n    # Remaining edges available\n    remaining = len(all_possible_edges) - idx\n    \n    # Check if any vertex already exceeds max degree\n    if any(d > 5 for d in degrees):\n        return\n    \n    # Check if it's already impossible to reach min degree for some vertex\n    # (rough check)\n    \n    # Check if we have a valid solution\n    if idx == len(all_possible_edges):\n        if check_degrees(current_edges, n):\n            best = list(current_edges)\n        return\n    \n    # Try including edge idx\n    u, v = all_possible_edges[idx]\n    \n    # Include this edge\n    degrees[u] += 1\n    degrees[v] += 1\n    current_edges.append((u, v))\n    \n    # Check girth constraint (only need to check new cycles involving u-v)\n    valid = True\n    # Quick check: no path of length < min_girth-1 between u and v in current graph (without this edge)\n    # BFS from u to v in graph without the new edge\n    adj = [set() for _ in range(n)]\n    for a, b in current_edges[:-1]:\n        adj[a].add(b)\n        adj[b].add(a)\n    \n    # Find shortest path from u to v\n    dist = [-1] * n\n    dist[u] = 0\n    queue = [u]\n    qi = 0\n    while qi < len(queue):\n        node = queue[qi]; qi += 1\n        if node == v:\n            break\n        for w in adj[node]:\n            if dist[w] == -1:\n                dist[w] = dist[node] + 1\n                queue.append(w)\n    \n    if dist[v] != -1 and dist[v] < 5:  # cycle would be dist[v]+1 < 6\n        valid = False\n    \n    if valid and degrees[u] <= 5 and degrees[v] <= 5:\n        backtrack(idx + 1, current_edges, degrees)\n    \n    current_edges.pop()\n    degrees[u] -= 1\n    degrees[v] -= 1\n    \n    # Skip this edge\n    backtrack(idx + 1, current_edges, degrees)\n\nimport sys\nsys.setrecursionlimit(100000)\n\ndegrees = [0] * n\nbacktrack(0, [], degrees)\n\nif best:\n    print(f\"Found solution with {len(best)} edges!\")\n    print(\"Edges:\", best)\n    print(\"Degrees:\", [sum(1 for u,v in best if u==i or v==i) for i in range(n)])\n    print(\"Girth check:\", check_girth(best, n))\nelse:\n    print(\"No solution found by backtracking\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 30071.83
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let's try a smarter approach using known graph theory\n# For girth >= 6, we need no triangles and no 4-cycles and no 5-cycles\n# \n# Key constraint: girth >= 6 means the graph is locally tree-like up to depth 2\n# For a vertex v with degree d, its neighbors must form an independent set (no triangles)\n# AND no two neighbors can share a common neighbor (no 4-cycles)\n# AND no path of length 4 between two neighbors (no 5-cycles... wait, \n# actually for girth >= 6, we need no cycles of length 3,4,5)\n#\n# Let's use the Moore bound: for girth 6, degree d, n >= 1 + d + d(d-1) = d^2 + 1\n# For d=2: n >= 5 (C5 has girth 5, need cycle of length 6 minimum)\n# Actually for girth exactly 6, minimum is the \"cage\" - (d,6)-cage\n# For d=3: (3,6)-cage is the Desargues graph with 20 vertices\n# Wait, let me reconsider...\n# \n# Moore bound for girth 6: n >= 2(1 + (d-1) + (d-1)^2) = 2(d^2 - d + 1)\n# For d=2: n >= 6 (hexagon C6 works!)\n# For d=3: n >= 14 (Heawood graph)\n# \n# But we don't need regular graphs! We just need degrees between 2 and 5.\n# \n# Let's try a construction: start with a known girth-6 structure\n# \n# The incidence graph of a projective plane or affine plane works\n# But let's try a direct construction for 11 vertices\n#\n# Idea: Use a bipartite graph (bipartite graphs have no odd cycles, so girth is even)\n# For bipartite graph with girth >= 6, we need no 4-cycles\n# A bipartite graph with no 4-cycles: each pair of vertices on same side has at most 1 common neighbor\n#\n# Let's try: partition into sets A={0,1,2,3,4} and B={5,6,7,8,9,10}\n# Connect them such that no 4-cycle exists and degrees are 2-5\n\n# For bipartite with parts of size 5 and 6, no 4-cycles:\n# This is related to a bipartite graph with girth >= 6\n# \n# Actually let me just use a SAT solver\n\nfrom pysat.solvers import Glucose3\nfrom pysat.formula import CNF\n\nn = 11\nedges_list = [(u, v) for u in range(n) for v in range(u+1, n)]\nE = len(edges_list)\nedge_idx = {e: i for i, e in enumerate(edges_list)}\n\nprint(f\"Variables: {E} (one per possible edge)\")\nprint(f\"Edges list size: {E}\")\n\n# Variable x_i = 1 means edge i is included\n# Variables are 1-indexed for pysat\n\ndef edge_var(u, v):\n    if u > v: u, v = v, u\n    return edge_idx[(u,v)] + 1  # 1-indexed\n\nsolver = Glucose3()\ncnf = CNF()\n\n# Degree constraints: each vertex has degree 2-5\n# For each vertex, sum of incident edge variables is between 2 and 5\n# Use cardinality constraints\n\nfrom pysat.card import CardEnc, EncType\n\nfor v in range(n):\n    incident = [edge_var(v, u) for u in range(n) if u != v]\n    \n    # At least 2\n    atmost_clauses = CardEnc.atleast(lits=incident, bound=2, encoding=EncType.seqcounter, top_id=E)\n    for clause in atmost_clauses.clauses:\n        solver.add_clause(clause)\n        # Update top_id tracking\n    \n    # At most 5\n    atmost_clauses2 = CardEnc.atmost(lits=incident, bound=5, encoding=EncType.seqcounter, top_id=E)\n    for clause in atmost_clauses2.clauses:\n        solver.add_clause(clause)\n\nprint(\"Degree constraints added\")\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 226.46
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom pysat.solvers import Glucose3\nfrom pysat.formula import CNF\nfrom pysat.card import CardEnc, EncType\n\nn = 11\nedges_list = [(u, v) for u in range(n) for v in range(u+1, n)]\nE = len(edges_list)\nedge_idx = {e: i for i, e in enumerate(edges_list)}\n\ndef edge_var(u, v):\n    if u > v: u, v = v, u\n    return edge_idx[(u,v)] + 1  # 1-indexed\n\nsolver = Glucose3()\n\n# Track the maximum variable used\nmax_var = [E]\n\ndef add_card_clauses(lits, bound, at_least=True):\n    if at_least:\n        enc = CardEnc.atleast(lits=lits, bound=bound, encoding=EncType.seqcounter, top_id=max_var[0])\n    else:\n        enc = CardEnc.atmost(lits=lits, bound=bound, encoding=EncType.seqcounter, top_id=max_var[0])\n    for clause in enc.clauses:\n        solver.add_clause(clause)\n        for lit in clause:\n            if abs(lit) > max_var[0]:\n                max_var[0] = abs(lit)\n\n# Degree constraints\nfor v in range(n):\n    incident = [edge_var(v, u) for u in range(n) if u != v]\n    add_card_clauses(incident, 2, at_least=True)\n    add_card_clauses(incident, 5, at_least=False)\n\nprint(\"Degree constraints added, max_var:\", max_var[0])\n\n# Girth >= 6: no cycles of length 3, 4, or 5\n# No triangles: for every triple (a,b,c), not all three edges present\ntriangles_added = 0\nfor a in range(n):\n    for b in range(a+1, n):\n        for c in range(b+1, n):\n            # Not (a-b AND b-c AND a-c)\n            solver.add_clause([-edge_var(a,b), -edge_var(b,c), -edge_var(a,c)])\n            triangles_added += 1\n\nprint(f\"Triangle constraints added: {triangles_added}\")\n\n# No 4-cycles: for every 4-path a-b-c-d-a, not all 4 edges\n# Equivalently: for every pair (a,c) and pair (b,d), \n# not (a-b AND b-c AND c-d AND d-a)\n# More efficiently: for any two vertices u,v, they share at most 1 common neighbor\n# i.e., for u,v,w1,w2 all distinct: not (u-w1 AND v-w1 AND u-w2 AND v-w2)\nfour_cycles = 0\nfor u in range(n):\n    for v in range(u+1, n):\n        # u and v share at most 1 common neighbor\n        common_neighbors = [w for w in range(n) if w != u and w != v]\n        # For any two potential common neighbors w1, w2:\n        for i, w1 in enumerate(common_neighbors):\n            for w2 in common_neighbors[i+1:]:\n                # Not (u-w1 AND v-w1 AND u-w2 AND v-w2)\n                solver.add_clause([-edge_var(u,w1), -edge_var(v,w1), \n                                   -edge_var(u,w2), -edge_var(v,w2)])\n                four_cycles += 1\n\nprint(f\"4-cycle constraints added: {four_cycles}\")\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 436.54
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Now add 5-cycle constraints\n# No 5-cycles: for every 5-path a-b-c-d-e-a, not all 5 edges present\n# This is: for all distinct a,b,c,d,e: not(a-b AND b-c AND c-d AND d-e AND e-a)\n# But we need to avoid double-counting - enumerate all 5-cycles\n\nfive_cycles = 0\nfrom itertools import permutations\n\nseen_5cycles = set()\nfor perm in permutations(range(n), 5):\n    a, b, c, d, e = perm\n    # Canonical form: start with smallest, go in direction that gives smaller second element\n    cycle = (a, b, c, d, e)\n    # Normalize: rotate to start at minimum\n    min_idx = cycle.index(min(cycle))\n    rotated = cycle[min_idx:] + cycle[:min_idx]\n    # Choose direction\n    if rotated[1] > rotated[-1]:\n        rotated = (rotated[0],) + rotated[1:][::-1]\n    \n    if rotated in seen_5cycles:\n        continue\n    seen_5cycles.add(rotated)\n    \n    a, b, c, d, e = rotated\n    solver.add_clause([-edge_var(a,b), -edge_var(b,c), -edge_var(c,d), \n                       -edge_var(d,e), -edge_var(e,a)])\n    five_cycles += 1\n\nprint(f\"5-cycle constraints added: {five_cycles}\")\nprint(\"Solving...\")\n\nresult = solver.solve()\nprint(f\"Result: {'SAT' if result else 'UNSAT'}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = []\n    for i, (u, v) in enumerate(edges_list):\n        if model[i] > 0:  # edge variable is True\n            solution_edges.append((u, v))\n    \n    print(f\"Number of edges: {len(solution_edges)}\")\n    print(f\"Edges: {solution_edges}\")\n    \n    # Verify\n    degrees = [0] * n\n    for u, v in solution_edges:\n        degrees[u] += 1\n        degrees[v] += 1\n    print(f\"Degrees: {degrees}\")\n    print(f\"Min degree: {min(degrees)}, Max degree: {max(degrees)}\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 36.33
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Rebuild everything in one cell\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc, EncType\nfrom itertools import permutations\n\nn = 11\nedges_list = [(u, v) for u in range(n) for v in range(u+1, n)]\nE = len(edges_list)\nedge_idx = {e: i for i, e in enumerate(edges_list)}\n\ndef edge_var(u, v):\n    if u > v: u, v = v, u\n    return edge_idx[(u,v)] + 1  # 1-indexed\n\nsolver = Glucose3()\nmax_var = [E]\n\ndef add_card_clauses(lits, bound, at_least=True):\n    if at_least:\n        enc = CardEnc.atleast(lits=lits, bound=bound, encoding=EncType.seqcounter, top_id=max_var[0])\n    else:\n        enc = CardEnc.atmost(lits=lits, bound=bound, encoding=EncType.seqcounter, top_id=max_var[0])\n    for clause in enc.clauses:\n        solver.add_clause(clause)\n        for lit in clause:\n            if abs(lit) > max_var[0]:\n                max_var[0] = abs(lit)\n\n# Degree constraints: 2 <= deg(v) <= 5\nfor v in range(n):\n    incident = [edge_var(v, u) for u in range(n) if u != v]\n    add_card_clauses(incident, 2, at_least=True)\n    add_card_clauses(incident, 5, at_least=False)\n\n# No triangles (3-cycles)\nfor a in range(n):\n    for b in range(a+1, n):\n        for c in range(b+1, n):\n            solver.add_clause([-edge_var(a,b), -edge_var(b,c), -edge_var(a,c)])\n\n# No 4-cycles: no two vertices share 2 common neighbors\nfor u in range(n):\n    for v in range(u+1, n):\n        others = [w for w in range(n) if w != u and w != v]\n        for i in range(len(others)):\n            for j in range(i+1, len(others)):\n                w1, w2 = others[i], others[j]\n                solver.add_clause([-edge_var(u,w1), -edge_var(v,w1),\n                                   -edge_var(u,w2), -edge_var(v,w2)])\n\n# No 5-cycles\nseen_5cycles = set()\nfor perm in permutations(range(n), 5):\n    a, b, c, d, e = perm\n    cycle = (a, b, c, d, e)\n    min_idx = cycle.index(min(cycle))\n    rotated = cycle[min_idx:] + cycle[:min_idx]\n    if rotated[1] > rotated[-1]:\n        rotated = (rotated[0],) + rotated[1:][::-1]\n    if rotated in seen_5cycles:\n        continue\n    seen_5cycles.add(rotated)\n    a, b, c, d, e = rotated\n    solver.add_clause([-edge_var(a,b), -edge_var(b,c), -edge_var(c,d),\n                       -edge_var(d,e), -edge_var(e,a)])\n\nprint(f\"5-cycle constraints: {len(seen_5cycles)}\")\nprint(\"Solving...\")\n\nresult = solver.solve()\nprint(f\"Result: {'SAT' if result else 'UNSAT'}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = []\n    for i, (u, v) in enumerate(edges_list):\n        if model[i] > 0:\n            solution_edges.append((u, v))\n    \n    degrees = [0] * n\n    for u, v in solution_edges:\n        degrees[u] += 1\n        degrees[v] += 1\n    print(f\"Edges ({len(solution_edges)}): {solution_edges}\")\n    print(f\"Degrees: {degrees}\")\n    print(f\"Degree range: [{min(degrees)}, {max(degrees)}]\")\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 339.65
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution thoroughly\ndef verify_solution(edges, n):\n    from collections import deque\n    \n    adj = [set() for _ in range(n)]\n    for u, v in edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    # Check degrees\n    degrees = [len(adj[v]) for v in range(n)]\n    print(f\"Degrees: {degrees}\")\n    assert all(2 <= d <= 5 for d in degrees), \"Degree constraint violated!\"\n    print(\"\u2713 All degrees in [2, 5]\")\n    \n    # Check girth using BFS from each vertex\n    min_cycle = float('inf')\n    for start in range(n):\n        dist = [-1] * n\n        dist[start] = 0\n        parent = [-1] * n\n        queue = deque([start])\n        while queue:\n            u = queue.popleft()\n            for w in adj[u]:\n                if dist[w] == -1:\n                    dist[w] = dist[u] + 1\n                    parent[w] = u\n                    queue.append(w)\n                elif parent[u] != w:\n                    cycle_len = dist[u] + dist[w] + 1\n                    min_cycle = min(min_cycle, cycle_len)\n    \n    print(f\"Shortest cycle length (girth): {min_cycle}\")\n    assert min_cycle >= 6, f\"Girth constraint violated! Girth = {min_cycle}\"\n    print(f\"\u2713 Girth = {min_cycle} >= 6\")\n    \n    # Check connectivity\n    visited = [False] * n\n    visited[0] = True\n    queue = deque([0])\n    while queue:\n        u = queue.popleft()\n        for w in adj[u]:\n            if not visited[w]:\n                visited[w] = True\n                queue.append(w)\n    \n    components = sum(1 for v in visited if not v)\n    if all(visited):\n        print(\"\u2713 Graph is connected\")\n    else:\n        print(f\"Note: Graph has {sum(1 for v in visited if not v) + 1} components\")\n    \n    return True\n\nsolution_edges = [(0, 3), (0, 4), (1, 2), (1, 4), (2, 5), (3, 5), \n                  (5, 9), (5, 10), (6, 7), (6, 10), (7, 8), (8, 9)]\n\nprint(\"=== Verification ===\")\nverify_solution(solution_edges, 11)\nprint(\"\\nFinal edge list:\")\nfor e in solution_edges:\n    print(f\"  {e}\")\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 53.51
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          3,
+          4,
+          12,
+          14,
+          25,
+          35,
+          59,
+          510,
+          67,
+          610,
+          78,
+          89
+        ],
+        "reasoning": "Found via SAT encoding with Glucose3. The graph on 11 vertices with edges (0,3),(0,4),(1,2),(1,4),(2,5),(3,5),(5,9),(5,10),(6,7),(6,10),(7,8),(8,9) has all degrees in [2,5] (degrees are [2,2,2,2,2,4,2,2,2,2,2]) and girth exactly 6 (no triangles, 4-cycles, or 5-cycles). Verified by BFS shortest-cycle detection."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

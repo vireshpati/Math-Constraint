@@ -1,0 +1,101 @@
+{
+  "problem_name": "graceful_graph_k2_p3__v0_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 3
+  },
+  "difficulty": {
+    "solve_time_ms": 1025.2,
+    "search_space": 262144,
+    "num_variables": 13,
+    "num_constraints": 11,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 72.37,
+    "solve_pct_type": 18.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    2,
+    3,
+    7,
+    1,
+    0,
+    4
+  ],
+  "reasoning": "\nThe graph G_{2,3} has 6 vertices and 7 edges:\n- Within-clique edges: (v0,v1), (v2,v3), (v4,v5)\n- Between clique 0-1: (v0,v2), (v1,v3)\n- Between clique 1-2: (v2,v4), (v3,v5)\n\nFixed constraints: x[2]=7 (label of vertex 2 = 7), d[6]=3 (|label(v3)-label(v5)|=3).\n\nSolution [2, 3, 7, 1, 0, 4]:\n- Clique 0: v0=2, v1=3\n- Clique 1: v2=7, v3=1\n- Clique 2: v4=0, v5=4\n\nEdge labels: |2-3|=1, |7-1|=6, |0-4|=4, |2-7|=5, |3-1|=2, |7-0|=7, |1-4|=3\nThese are exactly {1,2,3,4,5,6,7} \u2014 all distinct, confirming a valid graceful labeling.\nBoth fixed constraints are satisfied: x[2]=7 \u2713 and d[6]=|1-4|=3 \u2713.\n",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 9774,
+  "completion_tokens": 2210,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.062472,
+  "cost_source": "openrouter",
+  "latency_ms": 40055.15170097351,
+  "tool_dispatch_ms_total": 150.15602111816406,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Let me first understand the graph structure\n# G_{2,3}: 3 disjoint K_2 cliques (numbered 0 through 2)\n# Each K_2 clique has 2 vertices\n# Vertices: clique 0 -> v0, v1; clique 1 -> v2, v3; clique 2 -> v4, v5\n\n# Edges within cliques (K_2 means complete graph on 2 vertices = 1 edge per clique):\n# Clique 0: (v0, v1)\n# Clique 1: (v2, v3)\n# Clique 2: (v4, v5)\n\n# Edges between consecutive cliques:\n# Between clique 0 and clique 1: vertex i of clique 0 to vertex i of clique 1\n#   (v0, v2) and (v1, v3)\n# Between clique 1 and clique 2: vertex i of clique 1 to vertex i of clique 2\n#   (v2, v4) and (v3, v5)\n\n# Total edges: 3 (within) + 2 + 2 = 7 edges \u2713\n# Total vertices: 6 \u2713\n\n# For graceful labeling with 7 edges:\n# - Labels are unique integers from 0 to 7 (but we have 6 vertices, so we use 6 of the 8 values 0..7)\n# Wait, graceful labeling: vertices get labels from 0 to n where n = number of edges\n# n = 7, so labels are from 0 to 7, and we need 6 distinct labels from {0,1,...,7}\n\n# Edge labels are |label(u) - label(v)| and must be distinct (and cover 1..7)\n\nedges = [(0,1), (2,3), (4,5),  # within cliques\n         (0,2), (1,3),          # between clique 0 and 1\n         (2,4), (3,5)]          # between clique 1 and 2\n\nprint(\"Edges:\", edges)\nprint(\"Number of edges:\", len(edges))\n\n# Constraints:\n# x[2] = 7 (vertex 2, which is vertex 0 of clique 1)\n# d[6] = 3 (edge label 6 = 3)\n\n# Let me figure out what d[6] means\n# Edges are numbered 0..6, so d[6] is the label of edge index 6\n# Edge 6 is (3,5) based on the list above\n# So |label(v3) - label(v5)| = 3\n\nprint(\"\\nEdge 6:\", edges[6], \"-> |label(v3) - label(v5)| = 3\")\nprint(\"x[2] = 7 means label of vertex 2 = 7\")\n"
+      },
+      "ok": true,
+      "latency_ms": 59.17
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import permutations\n\nedges = [(0,1), (2,3), (4,5),  # within cliques\n         (0,2), (1,3),          # between clique 0 and 1\n         (2,4), (3,5)]          # between clique 1 and 2\n\n# x[2] = 7: label of vertex 2 = 7\n# d[6] = 3: |label(v3) - label(v5)| = 3\n\n# Try all combinations of 6 labels from {0..7} assigned to 6 vertices\nfrom itertools import combinations\n\nall_labels = list(range(8))\n\nsolutions = []\n\nfor label_set in combinations(all_labels, 6):\n    for perm in permutations(label_set):\n        labels = list(perm)\n        \n        # Check fixed constraints\n        if labels[2] != 7:\n            continue\n        if abs(labels[3] - labels[5]) != 3:\n            continue\n        \n        # Check all labels are distinct (guaranteed by permutation)\n        \n        # Compute edge labels\n        edge_labels = [abs(labels[u] - labels[v]) for u, v in edges]\n        \n        # Check all edge labels are distinct and cover 1..7\n        if len(set(edge_labels)) == 7 and set(edge_labels) == set(range(1, 8)):\n            solutions.append(labels)\n\nprint(f\"Found {len(solutions)} solutions\")\nif solutions:\n    print(\"First solution:\", solutions[0])\n    # Verify\n    sol = solutions[0]\n    print(\"\\nVerification:\")\n    for i, (u, v) in enumerate(edges):\n        print(f\"  Edge {i} ({u},{v}): |{sol[u]} - {sol[v]}| = {abs(sol[u]-sol[v])}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 54.76
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Perfect! Let's verify all constraints are met\nsol = [2, 3, 7, 1, 0, 4]\n\nprint(\"Solution:\", sol)\nprint(\"\\nFixed constraints:\")\nprint(f\"  x[2] = {sol[2]} (should be 7): {'\u2713' if sol[2] == 7 else '\u2717'}\")\nprint(f\"  d[6] = |label(v3) - label(v5)| = |{sol[3]} - {sol[5]}| = {abs(sol[3]-sol[5])} (should be 3): {'\u2713' if abs(sol[3]-sol[5]) == 3 else '\u2717'}\")\n\nprint(\"\\nAll vertex labels:\", sol)\nprint(\"Labels are unique:\", len(set(sol)) == 6)\nprint(\"Labels in range [0,7]:\", all(0 <= x <= 7 for x in sol))\n\nedges = [(0,1), (2,3), (4,5), (0,2), (1,3), (2,4), (3,5)]\nedge_labels = [abs(sol[u] - sol[v]) for u, v in edges]\nprint(\"\\nEdge labels:\", edge_labels)\nprint(\"Edge labels are {1..7}:\", set(edge_labels) == set(range(1,8)))\n\nprint(\"\\nClique 0 (vertices 0,1):\", sol[0], sol[1])\nprint(\"Clique 1 (vertices 2,3):\", sol[2], sol[3])\nprint(\"Clique 2 (vertices 4,5):\", sol[4], sol[5])\n"
+      },
+      "ok": true,
+      "latency_ms": 36.23
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          2,
+          3,
+          7,
+          1,
+          0,
+          4
+        ],
+        "reasoning": "\nThe graph G_{2,3} has 6 vertices and 7 edges:\n- Within-clique edges: (v0,v1), (v2,v3), (v4,v5)\n- Between clique 0-1: (v0,v2), (v1,v3)\n- Between clique 1-2: (v2,v4), (v3,v5)\n\nFixed constraints: x[2]=7 (label of vertex 2 = 7), d[6]=3 (|label(v3)-label(v5)|=3).\n\nSolution [2, 3, 7, 1, 0, 4]:\n- Clique 0: v0=2, v1=3\n- Clique 1: v2=7, v3=1\n- Clique 2: v4=0, v5=4\n\nEdge labels: |2-3|=1, |7-1|=6, |0-4|=4, |2-7|=5, |3-1|=2, |7-0|=7, |1-4|=3\nThese are exactly {1,2,3,4,5,6,7} \u2014 all distinct, confirming a valid graceful labeling.\nBoth fixed constraints are satisfied: x[2]=7 \u2713 and d[6]=|1-4|=3 \u2713.\n"
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

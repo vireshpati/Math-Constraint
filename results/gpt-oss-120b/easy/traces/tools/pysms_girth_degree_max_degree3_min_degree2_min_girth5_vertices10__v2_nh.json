@@ -1,0 +1,128 @@
+{
+  "problem_name": "pysms_girth_degree_max_degree3_min_degree2_min_girth5_vertices10__v2_nh",
+  "problem_type": "pysms_girth_degree",
+  "params": {
+    "max_degree": 3,
+    "min_degree": 2,
+    "min_girth": 5,
+    "vertices": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 11.0,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 12,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 5.83,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-oss-120b:free",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      3
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      0,
+      1
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      3,
+      9
+    ]
+  ],
+  "reasoning": "A graph with 10 vertices was found where each vertex has degree 2 or 3 and the shortest cycle length is 5, satisfying the requirements.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,3],[7,8],[1,8],[0,6],[0,1],[2,8],[6,7],[2,5],[7,9],[4,5],[2,3],[1,4],[5,6],[3,9]],\n    \"reasoning\": \"A graph with 10 vertices was found where each vertex has degree 2 or 3 and the shortest cycle length is 5, satisfying the requirements.\"\n}",
+  "cot_trace": "We need to find such a graph. Likely exists. Let's try construct via python search.\n---\nWe have a graph edges list, need check degrees 2-3. Let's verify.\n---\nWe have a valid graph. Provide edges list.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 2921,
+  "completion_tokens": 805,
+  "reasoning_tokens": 49,
+  "cached_tokens": 2000,
+  "cost_usd": 0.0,
+  "cost_source": "openrouter",
+  "latency_ms": 29117.098569869995,
+  "tool_dispatch_ms_total": 844.637393951416,
+  "tool_calls_made": 2,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools, random\nn=10\n# try random graphs with degree 2-3 and girth>=5\ndef girth(edges):\n    # BFS from each node to find shortest cycle\n    adj=[set() for _ in range(n)]\n    for u,v in edges:\n        adj[u].add(v);adj[v].add(u)\n    best=10**9\n    for start in range(n):\n        # BFS with parent\n        from collections import deque\n        dist=[-1]*n; parent=[-1]*n\n        dist[start]=0\n        q=deque([start])\n        while q:\n            u=q.popleft()\n            for w in adj[u]:\n                if dist[w]==-1:\n                    dist[w]=dist[u]+1\n                    parent[w]=u\n                    q.append(w)\n                elif parent[u]!=w: # found cycle\n                    cycle_len=dist[u]+dist[w]+1\n                    if cycle_len<best:\n                        best=cycle_len\n        if best==3:\n            break\n    return best if best!=10**9 else None\n\ndef degrees_ok(edges):\n    deg=[0]*n\n    for u,v in edges:\n        deg[u]+=1;deg[v]+=1\n    return all(2<=d<=3 for d in deg)\n\nverts=range(n)\nall_edges=[e for e in itertools.combinations(verts,2)]\n# random search\nfor _ in range(20000):\n    # choose edges randomly ensuring degree constraints\n    deg=[0]*n\n    edges=[]\n    random.shuffle(all_edges)\n    for u,v in all_edges:\n        if deg[u]<3 and deg[v]<3:\n            # maybe add\n            if random.random()<0.5:\n                deg[u]+=1;deg[v]+=1\n                edges.append((u,v))\n    if not degrees_ok(edges):\n        continue\n    g=girth(edges)\n    if g is not None and g>=5:\n        print('found',edges,g)\n        break\nelse:\n    print('none')\n"
+      },
+      "ok": true,
+      "latency_ms": 457.92
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges=[(0, 3), (7, 8), (1, 8), (0, 6), (0, 1), (2, 8), (6, 7), (2, 5), (7, 9), (4, 5), (2, 3), (1, 4), (5, 6), (3, 9)]\nn=10\ndeg=[0]*n\nfor u,v in edges:\n    deg[u]+=1;deg[v]+=1\nprint(deg)\n"
+      },
+      "ok": true,
+      "latency_ms": 386.71
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,141 @@
+{
+  "problem_name": "graceful_graph_k3_p6__v4_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1860.4,
+    "search_space": 3686553210602841700043063296,
+    "num_variables": 51,
+    "num_constraints": 37,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.41,
+    "solve_pct_type": 93.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    33,
+    31,
+    3,
+    22,
+    2,
+    29,
+    32,
+    20,
+    4,
+    8,
+    5,
+    11,
+    28,
+    27,
+    6,
+    14
+  ],
+  "reasoning": "Used OR-Tools CP-SAT solver with symmetry breaking constraints. The graph has 18 vertices and 33 edges. A graceful labeling was found assigning unique labels 0-33 such that all 33 edge differences are exactly the set {1,2,...,33}. Clique labels: [0,1,33], [31,3,22], [2,29,32], [20,4,8], [5,11,28], [27,6,14].",
+  "raw_response": null,
+  "cot_trace": "We need to find a graceful labeling for a specific graph G_{3,6}. Let's parse the graph.\n\nWe have 6 disjoint K_3 cliques (triangles), numbered 0 through 5. So each clique has 3 vertices. Within each clique, there are edges between every pair of vertices: that's 3 edges per clique, total 6*3 = 18 edges.\n\nBetween consecutive cliques (g, g+1) for g=0..4, there are 3 edges linking vertex i of clique g to vertex i of clique g+1 for i=0,1,2. So that's a perfect matching between consecutive cliques. There are 5 such matchings, each of size 3, giving 15 edges.\n\nTotal edges: 18 + 15 = 33. The graph has 18 vertices. A graceful labeling uses vertex labels from 0 to 33 (i.e., 0..m where m=|E|=33), each label used exactly once (i.e., a bijection from V to {0,...,33}). The edge labels are absolute differences of endpoint labels, and all 33 edge labels must be distinct. Since there are 33 edges and possible differences range from 1 to 33, the set of edge labels must be exactly {1,...,33}.\n\nWe need to output a list of 18 integers, ordered by clique then vertex within clique. So indices: clique 0: v00, v01, v02; clique 1: v10, v11, v12; ... clique 5: v50, v51, v52.\n\nWe need to find such a labeling, or prove UNSAT.\n\nThis is a known graph? It looks like a \"triangular snake\" or \"ladder of triangles\"? Actually, it's like a path of 6 triangles where corresponding vertices are connected. It's a triangulated prism? Wait: 6 disjoint K_3 cliques connected by matchings. So the graph is the Cartesian product of P_6 (path on 6 vertices) and K_3? Let's check: P_6 \u25a1 K_3. The Cartesian product G \u25a1 H has vertex set V(G) \u00d7 V(H), and edges: (u,v) adjacent to (u',v) if uu' \u2208 E(G), plus (u,v) adjacent to (u,v') if vv' \u2208 E(H). Here, if we take G = path on 6 vertices (cliques) and H = K_3 (vertices within clique). Then V = {0..5} \u00d7 {0,1,2}. Edges within clique: for fixed g, (g,i)-(g,j) if i\u2260j, which matches K_3. Edges between consecutive cliques: (g,i)-(g+1,i) for g=0..4, which matches the matchings. Yes, so the graph is exactly P_6 \u25a1 K_3.\n\nWe need a graceful labeling of P_6 \u25a1 K_3. Graceful labeling of Cartesian products is a known area. Is P_n \u25a1 K_3 graceful? I recall some results: P_n \u00d7 P_m (grid) is conjectured graceful? Actually, graceful labeling of grids is an open problem in general, but some cases are known. But P_n \u25a1 K_3 is a \"prism\" graph? Wait, P_n \u25a1 K_2 is a ladder, which is known to be graceful. P_n \u25a1 K_3 is like a \"triangular prism\" stacked n times. I think these might be known as \"triangular snakes\"? Let's think.\n\nActually, the triangular snake T_n is formed from a path v_1,...,v_n by joining v_i and v_{i+1} to a new vertex w_i. That's different.\n\nOur graph is the Cartesian product P_6 \u25a1 K_3. This is also known as the \"3-prism\" graph repeated? No, the 3-prism graph is C_3 \u25a1 K_2 = K_3 \u25a1 K_2. That's a triangular prism with 6 vertices and 9 edges. Here we have P_6 \u25a1 K_3, which is like 6 copies of K_3 connected in a path.\n\nI recall that all trees are conjectured to be graceful (Graceful Tree Conjecture). This graph is not a tree; it has cycles. But maybe it is graceful.\n\nWe can try to find a labeling computationally. Since there are 18 vertices and labels 0..33, we need to assign a permutation of 34 numbers to 18 vertices? Wait, there are 34 numbers from 0 to 33 inclusive, but only 18 vertices. So we choose 18 distinct labels from 0..33, and assign them bijectively. The edge labels must be exactly 1..33. Since there are 33 edges, the edge labels are all distinct and cover 1..33. Note that the sum of all edge labels is sum_{k=1}^{33} k = 33*34/2 = 561. Also, each edge label is |a-b|. There is a parity condition: sum of edge labels modulo 2? For any labeling, sum_{e} |label(u)-label(v)| \u2261 sum_{e} (label(u) + label(v)) mod 2? Not exactly because absolute value mod 2 is same as difference mod 2, but sign doesn't matter mod 2: |x-y| \u2261 x-y (mod 2) \u2261 x+y (mod 2) because -y \u2261 y (mod 2). So sum of edge labels mod 2 equals sum over edges of (label(u)+label(v)) mod 2 = sum_{v} deg(v)*label(v) mod 2. So we need sum_{v} deg(v)*label(v) \u2261 561 \u2261 1 (mod 2). So sum_{v} deg(v)*label(v) must be odd.\n\nDegrees: within each clique, each vertex has degree 2 (connected to the other two vertices in its clique) plus possibly 1 or 2 edges to neighboring cliques. For clique 0 and 5 (end cliques), each vertex has degree 2 (intra) + 1 (inter) = 3. For cliques 1..4 (middle), each vertex has degree 2 + 2 = 4. So degrees: 6 vertices of degree 3 (the two end cliques), and 12 vertices of degree 4.\n\nParity condition: sum of labels at degree-3 vertices must be odd (since 4*label is even). So the sum of the 6 labels in cliques 0 and 5 must be odd. That's easy.\n\nBut this is just a necessary condition.\n\nWe can try to solve this with a SAT solver or constraint programming. Since 18 vertices, labels from 0..33. That's a search space of P(34,18) \u2248 34!/(34-18)! which is huge. But we can use Python with OR-Tools? The environment might have OR-Tools? Or we can use python's `itertools`? Probably not feasible. Better to use a SAT solver or CP-SAT. Let's check if `ortools` is available. Or `python-sat` (pysat). Or `z3`.\n\nThe problem says we may import pysat. Let's try using python-sat (Glucose3). But modeling 18 variables with domain 0..33 and all-different, plus edge difference all-different, might be heavy for a pure SAT encoding. But we can use CP-SAT (ortools) if available. Let's check. Or we can write a custom backtracking search in Python, using pruning.\n\nGiven 18 vertices, perhaps a clever backtracking with constraint propagation can find a solution quickly. Let's think about the structure.\n\nVertices: for g in 0..5, i in 0..2, denote v_{g,i}.\n\nEdges:\n- Intra-clique: for each g, edges between v_{g,0}-v_{g,1}, v_{g,0}-v_{g,2}, v_{g,1}-v_{g,2}.\n- Inter-clique: for each g=0..4, edges v_{g,i}-v_{g+1,i} for i=0,1,2.\n\nTotal edges: 6*3 + 5*3 = 33.\n\nEdge labels must be all distinct from 1..33.\n\nWe can try to use a solver. Let's see if OR-Tools CP-SAT is installed. Let's test.\n---\n Let me model this problem. We have 18 vertices, arranged in 6 cliques of 3 vertices each. Let me denote the vertices as v[g][i] where g is the clique number (0..5) and i is the vertex within the clique (0..2).\n\nEdges:\n1. Within each clique g: edges between v[g][0]-v[g][1], v[g][0]-v[g][2], v[g][1]-v[g][2] (3 edges per clique, 6 cliques = 18 edges)\n2. Between consecutive cliques g and g+1: edges v[g][i]-v[g+1][i] for i=0,1,2 (3 edges per pair, 5 pairs = 15 edges)\n\nTotal edges: 18 + 15 = 33. \u2713\n\nWe need to assign labels 0..33 to the 18 vertices such that all 33 edge labels |label(u) - label(v)| are distinct (so they must be exactly 1..33 in some order).\n\nLet me use OR-Tools CP-SAT solver for this.\n---\nWe need to find a graceful labeling for this graph (also known as a triangular ladder or similar structure). The graph has 18 vertices and 33 edges, so labels 0 to 33.\n\nLet me set up a CP-SAT model with the constraint that all vertex labels are distinct (0 to 33), and all edge absolute differences are distinct (1 to 33).\n\nFor a graph with n vertices and m edges, a graceful labeling uses vertex labels 0 to m and edge differences 1 to m.\n\nThe model will have 18 integer variables for vertices (0 to 33), all-different constraint. Then 33 edge difference variables (1 to 33), all-different.\n\nLet me try with OR-Tools CP-SAT.\n---\nThe variable `edges` was defined in a previous cell but not available in this new cell context. Let me rerun with everything in one cell.\n---\nThe solver found a solution quickly! Let me verify it once more and format it correctly.\n\nThe labels are: [0, 1, 33, 31, 3, 22, 2, 29, 32, 20, 4, 8, 5, 11, 28, 27, 6, 14]\n\nThis is ordered by clique then vertex within clique:\n- Clique 0: 0, 1, 33\n- Clique 1: 31, 3, 22\n- Clique 2: 2, 29, 32\n- Clique 3: 20, 4, 8\n- Clique 4: 5, 11, 28\n- Clique 5: 27, 6, 14\n\nLet me double-check this is correct by manually verifying the edge labels.\n---\nThe problem is satisfiable, and I have found a valid graceful labeling:\n\n[0, 1, 33, 31, 3, 22, 2, 29, 32, 20, 4, 8, 5, 11, 28, 27, 6, 14]\n\nThis gives:\n- Clique 0: [0, 1, 33]\n- Clique 1: [31, 3, 22]\n- Clique 2: [2, 29, 32]\n- Clique 3: [20, 4, 8]\n- Clique 4: [5, 11, 28]\n- Clique 5: [27, 6, 14]\n\nEdge differences are exactly 1 through 33, all distinct.\n\nLet me submit this answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 10852,
+  "completion_tokens": 4596,
+  "reasoning_tokens": 2161,
+  "cached_tokens": 5216,
+  "cost_usd": 0.024816310799999998,
+  "cost_source": "openrouter",
+  "latency_ms": 146410.91680526733,
+  "tool_dispatch_ms_total": 4334.201335906982,
+  "tool_calls_made": 6,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import importlib, sys\nfor pkg in ['ortools', 'pysat', 'z3']:\n    try:\n        importlib.import_module(pkg)\n        print(pkg, 'available')\n    except Exception as e:\n        print(pkg, 'not available:', e)\n"
+      },
+      "ok": true,
+      "latency_ms": 368.79
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\n# Graph structure: 6 cliques of 3 vertices each\n# Clique g has vertices (g,0), (g,1), (g,2)\n# Edges: all pairs within each clique + vertical edges between consecutive cliques\n\nnum_vertices = 18\nnum_edges = 33\n\n# Build edge list\nedges = []\n# Within cliques\nfor g in range(6):\n    base = g * 3\n    edges.append((base, base+1))\n    edges.append((base, base+2))\n    edges.append((base+1, base+2))\n# Between consecutive cliques\nfor g in range(5):\n    for i in range(3):\n        edges.append((g*3+i, (g+1)*3+i))\n\nprint(f\"Number of edges: {len(edges)}\")\nprint(\"Edges:\", edges)\n\n# Verify structure\nassert len(edges) == 33\n"
+      },
+      "ok": true,
+      "latency_ms": 1218.78
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\nmodel = cp_model.CpModel()\n\n# Vertex labels: 18 variables, range 0..33\nvertex_labels = [model.NewIntVar(0, 33, f'v{i}') for i in range(18)]\n\n# All vertex labels distinct\nmodel.AddAllDifferent(vertex_labels)\n\n# Edge difference variables\nedge_diffs = []\nfor (u, v) in edges:\n    diff = model.NewIntVar(1, 33, f'd_{u}_{v}')\n    model.AddAbsEquality(diff, vertex_labels[u] - vertex_labels[v])\n    edge_diffs.append(diff)\n\n# All edge differences distinct (and must cover 1..33)\nmodel.AddAllDifferent(edge_diffs)\n\n# Symmetry breaking: we can fix one vertex label, e.g., vertex 0 = 0\n# Also fix vertex 1 < vertex 2 to break clique symmetry\nmodel.Add(vertex_labels[0] == 0)\nmodel.Add(vertex_labels[1] < vertex_labels[2])\nmodel.Add(vertex_labels[4] < vertex_labels[5])  # clique 1 symmetry\nmodel.Add(vertex_labels[7] < vertex_labels[8])  # clique 2 symmetry\nmodel.Add(vertex_labels[10] < vertex_labels[11])  # clique 3 symmetry\nmodel.Add(vertex_labels[13] < vertex_labels[14])  # clique 4 symmetry\nmodel.Add(vertex_labels[16] < vertex_labels[17])  # clique 5 symmetry\n\n# Also some ordering to reduce symmetry between cliques?\n# Let's not overdo it, just try.\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30.0\nsolver.parameters.num_search_workers = 8\n\nstatus = solver.Solve(model)\nprint(f\"Status: {solver.StatusName(status)}\")\n\nif status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n    labels = [solver.Value(vertex_labels[i]) for i in range(18)]\n    print(\"Labels:\", labels)\n    # Verify\n    diffs = [abs(labels[u] - labels[v]) for (u, v) in edges]\n    print(\"Edge diffs:\", sorted(diffs))\n    print(\"All diffs distinct?\", len(diffs) == len(set(diffs)))\n    print(\"All vertex labels distinct?\", len(labels) == len(set(labels)))\n"
+      },
+      "ok": false,
+      "latency_ms": 1171.55
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from ortools.sat.python import cp_model\n\n# Graph structure: 6 cliques of 3 vertices each\nedges = []\n# Within cliques\nfor g in range(6):\n    base = g * 3\n    edges.append((base, base+1))\n    edges.append((base, base+2))\n    edges.append((base+1, base+2))\n# Between consecutive cliques\nfor g in range(5):\n    for i in range(3):\n        edges.append((g*3+i, (g+1)*3+i))\n\nmodel = cp_model.CpModel()\n\n# Vertex labels: 18 variables, range 0..33\nvertex_labels = [model.NewIntVar(0, 33, f'v{i}') for i in range(18)]\n\n# All vertex labels distinct\nmodel.AddAllDifferent(vertex_labels)\n\n# Edge difference variables\nedge_diffs = []\nfor (u, v) in edges:\n    diff = model.NewIntVar(1, 33, f'd_{u}_{v}')\n    model.AddAbsEquality(diff, vertex_labels[u] - vertex_labels[v])\n    edge_diffs.append(diff)\n\n# All edge differences distinct (and must cover 1..33)\nmodel.AddAllDifferent(edge_diffs)\n\n# Symmetry breaking\nmodel.Add(vertex_labels[0] == 0)\nmodel.Add(vertex_labels[1] < vertex_labels[2])\nmodel.Add(vertex_labels[4] < vertex_labels[5])\nmodel.Add(vertex_labels[7] < vertex_labels[8])\nmodel.Add(vertex_labels[10] < vertex_labels[11])\nmodel.Add(vertex_labels[13] < vertex_labels[14])\nmodel.Add(vertex_labels[16] < vertex_labels[17])\n\nsolver = cp_model.CpSolver()\nsolver.parameters.max_time_in_seconds = 30.0\nsolver.parameters.num_search_workers = 8\n\nstatus = solver.Solve(model)\nprint(f\"Status: {solver.StatusName(status)}\")\n\nif status == cp_model.OPTIMAL or status == cp_model.FEASIBLE:\n    labels = [solver.Value(vertex_labels[i]) for i in range(18)]\n    print(\"Labels:\", labels)\n    # Verify\n    diffs = [abs(labels[u] - labels[v]) for (u, v) in edges]\n    print(\"Edge diffs:\", sorted(diffs))\n    print(\"All diffs distinct?\", len(diffs) == len(set(diffs)))\n    print(\"All vertex labels distinct?\", len(labels) == len(set(labels)))\n"
+      },
+      "ok": true,
+      "latency_ms": 1541.74
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "labels = [0, 1, 33, 31, 3, 22, 2, 29, 32, 20, 4, 8, 5, 11, 28, 27, 6, 14]\n\nedges = []\nfor g in range(6):\n    base = g * 3\n    edges.append((base, base+1))\n    edges.append((base, base+2))\n    edges.append((base+1, base+2))\nfor g in range(5):\n    for i in range(3):\n        edges.append((g*3+i, (g+1)*3+i))\n\nprint(\"Verification:\")\nfor i, (u, v) in enumerate(edges):\n    du = labels[u]\n    dv = labels[v]\n    diff = abs(du - dv)\n    print(f\"Edge {i}: ({u},{v}) -> labels ({du},{dv}), diff = {diff}\")\n\nprint(\"\\nSorted diffs:\", sorted(abs(labels[u]-labels[v]) for (u,v) in edges))\nprint(\"\\nAll distinct?\", len(set(abs(labels[u]-labels[v]) for (u,v) in edges)) == 33)\nprint(\"Labels distinct?\", len(set(labels)) == 18)\nprint(\"All labels in range 0..33?\", all(0 <= x <= 33 for x in labels))\n"
+      },
+      "ok": true,
+      "latency_ms": 33.34
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          33,
+          31,
+          3,
+          22,
+          2,
+          29,
+          32,
+          20,
+          4,
+          8,
+          5,
+          11,
+          28,
+          27,
+          6,
+          14
+        ],
+        "reasoning": "Used OR-Tools CP-SAT solver with symmetry breaking constraints. The graph has 18 vertices and 33 edges. A graceful labeling was found assigning unique labels 0-33 such that all 33 edge differences are exactly the set {1,2,...,33}. Clique labels: [0,1,33], [31,3,22], [2,29,32], [20,4,8], [5,11,28], [27,6,14]."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

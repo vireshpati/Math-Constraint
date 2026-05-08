@@ -1,0 +1,101 @@
+{
+  "problem_name": "queens_n14__v7_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 1143.3,
+    "search_space": 11112006825558016,
+    "num_variables": 14,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 78.01,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    2,
+    8,
+    10,
+    12,
+    4,
+    6,
+    1,
+    13,
+    5,
+    7,
+    0,
+    3,
+    11,
+    9
+  ],
+  "reasoning": "The listed columns are a permutation of 0..13, so no two queens share a column, and checking all row pairs shows no equal diagonal differences/sums. The fixed assignments q[4]=4 and q[6]=1 are respected.",
+  "raw_response": null,
+  "cot_trace": "**Solving N-Queens problem**\n\nI'm focusing on solving the N-Queens problem for N=14 with the conditions q[4]=4 and q[6]=1. I need to create a JSON response in the final output, possibly using a tool submission. I can use Python to approach this problem, maybe with backtracking. It's crucial to ensure that the output list contains 14 integers ranging from 0 to 13, making valid permutations without any diagonal conflicts. Finally, I\u2019ll handle the answer submission.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1395,
+  "completion_tokens": 593,
+  "reasoning_tokens": 74,
+  "cached_tokens": 0,
+  "cost_usd": 0.024765,
+  "cost_source": "openrouter",
+  "latency_ms": 9212.891101837158,
+  "tool_dispatch_ms_total": 35.845279693603516,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def solve(n, fixed):\n    cols=set(); d1=set(); d2=set(); q=[None]*n\n    # We'll order rows maybe fixed first? use recursion select min domain\n    rows=list(range(n))\n    def rec(count):\n        if count==n:\n            return q.copy()\n        # choose unassigned row with smallest valid candidates\n        best=None; candbest=None\n        for r in range(n):\n            if q[r] is None:\n                if r in fixed:\n                    cands=[fixed[r]]\n                else:\n                    cands=range(n)\n                valid=[]\n                for c in cands:\n                    if c not in cols and r-c not in d1 and r+c not in d2:\n                        valid.append(c)\n                if candbest is None or len(valid)<len(candbest):\n                    best=r; candbest=valid\n                    if len(valid)==0: break\n        if not candbest:\n            return None\n        r=best\n        # maybe try in order\n        for c in candbest:\n            q[r]=c; cols.add(c); d1.add(r-c); d2.add(r+c)\n            res=rec(count+1)\n            if res is not None: return res\n            cols.remove(c); d1.remove(r-c); d2.remove(r+c); q[r]=None\n        return None\n    return rec(0)\nsol=solve(14,{4:4,6:1})\nprint(sol)\nif sol:\n    n=14\n    print(len(sol), len(set(sol)))\n    print(any(abs(sol[i]-sol[j])==abs(i-j) for i in range(n) for j in range(i+1,n)))\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 35.85
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          2,
+          8,
+          10,
+          12,
+          4,
+          6,
+          1,
+          13,
+          5,
+          7,
+          0,
+          3,
+          11,
+          9
+        ],
+        "reasoning": "The listed columns are a permutation of 0..13, so no two queens share a column, and checking all row pairs shows no equal diagonal differences/sums. The fixed assignments q[4]=4 and q[6]=1 are respected."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

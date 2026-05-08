@@ -1,0 +1,165 @@
+{
+  "problem_name": "pysms_chromatic_girth_max_chromatic_number5_min_edges10_min_girth7_vertices15__v6_nh",
+  "problem_type": "pysms_chromatic_girth",
+  "params": {
+    "max_chromatic_number": 5,
+    "min_edges": 10,
+    "min_girth": 7,
+    "vertices": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 262.9,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 14,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 51.69,
+    "solve_pct_type": 62.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      6,
+      0
+    ],
+    [
+      0,
+      7
+    ],
+    [
+      0,
+      8
+    ],
+    [
+      1,
+      9
+    ]
+  ],
+  "reasoning": "Constructed a graph with 15 vertices (0-14) and 10 edges. The core is a 7-cycle (0-1-2-3-4-5-6-0) which gives girth exactly 7. Added edges (0,7), (0,8), (1,9) which don't create any cycles shorter than 7. Vertices 10-14 are isolated. The graph is 5-colorable (actually 3-colorable). All constraints satisfied.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 6757,
+  "completion_tokens": 2670,
+  "reasoning_tokens": 0,
+  "cached_tokens": 2816,
+  "cost_usd": 0.001378188,
+  "cost_source": "openrouter",
+  "latency_ms": 128540.56978225708,
+  "tool_dispatch_ms_total": 88.08159828186035,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport random\n\ndef has_cycle_of_length_at_most(graph, max_len):\n    \"\"\"Check if graph has any cycle of length <= max_len\"\"\"\n    n = max(max(u,v) for u,v in graph) + 1 if graph else 0\n    adj = [[] for _ in range(n)]\n    for u,v in graph:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    # BFS/DFS to find cycles\n    for start in range(n):\n        # DFS from start, looking for cycles\n        stack = [(start, -1, [start])]\n        visited_states = set()\n        while stack:\n            node, parent, path = stack.pop()\n            state = (node, parent, tuple(sorted(path)))\n            if state in visited_states:\n                continue\n            visited_states.add(state)\n            \n            for nb in adj[node]:\n                if nb == parent:\n                    continue\n                if nb in path:\n                    # Found a cycle\n                    idx = path.index(nb)\n                    cycle_len = len(path) - idx\n                    if cycle_len <= max_len:\n                        return True, cycle_len, path[idx:] + [nb]\n                else:\n                    stack.append((nb, node, path + [nb]))\n    return False, None, None\n\ndef girth(graph):\n    \"\"\"Compute girth (shortest cycle length)\"\"\"\n    n = max(max(u,v) for u,v in graph) + 1 if graph else 0\n    if n == 0:\n        return float('inf')\n    adj = [[] for _ in range(n)]\n    for u,v in graph:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    min_cycle = float('inf')\n    for start in range(n):\n        # BFS from start\n        dist = [-1] * n\n        parent = [-1] * n\n        dist[start] = 0\n        queue = [start]\n        for node in queue:\n            for nb in adj[node]:\n                if dist[nb] == -1:\n                    dist[nb] = dist[node] + 1\n                    parent[nb] = node\n                    queue.append(nb)\n                elif nb != parent[node]:\n                    # Found a cycle\n                    cycle_len = dist[node] + dist[nb] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    return min_cycle\n\ndef is_5_colorable(graph):\n    \"\"\"Check if graph is 5-colorable using backtracking\"\"\"\n    n = max(max(u,v) for u,v in graph) + 1 if graph else 0\n    if n == 0:\n        return True\n    adj = [[] for _ in range(n)]\n    for u,v in graph:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    colors = [-1] * n\n    \n    def backtrack(idx):\n        if idx == n:\n            return True\n        # Find vertex with most constraints (MRV)\n        # For simplicity, just try in order\n        used = set()\n        for nb in adj[idx]:\n            if colors[nb] != -1:\n                used.add(colors[nb])\n        for c in range(5):\n            if c not in used:\n                colors[idx] = c\n                if backtrack(idx + 1):\n                    return True\n                colors[idx] = -1\n        return False\n    \n    return backtrack(0)\n\n# Let's try to construct a graph\n# Start with a 7-cycle\nedges = [(0,1),(1,2),(2,3),(3,4),(4,5),(5,6),(6,0)]\nprint(f\"Initial edges: {edges}\")\nprint(f\"Girth: {girth(edges)}\")\nprint(f\"5-colorable: {is_5_colorable(edges)}\")\n\n# Add more vertices and edges\n# Let's add vertex 7 connected to 0 and 3 (but check for short cycles)\n# Actually, let's try a systematic approach\n\n# Let's try to build a graph with 15 vertices\n# We need at least 10 edges, girth >= 7\n\n# One idea: take a 7-cycle, then add 8 isolated vertices, then add edges carefully\n# But we need at least 10 edges total, so we need 3 more edges\n\n# Let's try adding edges that don't create short cycles\ncandidates = [(0,7),(3,7),(0,8),(4,8),(1,9),(5,9)]\nfor e in candidates:\n    test_edges = edges + [e]\n    g = girth(test_edges)\n    if g >= 7:\n        edges = test_edges\n        print(f\"Added {e}, girth={g}\")\n    else:\n        print(f\"Cannot add {e}, would create cycle of length {g}\")\n\nprint(f\"Final edges: {edges}\")\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Girth: {girth(edges)}\")\nprint(f\"5-colorable: {is_5_colorable(edges)}\")",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 54.01
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "edges = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 5), (5, 6), (6, 0), (0, 7), (0, 8), (1, 9)]\n# Add isolated vertices 10-14\n# The graph has vertices 0-14, edges as above\n\n# Check girth\ndef girth(graph, n):\n    adj = [[] for _ in range(n)]\n    for u,v in graph:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    min_cycle = float('inf')\n    for start in range(n):\n        dist = [-1] * n\n        parent = [-1] * n\n        dist[start] = 0\n        queue = [start]\n        for node in queue:\n            for nb in adj[node]:\n                if dist[nb] == -1:\n                    dist[nb] = dist[node] + 1\n                    parent[nb] = node\n                    queue.append(nb)\n                elif nb != parent[node]:\n                    cycle_len = dist[node] + dist[nb] + 1\n                    if cycle_len < min_cycle:\n                        min_cycle = cycle_len\n    return min_cycle\n\ndef is_5_colorable(graph, n):\n    adj = [[] for _ in range(n)]\n    for u,v in graph:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    colors = [-1] * n\n    \n    def backtrack(idx):\n        if idx == n:\n            return True\n        used = set()\n        for nb in adj[idx]:\n            if colors[nb] != -1:\n                used.add(colors[nb])\n        for c in range(5):\n            if c not in used:\n                colors[idx] = c\n                if backtrack(idx + 1):\n                    return True\n                colors[idx] = -1\n        return False\n    \n    return backtrack(0)\n\nn = 15\nprint(f\"Edges: {edges}\")\nprint(f\"Number of edges: {len(edges)}\")\nprint(f\"Girth: {girth(edges, n)}\")\nprint(f\"5-colorable: {is_5_colorable(edges, n)}\")\n\n# Also show a coloring\ndef get_coloring(graph, n):\n    adj = [[] for _ in range(n)]\n    for u,v in graph:\n        adj[u].append(v)\n        adj[v].append(u)\n    \n    colors = [-1] * n\n    \n    def backtrack(idx):\n        if idx == n:\n            return True\n        used = set()\n        for nb in adj[idx]:\n            if colors[nb] != -1:\n                used.add(colors[nb])\n        for c in range(5):\n            if c not in used:\n                colors[idx] = c\n                if backtrack(idx + 1):\n                    return True\n                colors[idx] = -1\n        return False\n    \n    backtrack(0)\n    return colors\n\nprint(f\"Coloring: {get_coloring(edges, n)}\")",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 34.07
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            4
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            6,
+            0
+          ],
+          [
+            0,
+            7
+          ],
+          [
+            0,
+            8
+          ],
+          [
+            1,
+            9
+          ]
+        ],
+        "reasoning": "Constructed a graph with 15 vertices (0-14) and 10 edges. The core is a 7-cycle (0-1-2-3-4-5-6-0) which gives girth exactly 7. Added edges (0,7), (0,8), (1,9) which don't create any cycles shorter than 7. Vertices 10-14 are isolated. The graph is 5-colorable (actually 3-colorable). All constraints satisfied."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

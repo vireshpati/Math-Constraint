@@ -1,0 +1,132 @@
+{
+  "problem_name": "queens_n22__v0_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 22
+  },
+  "difficulty": {
+    "solve_time_ms": 1416.6,
+    "search_space": 341427877364219557396646723584,
+    "num_variables": 22,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 84.77,
+    "solve_pct_type": 70.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-pro-preview-20260219",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    15,
+    5,
+    7,
+    10,
+    18,
+    6,
+    17,
+    20,
+    4,
+    19,
+    16,
+    8,
+    21,
+    12,
+    3,
+    9,
+    14,
+    1,
+    11,
+    2,
+    0,
+    13
+  ],
+  "reasoning": "The problem asks to place 22 queens on a 22x22 chessboard with some fixed positions. I formulated the problem as a Boolean Satisfiability (SAT) problem and used the Glucose3 solver from the pysat library to find a valid assignment. The solver successfully found a configuration where no two queens share the same row, column, or diagonal, while respecting the given fixed positions.",
+  "raw_response": null,
+  "cot_trace": "**Analyzing the Constraint**\n\nI'm now focusing on the constraints imposed by the partially filled chessboard. I need to figure out how these given queen positions limit the placement options for the remaining queens. This means meticulously mapping out the diagonals and rows that are already occupied. The goal now is to efficiently prune the search space.\n\n\n**Implementing the Solution**\n\nI've decided to create a Python script to tackle this, leaning toward a backtracking approach. I've used the `execute_python` tool to generate an initial script with the n-queens problem logic and fixed queen positions. The current goal is to efficiently handle those fixed positions within the search. I'm focusing on ensuring it adheres to these rules by integrating the logic to make sure I don't violate these fixed placement constraints.\n\n\n**Refining the Approach**\n\nI'm now leaning away from standard backtracking, recognizing its potential slowness for larger N. I've considered `pysat` and `z3`, but the current direction is towards developing a fast backtracking solver using bitmasks for efficiency. I'm focusing on refining the bitmask implementation to accurately and quickly prune impossible solutions, especially given the fixed queen positions.\n\n\n\n---\n**Exploring Bitmask Solutions**\n\nMy previous bitmask solver timed out on the 22 queens problem. I've decided to switch to a more robust constraint solver. I'm now developing a Python script utilizing Z3 to tackle this efficiently.\n\n\n---\n**Considering Solver Options**\n\nI've hit a snag: z3 isn't available. My plan is evolving. I was going to write a solver, maybe with Min-Conflicts or MRV, but now I can just use `pysat`, which is accessible. Let's start with `pysat`.\n\n\n\n---\n**Verifying the Solution's Validity**\n\nI've got a proposed solution from the SAT solver: [15, 5, 7, 10, 18, 6, 17, 20, 4, 19, 16, 8, 21, 12, 3, 9, 14, 1, 11, 2, 0, 13]. Now I'm carefully double-checking the fixed assignments: q[11] = 8, q[16] = 14, q[18] = 11, and q[21] = 13, to ensure their consistency with the complete assignment.\n\n\n**Validating the Solution's Legality**\n\nI've confirmed the initial fixed assignments against the proposed solution. Now, I'm verifying the solution's validity for an n=22, ensuring all values are distinct, and that no two queens attack each other. I'm checking the rows, columns, and diagonals: r+c and r-c. I've finished the checks.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4885,
+  "completion_tokens": 3529,
+  "reasoning_tokens": 2102,
+  "cached_tokens": 0,
+  "cost_usd": 0.052118,
+  "cost_source": "openrouter",
+  "latency_ms": 74131.70623779297,
+  "tool_dispatch_ms_total": 15897.547960281372,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def solve_n_queens_bitmask(n, fixed):\n    ans = [-1] * n\n    for r, c in fixed.items():\n        ans[r] = c\n        \n    def solve(row, cols, diag1, diag2):\n        if row == n:\n            return True\n        if ans[row] != -1:\n            c = ans[row]\n            if (cols & (1 << c)) or (diag1 & (1 << (row + c))) or (diag2 & (1 << (row - c + n - 1))):\n                return False\n            return solve(row + 1, cols | (1 << c), diag1 | (1 << (row + c)), diag2 | (1 << (row - c + n - 1)))\n            \n        for c in range(n):\n            if not (cols & (1 << c)) and not (diag1 & (1 << (row + c))) and not (diag2 & (1 << (row - c + n - 1))):\n                ans[row] = c\n                if solve(row + 1, cols | (1 << c), diag1 | (1 << (row + c)), diag2 | (1 << (row - c + n - 1))):\n                    return True\n        ans[row] = -1\n        return False\n\n    if solve(0, 0, 0, 0):\n        return ans\n    return None\n\nfixed = {11: 8, 16: 14, 18: 11, 21: 13}\nprint(solve_n_queens_bitmask(22, fixed))\n"
+      },
+      "ok": false,
+      "latency_ms": 15162.98
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\n\nn = 22\nfixed = {11: 8, 16: 14, 18: 11, 21: 13}\n\ns = Solver()\nQ = [Int(f'Q_{i}') for i in range(n)]\n\nfor i in range(n):\n    s.add(Q[i] >= 0, Q[i] < n)\n\ns.add(Distinct(Q))\n\nfor i in range(n):\n    for j in range(i + 1, n):\n        s.add(Q[i] - Q[j] != i - j)\n        s.add(Q[i] - Q[j] != j - i)\n\nfor r, c in fixed.items():\n    s.add(Q[r] == c)\n\nif s.check() == sat:\n    m = s.model()\n    ans = [m.evaluate(Q[i]).as_long() for i in range(n)]\n    print(ans)\nelse:\n    print(\"UNSAT\")\n"
+      },
+      "ok": false,
+      "latency_ms": 199.25
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\n\nn = 22\nfixed = {11: 8, 16: 14, 18: 11, 21: 13}\n\ndef var(r, c):\n    return r * n + c + 1\n\nsolver = Glucose3()\n\n# Each row has exactly one queen\nfor r in range(n):\n    solver.add_clause([var(r, c) for c in range(n)])\n    for c1 in range(n):\n        for c2 in range(c1 + 1, n):\n            solver.add_clause([-var(r, c1), -var(r, c2)])\n\n# Each column has exactly one queen\nfor c in range(n):\n    solver.add_clause([var(r, c) for r in range(n)])\n    for r1 in range(n):\n        for r2 in range(r1 + 1, n):\n            solver.add_clause([-var(r1, c), -var(r2, c)])\n\n# Diagonals\nfor d in range(2 * n - 1):\n    # diag1: r + c = d\n    diag1 = []\n    for r in range(n):\n        c = d - r\n        if 0 <= c < n:\n            diag1.append(var(r, c))\n    for i in range(len(diag1)):\n        for j in range(i + 1, len(diag1)):\n            solver.add_clause([-diag1[i], -diag1[j]])\n            \n    # diag2: r - c + n - 1 = d\n    diag2 = []\n    for r in range(n):\n        c = r - d + n - 1\n        if 0 <= c < n:\n            diag2.append(var(r, c))\n    for i in range(len(diag2)):\n        for j in range(i + 1, len(diag2)):\n            solver.add_clause([-diag2[i], -diag2[j]])\n\n# Fixed assignments\nfor r, c in fixed.items():\n    solver.add_clause([var(r, c)])\n\nif solver.solve():\n    model = solver.get_model()\n    ans = [-1] * n\n    for val in model:\n        if val > 0:\n            val -= 1\n            r, c = val // n, val % n\n            ans[r] = c\n    print(ans)\nelse:\n    print(\"UNSAT\")\n"
+      },
+      "ok": true,
+      "latency_ms": 535.32
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "reasoning": "The problem asks to place 22 queens on a 22x22 chessboard with some fixed positions. I formulated the problem as a Boolean Satisfiability (SAT) problem and used the Glucose3 solver from the pysat library to find a valid assignment. The solver successfully found a configuration where no two queens share the same row, column, or diagonal, while respecting the given fixed positions.",
+        "solution": [
+          15,
+          5,
+          7,
+          10,
+          18,
+          6,
+          17,
+          20,
+          4,
+          19,
+          16,
+          8,
+          21,
+          12,
+          3,
+          9,
+          14,
+          1,
+          11,
+          2,
+          0,
+          13
+        ]
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

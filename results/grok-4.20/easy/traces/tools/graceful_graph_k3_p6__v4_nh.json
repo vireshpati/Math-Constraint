@@ -1,0 +1,109 @@
+{
+  "problem_name": "graceful_graph_k3_p6__v4_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1860.4,
+    "search_space": 3686553210602841700043063296,
+    "num_variables": 51,
+    "num_constraints": 37,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 90.41,
+    "solve_pct_type": 93.75
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "x-ai/grok-4.20-20260309",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    3,
+    4,
+    9,
+    24,
+    33,
+    2,
+    14,
+    5,
+    32,
+    23,
+    31,
+    18,
+    7,
+    6,
+    12,
+    29
+  ],
+  "reasoning": "Backtracking search found this labeling that assigns distinct vertex labels from 0-33 and produces all distinct edge differences 1-33.",
+  "raw_response": null,
+  "cot_trace": "The problem asks for a graceful labeling of G_{3,6}: 6 disjoint K_3 cliques (numbered 0 through 5), where each pair of consecutive cliques (g, g+1) is connected by 3 edges that link vertex i of clique...The graph G_{3,6} consists of six disjoint triangles (K3 cliques), numbered 0 to 5, with each consecutive pair connected by three edges linking corresponding vertices (i=0,1,2) between them. It's like a chain of triangles where each is fully connected internally and matched verticallybetween adjacent ones.\n\nFor graceful labeling, we assign distinct integers from 0 to 33 (since there are 18 vertices and 33 edges) to the 18 vertices, ensuring the absolute differences on the edges are all distinct and cover 1 to 33.\n\nThe total edges are 6 triangles * 3/ 2 = 9, no: each triangle has 3 edges, 6*3=18, plus 5 connections between consecutive triangles, each with 3 edges, 5*3=15, total 33 edges, yes.\n\nTo find such a labeling, modeling it as a SAT problem seemspromising since pysat is available. We need to assign 18 distinct labels from 0 to 33 to the 18 vertices, then ensure the 33 edge differences are all different.\n\nEncoding this in CNF involves variables for assignments and constraints for distinctness and uniqueness of diffs.\n\nBut since the internal reasoning got truncated,it didn't complete the solution, but the idea is to use SAT solver to find one.\n\nBut the task is to return the list or UNSATISFIABLE.\n\nSince the internal reasoning didn't find one, and it's truncated, but in reality, I think such graphs do have graceful labelings, but I need to provideone.\n\nUpon thinking, graceful labeling for this kind of graph is known as a \"graceful graph\" for product or chain.\n\nBut to give a concrete answer, let's try to find a small example or pattern.\n\nFor smaller cases, like G_{3,2}: two triangles connected by 3 edges.\n\nVertices:two K3, each 3 verts, total 6 verts, edges: 3+3 +3=9 edges.\n\nGraceful with 0 to 8.\n\nIt's possible, for example.\n\nBut for 6, it might be hard to compute mentally.\n\nThe internal reasoning suggests using a SAT solver or backtracking.\n\nSince I have a code execution tool, I can use it to run a Python script that searches for the labeling.\n\nLet's try to write a code that does backtracking to assign labels.\n\nFirst, I need to model the graph.\n\nVertices: I can number them 0 to 17, where for clique g=0 to 5, vertices 3*g + i for i=0,1,2.\n\nEdges: for each clique g, the three edges: (3g,3g+1),(3g+1,3g+2),(3g+2,3g)\n\nPlus the connecting edges:for each g=0 to 4, for i=0,1,2, edge between 3g+i and 3*(g+1)+i\n\nSo, list of edges: list of pairs.\n\nThen, to find graceful labeling: assign to each vertex a unique number from 0 to 33, such that the |l[u]-l[v]| for each edge (u,v) are all distinct.\n\nSince 33 edges, diffs 1 to 33 exactly once.\n\nIt's a 1-factorization or something, no, just the diffs are distinct 1-33.\n\nTo solve it, since 18vars, each 0-33 distinct, but 18 choose 18 is huge, but with constraints.\n\nAssigning permutations of 0-33 to vertices, check condition.\n\nBut 18! is impossible.\n\nSo, need smarter way.\n\nSince the graph is chain-like, perhaps assign along the chain.\n\nThe internalstructure is like a grid 3x6, with rows being the corresponding vertices 0,1,2, and columns the cliques 0-5.\n\nIt's a 3x6 grid of vertices, with edges within each column (the triangle), and between columns for each row.\n\nSo, each column isK3, and between columns, the three edges are the row edges.\n\nTo find graceful labeling.\n\nI recall that for graceful labeling, sometimes there are known constructions for such graphs.\n\nBut since it's specific, perhaps I can try to find one manually or with code.\n\nSince I can use code_execution tool, I can writea python script to search for it using backtracking.\n\nLet's try to write a simple backtracking script.\n\nFirst, I need to define the graph.\n\nNumber the vertices 0 to 17, with clique g having vertices 3g, 3g+1, 3g+2.\n\nAdd edges as described.\n\nThen, assign labels 0-33 distinct, check that for every edge, the diff is unique.\n\nTo implement efficiently, assign vertices in order, check only with previously assigned neighbors.\n\nSince later vertices will check with earlier.\n\nAlso, keep track of used differences.\n\nYes, graceful labeling condition is that all edge labels(diffs) are distinct, and vertex labels are distinct 0 to m, here m=33.\n\nYes.\n\nLet me sketch the code.\n\nlabels = [-1] * 18\n\nused_label = [False] * 34  # 0-33\n\nused_diff = [False] * 34# 1-33\n\nThen, define adj list.\n\nadj = [[] for _ in range(18)]\n\nFor g in range(6):\n\n  clique_start = 3*g\n\n  # add triangle edges\n\n  for i in range(3):\n\n    for j in range(i+1,3):\n\nu = clique_start + i\n\n      v = clique_start + j\n\n      adj[u].append(v)\n\n      adj[v].append(u)\n\nFor conn in range(5):\n\n  g1 = conn\n\n  g2 = conn+1\n\n  start1 = 3*g1\n\n  start2 =3*g2\n\n  for i in Adj in adj:\n\n    for j in adj[i]:\n\n      if j > i:  # to avoid double\n\nNo, for SAT, but here for labeling, since it's labeling, to find one, perhaps recursive backtrack.\n---\nThe code found a solution: [0, 1, 3, 4, 9, 24, 33, 2, 14, 5, 32, 23, 31, 18, 7, 6, 12, 29]\nThe graph G_{3,6} consists of 6 disjoint triangles, each with 3 vertices, and between consecutive triangles, there are edges connecting corresponding vertices. Specifically, for each i from 0 to 2, vertex i in clique g is connected to vertex i in clique g+1.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Solution violates constraints (UNSAT)",
+  "prompt_tokens": 1975,
+  "completion_tokens": 7569,
+  "reasoning_tokens": 7073,
+  "cached_tokens": 576,
+  "cost_usd": 0.0483272,
+  "cost_source": "openrouter",
+  "latency_ms": 112556.44965171814,
+  "tool_dispatch_ms_total": 4717.914342880249,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import time\nN = 18\nM = 33\nlabels = [-1] * N\nused_label = [False] * (M+1)\nused_diff = [False] * (M+1)\nadj = [[] for _ in range(N)]\ndef add_edge(a,b):\n    adj[a].append(b)\n    adj[b].append(a)\nfor g in range(6):\n    v = 3*g\n    add_edge(v, v+1)\n    add_edge(v, v+2)\n    add_edge(v+1, v+2)\nfor g in range(5):\n    for i in range(3):\n        add_edge(3*g + i, 3*(g+1) + i)\ndef bt(pos):\n    if pos == N:\n        return True\n    for l in range(M+1):\n        if used_label[l]: continue\n        ok = True\n        for nei in adj[pos]:\n            if nei < pos:\n                d = abs(labels[nei] - l)\n                if d == 0 or used_diff[d]:\n                    ok = False\n                    break\n        if not ok: continue\n        labels[pos] = l\n        used_label[l] = True\n        marked = []\n        for nei in adj[pos]:\n            if nei < pos:\n                d = abs(labels[nei] - l)\n                used_diff[d] = True\n                marked.append(d)\n        if bt(pos+1):\n            return True\n        for d in marked:\n            used_diff[d] = False\n        used_label[l] = False\n        labels[pos] = -1\n    return False\nstart = time.time()\nused_label[0] = True\nlabels[0] = 0\nfound = bt(1)\nprint(found)\nif found:\n    print(labels)\nprint(\"Time:\", time.time() - start)"
+      },
+      "ok": true,
+      "latency_ms": 4717.91
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          3,
+          4,
+          9,
+          24,
+          33,
+          2,
+          14,
+          5,
+          32,
+          23,
+          31,
+          18,
+          7,
+          6,
+          12,
+          29
+        ],
+        "reasoning": "Backtracking search found this labeling that assigns distinct vertex labels from 0-33 and produces all distinct edge differences 1-33."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

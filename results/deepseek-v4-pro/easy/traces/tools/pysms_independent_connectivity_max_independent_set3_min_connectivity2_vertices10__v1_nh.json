@@ -1,0 +1,322 @@
+{
+  "problem_name": "pysms_independent_connectivity_max_independent_set3_min_connectivity2_vertices10__v1_nh",
+  "problem_type": "pysms_independent_connectivity",
+  "params": {
+    "max_independent_set": 3,
+    "min_connectivity": 2,
+    "vertices": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 94.4,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 45,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 34.96,
+    "solve_pct_type": 33.33
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-pro-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      0,
+      4
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      1,
+      8
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      5
+    ],
+    [
+      2,
+      7
+    ],
+    [
+      2,
+      9
+    ],
+    [
+      3,
+      6
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      3,
+      9
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      4,
+      8
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      5,
+      9
+    ],
+    [
+      6,
+      8
+    ],
+    [
+      6,
+      9
+    ],
+    [
+      7,
+      8
+    ],
+    [
+      7,
+      9
+    ],
+    [
+      8,
+      9
+    ]
+  ],
+  "reasoning": "The line graph of K5 (L(K5)) has 10 vertices, independence number 2 (\u22643), and vertex connectivity 6 (\u22652). This satisfies all constraints.",
+  "raw_response": null,
+  "cot_trace": "We need to generate a graph with 10 vertices, maximum independent set size \u2264 3, and vertex-connectivity \u2265 2.\n\nLet's understand:\n- Maximum independent set size \u2264 3: The graph has no independent set of size 4. That means the complement graph has no clique of size 4? Actually independent set in G is clique in complement. So complement has clique number \u2264 3. Equivalently, the graph's independence number \u03b1(G) \u2264 3.\n- Vertex-connectivity \u2265 2: The graph is 2-connected (or more). That means removing any single vertex leaves the graph connected. So minimum vertex cut size \u2265 2. Also implies minimum degree \u2265 2.\n\nWe need to find such a graph on 10 vertices, or show none exists.\n\nWe can try to construct one. Let's think about known graphs.\n\nA graph with \u03b1(G) \u2264 3 means it's \"3-independent\" - no four vertices are pairwise non-adjacent. This is a Ramsey-type condition: R(4,?) Actually we want to avoid independent set of size 4.\n\nFor 10 vertices, we need a graph with independence number at most 3. The complement has clique number at most 3. So we need a graph whose complement is triangle-free? Wait, complement clique number \u2264 3 means complement has no K4. That's not too restrictive.\n\nBut we also need vertex-connectivity \u2265 2.\n\nLet's try to construct using Python with SAT solver or search.\n\nWe can use pysat or just brute force search? 10 vertices, edges = 45 possible. Too many for brute force.\n\nWe can use a SAT solver or ILP. Let's try with pysat.\n\nWe need to encode constraints:\n- For each subset of 4 vertices, at least one edge must be present among them (to prevent independent set of size 4). So for each 4-tuple, the clause: OR_{i<j in tuple} edge(i,j). That's many clauses: C(10,4)=210.\n- Vertex connectivity \u2265 2: For each vertex v, the graph after removing v must be connected. That's a global constraint, harder to encode in SAT. But we can enforce that the graph is 2-connected. Equivalent: for any two vertices u,w (u\u2260w), there are at least two vertex-disjoint paths between them (Menger's theorem). Or we can enforce that the graph has no articulation point (cut vertex). That is: for every vertex v, the graph G - v is connected.\n\nWe could encode connectivity via constraints that for each vertex v, the remaining graph is connected. That's complex.\n\nAlternatively, we can try to construct a known graph. Perhaps the Petersen graph? Petersen has 10 vertices, is 3-regular, vertex-connectivity 3, and independence number? Petersen graph has independence number 4? Let's check: Petersen graph is known to have independence number 4. Actually I recall Petersen graph has \u03b1=4. So not good.\n\nWhat about the complement of Petersen? That might have smaller independence number? Actually independence number of complement is clique number of original. Petersen has no triangles, so clique number 2? Actually Petersen is triangle-free, so its clique number is 2. Thus its complement has independence number 2? Wait: \u03b1(G) = \u03c9(complement). So if complement has no independent set of size 4, then original has no clique of size 4. But we need \u03b1(G) \u2264 3.\n\nMaybe we can take a complete bipartite graph? K_{5,5} has \u03b1 = 5 (the partite sets are independent). Not good.\n\nWhat about a graph that is the complement of a triangle-free graph with high connectivity? Let's think.\n\nWe need a graph on 10 vertices with \u03b1 \u2264 3 and \u03ba \u2265 2.\n\nConsider the complement of the Petersen graph. Petersen has \u03b1=4, \u03c9=2 (no triangles). Its complement has \u03b1 = \u03c9(Petersen) = 2, and \u03c9 = \u03b1(Petersen) = 4. So complement of Petersen has independence number 2 (\u22643). What about vertex connectivity? Petersen is 3-connected. The complement of a 3-connected graph is also 3-connected? Not necessarily, but complement of Petersen might be highly connected. Let's check.\n\nActually, we can just use Python to search for a graph using a SAT solver or heuristic.\n\nLet's try to use networkx and itertools to search randomly or use MILP?\n\nBetter: Use pysat to encode constraints, and for connectivity we can enforce that the graph has minimum degree \u2265 2 and is not easily disconnected. But we can also just generate candidate graphs and test connectivity.\n\nSince 10 vertices is small, we could use a SAT solver to find a graph satisfying the independent set constraint, and then check connectivity. If not connected, add constraints to forbid that graph and repeat. But that might be slow.\n\nAlternatively, we can enforce 2-connectivity by requiring that the graph has a Hamiltonian cycle? Actually 2-connected graphs are those that can be decomposed into ears, but having a Hamiltonian cycle implies 2-connectivity (if n\u22653). So we could enforce that the graph contains a Hamiltonian cycle. That is easier to encode: there exists a permutation of vertices such that edges exist between consecutive vertices (and last to first). That's a cycle of length 10. We can add variables for the cycle edges? But that's also complex.\n\nMaybe we can just enforce that the graph is 2-connected by requiring that for every vertex v, the graph G-v is connected. We can encode connectivity using flow or reachability constraints. But that's heavy.\n\nSimpler: We can enforce that the graph has minimum degree at least 2, and that there is no cut vertex. A cut vertex is a vertex whose removal disconnects the graph. We can encode that for each vertex v, there is no partition of the remaining vertices into two nonempty sets with no edges between them. That's like for each v, for each nontrivial partition of V\\{v}, there is at least one edge crossing. That's many constraints.\n\nBut maybe we can just use a known graph. Let's think of the complement of a 5-cycle? No.\n\nWhat about the line graph of K5? L(K5) has 10 vertices (edges of K5). Its independence number? Line graph of K5: vertices correspond to edges of K5, two vertices adjacent if corresponding edges share a vertex. This is a strongly regular graph with parameters (10,6,3,4)? Actually L(K5) is the complement of the Petersen graph? Wait: L(K5) is a 6-regular graph on 10 vertices. Its complement is the Petersen graph? Actually the complement of L(K5) is the Petersen graph. Yes, Petersen is the complement of the line graph of K5. So L(K5) is the complement of Petersen. So L(K5) has \u03b1 = \u03c9(Petersen) = 2 (since Petersen has no triangles). And vertex connectivity of L(K5)? L(K5) is known to be 4-connected? Actually line graph of K5 is 4-regular? Wait L(K5) has degree: each edge in K5 is incident to 2*(5-2)=6 other edges? Actually each edge connects two vertices, each of degree 4 in K5, so it shares a vertex with 4+4-2=6 other edges? Let's compute: In K5, each vertex has degree 4. An edge e=uv is incident to u and v. At u, there are 3 other edges; at v, 3 other edges; total 6 edges share a vertex with e. So L(K5) is 6-regular. So it's 6-connected? Actually line graphs of complete graphs are highly connected. L(K5) is known to be 4-connected? I think it's 6-connected? The vertex connectivity of L(K_n) is 2n-4? For n=5, 2*5-4=6. So \u03ba=6. So L(K5) satisfies both: \u03b1=2 \u22643, \u03ba=6 \u22652.\n\nThus L(K5) is a valid graph. Let's verify: vertices 0..9 representing edges of K5. We need to output edges.\n\nBut we need to ensure maximum independent set size is at most 3. L(K5) has \u03b1=2, so fine.\n\nLet's double-check: The line graph of K5 (also known as the triangular graph T(5)) has independence number 2? Actually the independence number of L(K5) is the maximum number of edges in K5 that are pairwise non-adjacent (i.e., a matching). In K5, maximum matching size is floor(5/2)=2. So indeed \u03b1=2. Good.\n\nVertex connectivity: L(K5) is 6-regular, and its connectivity equals its degree (since it's a complete graph's line graph, which is known to be optimally connected). So \u03ba=6.\n\nThus L(K5) works.\n\nLet's construct the edge list for L(K5). We can label vertices 0-9 corresponding to edges of K5. Let's index edges of K5: vertices of K5 are a,b,c,d,e. Edges: 0:ab, 1:ac, 2:ad, 3:ae, 4:bc, 5:bd, 6:be, 7:cd, 8:ce, 9:de.\n\nTwo edges are adjacent in L(K5) if they share a vertex in K5.\n\nLet's compute adjacency:\n\n0 (ab) shares with: 1 (ac), 2 (ad), 3 (ae), 4 (bc), 5 (bd), 6 (be) -> 1,2,3,4,5,6\n1 (ac): 0,2,3,4,7,8\n2 (ad): 0,1,3,5,7,9\n3 (ae): 0,1,2,6,8,9\n4 (bc): 0,1,5,6,7,8\n5 (bd): 0,2,4,6,7,9\n6 (be): 0,3,4,5,8,9\n7 (cd): 1,2,4,5,8,9\n8 (ce): 1,3,4,6,7,9\n9 (de): 2,3,5,6,7,8\n\nLet's verify each vertex has degree 6. Yes.\n\nNow we need to output edges as list of (u,v) with u<v.\n\nLet's write Python to generate and also verify constraints.\n---\nThe code had an issue with the closing tags. Let me fix that.\n---\nThe line graph of K5 (L(K5)) has 10 vertices, independence number 2 (which is \u22643), and vertex connectivity 6 (\u22652). So this graph satisfies the constraints.\n\nBut wait: the problem says \"maximum independent set size is at most 3\". L(K5) has max independent set size 2, which is \u22643. Vertex connectivity is 6 \u22652. So this works.\n\nLet me double-check: The line graph of K5 has vertices corresponding to edges of K5, and two vertices are adjacent if the corresponding edges share a vertex. The independence number of L(K5) is the maximum matching size in K5? Actually, independent set in line graph corresponds to a matching in the original graph. Maximum matching in K5 has size floor(5/2)=2. So independence number is 2. Good.\n\nVertex connectivity of L(K5): The line graph of a complete graph K_n is known to be strongly regular and highly connected. For n=5, vertex connectivity should be 2*(n-2) = 6? Actually, the degree of each vertex in L(K5) is 2*(n-2) = 6. And it's known that L(K_n) is (2n-4)-regular and its vertex connectivity equals its degree for n\u22654? Let's verify: networkx says 6.\n\nSo the graph is valid.\n\nLet me output the edges list.\n\nBut I should also consider if there are other graphs. The problem just asks for a graph with these properties. L(K5) works.\n\nLet me format the answer.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 4652,
+  "completion_tokens": 4105,
+  "reasoning_tokens": 2563,
+  "cached_tokens": 0,
+  "cost_usd": 0.0278312,
+  "cost_source": "openrouter",
+  "latency_ms": 488660.4549884796,
+  "tool_dispatch_ms_total": 905.8828353881836,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Construct L(K5) and verify constraints\nimport itertools\n\n# vertices 0..9 representing edges of K5 (complete graph on 5 vertices a,b,c,d,e)\n# Map: 0:ab, 1:ac, 2:ad, 3:ae, 4:bc, 5:bd, 6:be, 7:cd, 8:ce, 9:de\n\n# For each edge, which K5 vertices it involves\nedge_verts = {\n    0: {'a','b'},\n    1: {'a','c'},\n    2: {'a','d'},\n    3: {'a','e'},\n    4: {'b','c'},\n    5: {'b','d'},\n    6: {'b','e'},\n    7: {'c','d'},\n    8: {'c','e'},\n    9: {'d','e'},\n}\n\n# Build adjacency: two edges share a vertex in K5\nedges = []\nfor i in range(10):\n    for j in range(i+1, 10):\n        if edge_verts[i] & edge_verts[j]:  # share a vertex\n            edges.append((i,j))\n\nprint(\"Number of edges:\", len(edges))\nprint(\"Edges:\", edges)\n\n# Verify independence number (max independent set)\n# We can brute force search for independent set of size 4\n# Independent set = no edges among them\ndef is_independent_set(graph, vertices):\n    for i, u in enumerate(vertices):\n        for v in vertices[i+1:]:\n            if (u,v) in graph or (v,u) in graph:\n                return False\n    return True\n\ngraph_set = set(edges)\nfound_ind4 = False\nfor combo in itertools.combinations(range(10), 4):\n    if is_independent_set(graph_set, combo):\n        print(\"Found independent set of size 4:\", combo)\n        found_ind4 = True\n        break\nif not found_ind4:\n    print(\"No independent set of size 4 found\")\n    \n# Check max independent set size via brute force (maybe size 3 exists)\nmax_ind = 0\nfor k in range(1, 11):\n    found = False\n    for combo in itertools.combinations(range(10), k):\n        if is_independent_set(graph_set, combo):\n            found = True\n            max_ind = k\n            break\n    if not found:\n        break\nprint(\"Maximum independent set size:\", max_ind)\n\n# Vertex connectivity\nimport networkx as nx\nG = nx.Graph()\nG.add_nodes_from(range(10))\nG.add_edges_from(edges)\nconn = nx.node_connectivity(G)\nprint(\"Vertex connectivity:\", conn)\nprint(\"Minimum degree:\", min(dict(G.degree()).values()))\n</parameter>\n</invoke>\n</tool_calls>"
+      },
+      "ok": false,
+      "latency_ms": 61.16
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Construct L(K5) and verify constraints\nimport itertools\nimport networkx as nx\n\n# vertices 0..9 representing edges of K5 (complete graph on 5 vertices a,b,c,d,e)\n# Map: 0:ab, 1:ac, 2:ad, 3:ae, 4:bc, 5:bd, 6:be, 7:cd, 8:ce, 9:de\n\n# For each edge, which K5 vertices it involves\nedge_verts = {\n    0: {'a','b'},\n    1: {'a','c'},\n    2: {'a','d'},\n    3: {'a','e'},\n    4: {'b','c'},\n    5: {'b','d'},\n    6: {'b','e'},\n    7: {'c','d'},\n    8: {'c','e'},\n    9: {'d','e'},\n}\n\n# Build adjacency: two edges share a vertex in K5\nedges = []\nfor i in range(10):\n    for j in range(i+1, 10):\n        if edge_verts[i] & edge_verts[j]:  # share a vertex\n            edges.append((i,j))\n\nprint(\"Number of edges:\", len(edges))\nprint(\"Edges:\", edges)\n\n# Verify independence number (max independent set)\ndef is_independent_set(graph, vertices):\n    for i, u in enumerate(vertices):\n        for v in vertices[i+1:]:\n            if (u,v) in graph or (v,u) in graph:\n                return False\n    return True\n\ngraph_set = set(edges)\nfound_ind4 = False\nfor combo in itertools.combinations(range(10), 4):\n    if is_independent_set(graph_set, combo):\n        print(\"Found independent set of size 4:\", combo)\n        found_ind4 = True\n        break\nif not found_ind4:\n    print(\"No independent set of size 4 found\")\n    \n# Check max independent set size via brute force (maybe size 3 exists)\nmax_ind = 0\nfor k in range(1, 11):\n    found = False\n    for combo in itertools.combinations(range(10), k):\n        if is_independent_set(graph_set, combo):\n            found = True\n            max_ind = k\n            break\n    if not found:\n        break\nprint(\"Maximum independent set size:\", max_ind)\n\n# Vertex connectivity\nG = nx.Graph()\nG.add_nodes_from(range(10))\nG.add_edges_from(edges)\nconn = nx.node_connectivity(G)\nprint(\"Vertex connectivity:\", conn)\nprint(\"Minimum degree:\", min(dict(G.degree()).values()))"
+      },
+      "ok": true,
+      "latency_ms": 844.72
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            0,
+            4
+          ],
+          [
+            0,
+            5
+          ],
+          [
+            0,
+            6
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            1,
+            4
+          ],
+          [
+            1,
+            7
+          ],
+          [
+            1,
+            8
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            2,
+            5
+          ],
+          [
+            2,
+            7
+          ],
+          [
+            2,
+            9
+          ],
+          [
+            3,
+            6
+          ],
+          [
+            3,
+            8
+          ],
+          [
+            3,
+            9
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            4,
+            8
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            5,
+            9
+          ],
+          [
+            6,
+            8
+          ],
+          [
+            6,
+            9
+          ],
+          [
+            7,
+            8
+          ],
+          [
+            7,
+            9
+          ],
+          [
+            8,
+            9
+          ]
+        ],
+        "reasoning": "The line graph of K5 (L(K5)) has 10 vertices, independence number 2 (\u22643), and vertex connectivity 6 (\u22652). This satisfies all constraints."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

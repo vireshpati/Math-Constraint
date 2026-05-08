@@ -1,0 +1,209 @@
+{
+  "problem_name": "pysms_independent_connectivity_max_independent_set6_min_connectivity2_vertices10__v9_h",
+  "problem_type": "pysms_independent_connectivity",
+  "params": {
+    "max_independent_set": 6,
+    "min_connectivity": 2,
+    "vertices": 10
+  },
+  "difficulty": {
+    "solve_time_ms": 94.4,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 45,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 34.96,
+    "solve_pct_type": 33.33
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    0,
+    2,
+    0,
+    3,
+    0,
+    4,
+    0,
+    5,
+    0,
+    6,
+    0,
+    7,
+    0,
+    8,
+    0,
+    9,
+    1,
+    2,
+    1,
+    3,
+    1,
+    4,
+    1,
+    5,
+    1,
+    6,
+    1,
+    7,
+    1,
+    8,
+    1,
+    9,
+    2,
+    9,
+    3,
+    8,
+    4,
+    8
+  ],
+  "reasoning": "The graph has 10 vertices (0-9) and 20 edges. Vertex 0 connects to all other 9 vertices, vertex 1 connects to all other 9 vertices, and there are additional edges (2,9), (3,8), (4,8). All fixed edges are present. Minimum degree is 2 (vertices 5,6,7 have degree 2). The graph is 2-connected (removing any single vertex leaves the graph connected). The maximum independent set size is 6 (e.g., {2,3,4,5,6,7} or {2,3,5,6,7,8} are independent sets of size 6, and no 7 vertices are independent since vertices 0 and 1 connect to everyone).",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 27205,
+  "completion_tokens": 4929,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.0069197,
+  "cost_source": "openrouter",
+  "latency_ms": 546039.4036769867,
+  "tool_dispatch_ms_total": 1279.2489528656006,
+  "tool_calls_made": 8,
+  "tool_rounds": 8,
+  "n_execute_python": 7,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport random\nfrom pysat import CNF, Solver\nfrom pysat.card import CardEnc\n\n# Fixed edges\nfixed_edges = [(0,3), (3,8), (2,9), (0,5), (0,4), (1,7), (1,4), (1,6), (4,8)]\n\n# All possible edges among 10 vertices\nall_edges = [(i, j) for i in range(10) for j in range(i+1, 10)]\n\n# Variable mapping: each edge gets a variable index\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\nn_vars = len(all_edges)\n\nprint(f\"Total possible edges: {n_vars}\")\n\n# Build CNF\ncnf = CNF()\n\n# Fixed edges must be present\nfor e in fixed_edges:\n    cnf.add_clause([edge_to_var[e]])\n\n# Constraint: maximum independent set size \u2264 6\n# This means for any set of 7 vertices, at least one edge must exist among them\n# For each 7-vertex subset, at least one edge (both endpoints in the subset) must be present\n\nfrom itertools import combinations\n\nvertices = list(range(10))\nfor subset in combinations(vertices, 7):\n    # At least one edge among these 7 vertices must be present\n    edges_in_subset = [(i,j) for i,j in all_edges if i in subset and j in subset]\n    if edges_in_subset:\n        cnf.add_clause([edge_to_var[e] for e in edges_in_subset])\n\nprint(f\"CNF clauses after independent set constraint: {len(cnf.clauses)}\")\n\n# Constraint: vertex-connectivity \u2265 2\n# This is complex. Let's think about it differently.\n# \u03ba(G) \u2265 2 means:\n# 1. \u03b4(G) \u2265 2 (minimum degree at least 2)\n# 2. G is 2-connected (no articulation point)\n\n# Condition 1: minimum degree \u2265 2\n# For each vertex v, at least 2 edges incident to v must be present\nfor v in range(10):\n    incident_edges = [(i,j) for (i,j) in all_edges if i==v or j==v]\n    # At least 2 of these edges must be present\n    clause_vars = [edge_to_var[e] for e in incident_edges]\n    # Use cardinality constraint: at least 2\n    cnf.extend(CardEnc.atleast(lits=clause_vars, bound=2, top_id=n_vars+1))\n    n_vars = max(n_vars, max(abs(l) for clause in cnf.clauses for l in clause) if cnf.clauses else n_vars)\n\nprint(f\"After degree constraints, n_vars approx: {n_vars}\")\n\n# Condition 2: 2-connectivity (no articulation point)\n# For each vertex v, the graph G - {v} must be connected\n# This is harder to encode in SAT directly.\n# Let's try a different approach: use brute force search with constraints\n\nprint(f\"Total clauses: {len(cnf.clauses)}\")\n\n# Try solving\nsolver = Solver(bootstrap_with=cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = [var_to_edge[abs(v)] for v in model if v > 0]\n    print(f\"Solution has {len(solution_edges)} edges\")\n    print(f\"Edges: {sorted(solution_edges)}\")\n    \n    # Verify\n    # Check independent set size\n    # Check 2-connectivity\nelse:\n    print(\"UNSAT\")",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 53.87
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Check pysat API\nimport pysat\nprint(dir(pysat))\nprint(pysat.__version__ if hasattr(pysat, '__version__') else \"no version\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 37.16
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\n\nprint(\"Imports successful\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 395.66
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\nimport itertools\n\n# Fixed edges\nfixed_edges = [(0,3), (3,8), (2,9), (0,5), (0,4), (1,7), (1,4), (1,6), (4,8)]\n\n# All possible edges among 10 vertices\nall_edges = [(i, j) for i in range(10) for j in range(i+1, 10)]\n\n# Variable mapping: each edge gets a variable index\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\nn_vars = len(all_edges)\n\nprint(f\"Total possible edges: {n_vars}\")\n\n# Build CNF\ncnf = CNF()\n\n# Fixed edges must be present\nfor e in fixed_edges:\n    cnf.add_clause([edge_to_var[e]])\n\n# Constraint: maximum independent set size \u2264 6\n# For any set of 7 vertices, at least one edge must exist among them\nvertices = list(range(10))\nfor subset in itertools.combinations(vertices, 7):\n    edges_in_subset = [(i,j) for i,j in all_edges if i in subset and j in subset]\n    if edges_in_subset:\n        cnf.add_clause([edge_to_var[e] for e in edges_in_subset])\n\nprint(f\"CNF clauses after independent set constraint: {len(cnf.clauses)}\")\n\n# Constraint: minimum degree \u2265 2\nfor v in range(10):\n    incident_edges = [(i,j) for (i,j) in all_edges if i==v or j==v]\n    clause_vars = [edge_to_var[e] for e in incident_edges]\n    # At least 2 of these edges must be present\n    new_cnf = CardEnc.atleast(lits=clause_vars, bound=2, top_id=n_vars)\n    cnf.append(new_cnf)\n    # Update n_vars\n    n_vars = max(n_vars, max(abs(l) for clause in cnf.clauses for l in clause) if cnf.clauses else n_vars)\n\nprint(f\"After degree constraints, n_vars: {n_vars}\")\n\n# Now we need 2-connectivity (no articulation point)\n# For each vertex v, G - {v} must be connected\n# This is hard to encode in SAT directly.\n# Let's try solving first and then check 2-connectivity, iterate if needed.\n\nprint(f\"Total clauses: {len(cnf.clauses)}\")\n\n# Try solving\nsolver = Solver(bootstrap_with=cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = [var_to_edge[abs(v)] for v in model if v > 0]\n    print(f\"Solution has {len(solution_edges)} edges\")\n    print(f\"Edges: {sorted(solution_edges)}\")\n    \n    # Build adjacency\n    adj = {i: set() for i in range(10)}\n    for u,v in solution_edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    print(f\"Degrees: {[len(adj[i]) for i in range(10)]}\")\n    \n    # Check independent set size\n    # Find maximum independent set (brute force for 10 vertices)\n    max_ind_set = 0\n    for r in range(10, 0, -1):\n        found = False\n        for subset in itertools.combinations(range(10), r):\n            is_independent = True\n            for u,v in itertools.combinations(subset, 2):\n                if v in adj[u]:\n                    is_independent = False\n                    break\n            if is_independent:\n                max_ind_set = r\n                found = True\n                break\n        if found:\n            break\n    print(f\"Maximum independent set size: {max_ind_set}\")\n    \n    # Check 2-connectivity\n    def is_connected(vertices_set, adj_local):\n        if not vertices_set:\n            return True\n        start = next(iter(vertices_set))\n        visited = set()\n        stack = [start]\n        while stack:\n            v = stack.pop()\n            if v in visited:\n                continue\n            visited.add(v)\n            for nb in adj_local[v]:\n                if nb in vertices_set and nb not in visited:\n                    stack.append(nb)\n        return visited == vertices_set\n    \n    is_2_connected = True\n    for v in range(10):\n        remaining = set(range(10)) - {v}\n        adj_minus_v = {u: {w for w in adj[u] if w != v} for u in remaining}\n        if not is_connected(remaining, adj_minus_v):\n            print(f\"Articulation point: {v}\")\n            is_2_connected = False\n            break\n    \n    print(f\"2-connected: {is_2_connected}\")\nelse:\n    print(\"UNSAT\")",
+        "timeout_seconds": 60
+      },
+      "ok": false,
+      "latency_ms": 233.68
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\nimport itertools\n\n# Check CNF API\ncnf = CNF()\nprint(dir(cnf))\nprint(type(cnf))",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 248.23
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.formula import CNF\nfrom pysat.solvers import Solver\nfrom pysat.card import CardEnc\nimport itertools\n\n# Fixed edges\nfixed_edges = [(0,3), (3,8), (2,9), (0,5), (0,4), (1,7), (1,4), (1,6), (4,8)]\n\n# All possible edges among 10 vertices\nall_edges = [(i, j) for i in range(10) for j in range(i+1, 10)]\n\n# Variable mapping: each edge gets a variable index\nedge_to_var = {e: idx+1 for idx, e in enumerate(all_edges)}\nvar_to_edge = {idx+1: e for idx, e in enumerate(all_edges)}\nn_vars = len(all_edges)\n\nprint(f\"Total possible edges: {n_vars}\")\n\n# Build CNF\ncnf = CNF()\n\n# Fixed edges must be present\nfor e in fixed_edges:\n    cnf.append([edge_to_var[e]])\n\n# Constraint: maximum independent set size \u2264 6\n# For any set of 7 vertices, at least one edge must exist among them\nvertices = list(range(10))\nfor subset in itertools.combinations(vertices, 7):\n    edges_in_subset = [(i,j) for i,j in all_edges if i in subset and j in subset]\n    if edges_in_subset:\n        cnf.append([edge_to_var[e] for e in edges_in_subset])\n\nprint(f\"CNF clauses after independent set constraint: {len(cnf.clauses)}\")\n\n# Constraint: minimum degree \u2265 2\nfor v in range(10):\n    incident_edges = [(i,j) for (i,j) in all_edges if i==v or j==v]\n    clause_vars = [edge_to_var[e] for e in incident_edges]\n    # At least 2 of these edges must be present\n    new_cnf = CardEnc.atleast(lits=clause_vars, bound=2, top_id=n_vars)\n    cnf.extend(new_cnf)\n    # Update n_vars\n    n_vars = max(n_vars, max(abs(l) for clause in cnf.clauses for l in clause) if cnf.clauses else n_vars)\n\nprint(f\"After degree constraints, n_vars: {n_vars}\")\n\nprint(f\"Total clauses: {len(cnf.clauses)}\")\n\n# Try solving\nsolver = Solver(bootstrap_with=cnf)\nresult = solver.solve()\nprint(f\"Satisfiable: {result}\")\n\nif result:\n    model = solver.get_model()\n    solution_edges = [var_to_edge[abs(v)] for v in model if v > 0]\n    print(f\"Solution has {len(solution_edges)} edges\")\n    print(f\"Edges: {sorted(solution_edges)}\")\n    \n    # Build adjacency\n    adj = {i: set() for i in range(10)}\n    for u,v in solution_edges:\n        adj[u].add(v)\n        adj[v].add(u)\n    \n    print(f\"Degrees: {[len(adj[i]) for i in range(10)]}\")\n    \n    # Check independent set size\n    max_ind_set = 0\n    for r in range(10, 0, -1):\n        found = False\n        for subset in itertools.combinations(range(10), r):\n            is_independent = True\n            for u,v in itertools.combinations(subset, 2):\n                if v in adj[u]:\n                    is_independent = False\n                    break\n            if is_independent:\n                max_ind_set = r\n                found = True\n                break\n        if found:\n            break\n    print(f\"Maximum independent set size: {max_ind_set}\")\n    \n    # Check 2-connectivity\n    def is_connected(vertices_set, adj_local):\n        if not vertices_set:\n            return True\n        start = next(iter(vertices_set))\n        visited = set()\n        stack = [start]\n        while stack:\n            v = stack.pop()\n            if v in visited:\n                continue\n            visited.add(v)\n            for nb in adj_local[v]:\n                if nb in vertices_set and nb not in visited:\n                    stack.append(nb)\n        return visited == vertices_set\n    \n    is_2_connected = True\n    for v in range(10):\n        remaining = set(range(10)) - {v}\n        adj_minus_v = {u: {w for w in adj[u] if w != v} for u in remaining}\n        if not is_connected(remaining, adj_minus_v):\n            print(f\"Articulation point: {v}\")\n            is_2_connected = False\n            break\n    \n    print(f\"2-connected: {is_2_connected}\")\nelse:\n    print(\"UNSAT\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 275.61
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Verify the solution thoroughly\nedges = [(0, 1), (0, 2), (0, 3), (0, 4), (0, 5), (0, 6), (0, 7), (0, 8), (0, 9), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (2, 9), (3, 8), (4, 8)]\n\nfixed_edges = [(0,3), (3,8), (2,9), (0,5), (0,4), (1,7), (1,4), (1,6), (4,8)]\n\n# Check fixed edges are present\nfor e in fixed_edges:\n    assert e in edges, f\"Missing fixed edge {e}\"\nprint(\"All fixed edges present \u2713\")\n\n# Build adjacency\nadj = {i: set() for i in range(10)}\nfor u,v in edges:\n    adj[u].add(v)\n    adj[v].add(u)\n\n# Check degrees\ndegrees = [len(adj[i]) for i in range(10)]\nprint(f\"Degrees: {degrees}\")\nassert all(d >= 2 for d in degrees), \"Minimum degree < 2\"\nprint(\"Minimum degree \u2265 2 \u2713\")\n\n# Check 2-connectivity\ndef is_connected(vertices_set, adj_local):\n    if not vertices_set:\n        return True\n    start = next(iter(vertices_set))\n    visited = set()\n    stack = [start]\n    while stack:\n        v = stack.pop()\n        if v in visited:\n            continue\n        visited.add(v)\n        for nb in adj_local[v]:\n            if nb in vertices_set and nb not in visited:\n                stack.append(nb)\n    return visited == vertices_set\n\nfor v in range(10):\n    remaining = set(range(10)) - {v}\n    adj_minus_v = {u: {w for w in adj[u] if w != v} for u in remaining}\n    if not is_connected(remaining, adj_minus_v):\n        print(f\"Articulation point: {v}\")\n        break\nelse:\n    print(\"2-connected \u2713\")\n\n# Check maximum independent set size\nimport itertools\nmax_ind_set = 0\nfor r in range(10, 0, -1):\n    found = False\n    for subset in itertools.combinations(range(10), r):\n        is_independent = True\n        for u,v in itertools.combinations(subset, 2):\n            if v in adj[u]:\n                is_independent = False\n                break\n        if is_independent:\n            max_ind_set = r\n            found = True\n            break\n    if found:\n        break\nprint(f\"Maximum independent set size: {max_ind_set}\")\nassert max_ind_set <= 6, f\"Independent set too large: {max_ind_set}\"\nprint(\"Max independent set \u2264 6 \u2713\")\n\nprint(\"\\nAll constraints satisfied!\")",
+        "timeout_seconds": 10
+      },
+      "ok": true,
+      "latency_ms": 35.04
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          1,
+          0,
+          2,
+          0,
+          3,
+          0,
+          4,
+          0,
+          5,
+          0,
+          6,
+          0,
+          7,
+          0,
+          8,
+          0,
+          9,
+          1,
+          2,
+          1,
+          3,
+          1,
+          4,
+          1,
+          5,
+          1,
+          6,
+          1,
+          7,
+          1,
+          8,
+          1,
+          9,
+          2,
+          9,
+          3,
+          8,
+          4,
+          8
+        ],
+        "reasoning": "The graph has 10 vertices (0-9) and 20 edges. Vertex 0 connects to all other 9 vertices, vertex 1 connects to all other 9 vertices, and there are additional edges (2,9), (3,8), (4,8). All fixed edges are present. Minimum degree is 2 (vertices 5,6,7 have degree 2). The graph is 2-connected (removing any single vertex leaves the graph connected). The maximum independent set size is 6 (e.g., {2,3,4,5,6,7} or {2,3,5,6,7,8} are independent sets of size 6, and no 7 vertices are independent since vertices 0 and 1 connect to everyone)."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

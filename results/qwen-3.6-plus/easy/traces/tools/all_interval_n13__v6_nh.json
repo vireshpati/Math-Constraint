@@ -1,0 +1,71 @@
+{
+  "problem_name": "all_interval_n13__v6_nh",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 13
+  },
+  "difficulty": {
+    "solve_time_ms": 969.3,
+    "search_space": 6227020800,
+    "num_variables": 25,
+    "num_constraints": 16,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "medium",
+    "solve_pct_global": 66.35,
+    "solve_pct_type": 29.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[0, 12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6]",
+  "reasoning": "Found a valid all-interval series of size 13. The sequence [0, 12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6] is a permutation of 0-12, and the absolute differences between consecutive elements are [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1-12.",
+  "raw_response": null,
+  "cot_trace": "The problem asks for an \"all-interval series\" of size 13. This is a permutation of the numbers 0 to 12 (13 numbers total) such that the absolute differences between consecutive elements form a permutation of 1 to 12 (12 differences total).\n\nLet me think about this more carefully:\n- We need a sequence $a_0, a_1, a_2, ..., a_{12}$ where each $a_i \\in \\{0, 1, 2, ..., 12\\}$ and all $a_i$ are distinct.\n- The differences $|a_1 - a_0|, |a_2 - a_1|, ..., |a_{12} - a_{11}|$ must be a permutation of $\\{1, 2, ..., 12\\}$.\n\nThis is a well-known problem in combinatorics. All-interval series exist for certain sizes. Let me think about when they exist.\n\nFor an all-interval series of size $n$ (using numbers 0 to $n-1$), we need the differences to be a permutation of 1 to $n-1$.\n\nLet me try to solve this using a constraint solver or backtracking approach.\n\nI'll write a Python script to find such a series.\n---\nThe solution was found quickly. The all-interval series of size 13 is [0, 12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6]. Let me verify this is correct:\n\n- It's a permutation of 0-12: Yes, sorted gives [0,1,2,3,4,5,6,7,8,9,10,11,12]\n- The absolute differences between consecutive elements are: |12-0|=12, |1-12|=11, |11-1|=10, |2-11|=9, |10-2|=8, |3-10|=7, |9-3|=6, |4-9|=5, |8-4|=4, |5-8|=3, |7-5|=2, |6-7|=1\n- These differences are [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1-12.\n\nThis is a valid solution.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2110,
+  "completion_tokens": 1269,
+  "reasoning_tokens": 560,
+  "cached_tokens": 0,
+  "cost_usd": 0.0031603,
+  "cost_source": "openrouter",
+  "latency_ms": 33067.238330841064,
+  "tool_dispatch_ms_total": 1461.4834785461426,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import permutations\n\ndef solve_all_interval(n):\n    \"\"\"Find an all-interval series of size n (permutation of 0 to n-1)\"\"\"\n    # Use backtracking with constraint propagation\n    used = [False] * n\n    used_diffs = [False] * n  # used_diffs[d] = True if difference d has been used\n    result = [0] * n\n    \n    def backtrack(pos):\n        if pos == n:\n            return True\n        \n        if pos == 0:\n            # Try each starting value\n            for val in range(n):\n                result[0] = val\n                used[val] = True\n                if backtrack(1):\n                    return True\n                used[val] = False\n            return False\n        \n        # Try each unused value\n        for val in range(n):\n            if not used[val]:\n                diff = abs(val - result[pos-1])\n                if diff > 0 and diff < n and not used_diffs[diff]:\n                    result[pos] = val\n                    used[val] = True\n                    used_diffs[diff] = True\n                    \n                    if backtrack(pos + 1):\n                        return True\n                    \n                    used[val] = False\n                    used_diffs[diff] = False\n        \n        return False\n    \n    if backtrack(0):\n        return result\n    return None\n\n# Try for n=13\nresult = solve_all_interval(13)\nif result:\n    print(f\"Solution found: {result}\")\n    # Verify\n    diffs = [abs(result[i+1] - result[i]) for i in range(12)]\n    print(f\"Differences: {diffs}\")\n    print(f\"Sorted diffs: {sorted(diffs)}\")\n    print(f\"Is permutation of 0-12: {sorted(result) == list(range(13))}\")\n    print(f\"Is permutation of 1-12: {sorted(diffs) == list(range(1, 13))}\")\nelse:\n    print(\"No solution found\")\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 1461.48
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[0, 12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6]",
+        "reasoning": "Found a valid all-interval series of size 13. The sequence [0, 12, 1, 11, 2, 10, 3, 9, 4, 8, 5, 7, 6] is a permutation of 0-12, and the absolute differences between consecutive elements are [12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1], which is a permutation of 1-12."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

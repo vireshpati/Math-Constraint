@@ -1,0 +1,97 @@
+{
+  "problem_name": "graceful_graph_k2_p4__v6_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1359.6,
+    "search_space": 214358881,
+    "num_variables": 18,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 83.65,
+    "solve_pct_type": 56.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "moonshotai/kimi-k2.6-20260420",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    2,
+    10,
+    1,
+    3,
+    9,
+    7,
+    4
+  ],
+  "reasoning": "The graph G_{2,4} has 8 vertices and 10 edges. A backtracking search found a graceful labeling using distinct labels from 0 to 10: clique 0 gets labels (0,2), clique 1 gets (10,1), clique 2 gets (3,9), clique 3 gets (7,4). The 10 edge differences are {1,2,3,4,5,6,7,8,9,10}, all distinct.",
+  "raw_response": null,
+  "cot_trace": "We need to find a graceful labeling for a specific graph G_{2,4}. Let's parse the graph structure carefully.\n\nWe have 4 disjoint K_2 cliques numbered 0 through 3. Each K_2 has 2 vertices. So total vertices = 8.\n\nEach pair of consecutive cliques (g, g+1) is connected by 2 edges that link vertex i of clique g to vertex i of clique g+1 for each i in 0..1.\n\nSo the graph is like a ladder graph with 4 rungs? Let's think.\n\nClique 0: vertices (0,0) and (0,1) connected by an edge (K_2).\nClique 1: vertices (1,0) and (1,1) connected by an edge.\nClique 2: vertices (2,0) and (2,1) connected by an edge.\nClique 3: vertices (3,0) and (3,1) connected by an edge.\n\nBetween clique 0 and 1: edges (0,0)-(1,0) and (0,1)-(1,1).\nBetween clique 1 and 2: edges (1,0)-(2,0) and (1,1)-(2,1).\nBetween clique 2 and 3: edges (2,0)-(3,0) and (2,1)-(3,1).\n\nSo total edges: 4 (from K_2's) + 3*2 = 6 = 10 edges. Yes.\n\nThis is exactly the Cartesian product P_4 \u25a1 K_2, i.e., a ladder graph with 4 rungs. It's a 2x4 grid graph (a path of length 3 on 4 vertices crossed with K_2). Actually it's a 2x4 grid (2 rows, 4 columns). The vertices are arranged in 2 rows and 4 columns. Horizontal edges are the K_2 edges (within each column), and vertical edges connect same row across adjacent columns.\n\nWe need a graceful labeling: assign labels 0..10 (since m=10 edges, labels are 0..m) to the 8 vertices, all distinct, such that the 10 edge labels (absolute differences) are exactly 1..10 (or 0..10? Wait, graceful labeling definition: For a graph with m edges, label vertices with distinct labels from {0,1,...,m} such that edge labels (absolute differences) are distinct and cover {1,2,...,m}. Since there are m edges, the edge labels must be exactly 1..m. Note that 0 cannot be an edge label because all vertex labels are distinct, so difference is at least 1. So edge labels are 1..10.\n\nWe need to find a labeling or prove UNSAT.\n\nThis is a known problem: ladder graphs P_n \u25a1 K_2 are graceful for all n? I recall that all trees are conjectured to be graceful (Graceful Tree Conjecture). Ladder graphs are not trees (they have cycles). But many ladder graphs are graceful. Actually, the Cartesian product of paths P_n \u25a1 P_2 (i.e., ladder graph) is known to be graceful for all n. I think there's a known graceful labeling for grid graphs P_n \u25a1 P_m for certain values. For m=2, I think it's known to be graceful.\n\nBut we need to find one specific instance for n=4.\n\nWe can try to solve it via Python using OR-Tools or brute force/backtracking. Since there are only 8 vertices and labels from 0..10, we can try to search.\n\nLet's denote vertices as v_{r,c} where r in {0,1}, c in {0,1,2,3}. The ordering requested is by clique then vertex within clique: so clique 0: v_{0,0}, v_{1,0}; clique 1: v_{0,1}, v_{1,1}; clique 2: v_{0,2}, v_{1,2}; clique 3: v_{0,3}, v_{1,3}. Wait, the problem says \"ordered by clique then vertex within clique (so the i-th block of 2 consecutive entries gives the labels for clique i)\". So the list is [label(clique0, vertex0), label(clique0, vertex1), label(clique1, vertex0), label(clique1, vertex1), ...].\n\nLet's use Python to search. We can use itertools permutations of 8 labels chosen from 0..10. That's C(11,8)=165, times 8! = 40320, total about 6.6 million. That's a bit large but manageable with pruning. Better to use a SAT solver or backtracking.\n\nAlternatively, we can use OR-Tools CP-SAT or python-constraint. But maybe simplest is to write a backtracking search with pruning.\n\nLet's do that. \n---\n The code found a solution but didn't print it because I returned True from backtrack which stopped at first solution but didn't append? Wait, I did append. Let me check - I returned True from backtrack which propagated up, but the solution should have been appended. Let me re-run and print properly.\n---\nThe solution found is [0, 2, 10, 1, 3, 9, 7, 4].\n\nLet me verify:\n- Clique 0: vertices 0,1 -> labels 0, 2. Edge diff = 2.\n- Clique 1: vertices 2,3 -> labels 10, 1. Edge diff = 9.\n- Clique 2: vertices 4,5 -> labels 3, 9. Edge diff = 6.\n- Clique 3: vertices 6,7 -> labels 7, 4. Edge diff = 3.\n\nCross edges:\n- (0,2): |0-10| = 10\n- (1,3): |2-1| = 1\n- (2,4): |10-3| = 7\n- (3,5): |1-9| = 8\n- (4,6): |3-7| = 4\n- (5,7): |9-4| = 5\n\nDifferences: {2,9,6,3,10,1,7,8,4,5} = {1,2,3,4,5,6,7,8,9,10}. All distinct!\n\nSo the graph is gracefully labelable. The answer is SAT with solution [0, 2, 10, 1, 3, 9, 7, 4]. ",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4410,
+  "completion_tokens": 3112,
+  "reasoning_tokens": 1145,
+  "cached_tokens": 928,
+  "cost_usd": 0.0146229918,
+  "cost_source": "openrouter",
+  "latency_ms": 238000.43559074402,
+  "tool_dispatch_ms_total": 119.91429328918457,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Graph structure: 8 vertices, edges as pairs of vertex indices (0..7)\n# Ordering: clique g has vertices 2*g + i for i in 0..1\nedges = []\n# K_2 edges within each clique\nfor g in range(4):\n    edges.append((2*g, 2*g+1))\n# edges between consecutive cliques\nfor g in range(3):\n    for i in range(2):\n        edges.append((2*g+i, 2*(g+1)+i))\n\nprint(\"Edges:\", edges)\nprint(\"Number of edges:\", len(edges))\n\n# Let's do a simple backtracking search with pruning.\n# We assign labels to vertices 0..7 from 0..10, all distinct.\n# We keep track of used edge differences.\n\nfrom functools import lru_cache\n\n# Precompute edge list\nedge_list = edges\n\n# Use recursion with pruning\nlabels = [None]*8\nused_label = [False]*11\nused_diff = [False]*11  # differences 1..10\n\nsolutions = []\n\ndef backtrack(v):\n    if v == 8:\n        # check all differences distinct (should be by construction)\n        diffs = []\n        for (a,b) in edge_list:\n            diffs.append(abs(labels[a]-labels[b]))\n        if len(set(diffs)) == 10 and min(diffs)>=1:\n            solutions.append(tuple(labels))\n        return True  # stop at first solution? Let's collect a few\n    \n    # Try labels for vertex v\n    for l in range(11):\n        if used_label[l]:\n            continue\n        # assign temporarily\n        labels[v] = l\n        used_label[l] = True\n        \n        # Check edges incident to v that are already assigned\n        ok = True\n        for (a,b) in edge_list:\n            if a == v and labels[b] is not None:\n                diff = abs(l - labels[b])\n                if diff == 0 or used_diff[diff]:\n                    ok = False\n                    break\n            elif b == v and labels[a] is not None:\n                diff = abs(l - labels[a])\n                if diff == 0 or used_diff[diff]:\n                    ok = False\n                    break\n        \n        if ok:\n            # mark diffs\n            marked = []\n            for (a,b) in edge_list:\n                if a == v and labels[b] is not None:\n                    diff = abs(l - labels[b])\n                    used_diff[diff] = True\n                    marked.append(diff)\n                elif b == v and labels[a] is not None:\n                    diff = abs(l - labels[a])\n                    used_diff[diff] = True\n                    marked.append(diff)\n            \n            if backtrack(v+1):\n                return True\n            \n            for diff in marked:\n                used_diff[diff] = False\n        \n        used_label[l] = False\n        labels[v] = None\n    \n    return False\n\nfound = backtrack(0)\nprint(\"Found:\", found)\nif solutions:\n    print(\"Solution:\", solutions[0])\n"
+      },
+      "ok": true,
+      "latency_ms": 82.02
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Graph structure: 8 vertices, edges as pairs of vertex indices (0..7)\n# Ordering: clique g has vertices 2*g + i for i in 0..1\nedges = []\n# K_2 edges within each clique\nfor g in range(4):\n    edges.append((2*g, 2*g+1))\n# edges between consecutive cliques\nfor g in range(3):\n    for i in range(2):\n        edges.append((2*g+i, 2*(g+1)+i))\n\nprint(\"Edges:\", edges)\nprint(\"Number of edges:\", len(edges))\n\n# Use recursion with pruning\nlabels = [None]*8\nused_label = [False]*11\nused_diff = [False]*11  # differences 1..10\n\nsolutions = []\n\ndef backtrack(v):\n    if v == 8:\n        # check all differences distinct (should be by construction)\n        diffs = []\n        for (a,b) in edges:\n            diffs.append(abs(labels[a]-labels[b]))\n        if len(set(diffs)) == 10 and min(diffs)>=1:\n            solutions.append(list(labels))\n        return len(solutions) > 0  # stop when we have one\n    \n    # Try labels for vertex v\n    for l in range(11):\n        if used_label[l]:\n            continue\n        # assign temporarily\n        labels[v] = l\n        used_label[l] = True\n        \n        # Check edges incident to v that are already assigned\n        ok = True\n        for (a,b) in edges:\n            if a == v and labels[b] is not None:\n                diff = abs(l - labels[b])\n                if diff == 0 or used_diff[diff]:\n                    ok = False\n                    break\n            elif b == v and labels[a] is not None:\n                diff = abs(l - labels[a])\n                if diff == 0 or used_diff[diff]:\n                    ok = False\n                    break\n        \n        if ok:\n            # mark diffs\n            marked = []\n            for (a,b) in edges:\n                if a == v and labels[b] is not None:\n                    diff = abs(l - labels[b])\n                    used_diff[diff] = True\n                    marked.append(diff)\n                elif b == v and labels[a] is not None:\n                    diff = abs(l - labels[a])\n                    used_diff[diff] = True\n                    marked.append(diff)\n            \n            if backtrack(v+1):\n                return True\n            \n            for diff in marked:\n                used_diff[diff] = False\n        \n        used_label[l] = False\n        labels[v] = None\n    \n    return False\n\nfound = backtrack(0)\nprint(\"Found:\", found)\nprint(\"Solutions:\", solutions)\nif solutions:\n    sol = solutions[0]\n    print(\"Solution:\", sol)\n    # verify\n    diffs = []\n    for (a,b) in edges:\n        diffs.append(abs(sol[a]-sol[b]))\n    print(\"Differences:\", sorted(diffs))\n    print(\"All distinct?\", len(set(diffs))==10)\n    print(\"All labels distinct?\", len(set(sol))==8)\n    print(\"Labels in range?\", all(0<=x<=10 for x in sol))\n"
+      },
+      "ok": true,
+      "latency_ms": 37.89
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          2,
+          10,
+          1,
+          3,
+          9,
+          7,
+          4
+        ],
+        "reasoning": "The graph G_{2,4} has 8 vertices and 10 edges. A backtracking search found a graceful labeling using distinct labels from 0 to 10: clique 0 gets labels (0,2), clique 1 gets (10,1), clique 2 gets (3,9), clique 3 gets (7,4). The 10 edge differences are {1,2,3,4,5,6,7,8,9,10}, all distinct."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

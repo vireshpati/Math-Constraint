@@ -1,0 +1,89 @@
+{
+  "problem_name": "costas_array_n11__v1_nh",
+  "problem_type": "costas_array",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 1035.3,
+    "search_space": 39916800,
+    "num_variables": 11,
+    "num_constraints": 12,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 73.12,
+    "solve_pct_type": 61.11
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-oss-120b:free",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    1,
+    3,
+    2,
+    4,
+    5,
+    7,
+    10,
+    6,
+    8,
+    9
+  ],
+  "reasoning": "A backtracking search found a permutation of rows for columns 0..10 that satisfies the Costas property, so a Costas array of order 11 exists.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [0, 1, 3, 2, 4, 5, 7, 10, 6, 8, 9],\n    \"reasoning\": \"A backtracking search found a permutation of rows for columns 0..10 that satisfies the Costas property, so a Costas array of order 11 exists.\"\n}",
+  "cot_trace": "We need to find a Costas array order 11. Known that Costas arrays exist for many orders, including 11 (Welch construction). So we can output known permutation. For order 11, Welch construction using primitive root modulo 11: primitive root g=2. Define permutation p[i] = g^i mod 11 for i=0..10, then map to 0..10 maybe subtract 1? Actually values 1..10,0? Compute. Let's generate.\n---\nWe need Costas array order 11. Known that Welch construction works for prime p, using primitive root g gives permutation of 0..p-2? Actually gives length p-1. For order 11 need size 11, prime 11, Welch gives order 10. Need order 11 known exists (Golomb). Use Lempel construction? Could brute search with python using known library.\n---\nWe need a Costas array order 11. Known that Costas arrays exist for all n <= 27 except maybe? I think order 11 exists. Could use Welch construction: p[i]=g^i mod p where p is prime, g primitive root, and then map to 0..p-2? For prime p, Welch gives order p-1. Here p=11 gives order 10. Need order 11, need Golomb construction for prime power? There is known Costas of order 11 from literature: maybe [0,1,4,9,5,2,8,3,10,6,7]? Let's test via python brute search using known library? Could use heuristic search. Let's brute force with backtracking quickly.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Solution violates constraints (UNSAT)",
+  "prompt_tokens": 3423,
+  "completion_tokens": 1046,
+  "reasoning_tokens": 317,
+  "cached_tokens": 2176,
+  "cost_usd": 0.0,
+  "cost_source": "openrouter",
+  "latency_ms": 33502.18677520752,
+  "tool_dispatch_ms_total": 111.64498329162598,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "g=2\nmod=11\nperm=[pow(g,i,mod) for i in range(11)]\nprint(perm)",
+        "timeout_seconds": 1000
+      },
+      "ok": true,
+      "latency_ms": 37.89
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import permutations\n\ndef is_costas(p):\n    n=len(p)\n    seen=set()\n    for i in range(n):\n        for j in range(i+1,n):\n            dr=p[j]-p[i]\n            dc=j-i\n            if (dr,dc) in seen:\n                return False\n            seen.add((dr,dc))\n    return True\n\n# try known constructions: use primitive root g=2 for p=11 produce permutation of 0..9 then add something? \n# Use known Costas of order 11 from literature: [0,1,3,6,2,7,5,10,8,4,9] maybe.\nperm=[0,1,3,6,2,7,5,10,8,4,9]\nprint(is_costas(perm))\n"
+      },
+      "ok": true,
+      "latency_ms": 38.68
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools, sys\n\ndef is_costas(p):\n    n=len(p)\n    seen=set()\n    for i in range(n):\n        for j in range(i+1,n):\n            dr=p[j]-p[i]\n            dc=j-i\n            if (dr,dc) in seen:\n                return False\n            seen.add((dr,dc))\n    return True\n\nn=11\n# use backtracking\nperm=[-1]*n\nused=set()\n\ndef backtrack(col):\n    if col==n:\n        print('found',perm)\n        sys.exit()\n    for r in range(n):\n        if r in used:\n            continue\n        # check partial\n        ok=True\n        for c2 in range(col):\n            dr=r-perm[c2]\n            dc=col-c2\n            # check against earlier pairs\n            for c3 in range(c2):\n                dr2=perm[c2]-perm[c3]\n                dc2=c2-c3\n                if (dr,dc)==(dr2,dc2):\n                    ok=False;break\n            if not ok:\n                break\n        if not ok:\n            continue\n        perm[col]=r; used.add(r)\n        backtrack(col+1)\n        used.remove(r)\n        perm[col]=-1\n\nbacktrack(0)\nprint('none')\n"
+      },
+      "ok": true,
+      "latency_ms": 35.07
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

@@ -1,0 +1,194 @@
+{
+  "problem_name": "pysms_independent_connectivity_max_independent_set2_min_connectivity1_vertices8__v2_nh",
+  "problem_type": "pysms_independent_connectivity",
+  "params": {
+    "max_independent_set": 2,
+    "min_connectivity": 1,
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 46.4,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 28,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 21.8,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "google/gemini-3.1-flash-lite-preview-20260303",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      3
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      3
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      6
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      5,
+      6
+    ],
+    [
+      5,
+      7
+    ],
+    [
+      6,
+      7
+    ],
+    [
+      0,
+      4
+    ]
+  ],
+  "reasoning": "The graph consists of two K4 cliques (vertices 0-3 and 4-7) connected by a single edge (0, 4). The vertex connectivity is 1 because removing vertex 0 or 4 disconnects the graph. The maximum independent set size is 2 because any independent set can contain at most one vertex from each K4, and the edge (0, 4) prevents picking both 0 and 4. Thus, the maximum independent set size is 2.",
+  "raw_response": null,
+  "cot_trace": "**Analyzing Graph Properties**\n\nOkay, I'm currently focused on this graph with 8 vertices. I've determined the maximum independent set size is no more than 2. Also, the graph has a vertex-connectivity of at least 1. I'm looking at the list of edges, which are pairs of vertices (u,v) where u is less than v, both between 0 and 7. I'm exploring how these properties relate to each other.\n\n\n**Clarifying Set Relationships**\n\nI'm now zeroing in on the relationship between the independence number of the original graph and the structure of its complement. It seems my initial assessments were slightly off. I've corrected my understanding: an independence number of at most 2 in G means its complement has no independent set of size 3, which is more accurately stated as there is no set of 3 vertices that are all non-adjacent in $G$.\n\n\n**Verifying Graph Equivalence**\n\nI've been working through the implications of the independent set size. My prior statement needed clarification. It seems I made an inaccurate leap. I've re-examined the connection: An independent set of size at most 2 in graph G directly means its complement, $\\bar{G}$, is triangle-free. I'm testing this new perspective with an example for verification. I'm now certain this is correct.\n\n\n",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "STOP",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 7882,
+  "completion_tokens": 3252,
+  "reasoning_tokens": 931,
+  "cached_tokens": 0,
+  "cost_usd": 0.0068485,
+  "cost_source": "openrouter",
+  "latency_ms": 15456.525087356567,
+  "tool_dispatch_ms_total": 2960.268259048462,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport networkx as nx\n\ndef is_valid(edges, n=8):\n    G = nx.Graph()\n    G.add_nodes_from(range(n))\n    G.add_edges_from(edges)\n    \n    # Check vertex connectivity\n    if nx.node_connectivity(G) < 1:\n        return False\n    \n    # Check max independent set size\n    # The size of the maximum independent set is the size of the maximum clique in the complement graph\n    G_complement = nx.complement(G)\n    max_clique_size = len(nx.approximation.max_clique(G_complement))\n    # Wait, approximation might not be exact. Let's use exact.\n    max_clique_size = nx.graph_clique_number(G_complement)\n    \n    return max_clique_size <= 2\n\n# Try to construct a graph with alpha(G) <= 2\n# This is equivalent to saying the complement graph is triangle-free.\n# A graph with 8 vertices and no triangle in its complement.\n# Let's try a Turan graph or something similar.\n# Actually, a complete bipartite graph K_{4,4} has alpha(G) = 4.\n# We want alpha(G) <= 2.\n# Let's try a complete graph K_8 minus some edges.\n# If G is K_8, alpha(G) = 1.\n# If we remove edges from K_8, alpha(G) increases.\n# We want to remove edges such that we don't create an independent set of size 3.\n# An independent set of size 3 in G is a triangle in the complement graph.\n# So we need the complement graph to be triangle-free.\n# The complement graph has 8 vertices and is triangle-free.\n# The maximum number of edges in a triangle-free graph with 8 vertices is by Turan's theorem:\n# For a triangle-free graph, the maximum number of edges is floor(n^2 / 4) = 8^2 / 4 = 16.\n# So we can have a complement graph with up to 16 edges that is triangle-free.\n# Let's pick a bipartite graph K_{4,4} as the complement graph.\n# If the complement graph is K_{4,4}, then G is the union of two K_4's.\n# Let's check alpha(G) for two K_4's.\n# The independent set can pick at most one vertex from each K_4.\n# So alpha(G) = 1 + 1 = 2.\n# This works!\n# Let's construct G as the union of two K_4's.\n# Vertices 0, 1, 2, 3 form a K_4.\n# Vertices 4, 5, 6, 7 form a K_4.\n# This graph has alpha(G) = 2.\n# But wait, what is the vertex connectivity?\n# The graph is disconnected (two components).\n# Vertex connectivity of a disconnected graph is 0.\n# We need vertex connectivity >= 1.\n# So we need to add some edges to connect the two K_4's.\n# Let's add an edge between the two K_4's, say (0, 4).\n# Now the graph is connected.\n# Does this increase alpha(G)?\n# An independent set can pick at most one vertex from each K_4.\n# If we pick a vertex from the first K_4, say 0, we cannot pick any other vertex from the first K_4.\n# If we pick a vertex from the second K_4, say 4, we cannot pick any other vertex from the second K_4.\n# If we pick 0, we cannot pick 4.\n# So we can pick at most one vertex from {0, 1, 2, 3} and at most one from {4, 5, 6, 7}.\n# If we pick 0, we can't pick 4. So we can pick at most one vertex from {1, 2, 3} and at most one from {5, 6, 7}.\n# Wait, let's re-check.\n# If we pick 0, we can't pick 1, 2, 3, or 4.\n# We can pick one from {5, 6, 7}.\n# So the independent set could be {0, 5}. Size 2.\n# If we don't pick 0, we can pick one from {1, 2, 3} and one from {4, 5, 6, 7}.\n# If we pick 4, we can't pick 0, 5, 6, 7.\n# So we can pick one from {1, 2, 3}.\n# So the independent set could be {1, 4}. Size 2.\n# It seems alpha(G) is still 2.\n\nedges = []\n# K_4 on 0, 1, 2, 3\nfor i in range(4):\n    for j in range(i + 1, 4):\n        edges.append((i, j))\n# K_4 on 4, 5, 6, 7\nfor i in range(4, 8):\n    for j in range(i + 1, 8):\n        edges.append((i, j))\n# Add edge (0, 4) to connect them\nedges.append((0, 4))\n\nG = nx.Graph()\nG.add_nodes_from(range(8))\nG.add_edges_from(edges)\n\nprint(f\"Connectivity: {nx.node_connectivity(G)}\")\nprint(f\"Max independent set size: {len(nx.maximal_independent_set(G))}\") # Wait, this is not max\n# Use max_independent_set\nprint(f\"Max independent set size: {len(max(nx.find_cliques(nx.complement(G)), key=len))}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 802.73
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\n\n# The graph constructed:\nedges = []\n# K_4 on 0, 1, 2, 3\nfor i in range(4):\n    for j in range(i + 1, 4):\n        edges.append((i, j))\n# K_4 on 4, 5, 6, 7\nfor i in range(4, 8):\n    for j in range(i + 1, 8):\n        edges.append((i, j))\n# Add edge (0, 4) to connect them\nedges.append((0, 4))\n\nG = nx.Graph()\nG.add_nodes_from(range(8))\nG.add_edges_from(edges)\n\n# Verify\nconnectivity = nx.node_connectivity(G)\n# Max independent set size is the size of the maximum clique in the complement\nG_complement = nx.complement(G)\nmax_independent_set_size = nx.graph_clique_number(G_complement)\n\nprint(f\"Edges: {edges}\")\nprint(f\"Connectivity: {connectivity}\")\nprint(f\"Max independent set size: {max_independent_set_size}\")\n"
+      },
+      "ok": false,
+      "latency_ms": 851.05
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\nfrom networkx.algorithms.approximation.clique import max_clique\n\n# The graph constructed:\nedges = []\n# K_4 on 0, 1, 2, 3\nfor i in range(4):\n    for j in range(i + 1, 4):\n        edges.append((i, j))\n# K_4 on 4, 5, 6, 7\nfor i in range(4, 8):\n    for j in range(i + 1, 8):\n        edges.append((i, j))\n# Add edge (0, 4) to connect them\nedges.append((0, 4))\n\nG = nx.Graph()\nG.add_nodes_from(range(8))\nG.add_edges_from(edges)\n\n# Verify\nconnectivity = nx.node_connectivity(G)\n\n# Max independent set size is the size of the maximum clique in the complement\nG_complement = nx.complement(G)\n# Use a brute force approach to find the max clique size\ndef get_max_clique_size(graph):\n    max_size = 0\n    for i in range(1, len(graph.nodes) + 1):\n        for subset in itertools.combinations(graph.nodes, i):\n            if all(graph.has_edge(u, v) for u, v in itertools.combinations(subset, 2)):\n                max_size = i\n    return max_size\n\nimport itertools\nmax_independent_set_size = get_max_clique_size(G_complement)\n\nprint(f\"Edges: {edges}\")\nprint(f\"Connectivity: {connectivity}\")\nprint(f\"Max independent set size: {max_independent_set_size}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 1306.49
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ],
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            4,
+            5
+          ],
+          [
+            4,
+            6
+          ],
+          [
+            4,
+            7
+          ],
+          [
+            5,
+            6
+          ],
+          [
+            5,
+            7
+          ],
+          [
+            6,
+            7
+          ],
+          [
+            0,
+            4
+          ]
+        ],
+        "reasoning": "The graph consists of two K4 cliques (vertices 0-3 and 4-7) connected by a single edge (0, 4). The vertex connectivity is 1 because removing vertex 0 or 4 disconnects the graph. The maximum independent set size is 2 because any independent set can contain at most one vertex from each K4, and the edge (0, 4) prevents picking both 0 and 4. Thus, the maximum independent set size is 2."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

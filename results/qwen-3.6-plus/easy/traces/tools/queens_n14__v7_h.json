@@ -1,0 +1,71 @@
+{
+  "problem_name": "queens_n14__v7_h",
+  "problem_type": "queens",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 1143.3,
+    "search_space": 11112006825558016,
+    "num_variables": 14,
+    "num_constraints": 3,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 78.01,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "qwen/qwen3.6-plus-04-02",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": "[9, 3, 10, 7, 4, 12, 1, 13, 11, 6, 8, 5, 2, 0]",
+  "reasoning": "Used a SAT solver (Glucose3) to encode the 14-Queens problem with constraints: each row has exactly one queen, each column has at most one queen, and no two queens share a diagonal. Fixed assignments q[4]=4 and q[6]=1 were enforced. The solver found a valid solution which was verified to have no row, column, or diagonal conflicts.",
+  "raw_response": null,
+  "cot_trace": "This is the N-Queens problem with N=14, with some pre-assigned values:\n- q[4] = 4 (queen in row 4 is at column 4)\n- q[6] = 1 (queen in row 6 is at column 1)\n\nI need to find a placement of 14 queens on a 14\u00d714 board such that:\n1. No two queens share the same row (guaranteed by the representation)\n2. No two queens share the same column\n3. No two queens share the same diagonal\n\nLet me write a Python script to solve this using backtracking or a constraint solver.\n---\nThe SAT solver found a valid solution. Let me verify it once more and submit the answer.\n\nSolution: [9, 3, 10, 7, 4, 12, 1, 13, 11, 6, 8, 5, 2, 0]\n\nLet me check the fixed assignments:\n- q[4] = 4 \u2713 (index 4 has value 4)\n- q[6] = 1 \u2713 (index 6 has value 1)\n\nThe solution was already verified by the code. Let me submit it.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 2340,
+  "completion_tokens": 1181,
+  "reasoning_tokens": 272,
+  "cached_tokens": 0,
+  "cost_usd": 0.0030634499999999997,
+  "cost_source": "openrouter",
+  "latency_ms": 24660.41922569275,
+  "tool_dispatch_ms_total": 239.14504051208496,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nfrom pysat.card import *\n\n# N-Queens problem with N=14\nN = 14\n\n# Fixed assignments\nfixed = {4: 4, 6: 1}\n\n# We'll use a SAT solver approach\n# Variables: x[r][c] means queen is at row r, column c\n# Variable index: r*N + c + 1 (1-indexed for SAT)\n\ndef var(r, c):\n    return r * N + c + 1\n\nsolver = Glucose3()\n\n# Each row must have exactly one queen\nfor r in range(N):\n    # At least one queen in row r\n    solver.add_clause([var(r, c) for c in range(N)])\n    # At most one queen in row r\n    for c1 in range(N):\n        for c2 in range(c1+1, N):\n            solver.add_clause([-var(r, c1), -var(r, c2)])\n\n# Each column must have at most one queen\nfor c in range(N):\n    for r1 in range(N):\n        for r2 in range(r1+1, N):\n            solver.add_clause([-var(r1, c), -var(r2, c)])\n\n# No two queens on the same diagonal\n# Main diagonals (r - c = constant)\nfor r1 in range(N):\n    for c1 in range(N):\n        for r2 in range(r1+1, N):\n            for c2 in range(N):\n                if r1 - c1 == r2 - c2:  # same main diagonal\n                    solver.add_clause([-var(r1, c1), -var(r2, c2)])\n                if r1 + c1 == r2 + c2:  # same anti-diagonal\n                    solver.add_clause([-var(r1, c1), -var(r2, c2)])\n\n# Fixed assignments\nfor r, c in fixed.items():\n    solver.add_clause([var(r, c)])\n    # No other queen in this row\n    for c2 in range(N):\n        if c2 != c:\n            solver.add_clause([-var(r, c2)])\n    # No other queen in this column\n    for r2 in range(N):\n        if r2 != r:\n            solver.add_clause([-var(r2, c)])\n\nif solver.solve():\n    model = solver.get_model()\n    solution = []\n    for r in range(N):\n        for c in range(N):\n            if var(r, c) in model:\n                solution.append(c)\n                break\n    print(\"Solution found:\", solution)\n    # Verify\n    for i in range(N):\n        for j in range(i+1, N):\n            assert solution[i] != solution[j], f\"Column conflict: rows {i},{j}\"\n            assert abs(solution[i] - solution[j]) != abs(i - j), f\"Diagonal conflict: rows {i},{j}\"\n    print(\"Solution verified!\")\nelse:\n    print(\"UNSATISFIABLE\")\n\nsolver.delete()\n",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 239.15
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": "[9, 3, 10, 7, 4, 12, 1, 13, 11, 6, 8, 5, 2, 0]",
+        "reasoning": "Used a SAT solver (Glucose3) to encode the 14-Queens problem with constraints: each row has exactly one queen, each column has at most one queen, and no two queens share a diagonal. Fixed assignments q[4]=4 and q[6]=1 were enforced. The solver found a valid solution which was verified to have no row, column, or diagonal conflicts."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

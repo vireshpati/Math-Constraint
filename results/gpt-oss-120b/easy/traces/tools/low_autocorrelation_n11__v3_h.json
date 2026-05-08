@@ -1,0 +1,72 @@
+{
+  "problem_name": "low_autocorrelation_n11__v3_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 974.3,
+    "search_space": 2048,
+    "num_variables": 21,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 66.73,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-oss-120b:free",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "Exhaustive search over all 2^11 sequences respecting the fixed values seq[1]=1, seq[8]=1 found no sequence with total squared autocorrelation \u226423 and the required c[6]=0, c[9]=1, thus the problem is unsatisfiable.",
+  "raw_response": "{\n    \"satisfiable\": false,\n    \"solution\": null,\n    \"reasoning\": \"Exhaustive search over all 2^11 sequences respecting the fixed values seq[1]=1, seq[8]=1 found no sequence with total squared autocorrelation \u226423 and the required c[6]=0, c[9]=1, thus the problem is unsatisfiable.\"\n}",
+  "cot_trace": "We need find sequence length 11 binary +-1 meeting sum Ck^2 <=23. Also given constraints: seq[1]=1 (0-index?), assume seq indices 0..10. seq[1]=1, seq[8]=1. Also c[6]=0, c[9]=1 where c[k] = C_k? So C_6 =0, C_9 =1.\n\nWe can brute force with python search using pruning. 2^11=2048 possibilities, easy. Apply constraints.\n---\nWe didn't print. Let's print count.\n---\nNo output? maybe printing suppressed. Let's capture.\n---\nNo solutions found, so UNSAT.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "claimed UNSAT, expected SAT",
+  "prompt_tokens": 3479,
+  "completion_tokens": 737,
+  "reasoning_tokens": 111,
+  "cached_tokens": 2672,
+  "cost_usd": 0.0,
+  "cost_source": "openrouter",
+  "latency_ms": 32635.004997253418,
+  "tool_dispatch_ms_total": 375.0758171081543,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 300.53
+    },
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 35.07
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools, sys\n\ndef check(seq):\n    n=len(seq)\n    s=0\n    C=[]\n    for k in range(1,n):\n        ck=sum(seq[i]*seq[i+k] for i in range(n-k))\n        C.append(ck)\n        s+=ck*ck\n    return s, C\n\ncnt=0\nsol=None\nfor bits in itertools.product([-1,1], repeat=11):\n    if bits[1]!=1 or bits[8]!=1: continue\n    s,C=check(bits)\n    if s<=23 and C[5]==0 and C[8]==1:\n        cnt+=1\n        sol=bits\nprint('cnt',cnt)\nprint('sol',sol)\n"
+      },
+      "ok": true,
+      "latency_ms": 39.48
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": false
+}

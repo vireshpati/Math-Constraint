@@ -1,0 +1,101 @@
+{
+  "problem_name": "all_interval_n14__v1_h",
+  "problem_type": "all_interval",
+  "params": {
+    "n": 14
+  },
+  "difficulty": {
+    "solve_time_ms": 993.6,
+    "search_space": 87178291200,
+    "num_variables": 27,
+    "num_constraints": 17,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 69.74,
+    "solve_pct_type": 45.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    0,
+    13,
+    1,
+    12,
+    2,
+    11,
+    3,
+    10,
+    4,
+    9,
+    5,
+    8,
+    6,
+    7
+  ],
+  "reasoning": "The sequence is a permutation of 0..13. Its consecutive absolute differences are [13,12,11,10,9,8,7,6,5,4,3,2,1], a permutation of 1..13, and it satisfies x[6]=3, x[12]=6, d[3]=10, and d[11]=2.",
+  "raw_response": null,
+  "cot_trace": "**Choosing values recursively**\n\nI\u2019m thinking about how to approach choosing values. Should I backtrack from what I know? It seems like using recursion from the starting position while keeping track of used values and differences might work well for fixed positions. I\u2019d also need to prune for fixed counts. It's good to keep in mind that N is small, so I think this approach could be effective. Let\u2019s proceed with that!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 1695,
+  "completion_tokens": 1072,
+  "reasoning_tokens": 315,
+  "cached_tokens": 0,
+  "cost_usd": 0.040635000000000004,
+  "cost_source": "openrouter",
+  "latency_ms": 17338.07325363159,
+  "tool_dispatch_ms_total": 98.00934791564941,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from functools import lru_cache\nN=14\nfixed_x={6:3,12:6}\nfixed_d={3:10,11:2}\nvals=set(range(N))\ndiffs=set(range(1,N))\n\n# simple forward recursion from pos0, try all start values consistent\nsol=None\nnodes=0\n\ndef rec(seq, usedv, usedd):\n    global sol,nodes\n    nodes+=1\n    i=len(seq)-1\n    # i is last assigned position\n    if len(seq)==N:\n        if usedd==diffs:\n            sol=seq.copy(); return True\n        return False\n    nextpos=len(seq)\n    # fixed value constraint\n    cand_vals = [fixed_x[nextpos]] if nextpos in fixed_x else list(vals-usedv)\n    # if next diff fixed or not\n    edge=nextpos-1\n    for v in cand_vals:\n        if v in usedv: continue\n        d=abs(v-seq[-1])\n        if d==0 or d in usedd: continue\n        if edge in fixed_d and d!=fixed_d[edge]: continue\n        if edge not in fixed_d and d in fixed_d.values():\n            # since fixed_d diff must be used at fixed edge; cannot use same elsewhere\n            # Actually if fixed diff value already at its edge maybe then in usedd; here not used\n            # If this d is reserved for future fixed edge, disallow unless current edge is that fixed edge\n            continue\n        # Future fixed x: basic reachability maybe\n        # if nextpos < 6, ensure position 6=3 not used until then? usedv checks fixed at pos6 will fail if used earlier; disallow use fixed future values? Yes a fixed value can't appear elsewhere.\n        # candidate values from vals-usedv may include 3 before pos6; should disallow if future fixed\n        if v in fixed_x.values() and fixed_x.get(nextpos)!=v:\n            continue\n        # for future fixed positions maybe no issue\n        usedv.add(v); usedd.add(d); seq.append(v)\n        if rec(seq, usedv, usedd): return True\n        seq.pop(); usedd.remove(d); usedv.remove(v)\n    return False\n\nfor start in range(N):\n    if 0 in fixed_x and fixed_x[0]!=start: continue\n    if start in fixed_x.values() and fixed_x.get(0)!=start: continue\n    if rec([start], {start}, set()): break\nprint('nodes',nodes,'sol',sol)\nif sol:\n    print(sol)\n    print([abs(sol[i+1]-sol[i]) for i in range(N-1)])\n",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 98.01
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          0,
+          13,
+          1,
+          12,
+          2,
+          11,
+          3,
+          10,
+          4,
+          9,
+          5,
+          8,
+          6,
+          7
+        ],
+        "reasoning": "The sequence is a permutation of 0..13. Its consecutive absolute differences are [13,12,11,10,9,8,7,6,5,4,3,2,1], a permutation of 1..13, and it satisfies x[6]=3, x[12]=6, d[3]=10, and d[11]=2."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

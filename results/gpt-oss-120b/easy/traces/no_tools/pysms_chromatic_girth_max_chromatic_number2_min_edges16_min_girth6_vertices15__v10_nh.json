@@ -1,0 +1,119 @@
+{
+  "problem_name": "pysms_chromatic_girth_max_chromatic_number2_min_edges16_min_girth6_vertices15__v10_nh",
+  "problem_type": "pysms_chromatic_girth",
+  "params": {
+    "max_chromatic_number": 2,
+    "min_edges": 16,
+    "min_girth": 6,
+    "vertices": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 217.9,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 21,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 50.56,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-oss-120b:free",
+  "provider": "openrouter",
+  "condition": "no_tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      0,
+      5
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      0,
+      12
+    ],
+    [
+      1,
+      7
+    ],
+    [
+      1,
+      13
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      14
+    ],
+    [
+      3,
+      9
+    ],
+    [
+      4,
+      10
+    ],
+    [
+      5,
+      11
+    ],
+    [
+      6,
+      9
+    ]
+  ],
+  "reasoning": "A bipartite graph with a 6\u2011cycle (girth 6) and nine pendant vertices attached to the cycle gives 15 edges. Adding one extra edge between two leaves (6\u20119) creates another 6\u2011cycle but no shorter cycles, keeping girth \u22656. The graph has 15 vertices and 16 edges, is 2\u2011colorable, and meets all requirements.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [\n        [0,1],[1,2],[2,3],[3,4],[4,5],[0,5],\n        [0,6],[0,12],\n        [1,7],[1,13],\n        [2,8],[2,14],\n        [3,9],\n        [4,10],\n        [5,11],\n        [6,9]\n    ],\n    \"reasoning\": \"A bipartite graph with a 6\u2011cycle (girth 6) and nine pendant vertices attached to the cycle gives 15 edges. Adding one extra edge between two leaves (6\u20119) creates another 6\u2011cycle but no shorter cycles, keeping girth \u22656. The graph has 15 vertices and 16 edges, is 2\u2011colorable, and meets all requirements.\"\n}",
+  "cot_trace": "We need bipartite (2-colorable) graph, girth >=6 means no cycles of length 3,4,5. In bipartite, no odd cycles, so need no 4-cycles either. So graph must be C4-free bipartite with 15 vertices and at least 16 edges. Is that possible? Known extremal number for C4-free bipartite graphs: Zarankiewicz problem. For bipartite with parts sizes a,b, max edges without C4 is about a*sqrt(b)+... For balanced 7 and8 maybe edges up to ~7*sqrt(8)\u224819.8. So 16 likely possible. Need construct bipartite with parts sizes maybe 7 and8, C4-free. Simple construction: incidence graph of finite projective plane of order 2? That's 7 points,7 lines, each point on 3 lines gives 21 edges, but that graph has girth 6 (since it's bipartite and no 4-cycles). That's 14 vertices though. We need 15 vertices. Could add an isolated vertex (no edges) still keep edges >=16? Need 16 edges, we have 21 edges already with 14 vertices, add isolated vertex gives 15 vertices, edges 21 >=16, girth still 6 because adding isolated doesn't create cycles. So solution: use the Heawood graph? Actually incidence of Fano plane is the Heawood graph with 14 vertices, 21 edges, girth 6, bipartite. So we can output its edges with vertices 0-13, and add vertex 14 isolated. Provide edges list.\n\nWe need list of edges of Heawood graph. Known edges: vertices can be 0-13, each point 0-6, line 7-13. Points adjacency to lines they belong. Fano plane incidence: points {0..6}, lines: each line is a triple. Lines: (0,1,2), (0,3,5), (0,4,6), (1,3,6), (1,4,5), (2,3,4), (2,5,6). So edges between point p and line l (7+index) if p in line. So edges: (0,7),(1,7),(2,7); (0,8),(3,8),(5,8); (0,9),(4,9),(6,9); (1,10),(3,10),(6,10); (1,11),(4,11),(5,11); (2,12),(3,12),(4,12); (2,13),(5,13),(6,13). Ensure u<v: points < lines. So list edges accordingly. Add isolated vertex 14 no edges.\n\nReturn list.\n---\nWe need to see if such graph exists. Need bipartite (2-colorable) and girth >=6 means no cycles of length 3,4,5. Bipartite already excludes odd cycles, so need no 4-cycles. Need girth >=6 so minimal cycle length 6. Need 15 vertices, at least 16 edges. Can we construct a bipartite graph with no 4-cycles and >=16 edges? Known extremal number ex(n, C4) ~ n^{3/2}. For n=15, max edges without C4 is about? Known bipartite C4-free max edges about n^{3/2}=~58. So 16 is feasible. Simple construction: take a 6-cycle plus extra trees? Need at least 16 edges, can add trees (no cycles) to increase edges. A tree on 15 vertices has 14 edges, but we need at least 16, so need at least 2 extra edges creating cycles but must be length >=6 and no 4-cycle. Could use a 6-cycle (6 edges) plus a tree connecting remaining vertices (9 vertices) with 8 edges = total 14 edges, need 2 more edges that create cycles length >=6. Could add chords that create 6-cycle? Might be possible.\n\nSimpler: Use a 6-cycle on vertices 0-5. Then attach remaining vertices 6-14 as leaves to distinct vertices on the cycle to add edges. Leaves add edges without creating cycles. We have 6-cycle edges =6. Leaves: 9 leaves => 9 edges, total 15 edges. Need one more edge, can connect two leaves attached to vertices that are distance >=3 on cycle to create a cycle length? If we connect leaf6 (attached to 0) to leaf7 (attached to 3). Path: leaf6-0-1-2-3-leaf7 length 5 edges, plus new edge makes cycle length 6. Good. No 4-cycle introduced. So total edges =6+9+1=16. Graph is bipartite? Need 2-coloring. Cycle of even length 6 is bipartite. Leaves attached to cycle maintain bipartite if leaf opposite color of its neighbor. Adding edge between two leaves: they are both same color? Let's assign colors: cycle 0 even color A, 1 B,2 A,3 B,4 A,5 B. Leaves attached to 0 get color B, attached to 3 get color A. leaf6 (attached to 0) color B, leaf7 (attached to 3) color A. Edge between leaf6 (B) and leaf7 (A) is fine. So bipartite.\n\nThus solution exists. Provide edges list.\n\nDefine attachments: vertices 6-14 attach to cycle vertices 0-5 maybe multiple. Let's assign:\n\n6-0\n7-1\n8-2\n9-3\n10-4\n11-5\n12-0\n13-1\n14-2\n\nThat's 9 leaves edges.\n\nNow extra edge between leaf6 (6) and leaf9 (9) (leaf9 attached to 3). That creates cycle length? Path 6-0-1-2-3-9 length 5, plus edge 6-9 makes 6. Good.\n\nList edges (u<v):\n\n(0,1),(1,2),(2,3),(3,4),(4,5),(0,5) // cycle edges (0-5)\n(0,6),(0,12)\n(1,7),(1,13)\n(2,8),(2,14)\n(3,9)\n(4,10)\n(5,11)\n(6,9) extra\n\nCount edges: 6+9+1=16.\n\nProvide list.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 615,
+  "completion_tokens": 1800,
+  "reasoning_tokens": 1127,
+  "cached_tokens": 384,
+  "cost_usd": 0.0,
+  "cost_source": "openrouter",
+  "latency_ms": 52437.54482269287,
+  "tool_dispatch_ms_total": 0.0,
+  "tool_calls_made": 0,
+  "tool_rounds": 1,
+  "n_execute_python": 0,
+  "n_submit_answer": 0,
+  "tool_call_chain": [],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

@@ -1,0 +1,94 @@
+{
+  "problem_name": "low_autocorrelation_n19__v10_h",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 19
+  },
+  "difficulty": {
+    "solve_time_ms": 2829.7,
+    "search_space": 524288,
+    "num_variables": 37,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 95.3,
+    "solve_pct_type": 79.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-opus-4.7",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": false,
+  "submitted_solution": null,
+  "reasoning": "For a \u00b11 sequence of length n=19, C_k is a sum of (n-k) terms each \u00b11, so C_k has the same parity as n-k. For k=1, n-k=18 is even, so C_1 must be even. The required value C_1=-1 is odd, hence impossible. (Exhaustive search also confirms no assignment exists.)",
+  "raw_response": null,
+  "cot_trace": " I'm working on constructing a length-19 sequence with specific constraints: the autocorrelation sum of squares needs to stay at or below 46, with fixed values at positions 4, 12, and 13, plus constraints on the first few autocorrelation coefficients. Let me look up what the best known merit factor is for sequences of this length.",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "claimed UNSAT, expected SAT",
+  "prompt_tokens": 12136,
+  "completion_tokens": 1674,
+  "reasoning_tokens": 83,
+  "cached_tokens": 0,
+  "cost_usd": 0.10253000000000001,
+  "cost_source": "openrouter",
+  "latency_ms": 45527.0938873291,
+  "tool_dispatch_ms_total": 1650.5694389343262,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\n\nn = 19\ndef corr(s, k):\n    return sum(s[i]*s[i+k] for i in range(n-k))\n\nfixed = {4:-1, 12:1, 13:-1}\nfree = [i for i in range(n) if i not in fixed]\n\nbest = None\nfor bits in itertools.product([-1,1], repeat=len(free)):\n    s = [0]*n\n    for i,v in fixed.items(): s[i]=v\n    for i,v in zip(free,bits): s[i]=v\n    if corr(s,1)!=-1: continue\n    if corr(s,2)!=0: continue\n    if corr(s,7)!=-3: continue\n    total = sum(corr(s,k)**2 for k in range(1,n))\n    if total<=46:\n        print(s, total, [corr(s,k) for k in range(1,n)])\n        best = s\n        break\nprint(\"done\")\n"
+      },
+      "ok": true,
+      "latency_ms": 446.91
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\n\nn = 19\ndef corr(s, k):\n    return sum(s[i]*s[i+k] for i in range(n-k))\n\nfixed = {4:-1, 12:1, 13:-1}\nfree = [i for i in range(n) if i not in fixed]\n\nfound = []\nfor bits in itertools.product([-1,1], repeat=len(free)):\n    s = [0]*n\n    for i,v in fixed.items(): s[i]=v\n    for i,v in zip(free,bits): s[i]=v\n    if corr(s,1)!=-1: continue\n    if corr(s,2)!=0: continue\n    if corr(s,7)!=-3: continue\n    total = sum(corr(s,k)**2 for k in range(1,n))\n    found.append((total,s))\n\nfound.sort()\nprint(len(found))\nfor t,s in found[:5]:\n    print(t,s)\n"
+      },
+      "ok": true,
+      "latency_ms": 438.17
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport itertools\n\nn = 19\ndef corr(s, k):\n    return sum(s[i]*s[i+k] for i in range(n-k))\n\nfixed = {4:-1, 12:1, 13:-1}\nfree = [i for i in range(n) if i not in fixed]\n\n# just check which constraints can be met\ncounts = {}\nfor bits in itertools.product([-1,1], repeat=len(free)):\n    s = [0]*n\n    for i,v in fixed.items(): s[i]=v\n    for i,v in zip(free,bits): s[i]=v\n    key=(corr(s,1), corr(s,2), corr(s,7))\n    counts[key]=counts.get(key,0)+1\n\n# Find if (-1,0,-3) in counts\nprint((-1,0,-3) in counts)\n# Nearest\nprint(sorted([(abs(k[0]+1)+abs(k[1])+abs(k[2]+3),k,v) for k,v in counts.items()])[:10])\n"
+      },
+      "ok": true,
+      "latency_ms": 731.74
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Confirm: c_k mod 2 = (n-k) mod 2 since each term \u00b11, sum of (n-k) \u00b11 values\n# n-1=18, so c_1 is even. c_1=-1 is odd -> impossible\nprint(\"c_1 must be even, cannot be -1\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.75
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "reasoning": "For a \u00b11 sequence of length n=19, C_k is a sum of (n-k) terms each \u00b11, so C_k has the same parity as n-k. For k=1, n-k=18 is even, so C_1 must be even. The required value C_1=-1 is odd, hence impossible. (Exhaustive search also confirms no assignment exists.)",
+        "satisfiable": false,
+        "solution": null
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_polarity",
+  "forced_submit": false
+}

@@ -1,0 +1,105 @@
+{
+  "problem_name": "graceful_graph_k2_p6__v7_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 6
+  },
+  "difficulty": {
+    "solve_time_ms": 1225.8,
+    "search_space": 582622237229761,
+    "num_variables": 28,
+    "num_constraints": 20,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 79.14,
+    "solve_pct_type": 31.25
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    6,
+    14,
+    9,
+    4,
+    5,
+    11,
+    16,
+    2,
+    0,
+    15,
+    1,
+    3
+  ],
+  "reasoning": "Found a graceful labeling for G_{2,6} satisfying all constraints. The vertex labels (ordered by clique then vertex) are [6,14,9,4,5,11,16,2,0,15,1,3]. All 12 labels are unique values from 0..16, and all 16 edge differences (absolute differences) are distinct values 1..16. The fixed assignments x[0]=6, x[3]=4, d[10]=11, d[14]=1, d[15]=12 are all satisfied.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 9640,
+  "completion_tokens": 4416,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.0032528,
+  "cost_source": "openrouter",
+  "latency_ms": 391385.07604599,
+  "tool_dispatch_ms_total": 666.0614013671875,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc\n\n# We have 12 vertices, labels 0..16 (17 possible values)\n# 16 edges, edge labels 1..16\n\n# Let's define the edges\n# Vertices: 0..11\n# Clique 0: vertices 0,1\n# Clique 1: vertices 2,3\n# Clique 2: vertices 4,5\n# Clique 3: vertices 6,7\n# Clique 4: vertices 8,9\n# Clique 5: vertices 10,11\n\nedges = []\n# Within cliques\nfor c in range(6):\n    edges.append((2*c, 2*c+1))\n# Between consecutive cliques\nfor c in range(5):\n    edges.append((2*c, 2*c+2))   # vertex i=0 of clique c to vertex i=0 of clique c+1\n    edges.append((2*c+1, 2*c+3)) # vertex i=1 of clique c to vertex i=1 of clique c+1\n\nprint(\"Edges:\", edges)\nprint(\"Number of edges:\", len(edges))\n\n# Fixed vertex labels\n# x[0]=6, x[3]=4\n# Fixed edge labels\n# d[10]=11, d[14]=1, d[15]=12\n\n# Let's use a SAT approach with PySAT\n# Variables: for each vertex v (0..11) and each label l (0..16), a boolean variable\n# Also for each edge e (0..15) and each difference d (1..16), a boolean variable\n\n# But this is a lot of variables. Let's try a different approach - use Python to search.\n\n# First, let's figure out which edges are d[10], d[14], d[15]\n# Edge numbering: let's say edges 0-5 are within-clique edges (cliques 0-5)\n# edges 6-15 are between-clique edges\n\n# Actually let me just number them in order as listed above.\nedge_list = []\nfor c in range(6):\n    edge_list.append((2*c, 2*c+1))\nfor c in range(5):\n    edge_list.append((2*c, 2*c+2))\n    edge_list.append((2*c+1, 2*c+3))\n\nprint(\"Edge list with indices:\")\nfor i, (u,v) in enumerate(edge_list):\n    print(f\"  d[{i}] = |x[{u}] - x[{v}]|\")\n\n# So:\n# d[10] = |x[?] - x[?]| = 11\n# d[14] = |x[?] - x[?]| = 1\n# d[15] = |x[?] - x[?]| = 12\n\n# Let me check which edges those are\nprint(f\"\\nd[10]: edge between vertices {edge_list[10][0]} and {edge_list[10][1]}\")\nprint(f\"d[14]: edge between vertices {edge_list[14][0]} and {edge_list[14][1]}\")\nprint(f\"d[15]: edge between vertices {edge_list[15][0]} and {edge_list[15][1]}\")"
+      },
+      "ok": true,
+      "latency_ms": 373.67
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\n# Let's try to solve this with backtracking search\n# 12 vertices, labels 0..16 (17 values)\n# 16 edges, differences 1..16\n\n# Fixed: x[0]=6, x[3]=4\n# Fixed edges: |x[4]-x[6]|=11, |x[8]-x[10]|=1, |x[9]-x[11]|=12\n\n# Let's use a SAT solver approach with PySAT\n\nfrom pysat.solvers import Glucose3\nfrom pysat.card import CardEnc, EncType\n\n# We'll encode: for each vertex v, which label l it takes\n# Variable: (v, l) -> boolean variable index\n# Also for each edge e, which difference d it takes\n# Variable: (e, d) -> boolean variable index\n\n# Let's build the encoding\n\nn_vertices = 12\nn_labels = 17  # 0..16\nn_edges = 16\nn_diffs = 16   # 1..16\n\n# Create variable mapping\ndef var_vertex_label(v, l):\n    \"\"\"Variable: vertex v has label l\"\"\"\n    return v * n_labels + l + 1  # 1-indexed for PySAT\n\ndef var_edge_diff(e, d):\n    \"\"\"Variable: edge e has difference d\"\"\"\n    return n_vertices * n_labels + e * n_diffs + d + 1\n\nn_vars = n_vertices * n_labels + n_edges * n_diffs\n\nsolver = Glucose3()\n\n# Each vertex gets exactly one label\nfor v in range(n_vertices):\n    clause = [var_vertex_label(v, l) for l in range(n_labels)]\n    solver.add_clause(clause)\n    # At most one\n    for l1 in range(n_labels):\n        for l2 in range(l1+1, n_labels):\n            solver.add_clause([-var_vertex_label(v, l1), -var_vertex_label(v, l2)])\n\n# Each edge gets exactly one difference\nfor e in range(n_edges):\n    clause = [var_edge_diff(e, d) for d in range(1, n_diffs+1)]\n    solver.add_clause(clause)\n    for d1 in range(1, n_diffs+1):\n        for d2 in range(d1+1, n_diffs+1):\n            solver.add_clause([-var_edge_diff(e, d1), -var_edge_diff(e, d2)])\n\n# All vertex labels are distinct\nfor l in range(n_labels):\n    # At most one vertex gets label l\n    for v1 in range(n_vertices):\n        for v2 in range(v1+1, n_vertices):\n            solver.add_clause([-var_vertex_label(v1, l), -var_vertex_label(v2, l)])\n\n# All edge differences are distinct\nfor d in range(1, n_diffs+1):\n    for e1 in range(n_edges):\n        for e2 in range(e1+1, n_edges):\n            solver.add_clause([-var_edge_diff(e1, d), -var_edge_diff(e2, d)])\n\n# For each edge e = (u,v), the difference d must equal |label(u) - label(v)|\n# This is a complex constraint. Let's encode it as:\n# If vertex u has label lu and vertex v has label lv, then edge e must have difference |lu-lv|\n# And if edge e has difference d, then there must exist labels lu, lv such that |lu-lv|=d\n\n# Let's encode: for each edge e=(u,v), for each pair of labels (lu, lv):\n# if var_vertex_label(u, lu) and var_vertex_label(v, lv) then var_edge_diff(e, |lu-lv|)\n# This is: (-var_vertex_label(u, lu) OR -var_vertex_label(v, lv) OR var_edge_diff(e, |lu-lv|))\n\nedges = [(0,1),(2,3),(4,5),(6,7),(8,9),(10,11),\n         (0,2),(1,3),(2,4),(3,5),(4,6),(5,7),(6,8),(7,9),(8,10),(9,11)]\n\nfor e, (u, v) in enumerate(edges):\n    for lu in range(n_labels):\n        for lv in range(n_labels):\n            d = abs(lu - lv)\n            if d >= 1 and d <= n_diffs:\n                solver.add_clause([-var_vertex_label(u, lu), -var_vertex_label(v, lv), var_edge_diff(e, d)])\n\n# Also need: if edge e has difference d, then there exist labels lu, lv with |lu-lv|=d\n# But this is implied by the above if we also have that each vertex has a label.\n# Actually, we need to ensure consistency. Let me think...\n# The constraint \"edge e has difference d\" means |x[u]-x[v]| = d.\n# We've encoded: if x[u]=lu and x[v]=lv then edge e has diff |lu-lv|.\n# But we also need: if edge e has diff d, then x[u] and x[v] must satisfy |x[u]-x[v]| = d.\n# This is: for each e, for each d: if var_edge_diff(e,d) then there exist lu,lv with |lu-lv|=d\n# such that var_vertex_label(u,lu) and var_vertex_label(v,lv).\n# \n# Let's encode this as: for each e, for each d:\n# var_edge_diff(e,d) -> OR_{lu,lv: |lu-lv|=d} (var_vertex_label(u,lu) AND var_vertex_label(v,lv))\n# This is a complex clause. Let's use a different approach.\n\n# Actually, let me think about this differently. The constraints I added are:\n# If x[u]=lu and x[v]=lv, then edge e has diff |lu-lv|.\n# This is correct. But we also need the converse: if edge e has diff d, then x[u] and x[v] must differ by d.\n# \n# The way I encoded it, if x[u]=lu and x[v]=lv, then edge e MUST have diff |lu-lv|.\n# But what if edge e has diff d but x[u] and x[v] don't differ by d? That would be inconsistent.\n# \n# Let me add the reverse constraints too.\n\n# For each edge e=(u,v), for each difference d:\n# var_edge_diff(e,d) -> exists lu,lv with |lu-lv|=d such that x[u]=lu and x[v]=lv\n# This is equivalent to:\n# For each e, for each d, for each lu: if var_edge_diff(e,d) and var_vertex_label(u,lu), \n# then var_vertex_label(v, lu+d) OR var_vertex_label(v, lu-d) (if within range)\n# \n# Let's encode this more directly.\n\nfor e, (u, v) in enumerate(edges):\n    for d in range(1, n_diffs+1):\n        for lu in range(n_labels):\n            # If edge e has diff d and vertex u has label lu, then vertex v must have label lu+d or lu-d\n            possible_lv = []\n            if lu + d < n_labels:\n                possible_lv.append(lu + d)\n            if lu - d >= 0:\n                possible_lv.append(lu - d)\n            if possible_lv:\n                clause = [-var_edge_diff(e, d), -var_vertex_label(u, lu)]\n                clause.extend([var_vertex_label(v, lv) for lv in possible_lv])\n                solver.add_clause(clause)\n\n# Fixed assignments\n# x[0]=6\nsolver.add_clause([var_vertex_label(0, 6)])\n# x[3]=4\nsolver.add_clause([var_vertex_label(3, 4)])\n\n# d[10]=11, d[14]=1, d[15]=12\nsolver.add_clause([var_edge_diff(10, 11)])\nsolver.add_clause([var_edge_diff(14, 1)])\nsolver.add_clause([var_edge_diff(15, 12)])\n\nprint(\"Solving...\")\nresult = solver.solve()\nprint(\"Result:\", result)\n\nif result:\n    model = solver.get_model()\n    # Extract vertex labels\n    labels = [-1] * n_vertices\n    for v in range(n_vertices):\n        for l in range(n_labels):\n            if model[var_vertex_label(v, l) - 1] > 0:\n                labels[v] = l\n                break\n    print(\"Vertex labels:\", labels)\n    \n    # Extract edge differences\n    diffs = [-1] * n_edges\n    for e in range(n_edges):\n        for d in range(1, n_diffs+1):\n            if model[var_edge_diff(e, d) - 1] > 0:\n                diffs[e] = d\n                break\n    print(\"Edge diffs:\", diffs)\n    \n    # Verify\n    print(\"\\nVerification:\")\n    for e, (u, v) in enumerate(edges):\n        calc_d = abs(labels[u] - labels[v])\n        print(f\"  d[{e}] = |{labels[u]} - {labels[v]}| = {calc_d} (assigned: {diffs[e]})\")\n    \n    print(\"\\nAll labels:\", sorted(labels))\n    print(\"All diffs:\", sorted(diffs))\nelse:\n    print(\"UNSATISFIABLE\")"
+      },
+      "ok": true,
+      "latency_ms": 292.39
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          6,
+          14,
+          9,
+          4,
+          5,
+          11,
+          16,
+          2,
+          0,
+          15,
+          1,
+          3
+        ],
+        "reasoning": "Found a graceful labeling for G_{2,6} satisfying all constraints. The vertex labels (ordered by clique then vertex) are [6,14,9,4,5,11,16,2,0,15,1,3]. All 12 labels are unique values from 0..16, and all 16 edge differences (absolute differences) are distinct values 1..16. The fixed assignments x[0]=6, x[3]=4, d[10]=11, d[14]=1, d[15]=12 are all satisfied."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

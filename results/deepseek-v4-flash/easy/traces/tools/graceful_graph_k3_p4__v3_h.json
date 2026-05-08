@@ -1,0 +1,107 @@
+{
+  "problem_name": "graceful_graph_k3_p4__v3_h",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 3,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1447.9,
+    "search_space": 12855002631049216,
+    "num_variables": 33,
+    "num_constraints": 25,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 86.28,
+    "solve_pct_type": 68.75
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    3,
+    21,
+    15,
+    20,
+    0,
+    1,
+    7,
+    2,
+    17,
+    16,
+    5,
+    9
+  ],
+  "reasoning": "Found a graceful labeling for G_{3,4} using Z3 SMT solver. The solution respects all fixed assignments: x[2]=15 (vertex 2, clique 0 vertex 2), x[4]=0 (vertex 4, clique 1 vertex 1), d[6]=5 (edge between vertices 6 and 7), d[9]=11 (edge between vertices 9 and 10), d[15]=13 (edge between vertices 3 and 6), d[18]=9 (edge between vertices 6 and 9). All 12 vertex labels are unique in [0,21] and all 21 edge differences are distinct covering 1..21.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": true,
+  "solution_correct": false,
+  "validation_details": "Partial assignment: submitted solution not keyed by variable",
+  "prompt_tokens": 7412,
+  "completion_tokens": 3280,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.0024664,
+  "cost_source": "openrouter",
+  "latency_ms": 323913.74611854553,
+  "tool_dispatch_ms_total": 1824.5341777801514,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "# Let's set up the problem\n# Vertices: v[g][i] for g=0..3, i=0..2\n# Total vertices: 12\n# Labels: 0..21 (22 values), we need 12 unique ones\n# Edge labels (differences): 1..21 all distinct\n\n# Let's use python-constraint or just brute force with backtracking\n\n# First, let's understand the constraints\n\n# Fixed vertex labels:\n# x[2] = 15 -> vertex 2 (clique 0, vertex 2) = 15\n# x[4] = 0 -> vertex 4 (clique 1, vertex 1) = 0\n\n# Fixed edge differences:\n# d[6] = 5 -> edge 6 = (6,7) -> |label(6)-label(7)| = 5\n# d[9] = 11 -> edge 9 = (9,10) -> |label(9)-label(10)| = 11\n# d[15] = 13 -> edge 15 = (3,6) -> |label(3)-label(6)| = 13\n# d[18] = 9 -> edge 18 = (6,9) -> |label(6)-label(9)| = 9\n\n# Let me use a SAT solver approach with pysat\nfrom pysat import formula\nfrom pysat.card import CardEnc\n\n# Actually, let me try using python-constraint or just write a custom solver\n# Let me try using z3 if available, or write a backtracking search\n\n# First, let's check what's available\nimport sys\nprint(sys.version)\n\n# Let's try using z3\ntry:\n    from z3 import *\n    print(\"z3 available\")\nexcept:\n    print(\"z3 not available\")\n\n# Let's try using python-constraint\ntry:\n    from constraint import *\n    print(\"python-constraint available\")\nexcept:\n    print(\"python-constraint not available\")",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 388.45
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from z3 import *\n\n# Create solver\ns = Solver()\n\n# Variables: 12 vertices, each gets a label 0..21\nlabels = [Int(f'x{i}') for i in range(12)]\n\n# Each label in range 0..21\nfor i in range(12):\n    s.add(labels[i] >= 0)\n    s.add(labels[i] <= 21)\n\n# All labels distinct\ns.add(Distinct(labels))\n\n# Fixed vertex labels\n# x[2] = 15 (vertex 2)\ns.add(labels[2] == 15)\n# x[4] = 0 (vertex 4)\ns.add(labels[4] == 0)\n\n# Edge definitions\n# Within-clique edges:\n# Clique 0: vertices 0,1,2 -> edges (0,1), (0,2), (1,2) -> indices 0,1,2\n# Clique 1: vertices 3,4,5 -> edges (3,4), (3,5), (4,5) -> indices 3,4,5\n# Clique 2: vertices 6,7,8 -> edges (6,7), (6,8), (7,8) -> indices 6,7,8\n# Clique 3: vertices 9,10,11 -> edges (9,10), (9,11), (10,11) -> indices 9,10,11\n\n# Between-clique edges:\n# Clique 0-1: (0,3), (1,4), (2,5) -> indices 12,13,14\n# Clique 1-2: (3,6), (4,7), (5,8) -> indices 15,16,17\n# Clique 2-3: (6,9), (7,10), (8,11) -> indices 18,19,20\n\nedges = [\n    (0,1), (0,2), (1,2),     # 0,1,2\n    (3,4), (3,5), (4,5),     # 3,4,5\n    (6,7), (6,8), (7,8),     # 6,7,8\n    (9,10), (9,11), (10,11), # 9,10,11\n    (0,3), (1,4), (2,5),     # 12,13,14\n    (3,6), (4,7), (5,8),     # 15,16,17\n    (6,9), (7,10), (8,11)    # 18,19,20\n]\n\n# Edge difference variables\ndiffs = [Int(f'd{i}') for i in range(21)]\n\n# Each diff is the absolute difference\nfor i, (u, v) in enumerate(edges):\n    # d[i] = |labels[u] - labels[v]|\n    # We can model this as: d[i] >= labels[u] - labels[v] and d[i] >= labels[v] - labels[u]\n    # and d[i] <= labels[u] - labels[v] + M*(1-b) etc. Or use If.\n    # Simpler: use Abs\n    s.add(diffs[i] == If(labels[u] >= labels[v], labels[u] - labels[v], labels[v] - labels[u]))\n\n# All diffs are in 1..21\nfor i in range(21):\n    s.add(diffs[i] >= 1)\n    s.add(diffs[i] <= 21)\n\n# All diffs distinct\ns.add(Distinct(diffs))\n\n# Fixed edge differences\n# d[6] = 5 -> edge between 6 and 7\ns.add(diffs[6] == 5)\n# d[9] = 11 -> edge between 9 and 10\ns.add(diffs[9] == 11)\n# d[15] = 13 -> edge between 3 and 6\ns.add(diffs[15] == 13)\n# d[18] = 9 -> edge between 6 and 9\ns.add(diffs[18] == 9)\n\n# Let's solve\nprint(\"Solving...\")\nresult = s.check()\nprint(f\"Result: {result}\")\n\nif result == sat:\n    m = s.model()\n    solution = [m.evaluate(labels[i]).as_long() for i in range(12)]\n    print(\"Solution:\", solution)\n    \n    # Verify\n    print(\"\\nVerification:\")\n    print(\"Vertex labels:\", solution)\n    \n    # Check distinctness\n    print(f\"All labels distinct: {len(set(solution)) == 12}\")\n    print(f\"Labels in 0..21: {all(0 <= l <= 21 for l in solution)}\")\n    \n    # Compute edge diffs\n    edge_diffs = []\n    for u, v in edges:\n        edge_diffs.append(abs(solution[u] - solution[v]))\n    print(f\"Edge diffs: {edge_diffs}\")\n    print(f\"All diffs distinct: {len(set(edge_diffs)) == 21}\")\n    print(f\"Diffs in 1..21: {all(1 <= d <= 21 for d in edge_diffs)}\")\n    \n    # Check fixed assignments\n    print(f\"x[2] = {solution[2]} (expected 15)\")\n    print(f\"x[4] = {solution[4]} (expected 0)\")\n    print(f\"d[6] = {edge_diffs[6]} (expected 5)\")\n    print(f\"d[9] = {edge_diffs[9]} (expected 11)\")\n    print(f\"d[15] = {edge_diffs[15]} (expected 13)\")\n    print(f\"d[18] = {edge_diffs[18]} (expected 9)\")\nelse:\n    print(\"UNSAT\")",
+        "timeout_seconds": 60
+      },
+      "ok": true,
+      "latency_ms": 1436.08
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          3,
+          21,
+          15,
+          20,
+          0,
+          1,
+          7,
+          2,
+          17,
+          16,
+          5,
+          9
+        ],
+        "reasoning": "Found a graceful labeling for G_{3,4} using Z3 SMT solver. The solution respects all fixed assignments: x[2]=15 (vertex 2, clique 0 vertex 2), x[4]=0 (vertex 4, clique 1 vertex 1), d[6]=5 (edge between vertices 6 and 7), d[9]=11 (edge between vertices 9 and 10), d[15]=13 (edge between vertices 3 and 6), d[18]=9 (edge between vertices 6 and 9). All 12 vertex labels are unique in [0,21] and all 21 edge differences are distinct covering 1..21."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "wrong_solution",
+  "forced_submit": false
+}

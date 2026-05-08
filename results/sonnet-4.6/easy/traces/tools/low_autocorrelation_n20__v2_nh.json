@@ -1,0 +1,128 @@
+{
+  "problem_name": "low_autocorrelation_n20__v2_nh",
+  "problem_type": "low_autocorrelation",
+  "params": {
+    "n": 20
+  },
+  "difficulty": {
+    "solve_time_ms": 3389.3,
+    "search_space": 1048576,
+    "num_variables": 39,
+    "num_constraints": 26,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 96.43,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    1,
+    1,
+    -1,
+    1,
+    -1,
+    -1,
+    1,
+    -1,
+    1,
+    1,
+    1,
+    -1,
+    -1,
+    -1,
+    1,
+    -1,
+    -1,
+    -1,
+    -1,
+    -1
+  ],
+  "reasoning": "Found via random search. The sequence [1, 1, -1, 1, -1, -1, 1, -1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1] has aperiodic autocorrelation values C_k for k=1..19 with sum of squares = 46, which satisfies the constraint of \u2264 49. All individual C_k values are either \u00b11 or \u00b12, giving a very flat autocorrelation profile.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_use",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 7333,
+  "completion_tokens": 1243,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.040644,
+  "cost_source": "openrouter",
+  "latency_ms": 16812.78085708618,
+  "tool_dispatch_ms_total": 204.15878295898438,
+  "tool_calls_made": 4,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport numpy as np\nfrom itertools import product\nimport random\n\ndef compute_merit(seq):\n    n = len(seq)\n    total = 0\n    for k in range(1, n):\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        total += ck * ck\n    return total\n\n# Try random search with restarts\nbest_seq = None\nbest_merit = float('inf')\n\nrandom.seed(42)\nn = 20\n\nfor trial in range(10000):\n    seq = [random.choice([-1, 1]) for _ in range(n)]\n    merit = compute_merit(seq)\n    if merit < best_merit:\n        best_merit = merit\n        best_seq = seq[:]\n        if best_merit <= 49:\n            print(f\"Found at trial {trial}: merit={best_merit}, seq={best_seq}\")\n            break\n\nprint(f\"Best merit so far: {best_merit}\")\nprint(f\"Best seq: {best_seq}\")\n"
+      },
+      "ok": false,
+      "latency_ms": 32.55
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nimport random\n\ndef compute_merit(seq):\n    n = len(seq)\n    total = 0\n    for k in range(1, n):\n        ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n        total += ck * ck\n    return total\n\n# Try random search with restarts\nbest_seq = None\nbest_merit = float('inf')\n\nrandom.seed(42)\nn = 20\n\nfor trial in range(50000):\n    seq = [random.choice([-1, 1]) for _ in range(n)]\n    merit = compute_merit(seq)\n    if merit < best_merit:\n        best_merit = merit\n        best_seq = seq[:]\n        if best_merit <= 49:\n            print(f\"Found at trial {trial}: merit={best_merit}, seq={best_seq}\")\n            break\n\nprint(f\"Best merit so far: {best_merit}\")\nprint(f\"Best seq: {best_seq}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 138.41
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Verify the solution\nseq = [1, 1, -1, 1, -1, -1, 1, -1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1]\nn = len(seq)\n\nprint(f\"Sequence length: {n}\")\nprint(f\"All values in {{-1, +1}}: {all(x in [-1, 1] for x in seq)}\")\n\ntotal = 0\nfor k in range(1, n):\n    ck = sum(seq[i] * seq[i+k] for i in range(n-k))\n    total += ck * ck\n    print(f\"C_{k} = {ck}, C_{k}^2 = {ck*ck}\")\n\nprint(f\"\\nSum of C_k^2 for k=1..19: {total}\")\nprint(f\"Satisfies <= 49: {total <= 49}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 33.2
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          1,
+          1,
+          -1,
+          1,
+          -1,
+          -1,
+          1,
+          -1,
+          1,
+          1,
+          1,
+          -1,
+          -1,
+          -1,
+          1,
+          -1,
+          -1,
+          -1,
+          -1,
+          -1
+        ],
+        "reasoning": "Found via random search. The sequence [1, 1, -1, 1, -1, -1, 1, -1, 1, 1, 1, -1, -1, -1, 1, -1, -1, -1, -1, -1] has aperiodic autocorrelation values C_k for k=1..19 with sum of squares = 46, which satisfies the constraint of \u2264 49. All individual C_k values are either \u00b11 or \u00b12, giving a very flat autocorrelation profile."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

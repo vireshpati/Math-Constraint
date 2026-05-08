@@ -1,0 +1,104 @@
+{
+  "problem_name": "magic_sequence_n15__v9_nh",
+  "problem_type": "magic_sequence",
+  "params": {
+    "n": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 1045.5,
+    "search_space": 437893890380859375,
+    "num_variables": 15,
+    "num_constraints": 27,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 74.62,
+    "solve_pct_type": 87.5
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-oss-120b:free",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    11,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "reasoning": "A magic sequence of length 15 exists; the sequence satisfies that each value x[i] equals the count of i in the sequence.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [11, 2, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],\n    \"reasoning\": \"A magic sequence of length 15 exists; the sequence satisfies that each value x[i] equals the count of i in the sequence.\"\n}",
+  "cot_trace": "We need self-descriptive sequence length 15. Known self-descriptive numbers exist for base 4 etc. For length n, solution exists for n=1? Typically sequence where sum x[i]=n and sum i*x[i]=n. Need to find integer nonnegative solution. Let's solve via python brute force using integer programming.\n---\nWe didn't print length. Need to print.\n---\nWe need actual magic sequence condition also each x[i] equals count of i in whole sequence. Need check candidates. Let's verify first solution [0,15,0,...]. Count of 0? many zeros. There are 14 zeros plus maybe? sequence length 15, x[0]=0 but zeros count is 14 -> not match. Need full check. Let's brute verify all solutions.\n---\nWe need a magic sequence length 15. Known self-descriptive numbers exist for n=4,5,7,8,9,10, etc? Actually classic self-descriptive sequence length 4: 1210. For length 15 likely exists. Let's search from solutions list for magic.\n---\nWe need a magic sequence length 15 known as self-descriptive numbers. Usually solution exists for n=4,5,7,8,9,10, etc. For n=15? Known formula: For n, sequence where x[0]=n-4, x[1]=2, x[2]=1, x[n-4]=1, others 0. Check: length n, sum = n. For n=15, x[0]=11, x[1]=2, x[2]=1, x[11]=1. Let's verify. Compute counts.\n---\nThe known magic sequence for n=15 is [11,2,1,0,0,0,0,0,0,0,0,1,0,0,0]. So SAT.",
+  "finish_reason": "stop",
+  "native_finish_reason": "stop",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 6671,
+  "completion_tokens": 1054,
+  "reasoning_tokens": 322,
+  "cached_tokens": 5072,
+  "cost_usd": 0.0,
+  "cost_source": "openrouter",
+  "latency_ms": 36922.84917831421,
+  "tool_dispatch_ms_total": 218.6598777770996,
+  "tool_calls_made": 5,
+  "tool_rounds": 6,
+  "n_execute_python": 5,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 34.06
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "def find_seq(n):\n    solutions=[]\n    def backtrack(i, remaining, weighted, cur):\n        if i==n:\n            if remaining==0 and weighted==0:\n                solutions.append(cur.copy())\n            return\n        for val in range(remaining+1):\n            if weighted - i*val <0: continue\n            cur.append(val)\n            backtrack(i+1, remaining-val, weighted - i*val, cur)\n            cur.pop()\n    backtrack(0, n, n, [])\n    return solutions\nsol=find_seq(15)\nprint(len(sol))\nprint(sol[:5])\n"
+      },
+      "ok": true,
+      "latency_ms": 79.98
+    },
+    {
+      "name": "execute_python",
+      "args": {},
+      "ok": true,
+      "latency_ms": 35.15
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "magic=[s for s in find_seq(15) if all(s.count(i)==s[i] for i in range(15))]\nprint(magic)\n"
+      },
+      "ok": false,
+      "latency_ms": 34.91
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "seq=[0]*15\nseq[0]=11\nseq[1]=2\nseq[2]=1\nseq[11]=1\nprint(seq)\nprint([seq.count(i) for i in range(15)])\n"
+      },
+      "ok": true,
+      "latency_ms": 34.57
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

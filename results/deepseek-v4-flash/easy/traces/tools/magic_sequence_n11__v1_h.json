@@ -1,0 +1,104 @@
+{
+  "problem_name": "magic_sequence_n11__v1_h",
+  "problem_type": "magic_sequence",
+  "params": {
+    "n": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 991.8,
+    "search_space": 285311670611,
+    "num_variables": 11,
+    "num_constraints": 23,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 69.36,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    7,
+    2,
+    1,
+    0,
+    0,
+    0,
+    0,
+    1,
+    0,
+    0,
+    0
+  ],
+  "reasoning": "Found a magic sequence of length 11 satisfying x[4]=0 and x[10]=0. The sequence [7,2,1,0,0,0,0,1,0,0,0] works: 0 appears 7 times, 1 appears 2 times, 2 appears 1 time, 7 appears 1 time, and all other numbers appear 0 times, matching the values at each position.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 4785,
+  "completion_tokens": 2536,
+  "reasoning_tokens": 0,
+  "cached_tokens": 2304,
+  "cost_usd": 0.001121932,
+  "cost_source": "openrouter",
+  "latency_ms": 132933.30669403076,
+  "tool_dispatch_ms_total": 30252.323389053345,
+  "tool_calls_made": 3,
+  "tool_rounds": 3,
+  "n_execute_python": 2,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nfrom pysat.card import CardEnc\n\nn = 11\n\n# We'll use integer variables for each position\n# Let's use a CSP approach with brute force search since n is small\n\n# Actually, let's use the constraint that sum of x[i] = n (total count = length)\n# And each x[i] is between 0 and n\n\n# Let's do a simple backtracking search\n\ndef is_valid(seq):\n    for i, val in enumerate(seq):\n        if seq.count(i) != val:\n            return False\n    return True\n\ndef solve_magic(n, fixed):\n    # fixed is a dict of index->value\n    # Use backtracking with pruning\n    \n    # First, some constraints:\n    # sum(x) = n\n    # For each i, x[i] = count of i in sequence\n    \n    # Let's try to find all possible sequences\n    solutions = []\n    \n    def backtrack(idx, seq):\n        if idx == n:\n            if is_valid(seq):\n                solutions.append(seq[:])\n            return\n        \n        # Determine possible values for this position\n        if idx in fixed:\n            vals = [fixed[idx]]\n        else:\n            vals = list(range(n+1))\n        \n        for v in vals:\n            # Quick pruning: check if we can still satisfy constraints\n            # The count of any number can't exceed n\n            if v > n:\n                continue\n            seq[idx] = v\n            backtrack(idx+1, seq)\n            seq[idx] = None\n    \n    backtrack(0, [None]*n)\n    return solutions\n\nfixed = {4: 0, 10: 0}\nsols = solve_magic(n, fixed)\nprint(f\"Found {len(sols)} solutions\")\nfor s in sols:\n    print(s)",
+        "timeout_seconds": 30
+      },
+      "ok": false,
+      "latency_ms": 30021.3
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from pysat.solvers import Glucose3\nfrom pysat.card import CardEnc, EncType\nimport itertools\n\nn = 11\n\n# We'll encode using integer variables: for each position i and value v, \n# create a boolean variable indicating x[i] = v\n# But that's a lot of variables. Let's use a different approach.\n\n# Since n is small (11), we can use the constraint that sum(x) = n\n# and each x[i] is between 0 and n.\n\n# Let's use a smarter search with pruning based on known constraints.\n\ndef solve_magic_smart(n, fixed):\n    # fixed: dict of index->value\n    \n    # Key constraints:\n    # 1. sum(x) = n\n    # 2. For each i, x[i] = count of i in the sequence\n    # 3. x[i] is integer between 0 and n\n    \n    # From constraint 2: sum over i of x[i] = sum over i of count(i) = n\n    # So constraint 1 is automatically satisfied if constraint 2 holds.\n    \n    # Also: sum over i of i * x[i] = sum over i of i * count(i) = sum over all positions of value at that position = n\n    # Wait, that's not right. Let me think.\n    # sum_i i * x[i] = sum_i i * count(i) = sum over positions of (value at that position) = sum_j x[j]\n    # So sum_i i * x[i] = sum_j x[j] = n\n    # So sum_i i * x[i] = n\n    \n    # Let's use backtracking with constraint propagation\n    \n    solutions = []\n    \n    def backtrack(seq, idx):\n        if idx == n:\n            # Check full validity\n            for i in range(n):\n                if seq.count(i) != seq[i]:\n                    return\n            solutions.append(seq[:])\n            return\n        \n        if idx in fixed:\n            vals = [fixed[idx]]\n        else:\n            vals = list(range(n+1))\n        \n        for v in vals:\n            # Prune: check if v is consistent with partial counts so far\n            # Count how many times each value appears so far\n            counts_so_far = {}\n            for j in range(idx):\n                counts_so_far[seq[j]] = counts_so_far.get(seq[j], 0) + 1\n            \n            # For any i < idx, we already have seq[i] set.\n            # The count of i in the final sequence must be at least counts_so_far.get(i, 0)\n            # and at most counts_so_far.get(i, 0) + (n - idx)\n            \n            # Also, for any i, the count of i cannot exceed n\n            if v > n:\n                continue\n            \n            # Check: if we set seq[idx]=v, then for each i, \n            # the eventual count of i must equal seq[i]\n            # For i=idx, seq[idx]=v means we claim v occurrences of idx in total.\n            # Currently we have counts_so_far.get(idx, 0) occurrences of idx.\n            # So we need v - counts_so_far.get(idx, 0) more occurrences of idx in remaining positions.\n            # This must be between 0 and n-idx-1.\n            \n            # Actually let's just do a simpler check:\n            # The value v must be achievable given remaining slots.\n            \n            seq[idx] = v\n            backtrack(seq, idx+1, seq)\n            seq[idx] = None\n    \n    # Let me rewrite more carefully\n    pass\n\n# Let me use a different approach: use the known mathematical properties\n# For a magic sequence of length n:\n# sum(x[i]) = n\n# sum(i * x[i]) = n\n\n# Let's search using these constraints\n\ndef find_magic(n, fixed):\n    # Use constraint programming style\n    from itertools import product\n    \n    # First, let's figure out possible ranges for each variable\n    # x[i] can be 0..n\n    \n    # Let's use recursion with pruning\n    solutions = []\n    \n    def search(seq, idx, remaining_sum, remaining_weighted_sum):\n        # remaining_sum = n - sum(seq[:idx])\n        # remaining_weighted_sum = n - sum(i * seq[i] for i in range(idx))\n        \n        if idx == n:\n            if remaining_sum == 0 and remaining_weighted_sum == 0:\n                # Verify\n                for i in range(n):\n                    if seq.count(i) != seq[i]:\n                        return\n                solutions.append(seq[:])\n            return\n        \n        if idx in fixed:\n            vals = [fixed[idx]]\n        else:\n            vals = list(range(remaining_sum + 1))  # can't exceed remaining sum\n        \n        for v in vals:\n            if v > remaining_sum:\n                continue\n            if idx * v > remaining_weighted_sum:\n                continue\n            \n            # Also, we need to check that the count constraint can be satisfied\n            # For any i <= idx, we already have seq[i] set.\n            # The count of i in the final sequence must be at least current count of i in seq[:idx]\n            # and at most current count + (n - idx - 1)\n            \n            # Quick check: for each i, the claimed count seq[i] must be achievable\n            # But we only know seq[i] for i < idx (or i=idx now)\n            \n            seq[idx] = v\n            search(seq, idx+1, remaining_sum - v, remaining_weighted_sum - idx*v)\n            seq[idx] = None\n    \n    search([None]*n, 0, n, n)\n    return solutions\n\nfixed = {4: 0, 10: 0}\nsols = find_magic(11, fixed)\nprint(f\"Found {len(sols)} solutions\")\nfor s in sols:\n    print(s)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 231.02
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          7,
+          2,
+          1,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "reasoning": "Found a magic sequence of length 11 satisfying x[4]=0 and x[10]=0. The sequence [7,2,1,0,0,0,0,1,0,0,0] works: 0 appears 7 times, 1 appears 2 times, 2 appears 1 time, 7 appears 1 time, and all other numbers appear 0 times, matching the values at each position."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

@@ -1,0 +1,304 @@
+{
+  "problem_name": "pysms_mtf_vertices15__v6_h",
+  "problem_type": "pysms_mtf",
+  "params": {
+    "vertices": 15
+  },
+  "difficulty": {
+    "solve_time_ms": 103.9,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 26,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 42.67,
+    "solve_pct_type": 70.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      13
+    ],
+    [
+      0,
+      14
+    ],
+    [
+      1,
+      13
+    ],
+    [
+      1,
+      14
+    ],
+    [
+      2,
+      13
+    ],
+    [
+      2,
+      14
+    ],
+    [
+      3,
+      13
+    ],
+    [
+      3,
+      14
+    ],
+    [
+      4,
+      13
+    ],
+    [
+      4,
+      14
+    ],
+    [
+      5,
+      13
+    ],
+    [
+      5,
+      14
+    ],
+    [
+      6,
+      13
+    ],
+    [
+      6,
+      14
+    ],
+    [
+      7,
+      13
+    ],
+    [
+      7,
+      14
+    ],
+    [
+      8,
+      13
+    ],
+    [
+      8,
+      14
+    ],
+    [
+      9,
+      13
+    ],
+    [
+      9,
+      14
+    ],
+    [
+      10,
+      13
+    ],
+    [
+      10,
+      14
+    ],
+    [
+      11,
+      13
+    ],
+    [
+      11,
+      14
+    ],
+    [
+      12,
+      13
+    ],
+    [
+      12,
+      14
+    ]
+  ],
+  "reasoning": "The graph is a complete bipartite graph K_{13,2} with partition L={0,...,12} and R={13,14}. All edges go between the two partitions. This graph is triangle-free (bipartite graphs have no odd cycles) and maximal: adding any edge within L creates a triangle with both 13 and 14, and adding edge (13,14) creates a triangle with any vertex in L. All fixed edges (2,14), (6,13), (7,13), (10,13), (6,14) are present as they go across the bipartition.",
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 11603,
+  "completion_tokens": 3188,
+  "reasoning_tokens": 0,
+  "cached_tokens": 7424,
+  "cost_usd": 0.001685572,
+  "cost_source": "openrouter",
+  "latency_ms": 170151.49402618408,
+  "tool_dispatch_ms_total": 137.59279251098633,
+  "tool_calls_made": 5,
+  "tool_rounds": 5,
+  "n_execute_python": 4,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 15\nfixed_edges = [(2,14), (6,13), (7,13), (10,13), (6,14)]\n\n# Let's check if fixed edges already contain a triangle\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(j+1, n):\n            if ((i,j) in fixed_edges or (j,i) in fixed_edges) and \\\n               ((i,k) in fixed_edges or (k,i) in fixed_edges) and \\\n               ((j,k) in fixed_edges or (k,j) in fixed_edges):\n                print(f\"Triangle found: {i},{j},{k}\")\n\nprint(\"No triangle in fixed edges\")"
+      },
+      "ok": true,
+      "latency_ms": 34.56
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 15\nfixed_edges = [(2,14), (6,13), (7,13), (10,13), (6,14)]\n\n# Try all possible bipartitions (2^15 possibilities, but we can use symmetry)\n# Let's use a SAT approach\n\nfrom pysat import CNF, Solver\nfrom pysat.card import CardEnc\n\n# We want to find a bipartition (left/right) such that:\n# 1. All fixed edges go across partitions\n# 2. No edges within a partition (triangle-free condition for complete bipartite)\n# 3. All possible cross edges are present (maximality)\n\n# Actually, for maximal triangle-free, we need:\n# - No triangle\n# - For every non-edge, adding it creates a triangle\n\n# Let's use variables: e[i][j] for edge between i and j (i<j)\n# And we want to find a maximal triangle-free graph\n\n# Let's try a simpler approach: find a bipartition that works with fixed edges,\n# then add all cross edges.\n\n# Variable: x[i] = 0 means vertex i in left partition, 1 means in right partition\n# Edge (i,j) exists iff x[i] != x[j]\n\n# Fixed edges must satisfy x[i] != x[j]\n# So for (2,14): x[2] != x[14]\n# For (6,13): x[6] != x[13]\n# etc.\n\ncnf = CNF()\nx = [i for i in range(n)]  # variable indices\n\n# We'll use a SAT solver to find a valid bipartition\n# x[i] is a boolean variable\n\n# Actually let's just brute force since 2^15 = 32768 is small\nfound = False\nfor assignment in itertools.product([0, 1], repeat=n):\n    ok = True\n    for u, v in fixed_edges:\n        if assignment[u] == assignment[v]:\n            ok = False\n            break\n    if ok:\n        print(f\"Found bipartition: {assignment}\")\n        found = True\n        # Build the graph: all cross edges\n        edges = set(fixed_edges)\n        for i in range(n):\n            for j in range(i+1, n):\n                if assignment[i] != assignment[j]:\n                    edges.add((i, j))\n        print(f\"Total edges: {len(edges)}\")\n        print(f\"Edges: {sorted(edges)}\")\n        break\n\nif not found:\n    print(\"No bipartition works\")"
+      },
+      "ok": false,
+      "latency_ms": 35.08
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\n\nn = 15\nfixed_edges = [(2,14), (6,13), (7,13), (10,13), (6,14)]\n\n# Brute force bipartitions\nfound = False\nfor assignment in itertools.product([0, 1], repeat=n):\n    ok = True\n    for u, v in fixed_edges:\n        if assignment[u] == assignment[v]:\n            ok = False\n            break\n    if ok:\n        print(f\"Found bipartition: {assignment}\")\n        found = True\n        # Build the graph: all cross edges\n        edges = set(fixed_edges)\n        for i in range(n):\n            for j in range(i+1, n):\n                if assignment[i] != assignment[j]:\n                    edges.add((i, j))\n        print(f\"Total edges: {len(edges)}\")\n        print(f\"Edges: {sorted(edges)}\")\n        break\n\nif not found:\n    print(\"No bipartition works\")"
+      },
+      "ok": true,
+      "latency_ms": 34.27
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "n = 15\nfixed_edges = [(2,14), (6,13), (7,13), (10,13), (6,14)]\n\n# My solution: bipartition where left = {0,...,12}, right = {13,14}\nleft = set(range(13))\nright = {13, 14}\n\nedges = set()\nfor u in left:\n    for v in right:\n        edges.add((u, v) if u < v else (v, u))\n\n# Check all fixed edges are present\nfor e in fixed_edges:\n    assert e in edges, f\"Missing fixed edge {e}\"\n\nprint(f\"Total edges: {len(edges)}\")\nprint(f\"Edges: {sorted(edges)}\")\n\n# Check no triangles\nfor i in range(n):\n    for j in range(i+1, n):\n        for k in range(j+1, n):\n            e1 = (i,j) in edges or (j,i) in edges\n            e2 = (i,k) in edges or (k,i) in edges\n            e3 = (j,k) in edges or (k,j) in edges\n            if e1 and e2 and e3:\n                print(f\"Triangle found: {i},{j},{k}\")\n                break\n\nprint(\"No triangles found\")\n\n# Check maximality: for every non-edge, adding it creates a triangle\nnon_edges = []\nfor i in range(n):\n    for j in range(i+1, n):\n        if (i,j) not in edges:\n            non_edges.append((i,j))\n\nprint(f\"Number of non-edges: {len(non_edges)}\")\n\nfor u, v in non_edges:\n    # Check if adding (u,v) creates a triangle\n    creates_triangle = False\n    for w in range(n):\n        if w == u or w == v:\n            continue\n        e_uw = (u,w) in edges or (w,u) in edges\n        e_vw = (v,w) in edges or (w,v) in edges\n        if e_uw and e_vw:\n            creates_triangle = True\n            break\n    if not creates_triangle:\n        print(f\"Edge ({u},{v}) can be added without creating a triangle!\")\n        break\nelse:\n    print(\"Graph is maximal triangle-free!\")"
+      },
+      "ok": true,
+      "latency_ms": 33.68
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          [
+            0,
+            13
+          ],
+          [
+            0,
+            14
+          ],
+          [
+            1,
+            13
+          ],
+          [
+            1,
+            14
+          ],
+          [
+            2,
+            13
+          ],
+          [
+            2,
+            14
+          ],
+          [
+            3,
+            13
+          ],
+          [
+            3,
+            14
+          ],
+          [
+            4,
+            13
+          ],
+          [
+            4,
+            14
+          ],
+          [
+            5,
+            13
+          ],
+          [
+            5,
+            14
+          ],
+          [
+            6,
+            13
+          ],
+          [
+            6,
+            14
+          ],
+          [
+            7,
+            13
+          ],
+          [
+            7,
+            14
+          ],
+          [
+            8,
+            13
+          ],
+          [
+            8,
+            14
+          ],
+          [
+            9,
+            13
+          ],
+          [
+            9,
+            14
+          ],
+          [
+            10,
+            13
+          ],
+          [
+            10,
+            14
+          ],
+          [
+            11,
+            13
+          ],
+          [
+            11,
+            14
+          ],
+          [
+            12,
+            13
+          ],
+          [
+            12,
+            14
+          ]
+        ],
+        "reasoning": "The graph is a complete bipartite graph K_{13,2} with partition L={0,...,12} and R={13,14}. All edges go between the two partitions. This graph is triangle-free (bipartite graphs have no odd cycles) and maximal: adding any edge within L creates a triangle with both 13 and 14, and adding edge (13,14) creates a triangle with any vertex in L. All fixed edges (2,14), (6,13), (7,13), (10,13), (6,14) are present as they go across the bipartition."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}

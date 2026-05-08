@@ -1,0 +1,111 @@
+{
+  "problem_name": "pysms_degree_bounds_max_degree5_min_degree1_vertices11__v1_h",
+  "problem_type": "pysms_degree_bounds",
+  "params": {
+    "max_degree": 5,
+    "min_degree": 1,
+    "vertices": 11
+  },
+  "difficulty": {
+    "solve_time_ms": 17.6,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 26,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 9.59,
+    "solve_pct_type": 20.83
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      10
+    ],
+    [
+      1,
+      4
+    ],
+    [
+      1,
+      9
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      2,
+      8
+    ],
+    [
+      2,
+      10
+    ],
+    [
+      3,
+      8
+    ],
+    [
+      5,
+      7
+    ]
+  ],
+  "reasoning": "Starting from the fixed edges (2,8), (2,6), (2,10), (3,8), (0,10), vertices 1, 4, 5, 7, 9 had degree 0. Added edges (1,4), (5,7), and (1,9) to give each of those vertices at least degree 1. Final degrees are all between 1 and 5: vertex 0\u21921, 1\u21922, 2\u21923, 3\u21921, 4\u21921, 5\u21921, 6\u21921, 7\u21921, 8\u21922, 9\u21921, 10\u21922.",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,10],[1,4],[1,9],[2,6],[2,8],[2,10],[3,8],[5,7]],\n    \"reasoning\": \"Starting from the fixed edges (2,8), (2,6), (2,10), (3,8), (0,10), vertices 1, 4, 5, 7, 9 had degree 0. Added edges (1,4), (5,7), and (1,9) to give each of those vertices at least degree 1. Final degrees are all between 1 and 5: vertex 0\u21921, 1\u21922, 2\u21923, 3\u21921, 4\u21921, 5\u21921, 6\u21921, 7\u21921, 8\u21922, 9\u21921, 10\u21922.\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 9181,
+  "completion_tokens": 1425,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.048917999999999996,
+  "cost_source": "openrouter",
+  "latency_ms": 24183.3598613739,
+  "tool_dispatch_ms_total": 671.6010570526123,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\n# Fixed edges\nfixed_edges = [(2,8), (2,6), (2,10), (3,8), (0,10)]\n\n# Compute current degrees from fixed edges\ndegree = [0] * 11\nfor u, v in fixed_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(\"Degrees after fixed edges:\", degree)\n\n# Vertices with degree 0 (need at least 1 more edge)\n# Vertices with degree >= 5 (cannot add more edges)\nfor i, d in enumerate(degree):\n    print(f\"  vertex {i}: degree {d}\")\n"
+      },
+      "ok": true,
+      "latency_ms": 224.65
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Vertices 1, 4, 5, 7, 9 have degree 0 - they need at least 1 edge each\n# Let's add edges to satisfy all degree constraints (1 <= degree <= 5)\n# Strategy: connect the zero-degree vertices in a chain/pairs\n\n# Add edges to give degree-0 vertices at least degree 1\n# 1-4, 5-7, 9-1 (chain: 9-1-4, 5-7)\nadditional_edges = [\n    (1, 4),   # gives 1 and 4 degree 1\n    (5, 7),   # gives 5 and 7 degree 1\n    (1, 9),   # gives 9 degree 1, 1 degree 2\n]\n\nall_edges = fixed_edges + additional_edges\n\n# Recompute degrees\ndegree = [0] * 11\nfor u, v in all_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(\"Degrees after additional edges:\", degree)\nfor i, d in enumerate(degree):\n    status = \"OK\" if 1 <= d <= 5 else \"VIOLATION\"\n    print(f\"  vertex {i}: degree {d} {status}\")\n\nprint(\"\\nAll edges:\", all_edges)\nprint(\"Number of edges:\", len(all_edges))\n"
+      },
+      "ok": false,
+      "latency_ms": 240.11
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfixed_edges = [(2,8), (2,6), (2,10), (3,8), (0,10)]\n\nadditional_edges = [\n    (1, 4),   # gives 1 and 4 degree 1\n    (5, 7),   # gives 5 and 7 degree 1\n    (1, 9),   # gives 9 degree 1, 1 degree 2\n]\n\nall_edges = fixed_edges + additional_edges\n\n# Recompute degrees\ndegree = [0] * 11\nfor u, v in all_edges:\n    degree[u] += 1\n    degree[v] += 1\n\nprint(\"Degrees after all edges:\", degree)\nall_ok = True\nfor i, d in enumerate(degree):\n    status = \"OK\" if 1 <= d <= 5 else \"VIOLATION\"\n    if status == \"VIOLATION\":\n        all_ok = False\n    print(f\"  vertex {i}: degree {d} {status}\")\n\nprint(\"\\nAll edges:\", sorted(all_edges))\nprint(\"Number of edges:\", len(all_edges))\nprint(\"All constraints satisfied:\", all_ok)\n"
+      },
+      "ok": true,
+      "latency_ms": 206.84
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

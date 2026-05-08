@@ -1,0 +1,81 @@
+{
+  "problem_name": "pysms_independent_connectivity_max_independent_set4_min_connectivity4_vertices9__v0_nh",
+  "problem_type": "pysms_independent_connectivity",
+  "params": {
+    "max_independent_set": 4,
+    "min_connectivity": 4,
+    "vertices": 9
+  },
+  "difficulty": {
+    "solve_time_ms": 149.5,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 36,
+    "backend": "pysms",
+    "solve_tier": "medium",
+    "solve_pct_global": 47.93,
+    "solve_pct_type": 54.17
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "deepseek/deepseek-v4-flash-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": null,
+  "submitted_solution": null,
+  "reasoning": null,
+  "raw_response": null,
+  "cot_trace": null,
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "tool_calls",
+  "refusal": null,
+  "correct": false,
+  "satisfiability_correct": false,
+  "solution_correct": false,
+  "validation_details": "",
+  "prompt_tokens": 5390,
+  "completion_tokens": 2186,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.0017338000000000002,
+  "cost_source": "openrouter",
+  "latency_ms": 246408.8225364685,
+  "tool_dispatch_ms_total": 3010.828971862793,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import itertools\nimport networkx as nx\n\n# Let's try to find a graph with 9 vertices, connectivity >= 4, alpha <= 4\n\n# First, let's check if it's even possible by considering degree constraints\n# Minimum degree >= 4 for connectivity >= 4\n# So each vertex has degree at least 4\n\n# Let's try a systematic search with some heuristics\n\ndef check_graph(edges):\n    G = nx.Graph()\n    G.add_nodes_from(range(9))\n    G.add_edges_from(edges)\n    \n    # Check connectivity\n    if not nx.is_connected(G):\n        return False\n    if nx.node_connectivity(G) < 4:\n        return False\n    \n    # Check max independent set size\n    # Use brute force for 9 vertices\n    for size in range(5, 10):\n        for subset in itertools.combinations(range(9), size):\n            is_independent = True\n            for u, v in itertools.combinations(subset, 2):\n                if G.has_edge(u, v):\n                    is_independent = False\n                    break\n            if is_independent:\n                return False\n    \n    return True\n\n# Let's try a constructive approach\n# Start with a complete graph K_9 and remove edges carefully\n\n# Actually, let's try to use a known construction\n# The complement of a graph with alpha <= 4 has omega <= 4 (no K_5)\n# And the complement has max degree <= 4 (since min degree >= 4 in G)\n\n# Let's try to construct the complement graph H where:\n# - H has no K_5 (omega <= 4)\n# - H has max degree <= 4 (since min degree in G >= 4)\n# - H has 9 vertices\n\n# Let's try to find such a complement graph\n\ndef find_graph():\n    # Try to construct a graph with connectivity >= 4 and alpha <= 4\n    # Let's try starting from a regular graph\n    \n    # A 4-regular graph on 9 vertices? No, 4-regular requires even sum of degrees = 36, which is fine\n    # But 4-regular on 9 vertices... sum of degrees = 36, edges = 18\n    \n    # Let's try all 4-regular graphs on 9 vertices\n    # Actually, let's try a different approach\n    \n    # Let's try the complement of a graph with no K_5 and max degree <= 4\n    \n    # The complement graph H has 9 vertices, max degree <= 4, and no K_5\n    \n    # Let's try to find H first\n    vertices = list(range(9))\n    \n    # Try to construct H systematically\n    # H has edges where G does not\n    \n    # Let's try a specific construction\n    # Consider the complement of the Petersen graph... but that's 10 vertices\n    \n    # Let's try a circulant graph approach\n    for step1 in range(1, 5):\n        for step2 in range(step1+1, 5):\n            edges_G = []\n            for i in range(9):\n                edges_G.append((i, (i+step1) % 9))\n                edges_G.append((i, (i+step2) % 9))\n            # This gives degree 4 (each edge counted twice, so 9*4/2 = 18 edges)\n            # But some edges might be duplicated\n            edges_G = list(set([(min(u,v), max(u,v)) for u,v in edges_G]))\n            if len(edges_G) != 18:\n                continue\n            if check_graph(edges_G):\n                return edges_G\n    \n    return None\n\nresult = find_graph()\nprint(\"Result:\", result)",
+        "timeout_seconds": 30
+      },
+      "ok": true,
+      "latency_ms": 1420.66
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\n\nedges = [(0, 1), (0, 7), (2, 4), (1, 2), (3, 4), (6, 8), (4, 6), (1, 8), (5, 7), (2, 3), (6, 7), (0, 2), (4, 5), (5, 6), (7, 8), (0, 8), (1, 3), (3, 5)]\n\nG = nx.Graph()\nG.add_nodes_from(range(9))\nG.add_edges_from(edges)\n\nprint(\"Number of vertices:\", G.number_of_nodes())\nprint(\"Number of edges:\", G.number_of_edges())\nprint(\"Degrees:\", [d for v, d in sorted(G.degree())])\nprint(\"Min degree:\", min(d for v, d in G.degree()))\nprint(\"Max degree:\", max(d for v, d in G.degree()))\nprint(\"Connected:\", nx.is_connected(G))\nprint(\"Node connectivity:\", nx.node_connectivity(G))\n\n# Check independent sets of size 5\nimport itertools\nfound_independent_5 = False\nfor subset in itertools.combinations(range(9), 5):\n    is_independent = True\n    for u, v in itertools.combinations(subset, 2):\n        if G.has_edge(u, v):\n            is_independent = False\n            break\n    if is_independent:\n        print(f\"Found independent set of size 5: {subset}\")\n        found_independent_5 = True\n        break\n\nif not found_independent_5:\n    print(\"No independent set of size 5 - alpha <= 4 confirmed\")\n\n# Also check max independent set size exactly\nmax_ind = 0\nfor size in range(1, 10):\n    found = False\n    for subset in itertools.combinations(range(9), size):\n        is_independent = True\n        for u, v in itertools.combinations(subset, 2):\n            if G.has_edge(u, v):\n                is_independent = False\n                break\n        if is_independent:\n            max_ind = size\n            found = True\n            break\n    if not found:\n        break\n\nprint(f\"Maximum independent set size: {max_ind}\")",
+        "timeout": 30
+      },
+      "ok": true,
+      "latency_ms": 788.75
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "import networkx as nx\n\nedges = [(0, 1), (0, 7), (2, 4), (1, 2), (3, 4), (6, 8), (4, 6), (1, 8), (5, 7), (2, 3), (6, 7), (0, 2), (4, 5), (5, 6), (7, 8), (0, 8), (1, 3), (3, 5)]\n\nG = nx.Graph()\nG.add_nodes_from(range(9))\nG.add_edges_from(edges)\n\n# Verify node connectivity more carefully\nprint(\"Node connectivity:\", nx.node_connectivity(G))\n\n# Let's also check if removing any 3 vertices leaves the graph connected\nimport itertools\nfor subset in itertools.combinations(range(9), 3):\n    H = G.copy()\n    H.remove_nodes_from(subset)\n    if not nx.is_connected(H):\n        print(f\"Removing {subset} disconnects the graph!\")\n        break\nelse:\n    print(\"Graph remains connected after removing any 3 vertices - connectivity >= 4 confirmed\")\n\n# Let's also verify the independent set bound\nimport itertools\nfor subset in itertools.combinations(range(9), 5):\n    is_independent = True\n    for u, v in itertools.combinations(subset, 2):\n        if G.has_edge(u, v):\n            is_independent = False\n            break\n    if is_independent:\n        print(f\"ERROR: Found independent set of size 5: {subset}\")\n        break\nelse:\n    print(\"No independent set of size 5 - alpha <= 4 confirmed\")",
+        "timeout": 30
+      },
+      "ok": true,
+      "latency_ms": 801.42
+    }
+  ],
+  "error": "RateLimitError: Error code: 429 - {'error': {'message': 'Provider returned error', 'code': 429, 'metadata': {'raw': 'deepseek/deepseek-v4-flash is temporarily rate-limited upstream. Please retry shortly, or add your own key to accumulate your rate limits: https://openrouter.ai/settings/integrations', 'provider_name': 'DeepInfra', 'is_byok': False}}, 'user_id': 'user_3AQ84y2N5jUxGrtSOWjt20HvObN'}",
+  "failure_bucket": "api_error",
+  "forced_submit": false
+}

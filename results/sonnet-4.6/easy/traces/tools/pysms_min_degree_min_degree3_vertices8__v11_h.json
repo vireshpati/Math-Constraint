@@ -1,0 +1,130 @@
+{
+  "problem_name": "pysms_min_degree_min_degree3_vertices8__v11_h",
+  "problem_type": "pysms_min_degree",
+  "params": {
+    "min_degree": 3,
+    "vertices": 8
+  },
+  "difficulty": {
+    "solve_time_ms": 46.3,
+    "search_space": -1,
+    "num_variables": -1,
+    "num_constraints": -1,
+    "num_edges": 28,
+    "backend": "pysms",
+    "solve_tier": "easy",
+    "solve_pct_global": 21.24,
+    "solve_pct_type": 4.17
+  },
+  "is_hinted": true,
+  "is_satisfiable": true,
+  "model": "anthropic/claude-4.6-sonnet-20260217",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    [
+      0,
+      1
+    ],
+    [
+      0,
+      2
+    ],
+    [
+      0,
+      6
+    ],
+    [
+      1,
+      2
+    ],
+    [
+      1,
+      5
+    ],
+    [
+      2,
+      3
+    ],
+    [
+      2,
+      6
+    ],
+    [
+      3,
+      4
+    ],
+    [
+      3,
+      5
+    ],
+    [
+      3,
+      7
+    ],
+    [
+      4,
+      5
+    ],
+    [
+      4,
+      7
+    ],
+    [
+      6,
+      7
+    ]
+  ],
+  "reasoning": "Starting from the fixed edges (2,6),(0,6),(4,7),(6,7),(3,7), vertices 6 and 7 already have degree 3. The remaining vertices 0,1,2,3,4,5 need additional edges to reach degree \u2265 3. Adding edges (0,1),(0,2),(1,2),(1,5),(2,3),(3,4),(3,5),(4,5) brings all degrees to at least 3: degrees are [3,3,4,4,3,3,3,3].",
+  "raw_response": "{\n    \"satisfiable\": true,\n    \"solution\": [[0,1],[0,2],[0,6],[1,2],[1,5],[2,3],[2,6],[3,4],[3,5],[3,7],[4,5],[4,7],[6,7]],\n    \"reasoning\": \"Starting from the fixed edges (2,6),(0,6),(4,7),(6,7),(3,7), vertices 6 and 7 already have degree 3. The remaining vertices 0,1,2,3,4,5 need additional edges to reach degree \u2265 3. Adding edges (0,1),(0,2),(1,2),(1,5),(2,3),(3,4),(3,5),(4,5) brings all degrees to at least 3: degrees are [3,3,4,4,3,3,3,3].\"\n}",
+  "cot_trace": null,
+  "finish_reason": "stop",
+  "native_finish_reason": "end_turn",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by pySMS solver",
+  "prompt_tokens": 9126,
+  "completion_tokens": 1754,
+  "reasoning_tokens": 0,
+  "cached_tokens": 0,
+  "cost_usd": 0.05368799999999999,
+  "cost_source": "openrouter",
+  "latency_ms": 26664.900302886963,
+  "tool_dispatch_ms_total": 700.6092071533203,
+  "tool_calls_made": 3,
+  "tool_rounds": 4,
+  "n_execute_python": 3,
+  "n_submit_answer": 0,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfrom itertools import combinations\n\n# Fixed edges that must be present\nfixed_edges = {(2,6), (0,6), (4,7), (6,7), (3,7)}\n\n# All possible edges for 8 vertices\nall_possible = [(u,v) for u in range(8) for v in range(u+1,8)]\n\n# Compute degree from fixed edges\ndef compute_degrees(edges, n=8):\n    deg = [0]*n\n    for u,v in edges:\n        deg[u] += 1\n        deg[v] += 1\n    return deg\n\nfixed_deg = compute_degrees(fixed_edges)\nprint(\"Degrees from fixed edges:\", fixed_deg)\n# Vertices that already have degree >= 3\nprint(\"Vertices needing more edges:\", [i for i in range(8) if fixed_deg[i] < 3])\n"
+      },
+      "ok": true,
+      "latency_ms": 591.08
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\n# Use pysat / a simple backtracking to find a valid edge set\n# Vertices 0,1,2,3,4,5 need more edges; 6 and 7 already have degree 3\n\n# Let's try a greedy approach: add edges to satisfy min degree 3\n# Current degrees: [1, 0, 1, 1, 1, 0, 3, 3]\n# Need: 0 needs +2, 1 needs +3, 2 needs +2, 3 needs +2, 4 needs +2, 5 needs +3\n\n# Candidate edges (not already fixed, not involving 6 or 7 adding more unless needed)\n# 6 and 7 are already at degree 3, so avoid adding more to them if possible\n\ncurrent_edges = set(fixed_edges)\ndeg = list(fixed_deg)\n\ndef try_add(u, v):\n    if (min(u,v), max(u,v)) not in current_edges:\n        current_edges.add((min(u,v), max(u,v)))\n        deg[u] += 1\n        deg[v] += 1\n        return True\n    return False\n\n# Strategy: connect the needy vertices among themselves\n# Vertices needing edges: 0(+2), 1(+3), 2(+2), 3(+2), 4(+2), 5(+3)\n# Try: 0-1, 0-2, 1-2, 1-5, 3-4, 3-5, 4-5, 2-3\nadditions = [(0,1),(0,2),(1,2),(1,5),(3,4),(3,5),(4,5),(2,3)]\nfor u,v in additions:\n    try_add(u,v)\n    \nprint(\"Degrees:\", deg)\nprint(\"All >= 3?\", all(d >= 3 for d in deg))\nprint(\"Edges:\", sorted(current_edges))\n"
+      },
+      "ok": false,
+      "latency_ms": 57.38
+    },
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "\nfixed_edges = {(2,6), (0,6), (4,7), (6,7), (3,7)}\ncurrent_edges = set(fixed_edges)\ndeg = [1, 0, 1, 1, 1, 0, 3, 3]\n\ndef try_add(u, v):\n    key = (min(u,v), max(u,v))\n    if key not in current_edges:\n        current_edges.add(key)\n        deg[u] += 1\n        deg[v] += 1\n        return True\n    return False\n\nadditions = [(0,1),(0,2),(1,2),(1,5),(3,4),(3,5),(4,5),(2,3)]\nfor u,v in additions:\n    try_add(u,v)\n    \nprint(\"Degrees:\", deg)\nprint(\"All >= 3?\", all(d >= 3 for d in deg))\nprint(\"Edges:\", sorted(current_edges))\n"
+      },
+      "ok": true,
+      "latency_ms": 52.15
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": true
+}

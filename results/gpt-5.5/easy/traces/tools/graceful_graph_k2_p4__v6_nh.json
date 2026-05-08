@@ -1,0 +1,90 @@
+{
+  "problem_name": "graceful_graph_k2_p4__v6_nh",
+  "problem_type": "graceful_graph",
+  "params": {
+    "k": 2,
+    "p": 4
+  },
+  "difficulty": {
+    "solve_time_ms": 1359.6,
+    "search_space": 214358881,
+    "num_variables": 18,
+    "num_constraints": 14,
+    "num_edges": -1,
+    "backend": "pycsp",
+    "solve_tier": "hard",
+    "solve_pct_global": 83.65,
+    "solve_pct_type": 56.25
+  },
+  "is_hinted": false,
+  "is_satisfiable": true,
+  "model": "openai/gpt-5.5-20260423",
+  "provider": "openrouter",
+  "condition": "tools",
+  "submitted_satisfiable": true,
+  "submitted_solution": [
+    4,
+    7,
+    0,
+    2,
+    10,
+    1,
+    3,
+    9
+  ],
+  "reasoning": "The labeling uses 8 distinct labels from 0 to 10. The clique edges have differences 3,2,9,6 and the inter-clique matching edges have differences 4,5,10,1,7,8, giving exactly the distinct edge labels 1 through 10.",
+  "raw_response": null,
+  "cot_trace": "**Solving graph CSP**\n\nI need to solve a constrained satisfaction problem (CSP) and provide a final result in JSON format, likely using Python. I\u2019m considering graceful labeling for a graph composed of 4 disjoint K2 cliques. Each clique has internal edges, leading to a total of 10 edges when considering consecutive clique pairs. The vertices range from (g,i), where g varies from 0 to 3 and i from 0 to 1. The edge labels need to be distinct positive integers from 1 to 10. Let's see if I can find a solution by brute force or constraint programming!",
+  "finish_reason": "tool_calls",
+  "native_finish_reason": "completed",
+  "refusal": null,
+  "correct": true,
+  "satisfiability_correct": true,
+  "solution_correct": true,
+  "validation_details": "Solution verified by solver",
+  "prompt_tokens": 1837,
+  "completion_tokens": 941,
+  "reasoning_tokens": 235,
+  "cached_tokens": 0,
+  "cost_usd": 0.037415,
+  "cost_source": "openrouter",
+  "latency_ms": 16673.558950424194,
+  "tool_dispatch_ms_total": 37.59598731994629,
+  "tool_calls_made": 2,
+  "tool_rounds": 2,
+  "n_execute_python": 1,
+  "n_submit_answer": 1,
+  "tool_call_chain": [
+    {
+      "name": "execute_python",
+      "args": {
+        "code": "from itertools import permutations, combinations\n# vertices index g*2+i\nedges=[]\nfor g in range(4): edges.append((2*g,2*g+1))\nfor g in range(3):\n    for i in range(2): edges.append((2*g+i,2*(g+1)+i))\nprint(edges, len(edges))\n# backtracking order maybe assign vertices. Use networkx? brute perm labels.\nlabels_range=range(11)\n# A known graceful needs edge 10, so labels 0&10 adjacent. Try DFS assign.\nadj=[set() for _ in range(8)]\nfor u,v in edges:\n    adj[u].add(v); adj[v].add(u)\n# order by degree: vertices 2-5 degree3, endpoints degree2\nprint([len(a) for a in adj])\n\n# simple recursive assign order [2,3,4,5,0,1,6,7] maybe adjacent constraints.\norder=[2,3,4,5,0,1,6,7]\nassigned=[None]*8\nused_labels=set(); used_diffs=set()\nremaining_edges_by_v = []\n\ndef dfs(k):\n    if k==len(order):\n        if len(used_diffs)==10 and set(used_diffs)==set(range(1,11)):\n            return assigned.copy()\n        return None\n    v=order[k]\n    for lab in labels_range:\n        if lab in used_labels: continue\n        # assign, check diff with assigned neighbors unique\n        newdiffs=[]; ok=True\n        for nb in adj[v]:\n            if assigned[nb] is not None:\n                d=abs(lab-assigned[nb])\n                if d==0 or d in used_diffs or d in newdiffs:\n                    ok=False; break\n                newdiffs.append(d)\n        if not ok: continue\n        # Prune: possible to eventually cover all? maybe skip\n        assigned[v]=lab; used_labels.add(lab); used_diffs.update(newdiffs)\n        # Since all diffs 1..10 no check needed.\n        res=dfs(k+1)\n        if res: return res\n        for d in newdiffs: used_diffs.remove(d)\n        used_labels.remove(lab); assigned[v]=None\n    return None\nres=dfs(0)\nprint(res)\nif res:\n    diffs=[abs(res[u]-res[v]) for u,v in edges]\n    print(diffs, sorted(diffs), len(set(diffs)))\n",
+        "timeout_seconds": 15
+      },
+      "ok": true,
+      "latency_ms": 37.6
+    },
+    {
+      "name": "submit_answer",
+      "args": {
+        "satisfiable": true,
+        "solution": [
+          4,
+          7,
+          0,
+          2,
+          10,
+          1,
+          3,
+          9
+        ],
+        "reasoning": "The labeling uses 8 distinct labels from 0 to 10. The clique edges have differences 3,2,9,6 and the inter-clique matching edges have differences 4,5,10,1,7,8, giving exactly the distinct edge labels 1 through 10."
+      },
+      "ok": true,
+      "latency_ms": 0.0
+    }
+  ],
+  "error": null,
+  "failure_bucket": "none",
+  "forced_submit": false
+}
